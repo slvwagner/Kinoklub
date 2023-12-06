@@ -1,4 +1,4 @@
-source("read and convert.R")
+source("source/read and convert.R")
 
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen 
@@ -29,7 +29,7 @@ c_index <- df_mapping|>
 for(jj in c_index){
   
   # Einlesen template der Abrechnung
-  c_raw <- readLines("Abrechnung.Rmd")
+  c_raw <- readLines("source/Abrechnung.Rmd")
   c_raw
   
   # Ändern des Templates mit user eingaben
@@ -57,13 +57,26 @@ for(jj in c_index){
 
 #############################################################################################################################################
 # Erfolgsrechnung
-print(clc)
-rmarkdown::render(paste0("Erfolgs Rechnung.Rmd"),
+
+rmarkdown::render(paste0("source/Erfolgs Rechnung.Rmd"),
                   c("html_document","word_document"),
                   output_dir = paste0(getwd(), "/output"))
+print(clc)
 
 paste("Erfolgsrechnung erstellt")|>
     writeLines()
+
+
+#############################################################################################################################################
+# Statistik
+
+rmarkdown::render(paste0("source/Statistik.Rmd"),
+                  c("html_document","word_document"),
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Erfolgsrechnung erstellt")|>
+  writeLines()
 
 #############################################################################################################################################
 # remove temp file
