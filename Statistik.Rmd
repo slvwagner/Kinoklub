@@ -1,0 +1,66 @@
+---
+title: "Statistik Kinoclub"
+author: "Nadia Wagner"
+date: "2023-12-06"
+output: html_document
+---
+
+## Statistik
+### Umsatz pro Gast
+
+```{r echo=FALSE}
+df_temp <- df_show |>
+  left_join(
+    df_Eintritt |>
+      group_by(Datum) |>
+      reframe(`Besucher` = sum(Anzahl))|>
+      left_join(df_Kiosk |>
+                  group_by(Datum) |>
+                  reframe(Umsatz = sum(Kassiert)),
+                by = join_by(Datum)
+                ) |>
+      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+  by = join_by(Datum)
+  )|>
+  select(-Ende, -Saal, -Version, -Alter)|>
+  filter(!is.na(suisa_nr))
+
+df_temp|>
+  knitr::kable()
+
+df_temp|>
+  reframe(`Umsatz pro Gast` = sum(Umsatz)/sum(Besucher))|>
+  knitr::kable()
+
+```
+
+
+### Umsatz pro zahlender Gast
+```{r echo=FALSE}
+df_temp <- df_show |>
+  left_join(
+    df_Eintritt |>
+      filter(Zahlend)|>
+      group_by(Datum) |>
+      reframe(`Besucher` = sum(Anzahl))|>
+      left_join(df_Kiosk |>
+                  group_by(Datum) |>
+                  reframe(Umsatz = sum(Kassiert)),
+                by = join_by(Datum)
+                ) |>
+      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+  by = join_by(Datum)
+  )|>
+  select(-Ende, -Saal, -Version, -Alter)|>
+  filter(!is.na(suisa_nr))
+
+df_temp|>
+  knitr::kable()
+
+df_temp|>
+  reframe(`Umsatz pro Gast` = sum(Umsatz)/sum(Besucher))|>
+  knitr::kable()
+
+
+```
+

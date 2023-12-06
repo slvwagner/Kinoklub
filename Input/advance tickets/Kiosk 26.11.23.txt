@@ -1,0 +1,13 @@
+Platzkategorie	Preis	Tax	Anzahl	Betrag	Kassiert	Vorausbezahlt	Fakturieren	Tax
+Kaffee, Espresso	4.00	0.0000	11	44.00	44.00	0.00	0.00	0.00
+Fever-Tree Tonic Water	4.50	0.0000	1	4.50	4.50	0.00	0.00	0.00
+Mineralwasser mit	4.00	0.0000	1	4.00	4.00	0.00	0.00	0.00
+Gazosa Grapefruit	6.00	0.0000	1	6.00	6.00	0.00	0.00	0.00
+Gazosa Orange	6.00	0.0000	1	6.00	6.00	0.00	0.00	0.00
+Mocca	4.00	0.0000	1	4.00	4.00	0.00	0.00	0.00
+Popcorn frisch	5.00	0.0000	1	5.00	5.00	0.00	0.00	0.00
+17	73.50	73.50	0.00	0.00	0.00
+Spez 1		0.0000	3	6.00	6.00	0.00	0.00	0.00
+Spez 2		0.0000	8	40.00	40.00	0.00	0.00	0.00
+10	46.00	46.00	0.00	0.00	0.00
+Gesamt	27	119.50	119.50	0.00	0.00	0.00

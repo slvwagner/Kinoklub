@@ -1,0 +1,132 @@
+---
+title: "Erfolgsrechnug Kinoclub"
+author: "Nadia Wagner"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("read and convert.R")
+```
+
+
+Im folgende wird die Abrechnung aufgrund der beiden Datensätze Kino-Eintritte und Kiosk-Umsatz erstellt. Die Datensätze sind von https://www.advance-ticket.ch/admin heruntergeladen worden.
+```{r echo=FALSE}
+
+c_verleiherabgaben <- df_verleiherabgaben|>
+  select(`Abzug [%]`)|>
+  pull()
+
+df_show|>
+  filter(!is.na(suisa_nr))|>
+  knitr::kable()
+```
+
+
+## Kino Eintritte
+
+```{r echo=FALSE}
+
+df_Eintritt|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  group_by(Platzkategorie,Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))|>
+  rename(`Umsatz [sFR]` = `Umsatz`,
+         `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+
+df_Eintritt|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))|>
+  rename(`Umsatz [sFR]` = `Umsatz`)|>
+  knitr::kable()
+
+```
+
+
+### Gewinn / Verlust Eintritte
+
+```{r echo=FALSE}
+df_GV_Eintritt|>
+  rename(`Umsatz [sFr]` = Umsatz,
+         `Gewinn/Verlust [sFr]` = `Gewinn/Verlust`
+         )|>
+  select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`)|>
+  knitr::kable()
+```
+
+
+```{r echo=FALSE}
+df_GV_Eintritt|>
+  reframe(`Umsatz [sFr]` = sum(Umsatz),
+          `SUISA-Abzug [sFr]` = sum(`SUISA-Abzug [sFr]`),
+          `Verleiher-Abzug [sFr]` = sum(`Verleiher-Abzug [sFr]`),
+          `Gewinn/Verlust [sFr]` = sum(`Gewinn/Verlust`)
+         )|>
+  knitr::kable()
+
+```
+
+
+## Kiosk
+
+```{r echo=FALSE}
+df_Kiosk|>
+  select(-Datum,-Betrag)|>
+  group_by(Verkaufsartikel)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Kassiert),
+          Gewinn = sum(Gewinn),
+          )|>
+  arrange(desc(Gewinn))|>
+  rename(`Umsatz [sFR]` = `Umsatz`,
+         `Gewinn [sFr]` = `Gewinn`)|>
+  knitr::kable()
+
+```
+
+
+### Kiosk pro Vorführung 
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  rename(`Umsatz [sFr]` = Kassiert,
+         `Gewinn [sFr]` = Gewinn)|>
+  knitr::kable()
+
+```
+
+
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  reframe(Umsatz = sum(Kassiert),
+          Gewinn = sum(Gewinn)
+          )|>
+  rename(`Umsatz [sFr]` = Umsatz,
+         `Gewinn [sFr]` = Gewinn)|>
+  knitr::kable()
+
+```
+
+## Erfolg
+Der Gewinn Kiosk und der Gewinn/Verlust der Kinoeintritte wurden addiert. 
+
+```{r echo=FALSE}
+df_GV_Vorfuehrung|>
+  left_join(df_show,by = join_by(Datum, suisa_nr))|>
+  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust`)|>
+  knitr::kable()
+```
+
+```{r echo=FALSE}
+df_GV_Vorfuehrung|>
+  reframe(`Total Gewinn/Verlust [sFr]` = sum(`Gewinn/Verlust`)
+          )|>
+  knitr::kable()
+```
+
