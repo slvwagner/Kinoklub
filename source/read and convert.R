@@ -183,8 +183,8 @@ distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
 
-(c_Date[1]-c_Einkaufslistendatum[1])|>as.integer()
-(c_Date[1]-c_Einkaufslistendatum[2])|>as.integer()
+# (c_Date[1]-c_Einkaufslistendatum[1])|>as.integer()
+# (c_Date[1]-c_Einkaufslistendatum[2])|>as.integer()
 
 # df_temp <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date)|>as.integer())|>
 #   bind_cols()|>
@@ -201,14 +201,6 @@ c_Einkaufslistendatum
 # df_temp|>
 #   as_tibble()|>
 #   mutate(c_Date)
-
-
-for (ii in 1:length(c_Date)) {
-  (c_Date[ii]-distinct(df_Einkaufspreise, Datum)|>pull())|>
-    print()
-}
-
-tibble(c_Date, c_Einkaufslistendatum[1])
 
 
 l_Kiosk <- list()

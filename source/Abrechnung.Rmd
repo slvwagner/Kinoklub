@@ -1,5 +1,7 @@
 ---
 title: Abrechnung Filmvorführung
+author: "Nadia Wagner"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,10 +13,28 @@ knitr::opts_chunk$set(echo = TRUE)
 ii <- 2
 ```
 
-Im folgende wird die Abrechnung aufgrund der beiden Datensätze Kino-Eintritte und Kiosk-Umsatz erstellt. Die Datensätze sind von https://www.advance-ticket.ch/admin heruntergeladen worden.
+## Erfolg
+Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
+
 ```{r echo=FALSE}
 c_suisa <- df_show$suisa_nr[ii]
 c_Datum <- df_show$Datum[ii]
+```
+
+
+```{r echo=FALSE}
+df_GV_Vorfuehrung|>
+  left_join(df_show,by = join_by(Datum, suisa_nr))|>
+  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust`)|>
+  arrange(Datum)|> 
+  knitr::kable()
+```
+
+
+Im folgende wird die Abrechnung aufgrund der beiden Datensätze Kino-Eintritte und Kiosk-Umsatz erstellt. Die Datensätze sind von https://www.advance-ticket.ch/admin heruntergeladen worden.
+```{r echo=FALSE}
+
 c_verleiherabgaben <- df_verleiherabgaben|>
   filter(Datum == c_Datum & Suisa == c_suisa)|>
   select(`Abzug [%]`)|>
