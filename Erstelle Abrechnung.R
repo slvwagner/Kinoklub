@@ -1,7 +1,9 @@
 #############################################################################################################################################
 # Scritpt für den Kinoklub 
 # Bitte beachte das README.md 
-# Diesen Script erstellt Abrechnungen für   
+# Diesen Script erstellt Abrechnungen für den Kinoclub.   
+# 
+# V0.1.0
 #############################################################################################################################################
 
 source("source/read and convert.R")

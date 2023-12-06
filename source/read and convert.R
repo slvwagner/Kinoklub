@@ -144,10 +144,20 @@ df_Eintritt
 ########################################################################
 # read Einkaufspreise 
 c_files <- list.files(pattern = START%R%"Einkauf", recursive = T)
-df_Einkaufspreise <- c_files|>
-  read.xlsx()|>
-  as_tibble()
+l_Einkaufspreise <- lapply(c_files, readxl::read_excel)
+
+p <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+names(l_Einkaufspreise) <- c_files|>str_extract(p)
+
+df_Einkaufspreise <- l_Einkaufspreise |>
+  bind_rows(.id = "Datum")|>
+  mutate(Datum = lubridate::dmy(Datum)|>as.Date())
 df_Einkaufspreise
+
+# df_Einkaufspreise <- c_files|>
+#   read.xlsx()|>
+#   as_tibble()
+# df_Einkaufspreise
 
 ########################################################################
 # Read Kiosk Spezpreise
@@ -164,6 +174,42 @@ c_files
 c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
   dmy()|>
   as.Date()
+c_Date
+
+########################################################################
+# Suchen der korreckten Einkaufspreise
+distinct(df_Einkaufspreise, Datum)|>pull()
+
+c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
+c_Einkaufslistendatum
+
+(c_Date[1]-c_Einkaufslistendatum[1])|>as.integer()
+(c_Date[1]-c_Einkaufslistendatum[2])|>as.integer()
+
+# df_temp <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date)|>as.integer())|>
+#   bind_cols()|>
+#   as.matrix()|>
+#   suppressMessages()
+# 
+# colnames(df_temp) <- c_Einkaufslistendatum|>
+#   as.character()
+# 
+# df_temp|>
+#   apply(2, function(x) ifelse(x<=0, x, NA))|>
+#   apply(1, )
+# 
+# df_temp|>
+#   as_tibble()|>
+#   mutate(c_Date)
+
+
+for (ii in 1:length(c_Date)) {
+  (c_Date[ii]-distinct(df_Einkaufspreise, Datum)|>pull())|>
+    print()
+}
+
+tibble(c_Date, c_Einkaufslistendatum[1])
+
 
 l_Kiosk <- list()
 for(ii in 1:length(c_files)){
@@ -196,10 +242,11 @@ for(ii in 1:length(c_files)){
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     mutate(Platzkategorie = if_else(!is.na(Artikelname),Artikelname,Platzkategorie)
            )|>
-    left_join(df_Einkaufspreise, by = c(Platzkategorie ="Artikelname.Kassensystem"))
+    left_join(df_Einkaufspreise,
+              by = c(Platzkategorie ="Artikelname Kassensystem"))
   
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    mutate(Einkaufspreis = if_else(!is.na(Einkaufspreis),Einkaufspreis, `Einkaufs-.preis`)
+    mutate(Einkaufspreis = if_else(!is.na(Einkaufspreis),Einkaufspreis, `Einkaufs- preis`)
            )|>
     select(1:13)|>
     select(-Artikelname,-Verkaufspreis)
@@ -216,13 +263,14 @@ df_Kiosk <- l_Kiosk|>
          `Tax...9` = NULL
          )|>
   rename(Verkaufsartikel = Platzkategorie,
-         Verkaufspreis = Preis)
+         Verkaufspreis = Preis,
+         Datum = Datum.x)
 
 df_Kiosk <- df_Kiosk|>
   mutate(Gewinn = Kassiert-(Anzahl*Einkaufspreis))|>
   select(Datum,Verkaufsartikel,Verkaufspreis,Anzahl,Betrag,Kassiert,Einkaufspreis,Gewinn)
 
-names(df_Kiosk)
+
 
 ########################################################################
 # read show times
