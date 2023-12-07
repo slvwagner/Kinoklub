@@ -4,10 +4,14 @@ author: "Nadia Wagner"
 output: html_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
+Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
 ii <- 1
