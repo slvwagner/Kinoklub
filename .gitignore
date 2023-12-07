@@ -5,7 +5,8 @@
 
 # Session Data files
 output/
-
+README.html
+temp.Rmd
 
 .RData
 .RDataTmp
