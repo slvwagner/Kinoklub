@@ -1,8 +1,8 @@
 ---
 title: "Statistik Kinoklub"
-output: 
+output:
   html_document:
-    css: "Kinoklub_dark.css"
+    css: Kinoklub_dark.css
 ---
 
 
