@@ -1,6 +1,5 @@
 ---
-title: Abrechnung Filmvorführung
-author: "Nadia Wagner"
+title: "Abrechnung Filmvorführung"
 output: html_document
 ---
 
