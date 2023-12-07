@@ -1,6 +1,8 @@
 ---
 title: "Statistik Kinoklub"
-output: html_document
+output: 
+  html_document:
+    css: "Kinoklub_white.css"
 ---
 
 
@@ -61,15 +63,17 @@ df_Kiosk|>
   knitr::kable()
 ```
 
-<!-- ```{r} -->
-<!-- df_Kiosk|> -->
-<!--   reframe(`Total Anzahl` = sum(Anzahl),  -->
-<!--           `Total Umsatz [CHF]` = sum(Kassiert), -->
-<!--           `Total Gewinn [CHF]` = sum(Gewinn) -->
-<!--           )|> -->
-<!--   knitr::kable() -->
-<!-- ``` -->
 
+
+```{r }
+df_Kiosk|>
+  reframe(`Anzahl verkaufter Verkaufsartikel` = sum(Anzahl),
+          `Umsatz Kiosk [CHF]` = sum(Kassiert),
+          `Gewinn Kiosk [CHF]` = sum(Gewinn) ,
+          )|>
+  arrange(desc(`Anzahl verkaufter Verkaufsartikel`))|>
+  knitr::kable()
+```
 
 ### Ladenhüter (keine Verkäufe)
 ```{r }
