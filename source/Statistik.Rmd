@@ -8,6 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -61,6 +62,17 @@ df_Kiosk|>
   knitr::kable()
 ```
 
+```{r}
+df_Kiosk|>
+  reframe(`Total Anzahl` = sum(Anzahl), 
+          `Total Umsatz [CHF]` = sum(Kassiert),
+          `Total Gewinn [CHF]` = sum(Gewinn)
+          )|>
+  arrange(desc(Anzahl))|>
+  knitr::kable()
+```
+
+
 ### Ladenhüter (keine Verkäufe)
 ```{r }
 
@@ -101,7 +113,7 @@ df_temp|>
   knitr::kable()
 
 df_temp|>
-  reframe(`Umsatz pro Gast` = sum(Umsatz)/sum(Besucher))|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz)/sum(Besucher))|>
   knitr::kable()
 
 ```
@@ -130,7 +142,7 @@ df_temp|>
   knitr::kable()
 
 df_temp|>
-  reframe(`Umsatz pro Gast` = sum(Umsatz)/sum(Besucher))|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz)/sum(Besucher))|>
   knitr::kable()
 ```
 

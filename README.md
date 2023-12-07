@@ -1,8 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
 
 # Kinoklub
 
@@ -11,8 +6,8 @@ Script zur Abrechnung für den Kinoklub TaB
 ## Datensätze
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin>
-heruntergeladen werden und sind unter dem Verzeichnis " /input/advance
-tickets" abzuspeichern.
+heruntergeladen werden und sind unter dem Verzeichnis **/input/advance
+tickets** abzuspeichern.
 
 -   Eintritte 02.12.23.txt\
     Copy paste von html für jede Filmvorführung und Speichern unter
@@ -28,7 +23,7 @@ tickets" abzuspeichern.
 
 ## Konfigurations Dateien
 
-Im Verzeichniss /input kann mit Hilfe von Excelfiles folgendes definiert
+Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert
 werden:
 
 -   Einkauf Kiosk 01.02.23\
@@ -61,3 +56,6 @@ werden:
     Oder Starte Rstudio und finde mit getwd() den Standard Pfad und
     installiere mit "git clone ..." das Verzeichnis. mit setwd() kann
     auch gearbeitet werden.
+  
+7.  In R-Terminal: source(Erstelle Abrechnung.R")
+    Die Repots werden erzeugt. 
