@@ -3,7 +3,7 @@
 # Bitte beachte das README.md 
 # Diesen Script erstellt Abrechnungen für den Kinoclub.   
 # 
-# V0.1.0
+# V0.2.0
 #############################################################################################################################################
 
 source("source/read and convert.R")
@@ -16,25 +16,11 @@ df_mapping <- df_Eintritt|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
 
-#############################################################################################################################################
-# Abrechnungsdatum durch den User festlegen 
-
-c_select <- select.list(df_mapping$user_Datum,title = "Bitte das Abrechnungs Datum auswaehlen:\n" ,
-                        multiple = T,
-                        graphics = T)|>
-  lubridate::dmy()|>
-  as.Date()
-
 
 #############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
 
-c_index <- df_mapping|>
-  filter(Datum %in% c_select)|>
-  select(index)|>
-  pull()
-
-for(jj in c_index){
+for(ii in 1:nrow(df_mapping)){
   
   # Einlesen template der Abrechnung
   c_raw <- readLines("source/Abrechnung.Rmd")
@@ -44,7 +30,7 @@ for(jj in c_index){
   index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
   index
   
-  c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(jj))
+  c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
   writeLines(c_raw, paste0("temp",".Rmd"))
   
   # Render
@@ -53,12 +39,12 @@ for(jj in c_index){
                     output_dir = paste0(getwd(), "/output"))
   
   # Rename the file
-  file.rename(paste0(getwd(),"/output/temp",".html"), paste0(getwd(),"/output/",df_mapping$Datum[jj],".html"))
-  file.rename(paste0(getwd(),"/output/temp",".docx"), paste0(getwd(),"/output/",df_mapping$Datum[jj],".docx"))
+  file.rename(paste0(getwd(),"/output/temp",".html"), paste0(getwd(),"/output/",df_mapping$Datum[ii],".html"))
+  file.rename(paste0(getwd(),"/output/temp",".docx"), paste0(getwd(),"/output/",df_mapping$Datum[ii],".docx"))
   
   # user interaction
   print(clc)
-  paste("Abrechnung vom", df_mapping$Datum[jj], "erstellt")|>
+  paste("Abrechnung vom", df_mapping$Datum[ii], "erstellt")|>
     writeLines()
 }
 
