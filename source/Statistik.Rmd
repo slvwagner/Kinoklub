@@ -5,7 +5,6 @@ output:
     css: Kinoklub_dark.css
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
