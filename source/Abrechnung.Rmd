@@ -61,7 +61,7 @@ df_Eintritt|>
 ```
 
 
-### Kino Eintritte Übersicht
+### Kino Eintritte Zusammenfassung
 
 ```{r echo=FALSE}
 
@@ -73,7 +73,6 @@ df_Eintritt|>
           Umsatz = sum(Umsatz))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
   rename(`Umsatz [CHF]` = `Umsatz`,
-         `Verkaufspreis [CHF]`=`Umsatz`,
          Eintritt = Zahlend)|>
   knitr::kable()
 
@@ -92,7 +91,7 @@ df_Eintritt|>
 
 ```
 
-
+### Filmabgaben​
 Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **CHF 150.-**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
@@ -132,7 +131,52 @@ df_Kiosk|>
   knitr::kable()
 ```
 
+## Statistik
+### Umsatz pro Gast
 
+```{r echo=FALSE}
+df_show |>
+    filter(Datum == c_Datum)|>
+  left_join(
+    df_Eintritt |>
+      group_by(Datum) |>
+      reframe(`Besucher` = sum(Anzahl))|>
+      left_join(df_Kiosk |>
+                  group_by(Datum) |>
+                  reframe(Umsatz = sum(Kassiert)),
+                by = join_by(Datum)
+                ) |>
+      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+  by = join_by(Datum)
+  )|>
+  filter(!is.na(`Suisa Nummer`))|>
+    select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
+  knitr::kable()
+
+```
+
+
+### Umsatz pro zahlender Gast
+```{r echo=FALSE}
+df_show |>
+  filter(Datum == c_Datum)|>
+  left_join(
+    df_Eintritt |>
+      filter(Zahlend)|>
+      group_by(Datum) |>
+      reframe(`Besucher` = sum(Anzahl))|>
+      left_join(df_Kiosk |>
+                  group_by(Datum) |>
+                  reframe(Umsatz = sum(Kassiert)),
+                by = join_by(Datum)
+                ) |>
+      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+  by = join_by(Datum)
+  )|>
+  filter(!is.na(`Suisa Nummer`))|>
+    select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
+  knitr::kable()
+```
 
 
 

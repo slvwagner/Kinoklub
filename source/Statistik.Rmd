@@ -60,7 +60,5 @@ df_temp|>
 df_temp|>
   reframe(`Umsatz pro Gast` = sum(Umsatz)/sum(Besucher))|>
   knitr::kable()
-
-
 ```
 
