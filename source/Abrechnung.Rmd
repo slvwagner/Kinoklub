@@ -41,7 +41,7 @@ df_GV_Vorfuehrung|>
   filter(Datum == c_Datum & suisa_nr == c_suisa)|>
   arrange(Datum)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust`)|>
+  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
 
@@ -81,7 +81,7 @@ df_GV_Eintritt|>
   filter(Datum == c_Datum & suisa_nr == c_suisa)|>
   select(-Datum,-Anfang,-suisa_nr,-Filmtitel)|>
   rename(`Umsatz [sFr]` = Umsatz,
-         `Gewinn/Verlust [sFr]` = `Gewinn/Verlust`
+         `Gewinn/Verlust [sFr]` = `Gewinn/Verlust [CHF]`
          )|>
     knitr::kable()
 

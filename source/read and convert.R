@@ -26,7 +26,7 @@ convert_data <- function(c_fileName) {
     ii <- 1
     
     l_temp[[ii]] <- c_temp[1]
-    names(l_temp)[ii] <- "Swisa"
+    names(l_temp)[ii] <- "Suisa"
     ii <- ii+1
     
     # Extract Filmtitel
@@ -348,16 +348,16 @@ for (ii in 1:length(c_Datum)) {
                        suisa_nr = c_suisa_nr[ii],
                        Umsatz = c_Umsatz, 
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
-                       `SUISA-Abzug [sFr]` = round5Rappen(c_Umsatz*c_suisaabzug), 
+                       `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
                        `Verleiher-Abzug [%]` =c_verleiherabzug*100,
-                       `Verleiher-Abzug [sFr]` = round5Rappen(c_Umsatz*c_verleiherabzug))|>
-    mutate(`Verleiher-Abzug [sFr]` = if_else(`Verleiher-Abzug [sFr]` > 150, `Verleiher-Abzug [sFr]`, 150),
-           `Gewinn/Verlust` = Umsatz-(`SUISA-Abzug [sFr]`+`Verleiher-Abzug [sFr]`))|>
+                       `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug))|>
+    mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
+           `Gewinn/Verlust [CHF]` = Umsatz-(`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))|>
     left_join(df_show, by = join_by(Datum, suisa_nr))
 }
 df_GV_Eintritt <- l_GV|>
   bind_rows()|>
-  select( Datum,Anfang, suisa_nr, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [sFr]`, `Verleiher-Abzug [sFr]`, `Gewinn/Verlust`)
+  select( Datum,Anfang, suisa_nr, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
 
 df_GV_Eintritt
 
@@ -385,7 +385,7 @@ l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Datum)) {
   l_GV_Vorfuehrung[[ii]] <- tibble(Datum = c_Datum[ii], 
                                    suisa_nr = c_suisa_nr[ii],
-                                   `Gewinn/Verlust` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust`)
+                                   `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]`)
 }
 
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
