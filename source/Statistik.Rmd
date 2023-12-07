@@ -34,7 +34,6 @@ df_Eintritt|>
 
 ```{r }
 df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
@@ -62,15 +61,14 @@ df_Kiosk|>
   knitr::kable()
 ```
 
-```{r}
-df_Kiosk|>
-  reframe(`Total Anzahl` = sum(Anzahl), 
-          `Total Umsatz [CHF]` = sum(Kassiert),
-          `Total Gewinn [CHF]` = sum(Gewinn)
-          )|>
-  arrange(desc(Anzahl))|>
-  knitr::kable()
-```
+<!-- ```{r} -->
+<!-- df_Kiosk|> -->
+<!--   reframe(`Total Anzahl` = sum(Anzahl),  -->
+<!--           `Total Umsatz [CHF]` = sum(Kassiert), -->
+<!--           `Total Gewinn [CHF]` = sum(Gewinn) -->
+<!--           )|> -->
+<!--   knitr::kable() -->
+<!-- ``` -->
 
 
 ### Ladenhüter (keine Verkäufe)
