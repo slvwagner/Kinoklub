@@ -1,0 +1,17 @@
+body {
+  background-color: #322f3b;
+  color: #f4cccc;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #f4eacc;
+}
+
+a {
+  color: #64b5f6;
+}
+
+code {
+  background-color: #263238;
+  color: #cfd8dc;
+}

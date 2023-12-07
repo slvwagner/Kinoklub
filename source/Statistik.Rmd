@@ -2,7 +2,7 @@
 title: "Statistik Kinoklub"
 output: 
   html_document:
-    css: "Kinoklub_white.css"
+    css: "Kinoklub_dark.css"
 ---
 
 
