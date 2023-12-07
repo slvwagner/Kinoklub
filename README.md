@@ -52,10 +52,9 @@ werden:
 
 5.  Verknüpfe ".R"-files mit Rstudio
 
-6.  Starte Rstudio mit dem Anklicken der Datei "Erstelle Abrechnung.R"
-    Oder Starte Rstudio und finde mit getwd() den Standard Pfad und
-    installiere mit "git clone ..." das Verzeichnis. mit setwd() kann
-    auch gearbeitet werden.
+6.  Variante 1: Starte Rstudio mit dem Anklicken der Datei "Erstelle Abrechnung.R"
+    Variante 2: Starte Rstudio und finde mit getwd() den Standard Pfad und
+    installiere mit "git clone ..." das Verzeichnis. 
   
 7.  In R-Terminal: source(Erstelle Abrechnung.R")
     Die Repots werden erzeugt. 
