@@ -1,21 +1,39 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
 
 # Kinoclub
 
-Abrechnung für den Kinoklub Die Datensätze können von
-<https://www.advance-ticket.ch/admin> heruntergeladen werden und sind
-unter dem Verzeichnis " /input/advance tickets" abzuspeichern.
+Script zur Abrechnung für den Kinoklub TaB
 
-Im Verzeichniss /input kann mit hilfe von Excelfiles folgendes definiert
+## Datensätze
+
+Die Datensätze können von <https://www.advance-ticket.ch/admin>
+heruntergeladen werden und sind unter dem Verzeichnis " /input/advance
+tickets" abzuspeichern.
+
+-   Eintritte 02.12.23.txt\
+    Copy paste von html für jede Filmvorführung und Speichern unter
+    "Eintritt xx.xx.xx.txt"
+
+-   Kiosk 02.12.23.txt\
+    Copy paste von html für jede Filmvorführung und Speichern unter
+    "Kiosk xx.xx.xx.txt"
+
+-   Shows.txt\
+    Copy paste von html für die gewünschte Abrechnungsperiode und
+    Speichern unter "Shows.txt"
+
+## Konfigurations Dateien
+
+Im Verzeichniss /input kann mit Hilfe von Excelfiles folgendes definiert
 werden:
 
--   Einkaufspreise Kiosk
+-   Einkauf Kiosk 01.02.23\
+    Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden.
+    Ändern sich die Einkaufspreise so muss das File abgepasst werden und
+    und mit dem neuen Gültigkeitsdauer abgespeichert werden. Die älteren
+    Dateien dürfen nicht gelöscht werden .
 
--   Spezialpreise Kiosk also sonderangebote
+-   Spezialpreisekiosk.xlsx\
+    Definition der Sonderangebote
 
 -   Verleiherabgaben\
     Die Abrechnungen werden erstellt wenn das Script "Erstelle
@@ -24,8 +42,7 @@ werden:
 
 # How to use
 
-1.   Download R und R Studio
-    <https://posit.co/download/rstudio-desktop/>
+1.  Download R und R Studio <https://posit.co/download/rstudio-desktop/>
 
 2.  Download git <https://git-scm.com/downloads>
 
@@ -36,3 +53,6 @@ werden:
 5.  Verknüpfe ".R"-files mit Rstudio
 
 6.  Starte Rstudio mit dem Anklicken der Datei "Erstelle Abrechnung.R"
+    Oder Starte Rstudio und finde mit getwd() den Standard Pfad und installiere mit "git clone ..." das Verzeichnis.
+    mit setwd() kann auch gearbeitet werden.  
+
