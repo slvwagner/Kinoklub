@@ -5,7 +5,7 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
@@ -13,9 +13,74 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ## Statistik
-### Umsatz pro Gast
 
-```{r echo=FALSE}
+### Eintritte
+```{r }
+df_Eintritt|>
+  group_by(Platzkategorie)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Film Umsatz [CHF]` = sum(Umsatz))|>
+  knitr::kable()
+
+```
+
+```{r}
+df_Eintritt|>
+  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  knitr::kable()
+```
+
+
+```{r }
+df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  rename(Eintritt = Zahlend)|>
+  knitr::kable()
+
+```
+
+
+
+### Kiosk 
+
+### Verkaufsartikel 
+
+```{r }
+df_Kiosk|>
+  select(-Betrag)|>
+  group_by(Verkaufsartikel)|>
+  reframe(Anzahl = sum(Anzahl), 
+          `Umsatz [CHF]` = sum(Kassiert),
+          `Gewinn [CHF]` = sum(Gewinn)
+          )|>
+  arrange(desc(Anzahl))|>
+  knitr::kable()
+```
+
+### Ladenhüter (keine Verkäufe)
+```{r }
+
+df_temp <- df_Einkaufspreise|>
+  distinct(`Artikelname Kassensystem`)|>
+  left_join(df_Kiosk|>
+            group_by(Verkaufsartikel)|>
+              reframe(Anzahl = sum(Anzahl)),
+            by = c("Artikelname Kassensystem"="Verkaufsartikel")
+            )
+  
+df_temp|>
+  filter(is.na(Anzahl))|>
+  select(-Anzahl)|>
+  knitr::kable()
+
+```
+### Kiosk Umsatz pro Gast
+
+```{r }
 df_temp <- df_show |>
   left_join(
     df_Eintritt |>
@@ -42,8 +107,8 @@ df_temp|>
 ```
 
 
-### Umsatz pro zahlender Gast
-```{r echo=FALSE}
+### Kiosk Umsatz pro zahlender Gast
+```{r }
 df_temp <- df_show |>
   left_join(
     df_Eintritt |>

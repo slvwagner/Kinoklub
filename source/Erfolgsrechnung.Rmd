@@ -108,7 +108,7 @@ df_GV_Kiosk|>
 ```
 
 ### Detailierte Einsicht
-Für eine Detailierte Einsicht in Besucherzahlen, Umsatz pro Gast und Kioskverkäufe das Dokument Statistik einsehen.
+Für eine Detaillierte Einsicht in Besucherzahlen, Umsatz pro Gast und Kioskverkäufe das Dokument Statistik einsehen.
 \
 \
 \
