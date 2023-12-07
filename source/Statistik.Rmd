@@ -1,9 +1,16 @@
 ---
-title: "Statistik Kinoclub"
-author: "Nadia Wagner"
-date: "2023-12-06"
+title: "Statistik Kinoklub"
 output: html_document
 ---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+```
+
+Bericht wurde am `r act_date` erstellt.
 
 ## Statistik
 ### Umsatz pro Gast

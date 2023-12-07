@@ -20,17 +20,18 @@ df_GV_Vorfuehrung|>
   select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   arrange(Datum)|> 
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  rename(`Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
 
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
-  reframe(`Total Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Total Gewinn [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
 
 
-### Kino Eintritte Übersicht
+## Kino Eintritte Übersicht
 
 ```{r echo=FALSE}
 
@@ -40,8 +41,7 @@ df_Eintritt|>
   reframe(Anzahl = sum(Anzahl),
           Umsatz = sum(Umsatz))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Umsatz [CHF]` = `Umsatz`,
-         `Verkaufspreis [CHF]`=`Umsatz`,
+  rename(`Umsatz Film [CHF]` = `Umsatz`,
          Eintritt = Zahlend)|>
   knitr::kable()
 
@@ -54,7 +54,7 @@ df_Eintritt|>
   reframe(Eintritt = "Total",
           Anzahl = sum(Anzahl),
           Umsatz = sum(Umsatz))|>
-  rename(`Umsatz [CHF]` = `Umsatz`)|>
+  rename(`Umsatz Film [CHF]` = `Umsatz`)|>
   knitr::kable()
 
 ```
@@ -65,7 +65,7 @@ df_Eintritt|>
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   rename(`Umsatz [CHF]` = Umsatz,
-         `Gewinn/Verlust [CHF]` = `Gewinn/Verlust [CHF]`
+         `Film Gewinn [CHF]` = `Gewinn/Verlust [CHF]`
          )|>
   select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - `Suisa Nummer`)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
@@ -78,18 +78,18 @@ df_GV_Eintritt|>
   reframe(`Umsatz [CHF]` = sum(Umsatz),
           `SUISA-Abzug [CHF]` = sum(`SUISA-Abzug [CHF]`),
           `Verleiher-Abzug [CHF]` = sum(`Verleiher-Abzug [CHF]`),
-          `Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`)
+          `Film Gewinn [CHF]` = sum(`Gewinn/Verlust [CHF]`)
          )|>
   knitr::kable()
 
 ```
 
-
+## Kiosk
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_GV_Kiosk|>
   rename(`Umsatz [CHF]` = Kassiert,
-         `Gewinn [CHF]` = Gewinn)|>
+         `Kiosk Gewinn [CHF]` = Gewinn)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
@@ -98,15 +98,18 @@ df_GV_Kiosk|>
 
 ```{r echo=FALSE}
 df_GV_Kiosk|>
-  reframe(Umsatz = sum(Kassiert),
-          Gewinn = sum(Gewinn)
+  reframe(`Umsatz [CHF]` = sum(Kassiert),
+          `Kiosk Gewinn [CHF]` = sum(Gewinn)
           )|>
-  rename(`Umsatz [CHF]` = Umsatz,
-         `Gewinn [CHF]` = Gewinn)|>
   knitr::kable()
 
 ```
 
 ### Detailierte Einsicht
 Für eine Detailierte Einsicht in Besucherzahlen, Umsatz pro Gast und Kioskverkäufe das Dokument Statistik einsehen.
-
+\
+\
+\
+\
+\
+\
