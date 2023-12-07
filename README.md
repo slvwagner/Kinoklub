@@ -1,5 +1,10 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
-# Kinoclub
+# Kinoklub
 
 Script zur Abrechnung für den Kinoklub TaB
 
@@ -53,6 +58,6 @@ werden:
 5.  Verknüpfe ".R"-files mit Rstudio
 
 6.  Starte Rstudio mit dem Anklicken der Datei "Erstelle Abrechnung.R"
-    Oder Starte Rstudio und finde mit getwd() den Standard Pfad und installiere mit "git clone ..." das Verzeichnis.
-    mit setwd() kann auch gearbeitet werden.  
-
+    Oder Starte Rstudio und finde mit getwd() den Standard Pfad und
+    installiere mit "git clone ..." das Verzeichnis. mit setwd() kann
+    auch gearbeitet werden.
