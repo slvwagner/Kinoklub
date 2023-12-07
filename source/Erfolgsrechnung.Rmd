@@ -17,6 +17,8 @@ Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks.
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
   left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
+    mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         )|>
   select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   arrange(Datum)|> 
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>

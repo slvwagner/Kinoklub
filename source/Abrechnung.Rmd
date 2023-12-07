@@ -42,9 +42,13 @@ df_GV_Vorfuehrung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         )|>
   rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
+
+
 ```
 
 
@@ -55,8 +59,7 @@ df_GV_Vorfuehrung|>
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  rename(`Umsatz [sFR]` = `Umsatz`,
-         `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
+  rename(`Film Umsatz [sFR]` = `Umsatz`)|>
   knitr::kable()
 
 ```
@@ -73,7 +76,7 @@ df_Eintritt|>
   reframe(Anzahl = sum(Anzahl),
           Umsatz = sum(Umsatz))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Umsatz [CHF]` = `Umsatz`,
+  rename(`Film Umsatz [CHF]` = `Umsatz`,
          Eintritt = Zahlend)|>
   knitr::kable()
 
@@ -87,23 +90,29 @@ df_Eintritt|>
   reframe(Eintritt = "Total",
           Anzahl = sum(Anzahl),
           Umsatz = sum(Umsatz))|>
-  rename(`Umsatz [CHF]` = `Umsatz`)|>
+  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
   knitr::kable()
 
 ```
 
-### Filmabgaben​
+### Filmabgaben
 Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **CHF 150.-**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
-df_GV_Eintritt|>
+df_temp <- df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
-  rename(`Umsatz [sFr]` = Umsatz,
-         `Total Abgaben [CHF]` = `Gewinn/Verlust [CHF]`
-         )|>
-    knitr::kable()
+  mutate(`Total Abgaben [CHF]` = `SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`)|>
+    select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
+  rename(`Umsatz [sFr]` = Umsatz)
 
+df_temp|>
+  select(-`Gewinn/Verlust [CHF]`)|>
+  knitr::kable()
+
+df_temp|>
+  select(`Gewinn/Verlust [CHF]`)|>
+  rename(`Film Gewinn` = `Gewinn/Verlust [CHF]`)|>
+  knitr::kable()
 
 ```
 
@@ -134,7 +143,7 @@ df_Kiosk|>
 ```
 
 
-#### Umsatz pro Gast
+#### Kioskumsatz pro Gast
 
 ```{r echo=FALSE}
 df_show |>
@@ -158,7 +167,7 @@ df_show |>
 ```
 
 
-#### Umsatz pro zahlender Gast
+#### Kioskumsatz pro zahlender Gast
 ```{r echo=FALSE}
 df_show |>
   filter(Datum == c_Datum)|>
