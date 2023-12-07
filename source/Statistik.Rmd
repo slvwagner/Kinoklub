@@ -10,7 +10,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
-
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -51,28 +50,55 @@ df_Eintritt|>
 
 ### Verkaufsartikel 
 
+
 ```{r }
-df_Kiosk|>
+df_temp <- df_Kiosk|>
   select(-Betrag)|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(Kassiert),
           `Gewinn [CHF]` = sum(Gewinn)
           )|>
-  arrange(desc(Anzahl))|>
-  knitr::kable()
+  arrange(desc(Anzahl))
+
+```
+
+
+```{r }
+
+# library(flextable)
+flextable::set_flextable_defaults(background.color = "#322f3b", 
+                       font.color = "#f4cccc")
+
+
+flextable::flextable(df_temp)|>
+  flextable::autofit(add_w = 1.5)|>
+  flextable::set_table_properties(opts_html = list(scroll = list( height = "500px",
+                                                                  width = "150px",
+                                                                  freeze_first_column = TRUE )))
 ```
 
 
 
 ```{r }
-df_Kiosk|>
-  reframe(`Anzahl verkaufter Verkaufsartikel` = sum(Anzahl),
+df_temp <- df_Kiosk|>
+  reframe(`Verkaufsartikel` = NA,
+          `Anzahl verkaufter Verkaufsartikel` = sum(Anzahl),
           `Umsatz Kiosk [CHF]` = sum(Kassiert),
           `Gewinn Kiosk [CHF]` = sum(Gewinn) ,
           )|>
-  arrange(desc(`Anzahl verkaufter Verkaufsartikel`))|>
-  knitr::kable()
+  arrange(desc(`Anzahl verkaufter Verkaufsartikel`))
+
+
+df_temp|>
+  flextable::flextable()|>
+  flextable::autofit(add_w = 1.5)|>
+  flextable::set_table_properties(opts_html = list( scroll = list(height = "100px",
+                                                                  width = "180px",
+                                                                  freeze_first_column = TRUE)
+                                                    )
+                                  )
+
 ```
 
 ### Ladenhüter (keine Verkäufe)

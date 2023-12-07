@@ -18,6 +18,23 @@ round5Rappen <- function(zahl) {
     unlist()
 }
 
+# variable is present in global environment
+r_is.defined <- function(sym) {
+  sym <- deparse(substitute(sym))
+  env <- parent.frame()
+  exists(sym, env)
+}
+
+# library is loaded in global environment
+r_is.library_loaded <- function(package_name) {
+  is_loaded <- FALSE
+  tryCatch({
+    is_loaded <- requireNamespace(package_name, quietly = TRUE)
+  }, error = function(e) {
+    is_loaded <- FALSE
+  })
+  return(is_loaded)
+}
 
 ##  --------------------------------------------------------
 ##  Cleanup R console: clc
