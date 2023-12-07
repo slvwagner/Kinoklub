@@ -33,7 +33,7 @@ c_Datum <- c_Date[ii]
 
 c_suisa <- df_show|>
   filter(Datum == c_Date[ii])|>
-  select(suisa_nr)|>
+  select(`Suisa Nummer`)|>
   pull()
 
 ```
@@ -41,11 +41,11 @@ c_suisa <- df_show|>
 
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
-  left_join(df_show,by = join_by(Datum, suisa_nr))|>
-  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   arrange(Datum)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
 
@@ -59,7 +59,7 @@ c_verleiherabgaben <- df_verleiherabgaben|>
   pull()
 
 df_show|>
-  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   knitr::kable()
 ```
 
@@ -69,7 +69,7 @@ df_show|>
 ```{r echo=FALSE}
 
 df_Eintritt|>
-  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Umsatz [sFR]` = `Umsatz`,
          `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
@@ -82,12 +82,12 @@ Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Um
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_GV_Eintritt|>
-  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
-  select(-Datum,-Anfang,-suisa_nr,-Filmtitel)|>
-  rename(`Umsatz [sFr]` = Umsatz,
-         `Gewinn/Verlust [sFr]` = `Gewinn/Verlust [CHF]`
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
+  rename(`Umsatz [sFr]` = Umsatz
          )|>
     knitr::kable()
+
 
 ```
 
@@ -120,7 +120,7 @@ df_GV_Kiosk|>
 # Gewinn/Verlust der Filmvorführung
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
-  filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```

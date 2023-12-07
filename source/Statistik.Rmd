@@ -23,7 +23,7 @@ df_temp <- df_show |>
   by = join_by(Datum)
   )|>
   select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(suisa_nr))
+  filter(!is.na(`Suisa Nummer`))
 
 df_temp|>
   knitr::kable()
@@ -52,7 +52,7 @@ df_temp <- df_show |>
   by = join_by(Datum)
   )|>
   select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(suisa_nr))
+  filter(!is.na(`Suisa Nummer`))
 
 df_temp|>
   knitr::kable()

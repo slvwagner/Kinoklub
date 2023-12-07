@@ -75,7 +75,7 @@ paste("Erfolgsrechnung erstellt")|>
 # remove temp file
 file.remove("temp.Rmd")
 
-remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index)
+remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index,ii)
 
 
 

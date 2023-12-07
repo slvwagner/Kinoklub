@@ -17,8 +17,8 @@ Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks.
 
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
-  left_join(df_show,by = join_by(Datum, suisa_nr))|>
-  select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
+  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   arrange(Datum)|> 
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
@@ -69,7 +69,7 @@ df_GV_Eintritt|>
   rename(`Umsatz [CHF]` = Umsatz,
          `Gewinn/Verlust [CHF]` = `Gewinn/Verlust [CHF]`
          )|>
-  select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - suisa_nr)|>
+  select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - `Suisa Nummer`)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```

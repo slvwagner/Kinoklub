@@ -110,7 +110,7 @@ convert_data <- function(c_fileName) {
     names(l_temp)[ii] <- "Abrechnung"
     
     l_data[[kk]] <- l_temp[[ii]] |>
-      mutate(suisa_nr = l_temp[[1]],
+      mutate(`Suisa Nummer` = l_temp[[1]],
              Filmtitel = l_temp[[2]],
              Datum_ = l_temp[[3]],
              `SUISA-Vorabzug` = l_temp[[4]]
@@ -137,7 +137,7 @@ df_Eintritt <- l_Eintritt|>
          Verkaufspreis = Preis ,
          Tax = NULL, 
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
-  select(Datum, Filmtitel,suisa_nr,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
+  select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
 
 df_Eintritt
 
@@ -291,7 +291,7 @@ df_show
 
 df_show <- df_show|>
   left_join(df_Eintritt|>
-              distinct(Datum, suisa_nr),
+              distinct(Datum, `Suisa Nummer`),
             by = c("Datum" = "Datum")
             )
 
@@ -303,7 +303,7 @@ df_verleiherabgaben <- readxl::read_excel("input/Verleiherabgaben.xlsx")|>
 df_verleiherabgaben
 
 df_Eintritt <- df_Eintritt|>
-  left_join(df_verleiherabgaben, by = c(suisa_nr = "Suisa", "Datum"))
+  left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
 df_Eintritt
 
 
@@ -312,7 +312,7 @@ df_Eintritt
 
 l_GV <- list()
 c_Datum <- distinct(df_Eintritt, Datum)|>pull()
-c_suisa_nr <- distinct(df_Eintritt, suisa_nr )|>pull()
+c_suisa_nr <- distinct(df_Eintritt, `Suisa Nummer` )|>pull()
 c_suisa_nr
 c_Datum
 
@@ -345,7 +345,7 @@ for (ii in 1:length(c_Datum)) {
   c_suisaabzug
   
   l_GV[[ii]] <- tibble(Datum = c_Datum[ii],
-                       suisa_nr = c_suisa_nr[ii],
+                       `Suisa Nummer` = c_suisa_nr[ii],
                        Umsatz = c_Umsatz, 
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
@@ -353,11 +353,11 @@ for (ii in 1:length(c_Datum)) {
                        `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug))|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Gewinn/Verlust [CHF]` = Umsatz-(`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))|>
-    left_join(df_show, by = join_by(Datum, suisa_nr))
+    left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
 }
 df_GV_Eintritt <- l_GV|>
   bind_rows()|>
-  select( Datum,Anfang, suisa_nr, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
+  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
 
 df_GV_Eintritt
 
@@ -372,19 +372,19 @@ for (ii in 1:length(c_Datum)) {
             Gewinn = sum(Gewinn)
     )|>
     mutate(Datum = c_Datum[ii],
-           suisa_nr =c_suisa_nr[ii])
+           `Suisa Nummer` =c_suisa_nr[ii])
 }
 df_GV_Kiosk <- l_GV_Kiosk|>
   bind_rows()|>
-  left_join(df_show, by = join_by(Datum, suisa_nr))|>
-  select( Datum,Anfang, suisa_nr, Filmtitel, Kassiert, Gewinn)
+  left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
+  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
 
 ########################################################################
 # Gewinn Filmvorführung
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Datum)) {
   l_GV_Vorfuehrung[[ii]] <- tibble(Datum = c_Datum[ii], 
-                                   suisa_nr = c_suisa_nr[ii],
+                                   `Suisa Nummer` = c_suisa_nr[ii],
                                    `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]`)
 }
 
