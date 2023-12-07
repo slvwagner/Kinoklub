@@ -154,53 +154,49 @@ df_Einkaufspreise <- l_Einkaufspreise |>
   mutate(Datum = lubridate::dmy(Datum)|>as.Date())
 df_Einkaufspreise
 
-# df_Einkaufspreise <- c_files|>
-#   read.xlsx()|>
-#   as_tibble()
-# df_Einkaufspreise
-
 ########################################################################
-# Read Kiosk Spezpreise
+# Kiosk Spezialpreise
 Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
   mutate(Datum = as.Date(Datum))
 Spezialpreisekiosk
 
-########################################################################
-# Convert data from Kiosk.txt files
 
+########################################################################
+# Suchen der korrekten Einkaufspreise
 c_files <- list.files(pattern = START%R%"Kiosk", recursive = T)
 c_files
 
 c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
   dmy()|>
   as.Date()
-c_Date
-
-########################################################################
-# Suchen der korreckten Einkaufspreise
-distinct(df_Einkaufspreise, Datum)|>pull()
 
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
 
-# (c_Date[1]-c_Einkaufslistendatum[1])|>as.integer()
-# (c_Date[1]-c_Einkaufslistendatum[2])|>as.integer()
+df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date)|>as.integer())|>
+  bind_cols()|>
+  as.matrix()|>
+  suppressMessages()
 
-# df_temp <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date)|>as.integer())|>
-#   bind_cols()|>
-#   as.matrix()|>
-#   suppressMessages()
-# 
-# colnames(df_temp) <- c_Einkaufslistendatum|>
-#   as.character()
-# 
-# df_temp|>
-#   apply(2, function(x) ifelse(x<=0, x, NA))|>
-#   apply(1, )
-# 
-# df_temp|>
-#   as_tibble()|>
-#   mutate(c_Date)
+colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
+  as.character()
+rownames(df_Mapping_Einkaufspreise) <- c_Date|>as.character()
+
+df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
+  apply(2, function(x)ifelse(x>=0, NA, x))|>
+  apply(1, function(x){
+    c_select <- max(x, na.rm = T)
+    y <- x[c_select == x]
+    y <- y[!is.na(y)]
+    return(names(y))
+  })
+df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>as.Date(),
+                                    Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
+  
+df_Mapping_Einkaufspreise
+
+########################################################################
+# Convert data from "Kiosk xx.xx.xx.txt" files
 
 
 l_Kiosk <- list()
@@ -231,10 +227,18 @@ for(ii in 1:length(c_files)){
     left_join(Spezialpreisekiosk, by = c("Datum","Platzkategorie" = "Spezialpreis"))
   
   # Einkaufspreise
+  
+  c_select <- df_Mapping_Einkaufspreise|>
+    filter(Datum == c_Date[ii])|>
+    select(Einkaufspreise)|>
+    pull()
+  c_select  
+  
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     mutate(Platzkategorie = if_else(!is.na(Artikelname),Artikelname,Platzkategorie)
            )|>
-    left_join(df_Einkaufspreise,
+    left_join(df_Einkaufspreise|>
+                filter(Datum == c_select),
               by = c(Platzkategorie ="Artikelname Kassensystem"))
   
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
@@ -245,8 +249,6 @@ for(ii in 1:length(c_files)){
 
 }
 
-########################################################################
-# 
 df_Kiosk <- l_Kiosk|>
   bind_rows()|>
   mutate(`Tax...3` = NULL,
@@ -402,7 +404,11 @@ list(Eintritte= df_Eintritt,
      Spezialpreisekiosk = Spezialpreisekiosk)|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt, l_Kiosk, c_fileName,c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, c_suisaabzug, c_verleiherabzug, c_Gratis, c_Date, c_Umsatz, c_Datum,l_GV_Vorfuehrung,ii)
+remove(l_Eintritt, l_Kiosk, c_fileName,c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
+       c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, c_Datum,l_GV_Vorfuehrung,ii,
+       c_Einkaufslistendatum, c_Date, c_select,p,l_Einkaufspreise,
+       convert_data)
+
 
 # user interaction
 writeLines("file conversion done")
