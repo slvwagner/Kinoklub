@@ -406,7 +406,7 @@ list(Eintritte= df_Eintritt,
 
 remove(l_Eintritt, l_Kiosk, c_fileName,c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, c_Datum,l_GV_Vorfuehrung,ii,
-       c_Einkaufslistendatum, c_Date, c_select,p,l_Einkaufspreise,
+       c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
        convert_data)
 
 

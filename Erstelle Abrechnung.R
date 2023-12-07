@@ -11,8 +11,7 @@ source("source/read and convert.R")
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen 
 
-df_mapping <- df_Eintritt|>
-  distinct(Datum, suisa_nr)|>
+df_mapping <- tibble(Datum = c_Date)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
 
@@ -39,12 +38,12 @@ for(ii in 1:nrow(df_mapping)){
                     output_dir = paste0(getwd(), "/output"))
   
   # Rename the file
-  file.rename(paste0(getwd(),"/output/temp",".html"), paste0(getwd(),"/output/",df_mapping$Datum[ii],".html"))
-  file.rename(paste0(getwd(),"/output/temp",".docx"), paste0(getwd(),"/output/",df_mapping$Datum[ii],".docx"))
+  file.rename(paste0(getwd(),"/output/temp",".html"), paste0(getwd(),"/output/",df_mapping$user_Datum[ii],".html"))
+  file.rename(paste0(getwd(),"/output/temp",".docx"), paste0(getwd(),"/output/",df_mapping$user_Datum[ii],".docx"))
   
   # user interaction
   print(clc)
-  paste("Abrechnung vom", df_mapping$Datum[ii], "erstellt")|>
+  paste("Abrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
     writeLines()
 }
 
@@ -75,6 +74,8 @@ paste("Erfolgsrechnung erstellt")|>
 #############################################################################################################################################
 # remove temp file
 file.remove("temp.Rmd")
+
+remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index)
 
 
 

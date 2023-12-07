@@ -16,6 +16,7 @@ df_GV_Vorfuehrung|>
   left_join(df_show,by = join_by(Datum, suisa_nr))|>
   select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust`)|>
   arrange(Datum)|> 
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```
 
@@ -65,6 +66,7 @@ df_GV_Eintritt|>
          `Gewinn/Verlust [sFr]` = `Gewinn/Verlust`
          )|>
   select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - suisa_nr)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```
 
@@ -86,6 +88,7 @@ df_GV_Eintritt|>
 df_GV_Kiosk|>
   rename(`Umsatz [sFr]` = Kassiert,
          `Gewinn [sFr]` = Gewinn)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
 ```

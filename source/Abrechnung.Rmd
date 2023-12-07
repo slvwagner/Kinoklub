@@ -10,15 +10,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r variablen, include=FALSE}
-ii <- 2
+ii <- 1
 ```
 
 ## Erfolg
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r echo=FALSE}
-c_suisa <- df_show$suisa_nr[ii]
-c_Datum <- df_show$Datum[ii]
+df_mapping <- tibble(Datum = c_Date)|>
+  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+         index = row_number())
+
+```
+
+
+```{r echo=FALSE}
+c_Datum <- c_Date[ii]
+
+c_suisa <- df_show|>
+  filter(Datum == c_Date[ii])|>
+  select(suisa_nr)|>
+  pull()
+
 ```
 
 
@@ -26,8 +39,9 @@ c_Datum <- df_show$Datum[ii]
 df_GV_Vorfuehrung|>
   left_join(df_show,by = join_by(Datum, suisa_nr))|>
   filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   select(Datum, Anfang, suisa_nr, Filmtitel, `Gewinn/Verlust`)|>
-  arrange(Datum)|> 
   knitr::kable()
 ```
 
@@ -84,6 +98,7 @@ df_Kiosk|>
          `Einkaufspreis [sFr]` =`Einkaufspreis`,
          `Gewinn [sFr]` = `Gewinn`,
          `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
 ```
@@ -92,6 +107,7 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_GV_Kiosk|>
   filter(Datum == c_Datum)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
 ```
@@ -101,6 +117,7 @@ df_GV_Kiosk|>
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
   filter(Datum == c_Datum & suisa_nr == c_suisa)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```
 
