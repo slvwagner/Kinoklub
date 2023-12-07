@@ -51,7 +51,7 @@ for(ii in 1:nrow(df_mapping)){
 #############################################################################################################################################
 # Erfolgsrechnung
 
-rmarkdown::render(paste0("source/Erfolgs Rechnung.Rmd"),
+rmarkdown::render(paste0("source/Erfolgsrechnung.Rmd"),
                   c("html_document","word_document"),
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
