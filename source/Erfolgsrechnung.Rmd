@@ -1,5 +1,5 @@
 ---
-title: "Erfolgsrechnug Kinoklub"
+title: "Erfolgsrechnung Kinoklub"
 author: "Nadia Wagner"
 output: html_document
 ---
@@ -26,8 +26,7 @@ df_GV_Vorfuehrung|>
 
 ```{r echo=FALSE}
 df_GV_Vorfuehrung|>
-  reframe(`Total Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`)
-          )|>
+  reframe(`Total Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
 

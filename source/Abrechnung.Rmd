@@ -17,18 +17,11 @@ Bericht wurde am `r act_date` erstellt.
 ii <- 1
 ```
 
-## Erfolg
-Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
-
 ```{r echo=FALSE}
 df_mapping <- tibble(Datum = c_Date)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
 
-```
-
-
-```{r echo=FALSE}
 c_Datum <- c_Date[ii]
 
 c_suisa <- df_show|>
@@ -36,35 +29,26 @@ c_suisa <- df_show|>
   select(`Suisa Nummer`)|>
   pull()
 
-```
-
-
-```{r echo=FALSE}
-df_GV_Vorfuehrung|>
-  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  knitr::kable()
-```
-
-
-Im folgende wird die Abrechnung aufgrund der beiden Datensätze Kino-Eintritte und Kiosk-Umsatz erstellt. Die Datensätze sind von https://www.advance-ticket.ch/admin heruntergeladen worden.
-```{r echo=FALSE}
-
 c_verleiherabgaben <- df_verleiherabgaben|>
   filter(Datum == c_Datum & Suisa == c_suisa)|>
   select(`Abzug [%]`)|>
   pull()
+```
 
-df_show|>
+## Erfolg
+Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
+
+```{r echo=FALSE}
+df_GV_Vorfuehrung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  select(Datum, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
 
 
-## Kino Eintritte
+### Kino Eintritte
 
 ```{r echo=FALSE}
 
@@ -73,6 +57,38 @@ df_Eintritt|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Umsatz [sFR]` = `Umsatz`,
          `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
+  knitr::kable()
+
+```
+
+
+### Kino Eintritte Übersicht
+
+```{r echo=FALSE}
+
+df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  rename(`Umsatz [CHF]` = `Umsatz`,
+         `Verkaufspreis [CHF]`=`Umsatz`,
+         Eintritt = Zahlend)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+
+df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  reframe(Eintritt = "Total",
+          Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))|>
+  rename(`Umsatz [CHF]` = `Umsatz`)|>
   knitr::kable()
 
 ```
@@ -92,7 +108,8 @@ df_GV_Eintritt|>
 ```
 
 
-## Kiosk
+
+### Kiosk
 
 ```{r echo=FALSE}
 df_Kiosk|>
@@ -109,21 +126,15 @@ df_Kiosk|>
 
 
 ```{r echo=FALSE}
-df_GV_Kiosk|>
+df_Kiosk|>
   filter(Datum == c_Datum)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  knitr::kable()
-
-```
-
-
-# Gewinn/Verlust der Filmvorführung
-```{r echo=FALSE}
-df_GV_Vorfuehrung|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  select(-Betrag)|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(Gewinn))|>
   knitr::kable()
 ```
+
+
+
 
 
 
