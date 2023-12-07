@@ -44,9 +44,21 @@ df_Eintritt|>
 
 ```
 
+### Filmabgaben
+```{r echo=FALSE}
+df_GV_Eintritt|>
+  select(Datum, Anfang, Filmtitel, Umsatz, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
+  knitr::kable()
 
+df_GV_Eintritt|>
+  reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Abzug [CHF]`),
+          `Abgaben and den Verleiger [CHF]` = sum(`Verleiher-Abzug [CHF]`)
+          )|>
+  knitr::kable()
 
-### Kiosk 
+```
+
+## Kiosk 
 
 ### Verkaufsartikel 
 

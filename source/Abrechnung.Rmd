@@ -1,8 +1,9 @@
 ---
 title: "Abrechnung Filmvorführung"
-output: html_document
+output: 
+  html_document:
+    css: Kinoklub_dark.css
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

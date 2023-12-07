@@ -1,6 +1,8 @@
 ---
 title: "Erfolgsrechnung Kinoklub"
-output: html_document
+output: 
+  html_document:
+    css: Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
