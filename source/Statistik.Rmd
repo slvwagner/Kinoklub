@@ -147,7 +147,8 @@ df_temp <- df_show |>
   )|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]` = Umsatz)
+  rename(`Umsatz [CHF]` = Umsatz)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
 
 df_temp|>
   knitr::kable()
@@ -175,6 +176,7 @@ df_temp <- df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)
@@ -183,7 +185,7 @@ df_temp|>
   knitr::kable()
 
 df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz pro Gast [CHF]`)/sum(Besucher))|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
   knitr::kable()
 ```
 

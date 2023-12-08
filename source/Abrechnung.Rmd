@@ -164,6 +164,7 @@ df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   filter(!is.na(`Suisa Nummer`))|>
     select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
   rename(`Umsatz [CHF]`= Umsatz)|>
@@ -190,8 +191,8 @@ df_show |>
   by = join_by(Datum)
   )|>
   filter(!is.na(`Suisa Nummer`))|>
-    select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
-    rename(`Umsatz [CHF]`= Umsatz)|>
+  select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
+  rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
 ```
 
