@@ -9,6 +9,29 @@ file.remove("error.log")|>suppressWarnings()
 source("source/functions.R")
 
 ########################################################################
+# search data files
+c_files <- list.files(pattern = "Eintritte", recursive = T)
+
+c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
+  dmy()|>
+  as.Date()
+
+c_Date_Kiosk <- list.files(pattern = START%R%"Kiosk", recursive = T)|>
+  str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
+  dmy()|>
+  as.Date()|>
+  sort()
+
+# if(length(c_Date) != length(c_Date_Kiosk)) {
+#   warning(
+#     "Es sind nicht gleich viel Dateien vorhanden:
+#     \nEintritte xx.xx.xx.txt  und Kiosk xx.xx.xx.txt
+#     \Wahrscheinlich fehlt ein Eintritt"
+#   )
+# }
+
+
+########################################################################
 # Function to read and convert data from Film.txt files ()
 convert_data <- function(c_fileName) {
   l_data <- list()
@@ -123,14 +146,6 @@ convert_data <- function(c_fileName) {
   return(l_data)
 }
 
-# search data 
-c_files <- list.files(pattern = "Eintritte", recursive = T)
-c_files
-
-c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
-  dmy()|>
-  as.Date()
-
 l_Eintritt <- convert_data(c_files)
 names(l_Eintritt) <- c_files|>str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
@@ -169,13 +184,6 @@ Spezialpreisekiosk
 
 ########################################################################
 # Suchen der korrekten Einkaufspreise
-c_files <- list.files(pattern = START%R%"Kiosk", recursive = T)
-c_files
-
-c_Date_Kiosk <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
-  dmy()|>
-  as.Date()|>
-  sort()
 
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
@@ -205,6 +213,7 @@ df_Mapping_Einkaufspreise
 
 ########################################################################
 # Convert data from "Kiosk xx.xx.xx.txt" files
+c_files<- list.files(pattern = START%R%"Kiosk", recursive = T)
 
 l_Kiosk <- list()
 for(ii in 1:length(c_files)){
@@ -227,7 +236,7 @@ for(ii in 1:length(c_files)){
     filter(!(l_Kiosk[[ii]]$Platzkategorie|>str_detect(START%R%one_or_more(DGT)))),
     outFile = "error.log"
     )
-  if(list.files(pattern = "error.log")|>length()>0) stop(paste0("\n",c_files[1],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
+  if(list.files(pattern = "error.log")|>length()>0) stop(paste0("\n",c_files[ii],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
   
   # Spez Preise Kiosk
   index <- is.na(l_Kiosk[[ii]]$Preis)
