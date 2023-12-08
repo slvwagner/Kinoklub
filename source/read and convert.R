@@ -127,7 +127,9 @@ convert_data <- function(c_fileName) {
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 c_files
 
-c_fileName <- c_files
+c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
+  dmy()|>
+  as.Date()
 
 l_Eintritt <- convert_data(c_files)
 names(l_Eintritt) <- c_files|>str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
@@ -170,21 +172,23 @@ Spezialpreisekiosk
 c_files <- list.files(pattern = START%R%"Kiosk", recursive = T)
 c_files
 
-c_Date <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
+c_Date_Kiosk <- c_files|>str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
   dmy()|>
-  as.Date()
+  as.Date()|>
+  sort()
 
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
 
-df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date)|>as.integer())|>
+df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date_Kiosk)|>as.integer())|>
   bind_cols()|>
   as.matrix()|>
   suppressMessages()
+df_Mapping_Einkaufspreise
 
 colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
   as.character()
-rownames(df_Mapping_Einkaufspreise) <- c_Date|>as.character()
+rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
 
 df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
   apply(2, function(x)ifelse(x>=0, NA, x))|>
@@ -230,7 +234,7 @@ for(ii in 1:length(c_files)){
   
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     mutate(Preis = if_else(index, l_Kiosk[[ii]]$Betrag/l_Kiosk[[ii]]$Anzahl,l_Kiosk[[ii]]$Preis),
-           Datum = c_Date[ii])
+           Datum = c_Date_Kiosk[ii])
   
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     left_join(Spezialpreisekiosk, by = c("Datum","Platzkategorie" = "Spezialpreis"))
@@ -238,7 +242,7 @@ for(ii in 1:length(c_files)){
   # Einkaufspreise
   
   c_select <- df_Mapping_Einkaufspreise|>
-    filter(Datum == c_Date[ii])|>
+    filter(Datum == c_Date_Kiosk[ii])|>
     select(Einkaufspreise)|>
     pull()
   c_select  
@@ -291,7 +295,6 @@ m <- c_raw[3:length(c_raw)]|>
 m <- m[,1:(ncol(m)-1)] 
 colnames(m) <- c_raw[2]|>
   str_split("\t", simplify = T)|>as.vector()
-m
 
 df_show <- m|>
   as_tibble()|>
@@ -300,8 +303,6 @@ df_show <- m|>
          Ende = parse_time(Ende))|>
   select(Datum,Anfang, Ende, Saal, Titel, Version, Alter)|>
   rename(Filmtitel = Titel)
-
-df_show
 
 df_show <- df_show|>
   left_join(df_Eintritt|>
@@ -328,7 +329,6 @@ l_GV <- list()
 c_Datum <- distinct(df_Eintritt, Datum)|>pull()
 c_suisa_nr <- distinct(df_Eintritt, `Suisa Nummer` )|>pull()
 
-
 ii <- 1
 for (ii in 1:length(c_Datum)) {
   c_Besucher <- df_Eintritt|>
@@ -354,17 +354,14 @@ for (ii in 1:length(c_Datum)) {
   c_verleiherabzug <- (distinct(df_Eintritt|>filter(Datum == c_Datum[ii]), 
                                `Abzug [%]`)|>pull())/100
   
-  # Error handling
+  # Error handling Verleiherabgaben
   if(is.na(c_verleiherabzug)) {
     error <- df_Eintritt|>filter(Datum == c_Datum[ii])|>
       distinct(Datum,.keep_all = T)|>
       select(Datum, `Suisa Nummer`, Filmtitel)|>
       mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
-    error
-    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.",
-                   "\nBitte eine weiter ")
-      
-    error
+    error <- str_c("\nFür den Film ", error$Filmtitel," am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " wurde keine",
+                   "\nVerleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.")
     stop(error)
   }
 
@@ -378,27 +375,33 @@ for (ii in 1:length(c_Datum)) {
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Gewinn/Verlust [CHF]` = Umsatz-(`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
+
 }
+
 df_GV_Eintritt <- l_GV|>
   bind_rows()|>
   select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
 
-#error handling
-error <- df_GV_Eintritt|>
-  filter(is.na(Filmtitel))|>
-  select(Datum)|>
-  pull()
+########################################################################
+# error handling Kiosk Abrechnung
 
-if(length(error) > 0) {
-  error <- df_Eintritt |>
-    filter(Datum == error) |>
-    distinct(Datum, .keep_all = T) |>
-    select(Datum, `Suisa Nummer`, Filmtitel)
-  error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], "\nwurde kein \"Kiosk xx.xx.xx.txt\" gefunden.",
-                 "\n\nBitte herunterladen und Abspeichern.")
+error <- df_Eintritt|>
+  distinct(Datum, .keep_all = T)|>
+  left_join(df_Kiosk|>
+              distinct(Datum)|>
+              mutate(Kioskabrechnung = T),
+            by = join_by(Datum)
+  )
+
+if((error$Kioskabrechnung|>is.na()|>sum())>0) {
+  error <- error|>
+    filter(is.na(Kioskabrechnung))|>
+    select(Datum, `Suisa Nummer`, Filmtitel)|>
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
+  error <- str_c("\nFür den Film: ", error$Filmtitel,"am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " gib es keine Datei:\n",
+                 "Kiosk ",error$Datum,".txt")
   stop(error)
 }
-
 
 ########################################################################
 # Gewinn Kiosk
@@ -412,10 +415,12 @@ for (ii in 1:length(c_Datum)) {
     mutate(Datum = c_Datum[ii],
            `Suisa Nummer` =c_suisa_nr[ii])
 }
+
 df_GV_Kiosk <- l_GV_Kiosk|>
   bind_rows()|>
   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
   select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
+
 
 ########################################################################
 # Gewinn Filmvorführung
@@ -442,10 +447,10 @@ list(Eintritte= df_Eintritt,
      Spezialpreisekiosk = Spezialpreisekiosk)|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt, l_Kiosk, c_fileName,c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
+remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, c_Datum,l_GV_Vorfuehrung,ii,
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
-       convert_data, error)
+       convert_data)
 
 
 # user interaction

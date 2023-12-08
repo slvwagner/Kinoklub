@@ -1,0 +1,18 @@
+Platzkategorie	Preis	Tax	Anzahl	Betrag	Kassiert	Vorausbezahlt	Fakturieren	Tax
+Kaffee, Espresso	4.00	0.0000	5	20.00	20.00	0.00	0.00	0.00
+Mineralwasser mit	4.00	0.0000	2	8.00	8.00	0.00	0.00	0.00
+CocaCola	5.00	0.0000	3	15.00	15.00	0.00	0.00	0.00
+Rivella Rot	5.00	0.0000	2	10.00	10.00	0.00	0.00	0.00
+Gazosa Zitrone	6.00	0.0000	1	6.00	6.00	0.00	0.00	0.00
+Gazosa Orange	6.00	0.0000	2	12.00	12.00	0.00	0.00	0.00
+Schoggi	4.00	0.0000	1	4.00	4.00	0.00	0.00	0.00
+Mocca	4.00	0.0000	2	8.00	8.00	0.00	0.00	0.00
+Erdbeere	4.00	0.0000	3	12.00	12.00	0.00	0.00	0.00
+Caramel	4.00	0.0000	3	12.00	12.00	0.00	0.00	0.00
+Schleckbecher Bunter Mix	5.00	0.0000	3	15.00	15.00	0.00	0.00	0.00
+Popcorn frisch	5.00	0.0000	11	55.00	55.00	0.00	0.00	0.00
+Zweifel Paprika Chips	3.00	0.0000	2	6.00	6.00	0.00	0.00	0.00
+40	183.00	183.00	0.00	0.00	0.00
+reduzierten Ware		0.0000	7	20.00	20.00	0.00	0.00	0.00
+7	20.00	20.00	0.00	0.00	0.00
+Gesamt	47	203.00	203.00	0.00	0.00	0.00
