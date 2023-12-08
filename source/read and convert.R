@@ -2,6 +2,10 @@ library(tidyverse)
 library(rebus)
 library(openxlsx)
 library(lubridate)
+
+rm(list = ls())
+file.remove("error.log")|>suppressWarnings()
+
 source("source/functions.R")
 
 ########################################################################
@@ -198,10 +202,6 @@ df_Mapping_Einkaufspreise
 ########################################################################
 # Convert data from "Kiosk xx.xx.xx.txt" files
 
-
-file.remove("error.txt")|>suppressWarnings() # Error handling
-
-ii <- 1
 l_Kiosk <- list()
 for(ii in 1:length(c_files)){
   l_Kiosk[[ii]] <- read_delim(c_files[ii], 
@@ -221,9 +221,9 @@ for(ii in 1:length(c_files)){
   # remove summary
   try(l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     filter(!(l_Kiosk[[ii]]$Platzkategorie|>str_detect(START%R%one_or_more(DGT)))),
-    outFile = "error.txt"
+    outFile = "error.log"
     )
-  if(list.files(pattern = "error.txt")|>length()>0) stop(paste0("\n",c_files[1],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
+  if(list.files(pattern = "error.log")|>length()>0) stop(paste0("\n",c_files[1],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
   
   # Spez Preise Kiosk
   index <- is.na(l_Kiosk[[ii]]$Preis)
@@ -277,9 +277,14 @@ df_Kiosk <- df_Kiosk|>
 
 ########################################################################
 # read show times
-c_raw <- list.files(pattern = "Shows", recursive = T)|>
-  readLines()|>
-  suppressWarnings()
+
+# error handling file not found
+try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
+      readLines()|>
+      suppressWarnings(),
+    outFile = "error.log"
+    )
+if(length(list.files(pattern = "error.log"))>0) stop("\nDatei Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
 
 m <- c_raw[3:length(c_raw)]|>
   str_split("\t", simplify = T)
@@ -322,8 +327,6 @@ df_Eintritt
 l_GV <- list()
 c_Datum <- distinct(df_Eintritt, Datum)|>pull()
 c_suisa_nr <- distinct(df_Eintritt, `Suisa Nummer` )|>pull()
-c_suisa_nr
-c_Datum
 
 
 ii <- 1
@@ -358,7 +361,7 @@ for (ii in 1:length(c_Datum)) {
       select(Datum, `Suisa Nummer`, Filmtitel)|>
       mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
     error
-    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe definiert.",
+    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.",
                    "\nBitte eine weiter ")
       
     error
@@ -380,7 +383,21 @@ df_GV_Eintritt <- l_GV|>
   bind_rows()|>
   select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
 
-df_GV_Eintritt
+#error handling
+error <- df_GV_Eintritt|>
+  filter(is.na(Filmtitel))|>
+  select(Datum)|>
+  pull()
+
+if(length(error) > 0) {
+  error <- df_Eintritt |>
+    filter(Datum == error) |>
+    distinct(Datum, .keep_all = T) |>
+    select(Datum, `Suisa Nummer`, Filmtitel)
+  error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], "\nwurde kein \"Kiosk xx.xx.xx.txt\" gefunden.",
+                 "\n\nBitte herunterladen und Abspeichern.")
+  stop(error)
+}
 
 
 ########################################################################
@@ -428,7 +445,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt, l_Kiosk, c_fileName,c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, c_Datum,l_GV_Vorfuehrung,ii,
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
-       convert_data)
+       convert_data, error)
 
 
 # user interaction
