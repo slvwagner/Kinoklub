@@ -322,8 +322,6 @@ df_Eintritt
 l_GV <- list()
 c_Datum <- distinct(df_Eintritt, Datum)|>pull()
 c_suisa_nr <- distinct(df_Eintritt, `Suisa Nummer` )|>pull()
-c_suisa_nr
-c_Datum
 
 
 ii <- 1
@@ -358,7 +356,7 @@ for (ii in 1:length(c_Datum)) {
       select(Datum, `Suisa Nummer`, Filmtitel)|>
       mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
     error
-    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe definiert.",
+    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.",
                    "\nBitte eine weiter ")
       
     error
@@ -380,7 +378,21 @@ df_GV_Eintritt <- l_GV|>
   bind_rows()|>
   select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
 
-df_GV_Eintritt
+#error handling
+error <- df_GV_Eintritt|>
+  filter(is.na(Filmtitel))|>
+  select(Datum)|>
+  pull()
+
+if(length(error) > 0) {
+  error <- df_Eintritt |>
+    filter(Datum == error) |>
+    distinct(Datum, .keep_all = T) |>
+    select(Datum, `Suisa Nummer`, Filmtitel)
+  error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], "\nwurde kein \"Kiosk xx.xx.xx.txt\" gefunden.",
+                 "\n\nBitte herunterladen und Abspeichern.")
+  stop(error)
+}
 
 
 ########################################################################
