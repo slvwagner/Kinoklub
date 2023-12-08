@@ -1,15 +1,16 @@
+#######################################################################################
+# variable is present in global environment
+#######################################################################################
+
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
     x <- round(zahl-as.integer(zahl*10)/10,3)
     if(x>=0.075){
-      # paste("Zahl:",zahl,"\tx:",x, "x>=0.075", "0.1")|>writeLines()
       return((as.integer(zahl*10)/10)+0.1)
     }else {
       if(x>=0.025){
-        # paste("Zahl:",zahl,"\tx:",x, "x>=0.025","0.05")|>writeLines()
         return((as.integer(zahl*10)/10)+0.05)
       }else{
-        # paste("Zahl:",zahl,"\tx:",x, "x>=0.025",x>=0.025, "0")|>writeLines()
         return((as.integer(zahl*10)/10)+0.0)
       }
     }  
@@ -18,7 +19,9 @@ round5Rappen <- function(zahl) {
     unlist()
 }
 
+#######################################################################################
 # variable is present in global environment
+#######################################################################################
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
