@@ -345,6 +345,9 @@ for (ii in 1:length(c_Datum)) {
     reframe(Umsatz = sum(Umsatz))|>
     pull()
   
+  c_suisaabzug <- (distinct(df_Eintritt|>filter(Datum == c_Datum[ii]), 
+                            `SUISA-Vorabzug`)|>pull())/100
+  
   c_verleiherabzug <- (distinct(df_Eintritt|>filter(Datum == c_Datum[ii]), 
                                `Abzug [%]`)|>pull())/100
   
