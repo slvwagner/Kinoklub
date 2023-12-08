@@ -347,12 +347,21 @@ for (ii in 1:length(c_Datum)) {
   
   c_verleiherabzug <- (distinct(df_Eintritt|>filter(Datum == c_Datum[ii]), 
                                `Abzug [%]`)|>pull())/100
-  c_verleiherabzug
   
-  c_suisaabzug <- (distinct(df_Eintritt|>filter(Datum == c_Datum[ii]), 
-                            `SUISA-Vorabzug`)|>pull())/100
-  c_suisaabzug
-  
+  # Error handling
+  if(is.na(c_verleiherabzug)) {
+    error <- df_Eintritt|>filter(Datum == c_Datum[ii])|>
+      distinct(Datum,.keep_all = T)|>
+      select(Datum, `Suisa Nummer`, Filmtitel)|>
+      mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+    error
+    error <- str_c("\nFür den Film ", error$Filmtitel[1] ," am ", error$Datum[1], " mit Suisa-Nummer ", error$`Suisa Nummer`[1], " wurde keine Verleiherabgabe definiert.",
+                   "\nBitte eine weiter ")
+      
+    error
+    stop(error)
+  }
+
   l_GV[[ii]] <- tibble(Datum = c_Datum[ii],
                        `Suisa Nummer` = c_suisa_nr[ii],
                        Umsatz = c_Umsatz, 
