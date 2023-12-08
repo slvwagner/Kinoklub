@@ -277,9 +277,9 @@ for(ii in 1:length(c_files)){
     df_error <- l_Kiosk[[ii]]|>
       filter(is.na(Einkaufspreis))
     df_error
-    warning( paste0("Datum:",day(c_Date_Kiosk[ii]),".",month(c_Date_Kiosk[ii]),".",year(c_Date_Kiosk[ii]),
+    stop( paste0("Datum:",day(c_Date_Kiosk[ii]),".",month(c_Date_Kiosk[ii]),".",year(c_Date_Kiosk[ii]),
                     "\nIm der Kioskabrechnung ist der Verkaufsartikel \"", df_error$Platzkategorie[1], "\" nicht korrekt definiert. \n",
-                    "Bitte prüfe ob dieser Artikel in der Spezialartikelliste oder in der Einkaufspreiseliste definiert ist.\n"))
+                    "Bitte prüfe ob dieser Artikel in der \"Spezialpreisekiosk.xlsx\" oder in \"Einkauf Kiosk.xlsx\" definiert ist.\n"))
   }
   
 
