@@ -199,6 +199,9 @@ df_Mapping_Einkaufspreise
 # Convert data from "Kiosk xx.xx.xx.txt" files
 
 
+file.remove("error.txt")|>suppressWarnings() # Error handling
+
+ii <- 1
 l_Kiosk <- list()
 for(ii in 1:length(c_files)){
   l_Kiosk[[ii]] <- read_delim(c_files[ii], 
@@ -208,13 +211,19 @@ for(ii in 1:length(c_files)){
                                                Anzahl = col_double(), Betrag = col_double(), 
                                                Kassiert = col_double(), Vorausbezahlt = col_double(), 
                                                Fakturieren = col_double(), Tax...9 = col_double()), 
-                              trim_ws = TRUE)|>
+                              trim_ws = F)|>
     suppressWarnings()|>
     suppressMessages()
   
+  c_files[ii]
+  l_Kiosk[[ii]]
+  
   # remove summary
-  l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    filter(!(l_Kiosk[[ii]]$Platzkategorie|>str_detect(START%R%one_or_more(DGT))))
+  try(l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
+    filter(!(l_Kiosk[[ii]]$Platzkategorie|>str_detect(START%R%one_or_more(DGT)))),
+    outFile = "error.txt"
+    )
+  if(list.files(pattern = "error.txt")|>length()>0) stop(paste0("\n",c_files[1],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
   
   # Spez Preise Kiosk
   index <- is.na(l_Kiosk[[ii]]$Preis)
