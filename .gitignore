@@ -2,11 +2,11 @@
 .Rhistory
 .Rapp.history
 
-
 # Session Data files
 output/
 README.html
 temp.Rmd
+error.log
 
 .RData
 .RDataTmp
