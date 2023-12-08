@@ -47,6 +47,8 @@ df_Eintritt|>
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Umsatz, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   knitr::kable()
 
 df_GV_Eintritt|>
@@ -148,7 +150,8 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 
 df_temp|>
   knitr::kable()
@@ -176,7 +179,8 @@ df_temp <- df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)
