@@ -3,7 +3,7 @@
 # Bitte beachte das README.md
 # Diesen Script erstellt Abrechnungen für den Kinoclub.
 #
-# V0.2.0
+# V0.3.0
 #############################################################################################################################################
 
 source("source/read and convert.R")
@@ -30,10 +30,10 @@ for(ii in 1:nrow(df_mapping)){
   index
 
   c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-  writeLines(c_raw, paste0("temp",".Rmd"))
+  writeLines(c_raw, paste0("source/temp.Rmd"))
 
   # Render
-  rmarkdown::render(paste0("temp",".Rmd"),
+  rmarkdown::render(paste0("source/temp.Rmd"),
                     c("html_document","word_document"),
                     output_dir = paste0(getwd(), "/output"))
 
@@ -46,7 +46,7 @@ for(ii in 1:nrow(df_mapping)){
   paste("Abrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
     writeLines()
 }
-file.remove("temp.Rmd")
+file.remove("source/temp.Rmd")
 remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index,ii)
 
 #############################################################################################################################################
