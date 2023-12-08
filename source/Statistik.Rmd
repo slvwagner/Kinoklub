@@ -142,17 +142,18 @@ df_temp <- df_show |>
                   reframe(Umsatz = sum(Kassiert)),
                 by = join_by(Datum)
                 ) |>
-      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+      mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
   select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(`Suisa Nummer`))
+  filter(!is.na(`Suisa Nummer`))|>
+  rename(`Umsatz [CHF]` = Umsatz)
 
 df_temp|>
   knitr::kable()
 
 df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz)/sum(Besucher))|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
   knitr::kable()
 
 ```
@@ -171,17 +172,18 @@ df_temp <- df_show |>
                   reframe(Umsatz = sum(Kassiert)),
                 by = join_by(Datum)
                 ) |>
-      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+      mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
   select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(`Suisa Nummer`))
+  filter(!is.na(`Suisa Nummer`))|>
+  rename(`Umsatz [CHF]`= Umsatz)
 
 df_temp|>
   knitr::kable()
 
 df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz)/sum(Besucher))|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz pro Gast [CHF]`)/sum(Besucher))|>
   knitr::kable()
 ```
 

@@ -104,12 +104,15 @@ df_temp <- df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = `SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`)|>
     select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
-  rename(`Umsatz [sFr]` = Umsatz)
+  rename(`Umsatz [CHF]` = Umsatz)
 
 df_temp|>
   select(-`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
+```
 
+
+```{r echo=FALSE}
 df_temp|>
   select(`Gewinn/Verlust [CHF]`)|>
   rename(`Film Gewinn` = `Gewinn/Verlust [CHF]`)|>
@@ -119,16 +122,16 @@ df_temp|>
 
 
 
-### Kiosk
+## Kiosk
 
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
   select(-Betrag)|>
-  rename(`Kassiert [sFR]` = `Kassiert`,
-         `Einkaufspreis [sFr]` =`Einkaufspreis`,
-         `Kiosk Gewinn [sFr]` = `Gewinn`,
-         `Verkaufspreis [sFr]`=`Verkaufspreis`)|>
+  rename(`Kassiert [CHF]` = `Kassiert`,
+         `Einkaufspreis [CHF]` =`Einkaufspreis`,
+         `Kiosk Gewinn [CHF]` = `Gewinn`,
+         `Verkaufspreis [CHF]`=`Verkaufspreis`)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
@@ -139,7 +142,7 @@ df_Kiosk|>
 df_Kiosk|>
   filter(Datum == c_Datum)|>
   select(-Betrag)|>
-  reframe(`Kiosk Gewinn [sFr]` = sum(Gewinn))|>
+  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn))|>
   knitr::kable()
 ```
 
@@ -158,11 +161,12 @@ df_show |>
                   reframe(Umsatz = sum(Kassiert)),
                 by = join_by(Datum)
                 ) |>
-      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+      mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
   filter(!is.na(`Suisa Nummer`))|>
     select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
+  rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
 
 ```
@@ -182,11 +186,12 @@ df_show |>
                   reframe(Umsatz = sum(Kassiert)),
                 by = join_by(Datum)
                 ) |>
-      mutate(`Umsatz pro Gast` = (Umsatz / `Besucher`) |> round(2)),
+      mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
   filter(!is.na(`Suisa Nummer`))|>
     select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
+    rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
 ```
 
