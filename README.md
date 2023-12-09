@@ -8,13 +8,13 @@ Script zur Abrechnung für den Kinoklub TaB
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis
 **/input/advance tickets** abzuspeichern.
 
--   Eintritte 02.12.23.txt
+-   Eintritte 02.12.23.txt \
     Copy paste von html für jede Filmvorführung und Speichern unter "Eintritt xx.xx.xx.txt"
 
--   Kiosk 02.12.23.txt
+-   Kiosk 02.12.23.txt \
     Copy paste von html für jede Filmvorführung und Speichern unter "Kiosk xx.xx.xx.txt"
 
--   Shows.txt
+-   Shows.txt \
     Copy paste von html für die gewünschte Abrechnungsperiode und Speichern unter "Shows.txt"
 
 ## Konfigurations Dateien
