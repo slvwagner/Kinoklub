@@ -55,8 +55,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     ```
     install.packages("tidyverse")
     ```
-  
-9.   Run the Script:
+8.  Run the Script:
     ```
     source("Erstelle Abrechnung.R")
     ```
