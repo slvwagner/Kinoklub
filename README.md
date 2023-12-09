@@ -47,7 +47,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 5.  Kionklub Scripts download:
     Navigate to folder you would like to install the Scripts
     ```
-    git clone https://github.com/slvwagner/Kinoclub
+    git clone https://github.com/slvwagner/Kinoklub
     ```
 
 6.  Start R or Rstudio from the Kinoklub folder and run the Script:
