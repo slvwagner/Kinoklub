@@ -48,6 +48,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     Navigate to folder you would like to install the Scripts
     ```
     git clone https://github.com/slvwagner/Kinoklub
+    cd Kinoklub
     ```
 
 6.  Start R or Rstudio from the Kinoklub folder and run the Script:
