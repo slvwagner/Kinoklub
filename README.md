@@ -38,7 +38,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 1.  Download and install R 
     <https://cran.r-project.org/bin/windows/base/>
 
-2.  Download and install Rsudio (optional) 
+2.  Download and install Rsudio 
     <https://posit.co/download/rstudio-desktop/>
 
 3.  Download git:
@@ -48,10 +48,15 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     Navigate to folder you would like to install the Scripts
     ```
     git clone https://github.com/slvwagner/Kinoklub
-    cd Kinoklub
     ```
 
-6.  Start R or Rstudio from the Kinoklub folder and run the Script:
+6.  Start Rstudio from the Kinoklub folder.
+7.  Install the needed packages in the R Terminal
+    ```
+    install.packages("tidyverse")
+    ```
+  
+9.   Run the Script:
     ```
     source("Erstelle Abrechnung.R")
     ```
