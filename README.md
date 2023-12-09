@@ -53,8 +53,10 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 6.  Start Rstudio from the Kinoklub folder.
 7.  Install the needed packages in the R Terminal
     ```
-    install.packages("tidyverse")
     install.packages("rmarkdown")
+    ```
+    ```
+    install.packages("tidyverse")
     ```
 8.  Run the Script:
     ```
