@@ -33,7 +33,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
 
-# Installation
+## Installation
 
 1.  Download and install R 
     <https://cran.r-project.org/bin/windows/base/>
