@@ -54,9 +54,10 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 7.  Install the needed packages in the R Terminal
     ```
     install.packages("rmarkdown")
-    ```
-    ```
     install.packages("tidyverse")
+    install.packages("rebus")
+    install.packages("openxlsx")
+    install.packages("flextable")
     ```
 8.  Run the Script:
     ```
