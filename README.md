@@ -32,6 +32,13 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 -   Verleiherabgaben \
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
+## Ausgabe 
+Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
+
+- Für jede Vorführung respektive Datum wird ein Abrechung erstellt.
+- Die Erfolgsrechnung wird über alle Datensätze erstellt.
+- Zusaätzliche Daten sind in der Statistik ersichtlich.
+- Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ## Installation
 
