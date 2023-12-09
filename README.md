@@ -45,7 +45,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     <https://git-scm.com/downloads>
 
 5.  Kionklub Scripts download:
-    Navigate to folder you would like to install the Scripts\
+    Navigate to folder you would like to install the Scripts
     ```
     git clone <https://github.com/slvwagner/Kinoclub>
     ```
