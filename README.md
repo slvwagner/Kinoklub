@@ -35,13 +35,13 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 
 ## Installation
 
-1.  Download and install R 
+1.  Download and install R \
     <https://cran.r-project.org/bin/windows/base/>
 
-2.  Download and install Rsudio 
+2.  Download and install Rsudio \
     <https://posit.co/download/rstudio-desktop/>
 
-3.  Download git:
+3.  Download git: \
     <https://git-scm.com/downloads>
 
 5.  Kionklub Scripts download:
