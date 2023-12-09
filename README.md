@@ -10,10 +10,8 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 -   Eintritte 02.12.23.txt \
     Copy paste von html für jede Filmvorführung und Speichern unter "Eintritt xx.xx.xx.txt"
-
 -   Kiosk 02.12.23.txt \
     Copy paste von html für jede Filmvorführung und Speichern unter "Kiosk xx.xx.xx.txt"
-
 -   Shows.txt \
     Copy paste von html für die gewünschte Abrechnungsperiode und Speichern unter "Shows.txt"
 
