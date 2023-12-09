@@ -41,19 +41,15 @@ Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
 
 1.  Download and install R \
     <https://cran.r-project.org/bin/windows/base/>
-
 2.  Download and install Rsudio \
     <https://posit.co/download/rstudio-desktop/>
-
 3.  Download git: \
     <https://git-scm.com/downloads>
-
 5.  Kionklub Scripts download:
     Navigate to folder you would like to install the Scripts
     ```
     git clone https://github.com/slvwagner/Kinoklub
     ```
-
 6.  Start Rstudio from the Kinoklub folder.
 7.  Install the needed packages in the R Terminal
     ```
