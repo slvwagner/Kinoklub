@@ -4,20 +4,24 @@
 #
 # V0.4.0
 #############################################################################################################################################
-
 source("source/read and convert.R")
 
 #############################################################################################################################################
-# index pro suisa_nr und Datume erstellen
+df_Render <- tibble(Render  = c("html_document","word_document","pdf_document"), 
+                    fileExt = c(".html", ".docx", ".pdf"))
 
+df_Render <- tibble(Render  = c("html_document"), 
+                    fileExt = c(".html"))
+
+#############################################################################################################################################
+# index pro suisa_nr und Datume erstellen
 df_mapping <- tibble(Datum = c_Date)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
 
-
 #############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
-
+ii <- 1
 for(ii in 1:nrow(df_mapping)){
 
   # Einlesen template der Abrechnung
@@ -33,26 +37,28 @@ for(ii in 1:nrow(df_mapping)){
 
   # Render
   rmarkdown::render(paste0("source/temp.Rmd"),
-                    c("html_document","word_document"),
+                    df_Render$Render,
                     output_dir = paste0(getwd(), "/output"))
 
   # Rename the file
-  file.rename(paste0(getwd(),"/output/temp",".html"), paste0(getwd(),"/output/",df_mapping$user_Datum[ii],".html"))
-  file.rename(paste0(getwd(),"/output/temp",".docx"), paste0(getwd(),"/output/",df_mapping$user_Datum[ii],".docx"))
+  for (jj in 1:length(df_Render$Render)) {
+    file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
+                to   = paste0(getwd(),"/output/",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
+                )
+  }
 
   # user interaction
   print(clc)
   paste("Abrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
     writeLines()
 }
-file.remove("source/temp.Rmd")
+
 remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index,ii)
 
 #############################################################################################################################################
 # Erfolgsrechnung
-
 rmarkdown::render(paste0("source/Erfolgsrechnung.Rmd"),
-                  c("html_document","word_document"),
+                  df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
@@ -62,16 +68,18 @@ paste("Erfolgsrechnung erstellt")|>
 
 #############################################################################################################################################
 # Statistik
-
 rmarkdown::render(paste0("source/Statistik.Rmd"),
-                  c("html_document","word_document"),
+                  df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
 paste("Statistik erstellt")|>
   writeLines()
 
-
+#############################################################################################################################################
+# 
+list.files(pattern = "temp", recursive = TRUE)|>
+  file.remove()
 
 
 
