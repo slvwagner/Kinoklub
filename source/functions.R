@@ -1,10 +1,10 @@
 #######################################################################################
-# variable is present in global environment
+# spez. Round for Swiss currency "CHF"
 #######################################################################################
 
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
-    x <- round(zahl-as.integer(zahl*10)/10,3)
+    x <- round(zahl-as.integer(zahl*10)/10,6)
     if(x>=0.075){
       return((as.integer(zahl*10)/10)+0.1)
     }else {
