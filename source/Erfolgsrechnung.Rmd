@@ -91,7 +91,13 @@ df_GV_Eintritt|>
 
 ```
 
+
+## Werbung
+### Werbeeinnahmen
+### Werbeiausgaben
+
 ## Kiosk
+
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_GV_Kiosk|>
@@ -113,8 +119,19 @@ df_GV_Kiosk|>
 
 ```
 
-### Detailierte Einsicht
-Für eine Detaillierte Einsicht in Besucherzahlen, Umsatz pro Gast und Kioskverkäufe das Dokument Statistik einsehen.
+
+### Kioskausgaben
+
+## Vermietungen Ein- und Ausgaben
+
+## Sonstige Ausgaben
+
+## Fördergelder
+
+
+
+
+
 \
 \
 \
