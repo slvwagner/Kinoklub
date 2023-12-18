@@ -56,7 +56,6 @@ df_GV_Vorfuehrung|>
 ### Kino Eintritte
 
 ```{r echo=FALSE}
-
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
@@ -69,7 +68,6 @@ df_Eintritt|>
 ### Kino Eintritte Zusammenfassung
 
 ```{r echo=FALSE}
-
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
@@ -84,7 +82,6 @@ df_Eintritt|>
 ```
 
 ```{r echo=FALSE}
-
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
