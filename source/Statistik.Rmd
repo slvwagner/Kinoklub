@@ -16,14 +16,16 @@ Bericht wurde am `r act_date` erstellt.
 ## Statistik
 
 ### Eintritte
+#### Anzahl
 
-```{r fig.width=12}
+```{r fig.width=10}
 df_Eintritt|>
   group_by(Platzkategorie, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
   arrange(Anzahl)|>
   mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|>
-  ggplot(aes(Platzkategorie,Anzahl, fill =  Zahlend))+
+  mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
+  ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+
   geom_col()+
   #labs(title = "Anzahl Eintritte")+
   coord_flip()+
@@ -41,25 +43,10 @@ df_Eintritt|>
   legend.box.just = "right",
   legend.margin = margin(6, 6, 6, 6),
   legend.background = element_rect(fill = "#322f3b", color = "black"),
-  legend.text = element_text(color = "#f4cccc")
+  legend.text = element_text(color = "#f4cccc"),
+  legend.title = element_blank()
   
   )
-```
-
-```{r }
-df_Eintritt|>
-  group_by(Platzkategorie)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Film Umsatz [CHF]` = sum(Umsatz))|>
-    arrange(desc(`Film Umsatz [CHF]`))|>
-  knitr::kable()
-
-```
-
-```{r}
-df_Eintritt|>
-  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
-  knitr::kable()
 ```
 
 
@@ -74,8 +61,53 @@ df_Eintritt|>
 
 ```
 
+#### Umsatz
+
+```{r fig.width=10, fig.height=3}
+df_temp <- df_Eintritt|>
+  filter(Zahlend)|>
+  group_by(Platzkategorie,Zahlend)|>
+  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  arrange((`Film Umsatz [CHF]`))
+
+```
 
 
+```{r fig.width=10, fig.height=3}
+df_temp|>
+  ggplot(aes(factor(Platzkategorie, levels = Platzkategorie),`Film Umsatz [CHF]`, fill = Zahlend))+
+  geom_col(show.legend = F)+
+  labs(x = "Platzkategorie")+
+  coord_flip()+
+  theme_bw()+
+  theme(
+  panel.background = element_rect(fill = "#322f3b",
+                                colour = "#322f3b",
+                                size = 0.5, linetype = "solid"),
+  plot.background = element_rect(fill = "#322f3b"),
+  axis.title = element_text(colour = "#f4cccc", size =15),
+  axis.text= element_text(colour = "#f4cccc"),
+  title = element_text(colour = "#f4cccc", size = 20),
+  )
+```
+
+<!-- ```{r } -->
+<!-- df_Eintritt|> -->
+<!--   group_by(Platzkategorie)|> -->
+<!--   reframe(Anzahl = sum(Anzahl), -->
+<!--           `Film Umsatz [CHF]` = sum(Umsatz))|> -->
+<!--     arrange(desc(`Film Umsatz [CHF]`))|> -->
+<!--   knitr::kable() -->
+
+<!-- ``` -->
+
+
+
+```{r}
+df_Eintritt|>
+  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  knitr::kable()
+```
 
 
 ### Filmabgaben
@@ -86,7 +118,10 @@ df_GV_Eintritt|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   knitr::kable()
+```
 
+
+```{r echo=FALSE}
 df_GV_Eintritt|>
   reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Abzug [CHF]`),
           `Abgaben and den Verleiger [CHF]` = sum(`Verleiher-Abzug [CHF]`)
@@ -95,9 +130,9 @@ df_GV_Eintritt|>
 
 ```
 
-## Kiosk 
+### Kiosk 
 
-### Verkaufsartikel 
+#### Verkaufsartikel 
 ```{r }
 df_temp <- df_Kiosk|>
   select(-Betrag)|>
@@ -147,7 +182,7 @@ df_temp|>
 
 ```
 
-### Ladenhüter (keine Verkäufe)
+#### Ladenhüter (keine Verkäufe)
 ```{r }
 
 df_temp <- df_Einkaufspreise|>
@@ -164,8 +199,8 @@ df_temp|>
   knitr::kable()
 
 ```
-### Kiosk Umsatz pro Gast
 
+#### Kiosk Umsatz pro Gast
 ```{r }
 df_temp <- df_show |>
   left_join(
@@ -200,7 +235,7 @@ df_temp|>
 ```
 
 
-### Kiosk Umsatz pro zahlender Gast
+#### Kiosk Umsatz pro zahlender Gast
 ```{r }
 df_temp <- df_show |>
   left_join(
