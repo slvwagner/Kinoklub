@@ -129,7 +129,6 @@ df_Kiosk|>
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
          `Kiosk Gewinn [CHF]` = `Gewinn`,
          `Verkaufspreis [CHF]`=`Verkaufspreis`)|>
-  #mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
 ```
