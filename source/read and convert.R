@@ -9,6 +9,32 @@ file.remove("error.log")|>suppressWarnings()
 source("source/functions.R")
 
 ########################################################################
+# Read Ein und Ausgaben
+
+c_sheets <- readxl::excel_sheets("Input/Ausgaben und Einnahmen.xlsx")
+Ausgaben_und_Einnahmen <- lapply(c_sheets, function(x) {
+  readxl::read_excel("Input/Ausgaben und Einnahmen.xlsx", 
+                     sheet = x)
+})
+names(Ausgaben_und_Einnahmen) <- c_sheets
+
+Ausgaben_und_Einnahmen[["Filmausgaben"]] <- Ausgaben_und_Einnahmen[["Filmausgaben"]]|>
+  mutate(SpielDatum = as.Date(SpielDatum),
+         Rechnungsdatum = as.Date(Rechnungsdatum))
+
+Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]] <- Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  mutate(SpielDatum = as.Date(SpielDatum),
+         Rechnungsdatum = as.Date(Rechnungsdatum))
+
+Ausgaben_und_Einnahmen[["Kioskausgaben"]] <- Ausgaben_und_Einnahmen[["Kioskausgaben"]]|>
+  mutate(Datum = as.Date(Datum))
+
+Ausgaben_und_Einnahmen[["Einnahmen"]] <- Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  mutate(Datum = as.Date(Datum))
+
+Ausgaben_und_Einnahmen
+
+########################################################################
 # Function to read and convert data from Film.txt files ()
 convert_data <- function(c_fileName) {
   l_data <- list()
@@ -479,8 +505,6 @@ df_GV_Kiosk <- l_GV_Kiosk|>
 ########################################################################
 # Gewinn Filmvorführung
 
-
-
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
   l_GV_Vorfuehrung[[ii]] <- tibble(Datum = c_Date[ii], 
@@ -491,7 +515,6 @@ for (ii in 1:length(c_Date)) {
 
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
   bind_rows()
-
 
 
 ########################################################################
