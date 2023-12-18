@@ -49,8 +49,14 @@ df_GV_Vorfuehrung|>
   rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 
-
 ```
+
+```{r echo=FALSE}
+if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Der Gewinn kann demnach noch kleiner werden.")
+  }
+```
+
 \
 \
 
@@ -120,7 +126,6 @@ df_temp|>
 
 
 ### Reklamematerial und Porto
-
 
 ## Kiosk
 

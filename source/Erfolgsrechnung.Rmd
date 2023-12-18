@@ -95,7 +95,41 @@ df_GV_Eintritt|>
 
 ## Werbung
 ### Werbeeinnahmen
-### Werbeiausgaben
+```{r echo=FALSE}
+Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Datum, Firmennamen , Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### Werbeausgaben
+```{r echo=FALSE}
+Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Rechnungsdatum, Bezeichnung , Firmennamen, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
 
 ## Kiosk
 
@@ -107,7 +141,8 @@ df_GV_Kiosk|>
          `Kiosk Gewinn [CHF]` = Gewinn)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
-                           lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
+                           str_replace(SPC,"0"))
          )|>
   knitr::kable()
 
@@ -125,10 +160,50 @@ df_GV_Kiosk|>
 
 
 ### Kioskausgaben
+```{r echo=FALSE}
+Ausgaben_und_Einnahmen[["Kioskausgaben"]]|>
+  knitr::kable()
+```
+
 
 ## Vermietungen Ein- und Ausgaben
+```{r echo=FALSE}
+
+bind_rows(
+  Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
+  select(Datum, Firmennamen, Betrag)|>
+  rename(Bezeichnung = Firmennamen, 
+         Rechnungsdatum = Datum ),
+  Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  select(Rechnungsdatum, Bezeichnung, Betrag)|>
+  mutate(Betrag = -Betrag)
+  )|>
+  rename(Datum = Rechnungsdatum)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  knitr::kable()
+```
+
 
 ## Sonstige Ausgaben
+```{r echo=FALSE}
+
+bind_rows(
+  Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  filter(Kategorie != "Vermietung")|>
+  select(Datum, Firmennamen, Betrag)|>
+  rename(Bezeichnung = Firmennamen, 
+         Rechnungsdatum = Datum ),
+  Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  filter(Kategorie != "Vermietung")|>
+  select(Rechnungsdatum, Bezeichnung, Betrag)|>
+  mutate(Betrag = -Betrag)
+  )|>
+  rename(Datum = Rechnungsdatum)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  knitr::kable()
+```
 
 ## Fördergelder
 

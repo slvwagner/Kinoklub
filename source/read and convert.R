@@ -150,7 +150,7 @@ convert_data <- function(c_fileName) {
 }
 
 ########################################################################
-# Eintritt
+# Eintritt aus Advance Tickets
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 l_Eintritt <- convert_data(c_files)
@@ -180,9 +180,8 @@ df_Flimvorfuerungen <- l_Eintritt|>
 df_Flimvorfuerungen
 
 c_Date <- df_Flimvorfuerungen$Datum
-c_Date
 c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
-c_suisa_nr
+
 
 ########################################################################
 # read Einkaufspreise 
@@ -368,6 +367,23 @@ df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
 df_Eintritt
 
+########################################################################
+# VerleiherRechnung 
+
+df_keine_Rechnnung <- df_Eintritt|>
+  distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
+  select(Datum,Filmtitel,`Suisa Nummer`)|>
+  left_join(Ausgaben_und_Einnahmen[["Filmausgaben"]]|>
+              select(-Bezeichnung), 
+            by = c("Datum"="SpielDatum"))|>
+  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
+
+if(nrow(df_keine_Rechnnung)>0) {
+  warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
+                   day(df_keine_Rechnnung$Datum[]),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel)
+          )  
+}
+
 
 ########################################################################
 # Gewinn/Verlust Eintitt
@@ -400,6 +416,13 @@ for (ii in 1:length(c_Date)) {
                                `Abzug [%]`)|>pull())/100
   c_verleiherabzug
   
+  c_Verleiherrechnung <- df_keine_Rechnnung|>
+    filter(Datum == c_Date[ii])|>
+    select(Betrag)|>
+    pull()
+  
+  c_Verleiherrechnung
+  
   # Error handling Verleiherabgaben
   if(is.na(c_verleiherabzug)) {
     error <- df_Eintritt|>filter(Datum == c_Date[ii])|>
@@ -417,12 +440,16 @@ for (ii in 1:length(c_Date)) {
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
                        `Verleiher-Abzug [%]` =c_verleiherabzug*100,
-                       `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug))|>
+                       `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug),
+                       `Sonstige Kosten` = c_Verleiherrechnung - `Verleiher-Abzug [CHF]`)|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
-           `Gewinn/Verlust [CHF]` = Umsatz-(`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))|>
+           `Gewinn/Verlust [CHF]` = if_else(!is.na(c_Verleiherrechnung),
+                                            Umsatz-c_Verleiherrechnung,
+                                            Umsatz - (`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))
+           )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
+  
   l_GV[[ii]]
-
 }
 
 l_GV
