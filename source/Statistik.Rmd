@@ -16,11 +16,42 @@ Bericht wurde am `r act_date` erstellt.
 ## Statistik
 
 ### Eintritte
+
+```{r fig.width=12}
+df_Eintritt|>
+  group_by(Platzkategorie, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(Anzahl)|>
+  mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|>
+  ggplot(aes(Platzkategorie,Anzahl, fill =  Zahlend))+
+  geom_col()+
+  #labs(title = "Anzahl Eintritte")+
+  coord_flip()+
+  theme_bw()+
+  theme(
+  panel.background = element_rect(fill = "#322f3b",
+                                colour = "#322f3b",
+                                size = 0.5, linetype = "solid"),
+  plot.background = element_rect(fill = "#322f3b"),
+  axis.title = element_text(colour = "#f4cccc", size =15),
+  axis.text= element_text(colour = "#f4cccc"),
+  title = element_text(colour = "#f4cccc", size = 20),
+  legend.position = c(.95, .25),
+  legend.justification = c("right", "top"),
+  legend.box.just = "right",
+  legend.margin = margin(6, 6, 6, 6),
+  legend.background = element_rect(fill = "#322f3b", color = "black"),
+  legend.text = element_text(color = "#f4cccc")
+  
+  )
+```
+
 ```{r }
 df_Eintritt|>
   group_by(Platzkategorie)|>
   reframe(Anzahl = sum(Anzahl),
           `Film Umsatz [CHF]` = sum(Umsatz))|>
+    arrange(desc(`Film Umsatz [CHF]`))|>
   knitr::kable()
 
 ```
@@ -43,6 +74,10 @@ df_Eintritt|>
 
 ```
 
+
+
+
+
 ### Filmabgaben
 ```{r echo=FALSE}
 df_GV_Eintritt|>
@@ -63,8 +98,6 @@ df_GV_Eintritt|>
 ## Kiosk 
 
 ### Verkaufsartikel 
-
-
 ```{r }
 df_temp <- df_Kiosk|>
   select(-Betrag)|>
@@ -79,7 +112,6 @@ df_temp <- df_Kiosk|>
 
 
 ```{r }
-
 # library(flextable)
 flextable::set_flextable_defaults(background.color = "#322f3b", 
                        font.color = "#f4cccc")
