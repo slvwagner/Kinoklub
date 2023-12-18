@@ -77,10 +77,15 @@ paste("Statistik erstellt")|>
   writeLines()
 
 #############################################################################################################################################
-# 
+# remove temp files 
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
+#############################################################################################################################################
+# User Interaktion
+
+paste("\nAlle Berichte wurden erstellt und sind im Verzeichniss  \"output\" zu finden.")|>
+  writeLines()
 
 
 
