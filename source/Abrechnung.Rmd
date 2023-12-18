@@ -127,12 +127,12 @@ df_temp|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  select(-Betrag)|>
+  select(-Datum, -Betrag)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
          `Kiosk Gewinn [CHF]` = `Gewinn`,
          `Verkaufspreis [CHF]`=`Verkaufspreis`)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  #mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 
 ```
