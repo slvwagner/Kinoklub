@@ -514,5 +514,5 @@ remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besuch
 
 
 # user interaction
-writeLines("file conversion done")
+writeLines("Datenkonvertierung erfolgt")
 

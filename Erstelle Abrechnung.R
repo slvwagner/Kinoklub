@@ -49,7 +49,7 @@ for(ii in 1:nrow(df_mapping)){
 
   # user interaction
   print(clc)
-  paste("Abrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
+  paste("Bericht: \nAbrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
     writeLines()
 }
 
@@ -62,7 +62,7 @@ rmarkdown::render(paste0("source/Erfolgsrechnung.Rmd"),
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
-paste("Erfolgsrechnung erstellt")|>
+paste("Bericht: \nErfolgsrechnung erstellt")|>
     writeLines()
 
 
@@ -73,7 +73,7 @@ rmarkdown::render(paste0("source/Statistik.Rmd"),
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
-paste("Statistik erstellt")|>
+paste("Bericht: \nStatistik erstellt")|>
   writeLines()
 
 #############################################################################################################################################
