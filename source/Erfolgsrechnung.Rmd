@@ -39,7 +39,8 @@ df_GV_Vorfuehrung|>
 
 ```{r echo=FALSE}
 
-df_Eintritt|>
+df_Eintritt|>  
+  arrange(Datum)|> 
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl),
@@ -68,10 +69,12 @@ df_Eintritt|>
 
 ```{r echo=FALSE}
 df_GV_Eintritt|>
+  arrange(Datum)|> 
   rename(`Umsatz [CHF]` = Umsatz,
          `Film Gewinn [CHF]` = `Gewinn/Verlust [CHF]`
          )|>
   select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - `Suisa Nummer`)|>
+  arrange(Datum)|> 
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   knitr::kable()
 ```
@@ -92,6 +95,7 @@ df_GV_Eintritt|>
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_GV_Kiosk|>
+  arrange(Datum)|> 
   rename(`Umsatz [CHF]` = Kassiert,
          `Kiosk Gewinn [CHF]` = Gewinn)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
