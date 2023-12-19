@@ -16,63 +16,43 @@ Bericht wurde am `r act_date` erstellt.
 ## Gewinn Verlust aus Kionvorführungen
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
-```{r echo=FALSE}
-df_GV_Vorfuehrung|>
-  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
-    mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
-                           lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
-         )|>
-  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  arrange(Datum)|> 
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  rename(`Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+```{r}
+df_temp <- df_GV_Eintritt|>
+  select(-Umsatz, -`SUISA-Abzug [%]`, -`SUISA-Abzug [CHF]`, -`Verleiher-Abzug [%]`, -`Verleiher-Abzug [CHF]`,-`Sonstige Kosten`)|>
+  arrange(Datum)|>
+    mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
+
+df_temp|>
   knitr::kable()
 ```
+
+```{r}
+df_temp|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  knitr::kable()
+```
+
+
+
+
+### Eintritte
+#### Anzahl
 
 ```{r echo=FALSE}
 
 df_Eintritt|>  
   arrange(Datum)|> 
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
   group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
+  reframe(Anzahl = sum(Anzahl))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Umsatz Film [CHF]` = `Umsatz`,
-         Eintritt = Zahlend)|>
+  rename(Eintritt = Zahlend)|>
   knitr::kable()
 
 ```
-
-
-## Kiosk-Gewinn pro Vorführung 
-```{r echo=FALSE}
-df_GV_Kiosk|>
-  arrange((Datum))|> 
-  rename(`Umsatz [CHF]` = Kassiert,
-         `Kiosk Gewinn [CHF]` = Gewinn)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
-                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
-                           str_replace(SPC,"0"))
-         )|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-df_GV_Kiosk|>
-  reframe(`Umsatz [CHF]` = sum(Kassiert),
-          `Kiosk Gewinn [CHF]` = sum(Gewinn)
-          )|>
-  knitr::kable()
-
-```
-
-## Eintritte
-### Anzahl
 
 ```{r fig.width=10}
+
 df_Eintritt|>
   group_by(Platzkategorie, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
@@ -81,7 +61,7 @@ df_Eintritt|>
   mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
   ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+
   geom_col()+
-  #labs(title = "Anzahl Eintritte")+
+  scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) +
   coord_flip()+
   theme_bw()+
   theme(
@@ -103,33 +83,18 @@ df_Eintritt|>
 ```
 
 
-```{r }
-df_Eintritt|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(Eintritt = Zahlend)|>
-  knitr::kable()
-
-```
-
-### Umsatz
+#### Umsatz
 
 ```{r fig.width=10, fig.height=3}
 df_temp <- df_Eintritt|>
   filter(Zahlend)|>
-  group_by(Platzkategorie,Zahlend)|>
+  group_by(Platzkategorie)|>
   reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
   arrange((`Film Umsatz [CHF]`))
 
-```
-
-
-```{r fig.width=10, fig.height=3}
 df_temp|>
-  ggplot(aes(factor(Platzkategorie, levels = Platzkategorie),`Film Umsatz [CHF]`, fill = Zahlend))+
-  geom_col(show.legend = F)+
+  ggplot(aes(x = factor(Platzkategorie, levels = Platzkategorie), `Film Umsatz [CHF]`))+
+  geom_col(show.legend = F, fill = "cyan4")+
   labs(x = "Platzkategorie")+
   coord_flip()+
   theme_bw()+
@@ -144,17 +109,6 @@ df_temp|>
   )
 ```
 
-<!-- ```{r } -->
-<!-- df_Eintritt|> -->
-<!--   group_by(Platzkategorie)|> -->
-<!--   reframe(Anzahl = sum(Anzahl), -->
-<!--           `Film Umsatz [CHF]` = sum(Umsatz))|> -->
-<!--     arrange(desc(`Film Umsatz [CHF]`))|> -->
-<!--   knitr::kable() -->
-
-<!-- ``` -->
-
-
 
 ```{r}
 df_Eintritt|>
@@ -163,7 +117,7 @@ df_Eintritt|>
 ```
 
 
-## Filmabgaben
+### Filmabgaben
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Umsatz, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
@@ -178,6 +132,30 @@ df_GV_Eintritt|>
 df_GV_Eintritt|>
   reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Abzug [CHF]`),
           `Abgaben and den Verleiger [CHF]` = sum(`Verleiher-Abzug [CHF]`)
+          )|>
+  knitr::kable()
+
+```
+
+## Kiosk-Gewinn pro Vorführung 
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  arrange((Datum))|> 
+  rename(`Umsatz [CHF]` = Kassiert,
+         `Kiosk Gewinn [CHF]` = Gewinn)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
+                           str_replace(SPC,"0"))
+         )|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  reframe(`Umsatz [CHF]` = sum(Kassiert),
+          `Kiosk Gewinn [CHF]` = sum(Gewinn)
           )|>
   knitr::kable()
 
