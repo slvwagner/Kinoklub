@@ -13,10 +13,8 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-
-
 ## Kino Vorführungen
-### Einnahmen aus Ticketverkauf
+### Einnahmen Ticketverkauf
 ```{r}
 df_Eintritt|>
   filter(Zahlend)|>
@@ -35,7 +33,7 @@ df_Eintritt|>
 ```
 
 
-### Ausgaben für Filmvorführungen
+### Ausgaben
 #### Suisaabgaben
 ```{r}
 df_GV_Eintritt|>
@@ -76,62 +74,8 @@ df_GV_Eintritt|>
 ```
 
 
-## Werbung
-### Werbeeinnahmen
-```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Werbung")|>
-  select(Datum, Firmennamen , Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
-  knitr::kable()
-
-```
-
-### Werbeausgaben
-```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Werbung")|>
-  select(Datum, Bezeichnung , Firmennamen, Betrag)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  rename(`Betrag [CHF]` = Betrag)|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
-  knitr::kable()
-
-```
-
-#### Differenz
-```{r}
-
-(Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)) - 
-  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)))|>
-  knitr::kable()
-
-
-```
-
-
-## Kiosk
-### Kiosk-Einahmen aus Verkauf
+### Kiosk
+#### Kiosk-Einahmen aus Verkauf
 
 ```{r}
 df_Kiosk|>
@@ -150,12 +94,12 @@ df_Kiosk|>
 ```
 
 
-### Kiosk-Ausgaben
+#### Kiosk-Ausgaben
 Einkauf Verkaufsartikel
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Kiosk")|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
@@ -169,7 +113,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```
 
 
-### Differenz
+#### Differenz
 ```{r}
 df_temp <- df_Kiosk|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
@@ -185,6 +129,63 @@ df_temp|>
 
 
 
+## Werbung
+### Werbeeinnahmen
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Datum, Firmennamen , Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### Werbeausgaben
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Datum, Bezeichnung , Firmennamen, Betrag)|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### Differenz
+```{r}
+
+(Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag)) - 
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag)))|>
+  knitr::kable()
+
+
+```
+
+
+
+
+
 
 
 ## Vermietungen 
@@ -194,7 +195,7 @@ df_temp|>
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Datum, Bezeichnung, Betrag)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 
@@ -214,7 +215,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -249,6 +250,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Sonstige Einnahmen")|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -267,6 +269,8 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
+  arrange(Datum)|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -291,6 +295,9 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   knitr::kable()
 
 ```
+
+
+
 
 
 \

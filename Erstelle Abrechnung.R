@@ -20,6 +20,16 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 #############################################################################################################################################
+# Jahresrechnung
+rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nJahresrechnung detailliert erstellt")|>
+  writeLines()
+
+#############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
 ii <- 1
 for(ii in 1:nrow(df_mapping)){
