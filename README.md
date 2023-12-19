@@ -8,27 +8,27 @@ Script zur Abrechnung für den Kinoklub TaB
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis
 **/input/advance tickets** abzuspeichern.
 
--   Eintritte 02.12.23.txt \
+-   "Eintritte 02.12.23.txt" \
     Copy paste von html für jede Filmvorführung und Speichern unter "Eintritt xx.xx.xx.txt"
--   Kiosk 02.12.23.txt \
+-   "Kiosk 02.12.23.txt"" \
     Copy paste von html für jede Filmvorführung und Speichern unter "Kiosk xx.xx.xx.txt"
--   Shows.txt \
+-   "Shows.txt" \
     Copy paste von html für die gewünschte Abrechnungsperiode und Speichern unter "Shows.txt"
 
 ## Konfigurations Dateien
 
 Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
--   \"Einkauf Kiosk xx.xx.xx.txt\" \
+-   "Einkauf Kiosk xx.xx.xx.xlsx" \
     Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss das File
     abgepasst werden und und mit dem Datum ab wann diese Gültig sind abgespeichert werden. Die älteren Dateien dürfen
     nicht gelöscht werden .
--   \"Spezialpreisekiosk.xlsx\" \
+-   "Spezialpreisekiosk.xlsx" \
     Definition der Sonderangebote
--   \"Verleiherabgaben.xlsx\" \
+-   "Verleiherabgaben.xlsx" \
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
--   Einnahmen und \"Ausgaben.xlsx\" \
+-   Einnahmen und "Ausgaben.xlsx" \
     Einnahmen und Ausgaben die nichts mit den Vorführungen zu tuen haben. 
 
 ## Ausgabe 
