@@ -28,7 +28,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 -   "Verleiherabgaben.xlsx" \
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
--   Einnahmen und "Ausgaben.xlsx" \
+-   "Einnahmen und Ausgaben.xlsx" \
     Einnahmen und Ausgaben die nichts mit den Vorführungen zu tuen haben. 
 
 ## Ausgabe 
