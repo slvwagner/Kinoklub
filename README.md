@@ -19,16 +19,16 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
--   Einkauf Kiosk xx.xx.xx \
+-   \"Einkauf Kiosk xx.xx.xx.txt\" \
     Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss das File
     abgepasst werden und und mit dem Datum ab wann diese Gültig sind abgespeichert werden. Die älteren Dateien dürfen
     nicht gelöscht werden .
--   Spezialpreisekiosk.xlsx \
+-   \"Spezialpreisekiosk.xlsx\" \
     Definition der Sonderangebote
--   Verleiherabgaben \
+-   \"Verleiherabgaben.xlsx\" \
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
--   Einnahmen und Ausgaben.xlsx \
+-   Einnahmen und \"Ausgaben.xlsx\" \
     Einnahmen und Ausgaben die nichts mit den Vorführungen zu tuen haben. 
 
 ## Ausgabe 
