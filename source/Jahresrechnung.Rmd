@@ -1,5 +1,5 @@
 ---
-title: "Erfolgsrechnung Kinoklub"
+title: "Jahresabrechnung Kinoklub"
 output: 
   html_document:
     css: Kinoklub_dark.css
@@ -13,7 +13,30 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-## Erfolg
+## Kino Eintritte
+### Einnahmen
+```{r}
+
+```
+
+
+
+### Ausgaben
+#### Suisaabgaben
+```{r}
+
+```
+
+#### Verleigerabgaben
+```{r}
+
+```
+
+
+
+## Kino Eintritte Übersicht
+
+## Gewinn Verlust aus Kionvorführungen
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r echo=FALSE}
@@ -28,15 +51,6 @@ df_GV_Vorfuehrung|>
   rename(`Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
-
-```{r echo=FALSE}
-df_GV_Vorfuehrung|>
-  reframe(`Total Gewinn [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
-  knitr::kable()
-```
-
-
-## Kino Eintritte Übersicht
 
 ```{r echo=FALSE}
 
@@ -123,29 +137,29 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 ### Werbeausgaben
 ```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
-  select(Rechnungsdatum, Bezeichnung , Firmennamen, Betrag)|>
+  select(Datum, Bezeichnung , Firmennamen, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 
 ```
 
 ```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```
 
-### Gewinn / Verlust Werbung
+#### Differenz
 ```{r}
 
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
   reframe(`Betrag [CHF]` = sum(Betrag)) - 
-  Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
   reframe(`Betrag [CHF]` = sum(Betrag)))|>
   knitr::kable()
@@ -182,6 +196,16 @@ df_GV_Kiosk|>
 
 ### Kiosk-Einahmen
 Kiosk-Einnahmen aus Verkauf. 
+
+```{r}
+df_Kiosk|>
+  group_by(Verkaufsartikel)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Betrag [CHF]` = sum(Betrag))|>
+  arrange(desc(`Betrag [CHF]`))|>
+  knitr::kable()
+```
+
 ```{r}
 df_Kiosk|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
@@ -190,22 +214,32 @@ df_Kiosk|>
 ```
 
 
-### Kioskausgaben
+### Kiosk-Ausgaben
 Einkauf Verkaufsartikel
 ```{r echo=FALSE}
-Einnahmen_und_Ausgaben[["Kioskausgaben"]]|>
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Kiosk")|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 ```
 
-### Gewinn / Verlust Kiosk
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Kiosk")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+```
+
+
+#### Differenz
 ```{r}
 df_temp <- df_Kiosk|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
   arrange(desc(`Betrag [CHF]`))-
-  Einnahmen_und_Ausgaben[["Kioskausgaben"]]|>
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Kiosk")|>
   reframe(`Betrag [CHF]` = sum(Betrag))
 
 df_temp|>
@@ -216,65 +250,110 @@ df_temp|>
 
 
 
-## Vermietungen Ein- und Ausgaben
+
+## Vermietungen 
+
+### Einnahmen
 ```{r echo=FALSE}
-
-df_test <- bind_rows(
-  Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
-  select(Datum, Firmennamen, Betrag)|>
-  rename(Bezeichnung = Firmennamen, 
-         Rechnungsdatum = Datum ),
-  Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
-  filter(Kategorie == "Vermietung")|>
-  select(Rechnungsdatum, Bezeichnung, Betrag)|>
-  mutate(Betrag = -Betrag)
-  )|>
-  rename(Datum = Rechnungsdatum)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
-
-
-df_test|>
+  select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
-df_test|>
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
   reframe(`Betrag [CHF]`=sum(Betrag))|>
   knitr::kable()
+
 ```
 
-
-
-## Sonstige Einnahmen und Ausgaben
+### Ausgaben
 ```{r echo=FALSE}
-
-df_temp <- bind_rows(
-  Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie != "Vermietung")|>
-  select(Datum, Firmennamen, Betrag)|>
-  rename(Bezeichnung = Firmennamen, 
-         Rechnungsdatum = Datum ),
-  Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
-  filter(Kategorie != "Vermietung")|>
-  select(Rechnungsdatum, Bezeichnung, Betrag)|>
-  mutate(Betrag = -Betrag)
-  )|>
-  rename(Datum = Rechnungsdatum)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
-
-df_temp|>
-  rename(`Betrag [CHF]`= Betrag)|>
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Betrag [CHF]`=sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### Differenz
+```{r}
+(Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Betrag [CHF]`=sum(Betrag))-
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Betrag [CHF]`=sum(Betrag)))|>
+  knitr::kable()
+  
 ```
 
 
-```{r}
-df_temp|>
+
+## Sonstige Ein- und Ausgaben
+
+### Sonstige-Einnahmen
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Sonstige Einnahmen")|>
+  select(Datum, Bezeichnung,Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Sonstige Einnahmen")|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
   knitr::kable()
+
 ```
+
+### Sonstige-Ausgaben
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Sonstige Ausgaben")|>
+  select(Datum, Bezeichnung,Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Sonstige Ausgaben")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+#### Differenz
+
+```{r}
+(Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Sonstige Einnahmen")|>
+  reframe(`Betrag [CHF]` = sum(Betrag))-
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Sonstige Ausgaben")|>
+  reframe(`Betrag [CHF]` = sum(Betrag)))|>
+  knitr::kable()
+
+```
+
 
 \
 \

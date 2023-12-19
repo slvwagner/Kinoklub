@@ -56,13 +56,13 @@ for(ii in 1:nrow(df_mapping)){
 remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index,ii)
 
 #############################################################################################################################################
-# Erfolgsrechnung
-rmarkdown::render(paste0("source/Erfolgsrechnung.Rmd"),
+# Jahresrechnung
+rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
                   df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
-paste("Bericht: \nErfolgsrechnung erstellt")|>
+paste("Bericht: \nJahresrechnung erstellt")|>
     writeLines()
 
 

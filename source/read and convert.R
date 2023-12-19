@@ -17,19 +17,13 @@ Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
                      sheet = x)
 })
 names(Einnahmen_und_Ausgaben) <- c_sheets
+c_sheets
 
-Einnahmen_und_Ausgaben[["Filmausgaben"]] <- Einnahmen_und_Ausgaben[["Filmausgaben"]]|>
-  mutate(SpielDatum = as.Date(SpielDatum),
-         Rechnungsdatum = as.Date(Rechnungsdatum))
+Einnahmen_und_Ausgaben[[1]] <- Einnahmen_und_Ausgaben[[1]]|>
+  mutate(Spieldatum = as.Date(Spieldatum),
+         Datum = as.Date(Datum))
 
-Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]] <- Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
-  mutate(SpielDatum = as.Date(SpielDatum),
-         Rechnungsdatum = as.Date(Rechnungsdatum))
-
-Einnahmen_und_Ausgaben[["Kioskausgaben"]] <- Einnahmen_und_Ausgaben[["Kioskausgaben"]]|>
-  mutate(Datum = as.Date(Datum))
-
-Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+Einnahmen_und_Ausgaben[[2]] <- Einnahmen_und_Ausgaben[[2]]|>
   mutate(Datum = as.Date(Datum))
 
 Einnahmen_und_Ausgaben
@@ -373,14 +367,14 @@ df_Eintritt
 df_keine_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
   select(Datum,Filmtitel,`Suisa Nummer`)|>
-  left_join(Einnahmen_und_Ausgaben[["Filmausgaben"]]|>
+  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]]|>
               select(-Bezeichnung), 
-            by = c("Datum"="SpielDatum"))|>
+            by = c("Datum"="Spieldatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
 
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
-                   day(df_keine_Rechnnung$Datum[]),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel)
+                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel)
           )  
 }
 
@@ -555,9 +549,7 @@ list(Eintritte= df_Eintritt,
      Verleiherabgaben  = df_verleiherabgaben,
      Einkaufspreise = df_Einkaufspreise,
      Spezialpreisekiosk = Spezialpreisekiosk,
-     Filmausgaben = Einnahmen_und_Ausgaben[["Filmausgaben"]],
-     Kioskausgaben = Einnahmen_und_Ausgaben[["Kioskausgaben"]],
-     "Sonstige Ausgaben" = Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]],
+     Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
      Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
