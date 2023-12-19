@@ -20,7 +20,7 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 #############################################################################################################################################
-# Jahresrechnung
+# Jahresrechnung detalliert
 rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
                   df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
@@ -28,6 +28,28 @@ print(clc)
 
 paste("Bericht: \nJahresrechnung detailliert erstellt")|>
   writeLines()
+
+#############################################################################################################################################
+# Jahresrechnung
+rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nJahresrechnung erstellt")|>
+  writeLines()
+
+
+#############################################################################################################################################
+# Statistik
+rmarkdown::render(paste0("source/Statistik.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nStatistik erstellt")|>
+  writeLines()
+
 
 #############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
@@ -65,26 +87,7 @@ for(ii in 1:nrow(df_mapping)){
 
 remove(c_Datum, c_raw, c_suisa, c_verleiherabgaben, index,ii)
 
-#############################################################################################################################################
-# Jahresrechnung
-rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-print(clc)
 
-paste("Bericht: \nJahresrechnung erstellt")|>
-    writeLines()
-
-
-#############################################################################################################################################
-# Statistik
-rmarkdown::render(paste0("source/Statistik.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-print(clc)
-
-paste("Bericht: \nStatistik erstellt")|>
-  writeLines()
 
 #############################################################################################################################################
 # remove temp files 
