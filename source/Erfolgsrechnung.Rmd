@@ -96,7 +96,7 @@ df_GV_Eintritt|>
 ## Werbung
 ### Werbeeinnahmen
 ```{r echo=FALSE}
-Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
   select(Datum, Firmennamen , Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
@@ -106,7 +106,7 @@ Ausgaben_und_Einnahmen[["Einnahmen"]]|>
 ```
 
 ```{r echo=FALSE}
-Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
   knitr::kable()
@@ -115,7 +115,7 @@ Ausgaben_und_Einnahmen[["Einnahmen"]]|>
 
 ### Werbeausgaben
 ```{r echo=FALSE}
-Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
   select(Rechnungsdatum, Bezeichnung , Firmennamen, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
@@ -124,7 +124,7 @@ Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
 ```
 
 ```{r echo=FALSE}
-Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
   knitr::kable()
@@ -161,7 +161,7 @@ df_GV_Kiosk|>
 
 ### Kioskausgaben
 ```{r echo=FALSE}
-Ausgaben_und_Einnahmen[["Kioskausgaben"]]|>
+Einnahmen_und_Ausgaben[["Kioskausgaben"]]|>
   knitr::kable()
 ```
 
@@ -170,12 +170,12 @@ Ausgaben_und_Einnahmen[["Kioskausgaben"]]|>
 ```{r echo=FALSE}
 
 bind_rows(
-  Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Datum, Firmennamen, Betrag)|>
   rename(Bezeichnung = Firmennamen, 
          Rechnungsdatum = Datum ),
-  Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Rechnungsdatum, Bezeichnung, Betrag)|>
   mutate(Betrag = -Betrag)
@@ -190,12 +190,12 @@ bind_rows(
 ```{r echo=FALSE}
 
 bind_rows(
-  Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+  Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie != "Vermietung")|>
   select(Datum, Firmennamen, Betrag)|>
   rename(Bezeichnung = Firmennamen, 
          Rechnungsdatum = Datum ),
-  Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+  Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
   filter(Kategorie != "Vermietung")|>
   select(Rechnungsdatum, Bezeichnung, Betrag)|>
   mutate(Betrag = -Betrag)

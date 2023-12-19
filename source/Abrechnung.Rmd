@@ -53,8 +53,9 @@ df_GV_Vorfuehrung|>
 
 ```{r echo=FALSE}
 if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Der Gewinn kann demnach noch kleiner werden.")
-  }
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Porto-Kosten.\nDer Gewinn kann sich deshalb noch ändern.")
+}
+
 ```
 
 \
@@ -119,13 +120,28 @@ df_temp|>
 ```{r echo=FALSE}
 df_temp|>
   select(`Gewinn/Verlust [CHF]`)|>
-  rename(`Film Gewinn` = `Gewinn/Verlust [CHF]`)|>
+  rename(`Film Gewinn [CHF]` = `Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 
 ```
 
 
 ### Reklamematerial und Porto
+
+```{r echo=FALSE}
+if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Porto-Kosten.")
+  }
+```
+
+```{r echo=FALSE}
+df_GV_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(`Sonstige Kosten`)|>
+  rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten`)|>
+  knitr::kable()
+```
+
 
 ## Kiosk
 

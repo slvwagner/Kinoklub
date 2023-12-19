@@ -10,29 +10,29 @@ source("source/functions.R")
 
 ########################################################################
 # Read Ein und Ausgaben
-
-c_sheets <- readxl::excel_sheets("Input/Ausgaben und Einnahmen.xlsx")
-Ausgaben_und_Einnahmen <- lapply(c_sheets, function(x) {
-  readxl::read_excel("Input/Ausgaben und Einnahmen.xlsx", 
+c_file <- "Einnahmen und Ausgaben.xlsx"
+c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
+Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
+  readxl::read_excel(paste0("Input/",c_file), 
                      sheet = x)
 })
-names(Ausgaben_und_Einnahmen) <- c_sheets
+names(Einnahmen_und_Ausgaben) <- c_sheets
 
-Ausgaben_und_Einnahmen[["Filmausgaben"]] <- Ausgaben_und_Einnahmen[["Filmausgaben"]]|>
+Einnahmen_und_Ausgaben[["Filmausgaben"]] <- Einnahmen_und_Ausgaben[["Filmausgaben"]]|>
   mutate(SpielDatum = as.Date(SpielDatum),
          Rechnungsdatum = as.Date(Rechnungsdatum))
 
-Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]] <- Ausgaben_und_Einnahmen[["Sonstige Ausgaben"]]|>
+Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]] <- Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]]|>
   mutate(SpielDatum = as.Date(SpielDatum),
          Rechnungsdatum = as.Date(Rechnungsdatum))
 
-Ausgaben_und_Einnahmen[["Kioskausgaben"]] <- Ausgaben_und_Einnahmen[["Kioskausgaben"]]|>
+Einnahmen_und_Ausgaben[["Kioskausgaben"]] <- Einnahmen_und_Ausgaben[["Kioskausgaben"]]|>
   mutate(Datum = as.Date(Datum))
 
-Ausgaben_und_Einnahmen[["Einnahmen"]] <- Ausgaben_und_Einnahmen[["Einnahmen"]]|>
+Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   mutate(Datum = as.Date(Datum))
 
-Ausgaben_und_Einnahmen
+Einnahmen_und_Ausgaben
 
 ########################################################################
 # Function to read and convert data from Film.txt files ()
@@ -373,7 +373,7 @@ df_Eintritt
 df_keine_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
   select(Datum,Filmtitel,`Suisa Nummer`)|>
-  left_join(Ausgaben_und_Einnahmen[["Filmausgaben"]]|>
+  left_join(Einnahmen_und_Ausgaben[["Filmausgaben"]]|>
               select(-Bezeichnung), 
             by = c("Datum"="SpielDatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
@@ -456,7 +456,7 @@ l_GV
 
 df_GV_Eintritt <- l_GV|>
   bind_rows()|>
-  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Gewinn/Verlust [CHF]`)
+  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Sonstige Kosten`,`Gewinn/Verlust [CHF]`)
 
 df_GV_Eintritt
 
@@ -554,13 +554,18 @@ list(Eintritte= df_Eintritt,
      `Gewinn Kiosk` = df_GV_Kiosk,
      Verleiherabgaben  = df_verleiherabgaben,
      Einkaufspreise = df_Einkaufspreise,
-     Spezialpreisekiosk = Spezialpreisekiosk)|>
+     Spezialpreisekiosk = Spezialpreisekiosk,
+     Filmausgaben = Einnahmen_und_Ausgaben[["Filmausgaben"]],
+     Kioskausgaben = Einnahmen_und_Ausgaben[["Kioskausgaben"]],
+     "Sonstige Ausgaben" = Einnahmen_und_Ausgaben[["Sonstige Ausgaben"]],
+     Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
+     )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
 remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
-       convert_data)
+       convert_data, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
 
 
 # user interaction
