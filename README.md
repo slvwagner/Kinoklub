@@ -29,7 +29,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
 -   "Einnahmen und Ausgaben.xlsx" \
-    Einnahmen und Ausgaben die nichts mit den Vorführungen zu tuen haben. 
+    Einnahmen und Ausgaben die nichts mit den Vorführungen zu tun haben. 
 
 ## Ausgabe 
 Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
