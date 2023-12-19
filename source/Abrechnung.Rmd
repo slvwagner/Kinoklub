@@ -53,7 +53,7 @@ df_GV_Vorfuehrung|>
 
 ```{r echo=FALSE}
 if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Porto-Kosten.\nDer Gewinn kann sich deshalb noch ändern.")
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern.")
 }
 
 ```
@@ -130,7 +130,7 @@ df_temp|>
 
 ```{r echo=FALSE}
 if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Porto-Kosten.")
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.")
   }
 ```
 

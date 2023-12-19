@@ -84,7 +84,7 @@ list.files(pattern = "temp", recursive = TRUE)|>
 #############################################################################################################################################
 # User Interaktion
 
-paste("\nAlle Berichte wurden erstellt und sind im Verzeichniss  \"output\" zu finden.")|>
+paste("\nAlle Berichte wurden erstellt und sind im Verzeichniss  \"output\" zu finden.\n")|>
   writeLines()
 
 
