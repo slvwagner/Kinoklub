@@ -13,10 +13,64 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-## Statistik
+## Gewinn Verlust aus Kionvorführungen
+Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
-### Eintritte
-#### Anzahl
+```{r echo=FALSE}
+df_GV_Vorfuehrung|>
+  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
+    mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
+                           lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         )|>
+  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  arrange(Datum)|> 
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  rename(`Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+  knitr::kable()
+```
+
+```{r echo=FALSE}
+
+df_Eintritt|>  
+  arrange(Datum)|> 
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  rename(`Umsatz Film [CHF]` = `Umsatz`,
+         Eintritt = Zahlend)|>
+  knitr::kable()
+
+```
+
+
+## Kiosk-Gewinn pro Vorführung 
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  arrange((Datum))|> 
+  rename(`Umsatz [CHF]` = Kassiert,
+         `Kiosk Gewinn [CHF]` = Gewinn)|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
+                           str_replace(SPC,"0"))
+         )|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+df_GV_Kiosk|>
+  reframe(`Umsatz [CHF]` = sum(Kassiert),
+          `Kiosk Gewinn [CHF]` = sum(Gewinn)
+          )|>
+  knitr::kable()
+
+```
+
+## Eintritte
+### Anzahl
 
 ```{r fig.width=10}
 df_Eintritt|>
@@ -60,7 +114,7 @@ df_Eintritt|>
 
 ```
 
-#### Umsatz
+### Umsatz
 
 ```{r fig.width=10, fig.height=3}
 df_temp <- df_Eintritt|>
@@ -109,7 +163,7 @@ df_Eintritt|>
 ```
 
 
-### Filmabgaben
+## Filmabgaben
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Umsatz, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
@@ -129,9 +183,9 @@ df_GV_Eintritt|>
 
 ```
 
-### Kiosk 
+## Kiosk 
 
-#### Verkaufsartikel 
+### Verkaufsartikel 
 ```{r }
 df_temp <- df_Kiosk|>
   select(-Betrag)|>
@@ -181,7 +235,7 @@ df_temp|>
 
 ```
 
-#### Ladenhüter (keine Verkäufe)
+### Ladenhüter (keine Verkäufe)
 ```{r }
 
 df_temp <- df_Einkaufspreise|>
@@ -199,7 +253,7 @@ df_temp|>
 
 ```
 
-#### Kiosk Umsatz pro Gast
+### Kiosk Umsatz pro Gast
 ```{r }
 df_temp <- df_show |>
   left_join(
@@ -234,7 +288,7 @@ df_temp|>
 ```
 
 
-#### Kiosk Umsatz pro zahlender Gast
+### Kiosk Umsatz pro zahlender Gast
 ```{r }
 df_temp <- df_show |>
   left_join(

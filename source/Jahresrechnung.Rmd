@@ -13,105 +13,66 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-## Kino Eintritte
-### Einnahmen
-```{r}
 
+
+## Kino Vorführungen
+### Einnahmen aus Ticketverkauf
+```{r}
+df_Eintritt|>
+  filter(Zahlend)|>
+  group_by(Platzkategorie)|>
+  reframe(`Betrag [CHF]` = sum(Umsatz))|>
+  arrange(desc(`Betrag [CHF]`))|>
+  knitr::kable()
+```
+
+```{r}
+df_Eintritt|>
+  reframe(`Betrag [CHF]` = sum(Umsatz))|>
+  arrange(desc(`Betrag [CHF]`))|>
+  knitr::kable()
+  
 ```
 
 
-
-### Ausgaben
+### Ausgaben für Filmvorführungen
 #### Suisaabgaben
 ```{r}
-
+df_GV_Eintritt|>
+  select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
+  reframe(`Betrag [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
+  knitr::kable()
 ```
 
 #### Verleigerabgaben
 ```{r}
-
-```
-
-
-
-## Kino Eintritte Übersicht
-
-## Gewinn Verlust aus Kionvorführungen
-Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
-
-```{r echo=FALSE}
-df_GV_Vorfuehrung|>
-  left_join(df_show,by = join_by(Datum, `Suisa Nummer`))|>
-    mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
-                           lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
-         )|>
-  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  arrange(Datum)|> 
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  rename(`Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+df_GV_Eintritt|>
+  select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`)|>
+  reframe(`Betrag [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
   knitr::kable()
 ```
 
-```{r echo=FALSE}
-
-df_Eintritt|>  
-  arrange(Datum)|> 
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Umsatz Film [CHF]` = `Umsatz`,
-         Eintritt = Zahlend)|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-
-df_Eintritt|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  reframe(Eintritt = "Total",
-          Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
-  rename(`Umsatz Film [CHF]` = `Umsatz`)|>
-  knitr::kable()
-
-```
-
-
-### Eintritte-Gewinn pro Vorführung
-
+#### Sonstige Ausgaben
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
-  writeLines("Achtung es fehlen noch Verleiherabrechnungen. Fehlende Recklame und Portokoste werden mit \"NA\" ausgewiesen.
-             \nDer Gewinn wird sich deshalb noch ändern.")
-  }
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.")
+}
+
 ```
 
-```{r echo=FALSE}
+```{r}
 df_GV_Eintritt|>
-  arrange(Datum)|> 
-  rename(`Umsatz [CHF]` = Umsatz,
-         `Film Gewinn [CHF]` = `Gewinn/Verlust [CHF]`,
-         `Reklame- und Portokosten [CHF]` = `Sonstige Kosten`
-         )|>
-  select(-`SUISA-Abzug [%]`, `Verleiher-Abzug [%]`,-Anfang, - `Suisa Nummer`)|>
-  arrange(Datum)|> 
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  select(Datum, Filmtitel, `Sonstige Kosten`)|>
+  reframe(`Betrag [CHF]` = sum(`Sonstige Kosten`,na.rm = T))|>
   knitr::kable()
 ```
 
-
-```{r echo=FALSE}
+### Differenz
+```{r}
 df_GV_Eintritt|>
-  reframe(`Umsatz [CHF]` = sum(Umsatz),
-          `SUISA-Abzug [CHF]` = sum(`SUISA-Abzug [CHF]`),
-          `Verleiher-Abzug [CHF]` = sum(`Verleiher-Abzug [CHF]`),
-          `Film Gewinn [CHF]` = sum(`Gewinn/Verlust [CHF]`)
-         )|>
+  select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
-
 ```
 
 
@@ -169,33 +130,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 
 ## Kiosk
-
-### Kiosk-Gewinn pro Vorführung 
-```{r echo=FALSE}
-df_GV_Kiosk|>
-  arrange((Datum))|> 
-  rename(`Umsatz [CHF]` = Kassiert,
-         `Kiosk Gewinn [CHF]` = Gewinn)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
-                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
-                           str_replace(SPC,"0"))
-         )|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-df_GV_Kiosk|>
-  reframe(`Umsatz [CHF]` = sum(Kassiert),
-          `Kiosk Gewinn [CHF]` = sum(Gewinn)
-          )|>
-  knitr::kable()
-
-```
-
-### Kiosk-Einahmen
-Kiosk-Einnahmen aus Verkauf. 
+### Kiosk-Einahmen aus Verkauf
 
 ```{r}
 df_Kiosk|>
@@ -233,7 +168,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```
 
 
-#### Differenz
+### Differenz
 ```{r}
 df_temp <- df_Kiosk|>
   reframe(`Betrag [CHF]` = sum(Betrag))|>
@@ -341,7 +276,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 ```
 
-#### Differenz
+### Differenz
 
 ```{r}
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
