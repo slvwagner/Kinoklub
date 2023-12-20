@@ -16,7 +16,7 @@ Bericht wurde am `r act_date` erstellt.
 ## Kino Vorführungen
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
-  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkoste können sich demnach noch ändern.")
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkosten können sich demnach noch ändern.")
 }
 ```
 
