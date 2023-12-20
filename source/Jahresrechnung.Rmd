@@ -89,7 +89,7 @@ df_temp <- bind_rows(
       reframe(`Betrag [CHF]` = sum(Betrag))
   ),
   tibble(
-    Bezeichnung = "Kinowerbeeinnahmen",
+    Bezeichnung = "Werbeausgaben",
     Einnahmen_und_Ausgaben[["Ausgaben"]] |>
       filter(Kategorie == "Werbung") |>
       reframe(`Betrag [CHF]` = -sum(Betrag))
