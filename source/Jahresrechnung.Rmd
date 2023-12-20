@@ -14,6 +14,11 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 Bericht wurde am `r act_date` erstellt.
 
 ## Kino Vorführungen
+```{r echo=FALSE}
+if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkoste können sich demnach noch ändern.")
+}
+```
 
 ```{r}
 df_temp <- bind_rows(
@@ -89,7 +94,7 @@ df_temp <- bind_rows(
       reframe(`Betrag [CHF]` = sum(Betrag))
   ),
   tibble(
-    Bezeichnung = "Kinowerbeeinnahmen",
+    Bezeichnung = "Werbeausgaben",
     Einnahmen_und_Ausgaben[["Ausgaben"]] |>
       filter(Kategorie == "Werbung") |>
       reframe(`Betrag [CHF]` = -sum(Betrag))
@@ -160,9 +165,10 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
   select(Datum, Bezeichnung,Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)|>
+  mutate(`Betrag [CHF]` = -Betrag)|>
   arrange(Datum)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -170,7 +176,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Betrag [CHF]` = -sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -194,7 +200,6 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf können sich noch ändern.")
 }
-
 ```
 
 ```{r}
