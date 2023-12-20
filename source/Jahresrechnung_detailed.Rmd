@@ -8,7 +8,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
-act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -71,7 +71,7 @@ df_GV_Eintritt|>
 ```
 
 #### Nebenkosten
-Die Nebenkosten enthalten Porto und Verpackung sowie Filmplackate. 
+Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.")
