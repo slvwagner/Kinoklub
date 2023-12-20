@@ -71,7 +71,7 @@ df_GV_Eintritt|>
 ```
 
 #### Nebenkosten
-Die Nebenkosten enthalten Porto und Verpackung sowie Filmplackate. 
+Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.")
