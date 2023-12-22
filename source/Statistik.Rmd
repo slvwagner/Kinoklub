@@ -18,9 +18,11 @@ Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks.
 
 ```{r}
 df_temp <- df_GV_Eintritt|>
-  select(-Umsatz, -`SUISA-Abzug [%]`, -`SUISA-Abzug [CHF]`, -`Verleiher-Abzug [%]`, -`Verleiher-Abzug [CHF]`,-`Sonstige Kosten`)|>
+  select(Datum, Anfang, Filmtitel, Umsatz, `Gewinn/Verlust [CHF]`)|>
   arrange(Datum)|>
-    mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
+    mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  rename(`Umsatz [CHF]` = Umsatz)|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 
 df_temp|>
   knitr::kable()
@@ -50,6 +52,9 @@ df_Eintritt|>
   knitr::kable()
 
 ```
+
+\
+\
 
 ```{r fig.width=10}
 

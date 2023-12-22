@@ -82,7 +82,7 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 df_GV_Eintritt|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel,`Sonstige Kosten`)|>
+  select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)|>
   knitr::kable()
 ```
 
@@ -90,8 +90,8 @@ df_GV_Eintritt|>
 
 ```{r}
 df_GV_Eintritt|>
-  select(Datum, Filmtitel, `Sonstige Kosten`)|>
-  reframe(`Betrag [CHF]` = sum(`Sonstige Kosten`,na.rm = T))|>
+  select(Datum, Filmtitel, `Sonstige Kosten [CHF]`)|>
+  reframe(`Betrag [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
   knitr::kable()
 ```
 

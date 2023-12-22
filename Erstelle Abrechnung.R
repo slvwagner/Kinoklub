@@ -22,13 +22,12 @@ c_MWST <- 7.7 #%
 df_Render <- tibble::tibble(Render  = c("html_document"), 
                     fileExt = c(".html"))
 
-
 #############################################################################################################################################
 # Script start
 
 # Daten einlesen und konvertieren
 source("source/read and convert.R")
-c_MWST <- c_MWST/100
+
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen
 df_mapping <- tibble(Datum = c_Date)|>
@@ -69,8 +68,6 @@ paste("Bericht: \nStatistik erstellt")|>
 
 #############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
- 
-
 if(c_run_single){
   for(ii in 1:nrow(df_mapping)){
   
