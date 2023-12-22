@@ -3,7 +3,6 @@ library(rebus)
 library(openxlsx)
 library(lubridate)
 
-rm(list = ls())
 file.remove("error.log")|>suppressWarnings()
 
 source("source/functions.R")

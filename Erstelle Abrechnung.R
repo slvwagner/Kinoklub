@@ -1,25 +1,33 @@
 #############################################################################################################################################
 # Bitte beachte das README.md
-# Diesen Script erstellt Abrechnungen für den Kinoclub.
+# Diesen Script erstellt die Jahresabrechnung für den Kinoclub.
+# Es kann auch pro Vorführung einen Rechnung erstellt werden. 
 #
 # V0.6.0
 #############################################################################################################################################
-source("source/read and convert.R")
+rm(list = ls())
 #############################################################################################################################################
-
+# Benutzereinstellungen 
+#############################################################################################################################################
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
 
 # Mehrwertsteuersatz
 c_MWST <- 7.7 #%
 
-#############################################################################################################################################
-# Script start
-df_Render <- tibble(Render  = c("html_document","word_document","pdf_document"), 
-                    fileExt = c(".html", ".docx", ".pdf"))
+# Ausgabeformat / html, word und pdf. Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex)
+# df_Render <- tibble(Render  = c("html_document","word_document","pdf_document"), 
+#                     fileExt = c(".html", ".docx", ".pdf"))
 
 df_Render <- tibble(Render  = c("html_document"), 
                     fileExt = c(".html"))
+
+
+#############################################################################################################################################
+# Script start
+
+# Daten einlesen und konvertieren
+source("source/read and convert.R")
 
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen
