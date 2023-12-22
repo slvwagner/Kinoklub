@@ -38,8 +38,8 @@ df_temp <- bind_rows(
   tibble(
     Bezeichnung = "Nebenkosten",
     df_GV_Eintritt |>
-      select(Datum, Filmtitel, `Sonstige Kosten`) |>
-      reframe(`Betrag [CHF]` = -sum(`Sonstige Kosten`, na.rm = T)))
+      select(Datum, Filmtitel, `Sonstige Kosten [CHF]`) |>
+      reframe(`Betrag [CHF]` = -sum(`Sonstige Kosten [CHF]`, na.rm = T)))
 )  
 
 df_temp|>

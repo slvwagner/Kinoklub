@@ -9,9 +9,9 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 **/input/advance tickets** abzuspeichern.
 
 -   "Eintritte 02.12.23.txt" \
-    Copy paste von html für jede Filmvorführung und Speichern unter "Eintritt xx.xx.xx.txt"
+    Copy paste von html für jede Vorführung und Speichern unter "Eintritt xx.xx.xx.txt"
 -   "Kiosk 02.12.23.txt"" \
-    Copy paste von html für jede Filmvorführung und Speichern unter "Kiosk xx.xx.xx.txt"
+    Copy paste von html für jede Vorführung und Speichern unter "Kiosk xx.xx.xx.txt"
 -   "Shows.txt" \
     Copy paste von html für die gewünschte Abrechnungsperiode und Speichern unter "Shows.txt"
 
@@ -29,14 +29,14 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
     Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
     findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
 -   "Einnahmen und Ausgaben.xlsx" \
-    Einnahmen und Ausgaben die nichts mit den Vorführungen zu tun haben. 
+    Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. 
 
 ## Ausgabe 
 Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
 
-- Für jede Vorführung respektive Datum wird ein Abrechung erstellt.
+- Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
 - Die Erfolgsrechnung wird über alle Datensätze erstellt.
-- Zusaätzliche Daten sind in der Statistik ersichtlich.
+- Zusätzliche Daten sind in der Statistik ersichtlich.
 - Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ## Installation

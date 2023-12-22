@@ -39,20 +39,24 @@ c_verleiherabgaben <- df_verleiherabgaben|>
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r echo=FALSE}
-df_GV_Vorfuehrung|>
+df_temp <- df_GV_Vorfuehrung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
          )|>
-  rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+  rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)
+```
+
+
+```{r echo=FALSE}
+df_temp|>
   knitr::kable()
 
 ```
 
 ```{r echo=FALSE}
-if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
+if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern.")
 }
 
@@ -60,8 +64,10 @@ if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 \
 \
+\
 
-### Kino Eintritte
+
+## Kino Eintritte
 
 ```{r echo=FALSE}
 df_Eintritt|>
@@ -72,64 +78,74 @@ df_Eintritt|>
 
 ```
 
+```{r echo=FALSE}
+df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  reframe(Umsatz = sum(Umsatz))|>
+  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
+  knitr::kable()
 
-### Kino Eintritte Zusammenfassung
+```
+
+### Kino Besucherzahl
 
 ```{r echo=FALSE}
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
   group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
+  reframe(Anzahl = sum(Anzahl))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Film Umsatz [CHF]` = `Umsatz`,
+  rename(
          Eintritt = Zahlend)|>
   knitr::kable()
 
 ```
 
-```{r echo=FALSE}
-df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  reframe(Eintritt = "Total",
-          Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
-  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
-  knitr::kable()
 
+
+
+## Filmabgaben
+
+
+### Verleiherrechnung
+
+```{r echo=FALSE}
+if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
+  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
+}else{
+  df_Verleiher_Rechnnung |>
+    slice(ii) |>
+    select(Firmennamen, Betrag)|>
+    knitr::kable()
+}
 ```
 
-### Filmabgaben
+
+### Prozentualle Abgaben
 Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **CHF 150.-**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_temp <- df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  mutate(`Total Abgaben [CHF]` = `SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`)|>
+  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,na.rm = T))|>
     select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
   rename(`Umsatz [CHF]` = Umsatz)
-
-df_temp|>
-  select(-`Gewinn/Verlust [CHF]`)|>
-  knitr::kable()
 ```
 
-
-```{r echo=FALSE}
+```{r}
 df_temp|>
-  select(`Gewinn/Verlust [CHF]`)|>
-  rename(`Film Gewinn [CHF]` = `Gewinn/Verlust [CHF]`)|>
-  knitr::kable()
-
+  select(`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
+    knitr::kable()
 ```
+
 
 
 ### Reklamematerial und Porto
 
 ```{r echo=FALSE}
-if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
+if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.")
   }
 ```
@@ -137,13 +153,32 @@ if(df_keine_Rechnnung$`keine Verleiherrechnung`[ii]) {
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(`Sonstige Kosten`)|>
-  rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten`)|>
+  select(`Sonstige Kosten [CHF]`)|>
+  rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]`)|>
+  knitr::kable()
+```
+
+#### MWST auf Verleiherrechnung
+```{r}
+df_GV_Eintritt|>
+  slice(ii)|>
+  select(`MWST auf die Verleiherrechnung [CHF]`)|>
+  knitr::kable()
+```
+
+### Gewinn Verlust aus Tickerverkauf
+```{r}
+df_GV_Eintritt|>
+  filter(Datum == c_Date[ii])|>
+  select(`Gewinn/Verlust [CHF]`)|>
   knitr::kable()
 ```
 
 
+
 ## Kiosk
+
+### Pro Artikel
 
 ```{r echo=FALSE}
 df_Kiosk|>
@@ -167,7 +202,9 @@ df_Kiosk|>
 ```
 
 
-#### Kioskumsatz pro Gast
+### Kioskumsatz pro Gast
+
+#### Kioskumsatz aller Gäste
 
 ```{r echo=FALSE}
 df_show |>
@@ -216,8 +253,10 @@ df_show |>
   knitr::kable()
 ```
 
-
-
+\
+\
+\
+\
 
 
 

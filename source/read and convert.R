@@ -3,7 +3,6 @@ library(rebus)
 library(openxlsx)
 library(lubridate)
 
-rm(list = ls())
 file.remove("error.log")|>suppressWarnings()
 
 source("source/functions.R")
@@ -363,18 +362,27 @@ df_Eintritt
 
 ########################################################################
 # VerleiherRechnung 
-
-df_keine_Rechnnung <- df_Eintritt|>
+ 
+df_Verleiher_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
-  select(Datum,Filmtitel,`Suisa Nummer`)|>
-  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-              select(-Bezeichnung), 
-            by = c("Datum"="Spieldatum"))|>
+  select(Datum, Filmtitel, `Suisa Nummer`)
+df_Verleiher_Rechnnung
+
+df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
+  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+              filter(Kategorie == "Film")|>
+              select(-Datum,-Kategorie),
+            by = c("Datum" = "Spieldatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
+df_Verleiher_Rechnnung
+
+df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
+  filter(`keine Verleiherrechnung`)
+
 
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
-                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel)
+                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel,"\n")
           )  
 }
 
@@ -410,12 +418,21 @@ for (ii in 1:length(c_Date)) {
                                `Abzug [%]`)|>pull())/100
   c_verleiherabzug
   
-  c_Verleiherrechnung <- df_keine_Rechnnung|>
-    filter(Datum == c_Date[ii])|>
-    select(Betrag)|>
-    pull()
+  c_Verleiherrechnung <- df_Verleiher_Rechnnung |>
+        filter(Datum == c_Date[ii]) |>
+        select(Betrag) |>
+        pull()
   
   c_Verleiherrechnung
+  
+  c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung-(c_Verleiherrechnung/(1+(c_MWST/100))))
+  c_MWST_Abzug
+  
+  if(is.na(c_MWST_Abzug)) { # if no Verleiherrechnung just calculate MWST Abzug from Umsatz
+    c_MWST_Abzug <- round5Rappen(c_Umsatz*c_verleiherabzug*(c_MWST/100))
+    }
+  c_MWST_Abzug
+  
   
   # Error handling Verleiherabgaben
   if(is.na(c_verleiherabzug)) {
@@ -435,11 +452,15 @@ for (ii in 1:length(c_Date)) {
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
                        `Verleiher-Abzug [%]` =c_verleiherabzug*100,
                        `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug),
-                       `Sonstige Kosten` = c_Verleiherrechnung - `Verleiher-Abzug [CHF]`)|>
+                       `MWST Satz auf die Verleiherrechnung [%]` = c_MWST,
+                       `MWST auf die Verleiherrechnung [CHF]` = c_MWST_Abzug
+                       )|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
+           `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
            `Gewinn/Verlust [CHF]` = if_else(!is.na(c_Verleiherrechnung),
-                                            Umsatz-c_Verleiherrechnung,
-                                            Umsatz - (`SUISA-Abzug [CHF]`+`Verleiher-Abzug [CHF]`))
+                                            Umsatz-(c_Verleiherrechnung+`SUISA-Abzug [CHF]`),
+                                            round5Rappen(Umsatz - (`Verleiher-Abzug [CHF]` + `MWST auf die Verleiherrechnung [CHF]`))
+                                            )
            )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
   
@@ -449,10 +470,13 @@ for (ii in 1:length(c_Date)) {
 l_GV
 
 df_GV_Eintritt <- l_GV|>
-  bind_rows()|>
-  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Umsatz,`SUISA-Abzug [%]`,`Verleiher-Abzug [%]` ,`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`, `Sonstige Kosten`,`Gewinn/Verlust [CHF]`)
+  bind_rows()
 
 df_GV_Eintritt
+
+names(df_GV_Eintritt)
+
+df_GV_Eintritt$`Gewinn/Verlust [CHF]`
 
 ########################################################################
 # error handling Eintritt Abrechnung nicht vorhanden
@@ -531,7 +555,6 @@ for (ii in 1:length(c_Date)) {
   l_GV_Vorfuehrung[[ii]] <- tibble(Datum = c_Date[ii], 
                                    `Suisa Nummer` = c_suisa_nr[ii],
                                    `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]`)
-  l_GV_Vorfuehrung[[ii]]
 }
 
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
