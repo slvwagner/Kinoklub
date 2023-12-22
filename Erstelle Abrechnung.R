@@ -19,7 +19,7 @@ c_MWST <- 7.7 #%
 # df_Render <- tibble(Render  = c("html_document","word_document","pdf_document"), 
 #                     fileExt = c(".html", ".docx", ".pdf"))
 
-df_Render <- tibble(Render  = c("html_document"), 
+df_Render <- tibble::tibble(Render  = c("html_document"), 
                     fileExt = c(".html"))
 
 

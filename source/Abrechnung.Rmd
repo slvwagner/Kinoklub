@@ -72,31 +72,27 @@ df_Eintritt|>
 
 ```
 
+```{r echo=FALSE}
+df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  reframe(Umsatz = sum(Umsatz))|>
+  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
+  knitr::kable()
 
-### Kino Eintritte Zusammenfassung
+```
+
+### Kino Besucherzahl
 
 ```{r echo=FALSE}
 df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
   group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
+  reframe(Anzahl = sum(Anzahl))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(`Film Umsatz [CHF]` = `Umsatz`,
+  rename(
          Eintritt = Zahlend)|>
-  knitr::kable()
-
-```
-
-```{r echo=FALSE}
-df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  reframe(Eintritt = "Total",
-          Anzahl = sum(Anzahl),
-          Umsatz = sum(Umsatz))|>
-  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
   knitr::kable()
 
 ```
