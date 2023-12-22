@@ -28,7 +28,7 @@ df_Render <- tibble::tibble(Render  = c("html_document"),
 
 # Daten einlesen und konvertieren
 source("source/read and convert.R")
-
+c_MWST <- c_MWST/100
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen
 df_mapping <- tibble(Datum = c_Date)|>

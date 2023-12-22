@@ -362,14 +362,23 @@ df_Eintritt
 
 ########################################################################
 # VerleiherRechnung 
-
-df_keine_Rechnnung <- df_Eintritt|>
+ 
+df_Verleiher_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
-  select(Datum,Filmtitel,`Suisa Nummer`)|>
-  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-              select(-Bezeichnung), 
-            by = c("Datum"="Spieldatum"))|>
+  select(Datum, Filmtitel, `Suisa Nummer`,Umsatz)
+df_Verleiher_Rechnnung
+
+df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
+  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+              filter(Kategorie == "Film")|>
+              select(-Datum),
+            by = c("Datum" = "Spieldatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
+df_Verleiher_Rechnnung
+
+df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
+  filter(`keine Verleiherrechnung`)
+
 
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
