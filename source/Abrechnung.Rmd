@@ -178,6 +178,8 @@ df_GV_Eintritt|>
 
 ## Kiosk
 
+### Pro Artikel
+
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
@@ -200,7 +202,9 @@ df_Kiosk|>
 ```
 
 
-#### Kioskumsatz pro Gast
+### Kioskumsatz pro Gast
+
+#### Kioskumsatz aller Gäste
 
 ```{r echo=FALSE}
 df_show |>
