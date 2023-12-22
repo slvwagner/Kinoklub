@@ -382,7 +382,7 @@ df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
 
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
-                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel)
+                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel,"\n")
           )  
 }
 
