@@ -458,7 +458,7 @@ for (ii in 1:length(c_Date)) {
                        )|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = (Umsatz - sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`, `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,na.rm = T))
+           `Gewinn/Verlust [CHF]` = round5Rappen(Umsatz - sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`, `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,na.rm = T))
            )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
   
