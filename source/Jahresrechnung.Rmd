@@ -55,8 +55,14 @@ df_temp|>
 
 ```{r}
 df_temp|>
-  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`))|>
-  knitr::kable()
+  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`))
+```
+
+```{r}
+df_GV_Eintritt |>
+      select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
+      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`)) |>
+      pull()
 ```
 
 ## Kiosk

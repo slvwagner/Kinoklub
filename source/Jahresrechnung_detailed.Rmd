@@ -70,6 +70,7 @@ df_GV_Eintritt|>
   knitr::kable()
 ```
 
+
 #### Nebenkosten
 Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
 ```{r echo=FALSE}
@@ -85,8 +86,6 @@ df_GV_Eintritt|>
   select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)|>
   knitr::kable()
 ```
-
-
 
 ```{r}
 df_GV_Eintritt|>

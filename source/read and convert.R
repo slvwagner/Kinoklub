@@ -429,7 +429,7 @@ for (ii in 1:length(c_Date)) {
   c_MWST_Abzug
   
   if(is.na(c_MWST_Abzug)) { # if no Verleiherrechnung just calculate MWST Abzug from Umsatz
-    c_MWST_Abzug <- round5Rappen(c_Umsatz*c_verleiherabzug*(c_MWST/100))
+    c_MWST_Abzug <- round5Rappen((c_Umsatz*c_verleiherabzug)*(c_MWST/100))
     }
   c_MWST_Abzug
   
@@ -458,10 +458,7 @@ for (ii in 1:length(c_Date)) {
                        )|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = if_else(!is.na(c_Verleiherrechnung),
-                                            Umsatz-(c_Verleiherrechnung +`SUISA-Abzug [CHF]`),
-                                            round5Rappen(Umsatz - (`Verleiher-Abzug [CHF]` + `MWST auf die Verleiherrechnung [CHF]`))
-                                            )
+           `Gewinn/Verlust [CHF]` = (Umsatz - sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`, `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,na.rm = T))
            )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
   
