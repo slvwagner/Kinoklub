@@ -37,7 +37,7 @@ df_temp <- bind_rows(
       select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`) |>
       reframe(`Betrag [CHF]` = -sum(`Verleiher-Abzug [CHF]`))),
   tibble(
-    Bezeichnung = "Nebenkosten",
+    Bezeichnung = "Nebenkosten Verleigerabgaben",
     df_GV_Eintritt |>
       select(Datum, Filmtitel, `Sonstige Kosten [CHF]`) |>
       reframe(`Betrag [CHF]` = -sum(`Sonstige Kosten [CHF]`, na.rm = T))),
@@ -55,15 +55,10 @@ df_temp|>
 
 ```{r}
 df_temp|>
-  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`))
+  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`))|>
+  knitr::kable()
 ```
 
-```{r}
-df_GV_Eintritt |>
-      select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
-      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`)) |>
-      pull()
-```
 
 ## Kiosk
 
@@ -176,9 +171,8 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
   select(Datum, Bezeichnung,Betrag)|>
-  mutate(`Betrag [CHF]` = -Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
-    arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
@@ -187,7 +181,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
-  reframe(`Summe [CHF]` = -sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```
