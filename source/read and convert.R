@@ -448,6 +448,7 @@ for (ii in 1:length(c_Date)) {
   l_GV[[ii]] <- tibble(Datum = c_Date[ii],
                        `Suisa Nummer` = c_suisa_nr[ii],
                        Umsatz = c_Umsatz, 
+                       Verleiherrechnung = c_Verleiherrechnung,
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
                        `Verleiher-Abzug [%]` =c_verleiherabzug*100,
@@ -458,7 +459,7 @@ for (ii in 1:length(c_Date)) {
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
            `Gewinn/Verlust [CHF]` = if_else(!is.na(c_Verleiherrechnung),
-                                            Umsatz-(c_Verleiherrechnung+`SUISA-Abzug [CHF]`),
+                                            Umsatz-(c_Verleiherrechnung +`SUISA-Abzug [CHF]`),
                                             round5Rappen(Umsatz - (`Verleiher-Abzug [CHF]` + `MWST auf die Verleiherrechnung [CHF]`))
                                             )
            )|>
@@ -472,10 +473,7 @@ l_GV
 df_GV_Eintritt <- l_GV|>
   bind_rows()
 
-df_GV_Eintritt
-
 names(df_GV_Eintritt)
-
 df_GV_Eintritt$`Gewinn/Verlust [CHF]`
 
 ########################################################################
