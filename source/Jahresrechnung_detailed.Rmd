@@ -27,8 +27,8 @@ df_Eintritt|>
 
 ```{r}
 df_Eintritt|>
-  reframe(`Betrag [CHF]` = sum(Umsatz))|>
-  arrange(desc(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(Umsatz))|>
+  arrange(desc(`Summe [CHF]`))|>
   knitr::kable()
   
 ```
@@ -49,7 +49,7 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
   knitr::kable()
 ```
 
@@ -66,7 +66,7 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
   knitr::kable()
 ```
 
@@ -90,7 +90,7 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Sonstige Kosten [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
+  reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
   knitr::kable()
 ```
 
@@ -99,7 +99,7 @@ df_GV_Eintritt|>
 tibble(Bezeichnung = "MWST auf Verleiherleistungen",
        df_GV_Eintritt |>
          select(`MWST auf die Verleiherrechnung [CHF]`) |>
-         reframe(`Betrag [CHF]` = -sum(`MWST auf die Verleiherrechnung [CHF]`))
+         reframe(`Betrag [CHF]` = sum(`MWST auf die Verleiherrechnung [CHF]`))
 ) |>
   knitr::kable()
 ```
@@ -109,7 +109,7 @@ tibble(Bezeichnung = "MWST auf Verleiherleistungen",
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
 
