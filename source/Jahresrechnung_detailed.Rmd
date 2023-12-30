@@ -27,8 +27,8 @@ df_Eintritt|>
 
 ```{r}
 df_Eintritt|>
-  reframe(`Betrag [CHF]` = sum(Umsatz))|>
-  arrange(desc(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(Umsatz))|>
+  arrange(desc(`Summe [CHF]`))|>
   knitr::kable()
   
 ```
@@ -49,7 +49,7 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
   knitr::kable()
 ```
 
@@ -66,9 +66,10 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
   knitr::kable()
 ```
+
 
 #### Nebenkosten
 Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
@@ -86,20 +87,29 @@ df_GV_Eintritt|>
   knitr::kable()
 ```
 
-
-
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Sonstige Kosten [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
+  reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
   knitr::kable()
 ```
 
-### Differenz
+#### MWST auf Verleiherleistungen
+```{r}
+tibble(Bezeichnung = "MWST auf Verleiherleistungen",
+       df_GV_Eintritt |>
+         select(`MWST auf die Verleiherrechnung [CHF]`) |>
+         reframe(`Betrag [CHF]` = sum(`MWST auf die Verleiherrechnung [CHF]`))
+) |>
+  knitr::kable()
+```
+
+
+### Gewinn / Verlust aus Vorführungen
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
 
@@ -118,8 +128,8 @@ df_Kiosk|>
 
 ```{r}
 df_Kiosk|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
-  arrange(desc(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
+  arrange(desc(`Summe [CHF]`))|>
   knitr::kable()
 ```
 
@@ -138,7 +148,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Kiosk")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 ```
 
@@ -174,7 +184,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -193,7 +203,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -230,7 +240,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
-  reframe(`Betrag [CHF]`=sum(Betrag))|>
+  reframe(`Summe [CHF]`=sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -241,7 +251,8 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -249,7 +260,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
-  reframe(`Betrag [CHF]`=sum(Betrag))|>
+  reframe(`Summe [CHF]`=sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -285,7 +296,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Sonstige Einnahmen")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```
@@ -297,7 +308,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -305,7 +316,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
 ```

@@ -428,8 +428,8 @@ for (ii in 1:length(c_Date)) {
   c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung-(c_Verleiherrechnung/(1+(c_MWST/100))))
   c_MWST_Abzug
   
-  if(is.na(c_MWST_Abzug)) { # if no Verleiherrechnung just calculate MWST Abzug from Umsatz
-    c_MWST_Abzug <- round5Rappen(c_Umsatz*c_verleiherabzug*(c_MWST/100))
+  if(is.na(c_MWST_Abzug)) { # Wemm keine Verleiherrechnung vorhanden ist muss die MWST vom Umsatz berechnet werden.
+    c_MWST_Abzug <- round5Rappen((c_Umsatz*c_verleiherabzug)*(c_MWST/100))
     }
   c_MWST_Abzug
   
@@ -448,6 +448,7 @@ for (ii in 1:length(c_Date)) {
   l_GV[[ii]] <- tibble(Datum = c_Date[ii],
                        `Suisa Nummer` = c_suisa_nr[ii],
                        Umsatz = c_Umsatz, 
+                       Verleiherrechnung = c_Verleiherrechnung,
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
                        `Verleiher-Abzug [%]` =c_verleiherabzug*100,
@@ -457,10 +458,9 @@ for (ii in 1:length(c_Date)) {
                        )|>
     mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = if_else(!is.na(c_Verleiherrechnung),
-                                            Umsatz-(c_Verleiherrechnung+`SUISA-Abzug [CHF]`),
-                                            round5Rappen(Umsatz - (`Verleiher-Abzug [CHF]` + `MWST auf die Verleiherrechnung [CHF]`))
-                                            )
+           `Gewinn/Verlust [CHF]` = round5Rappen(Umsatz - sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,
+                                                              `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,
+                                                              na.rm = T))
            )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
   
@@ -472,10 +472,7 @@ l_GV
 df_GV_Eintritt <- l_GV|>
   bind_rows()
 
-df_GV_Eintritt
-
 names(df_GV_Eintritt)
-
 df_GV_Eintritt$`Gewinn/Verlust [CHF]`
 
 ########################################################################
