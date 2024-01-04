@@ -266,7 +266,7 @@ df_temp|>
 
 df_temp|>
   reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -302,6 +302,6 @@ df_temp|>
 
 df_temp|>
   reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
