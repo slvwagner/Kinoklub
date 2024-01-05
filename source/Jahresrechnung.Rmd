@@ -144,6 +144,27 @@ df_temp|>
 
 ```
 
+## Personalaufwand
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Personalaufwand")|>
+  select(Datum, Bezeichnung,Betrag)|>
+  group_by(Bezeichnung)|>
+  reframe(Betrag = sum(Betrag))|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Personalaufwand")|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+
 ## Sonstiges
 
 ### Einnahmen
@@ -211,7 +232,7 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 ```{r}
 df_temp <- tibble(
-  Kategorie = c("Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Sonstiges"),
+  Kategorie = c("Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     df_GV_Eintritt |>
       select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
@@ -244,6 +265,10 @@ df_temp <- tibble(
         reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
       pull(),
+    -(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+      filter(Kategorie == "Personalaufwand") |>
+      reframe(`Summe [CHF]` = sum(Betrag)) |>
+      pull()), 
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Sonstige Einnahmen") |>
