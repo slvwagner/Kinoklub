@@ -218,6 +218,38 @@ df_temp|>
 
 ```
 
+
+```{r}
+df_temp <- df_Kiosk|>
+  select(-Betrag)|>
+  group_by(Verkaufsartikel)|>
+  reframe(Anzahl = sum(Anzahl), 
+          `Umsatz [CHF]` = sum(Kassiert),
+          `Gewinn [CHF]` = sum(Gewinn)
+          )|>
+  arrange((Anzahl))
+```
+
+
+
+```{r fig.height=8, fig.width=10}
+df_temp|>
+  mutate(Verkaufsartikel = factor(Verkaufsartikel, levels = Verkaufsartikel))|>
+  ggplot(aes(Verkaufsartikel,Anzahl))+
+  geom_col(show.legend = F, fill = "cyan4")+
+  coord_flip()+
+  theme_bw()+
+  theme(
+  panel.background = element_rect(fill = "#322f3b",
+                                colour = "#322f3b",
+                                size = 0.5, linetype = "solid"),
+  plot.background = element_rect(fill = "#322f3b"),
+  axis.title = element_text(colour = "#f4cccc", size  = 20),
+  axis.text= element_text(colour = "#f4cccc")
+  )
+```
+
+
 ### Ladenhüter (keine Verkäufe)
 ```{r }
 
