@@ -171,9 +171,11 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
   select(Datum, Bezeichnung,Betrag)|>
+  group_by(Bezeichnung)|>
+  reframe(Betrag = sum(Betrag))|>
   rename(`Betrag [CHF]` = Betrag)|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  # arrange(Datum)|>
+  # mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
