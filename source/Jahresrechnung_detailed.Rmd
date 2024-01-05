@@ -357,7 +357,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
-  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf können sich noch ändern.")
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf werden sich noch ändern.")
 }
 
 ```
@@ -396,11 +396,12 @@ df_temp <- tibble(
         filter(Kategorie == "Vermietung") |>
         reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
-      pull(),
-    -(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-      filter(Kategorie == "Personalaufwand") |>
-      reframe(`Summe [CHF]` = sum(Betrag)) |>
-      pull()), 
+      pull(),-(
+        Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+          filter(Kategorie == "Personalaufwand") |>
+          reframe(`Summe [CHF]` = sum(Betrag)) |>
+          pull()
+      ),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Sonstige Einnahmen") |>
