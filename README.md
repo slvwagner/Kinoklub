@@ -26,8 +26,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 -   "Spezialpreisekiosk.xlsx" \
     Definition der Sonderangebote
 -   "Verleiherabgaben.xlsx" \
-    Die Abrechnungen werden erstellt wenn das Script "Erstelle Abrechnung.R" ausgeführt wird. Alle erstellten files
-    findest Du im Verzeichniss /output das zur Laufzeit erstellt wird.
+    Definition der Umsatzabgaben die der Filmverleiher erhält.
 -   "Einnahmen und Ausgaben.xlsx" \
     Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. 
 
