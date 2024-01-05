@@ -27,6 +27,30 @@ Einnahmen_und_Ausgaben[[2]] <- Einnahmen_und_Ausgaben[[2]]|>
 
 Einnahmen_und_Ausgaben
 
+# error handling: Alle Kategorien sind vorhanden 
+c_Kategorie = c("Film","Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstige Einnahmen", "Sonstige Ausgaben")
+
+Einnahmen_und_Ausgaben|>
+  lapply( function(x){
+    c_x <- x$Kategorie|>
+      unique()
+    
+    c_y <- c_x|>
+      lapply(function(x){
+        x %in% c_Kategorie
+      })|>
+      unlist()
+    if(length(c_y) == sum(c_y)) {
+      TRUE
+    }else {
+      msg <- paste0("\nFehler:",
+                    "\nKategorie wird mit Script nicht verarbeitet:","\"",c_x[!c_y],"\"",
+                    "\nBitte einer vorhandenen Kategorie zuweisen: ", paste0(c_Kategorie, collapse = ","))
+      stop(msg)
+      }
+  })
+
+
 ########################################################################
 # Function to read and convert data from Film.txt files ()
 convert_data <- function(c_fileName) {
