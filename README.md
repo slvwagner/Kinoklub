@@ -20,9 +20,8 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
 -   "Einkauf Kiosk xx.xx.xx.xlsx" \
-    Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss das File
-    abgepasst werden und und mit dem Datum ab wann diese Gültig sind abgespeichert werden. Die älteren Dateien dürfen
-    nicht gelöscht werden .
+    Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File erstellt werden. 
+    Die älteren Dateien dürfen nicht gelöscht werden.
 -   "Spezialpreisekiosk.xlsx" \
     Definition der Sonderangebote
 -   "Verleiherabgaben.xlsx" \
