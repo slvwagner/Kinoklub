@@ -18,11 +18,11 @@ Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
 names(Einnahmen_und_Ausgaben) <- c_sheets
 c_sheets
 
-Einnahmen_und_Ausgaben[[1]] <- Einnahmen_und_Ausgaben[[1]]|>
+Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   mutate(Spieldatum = as.Date(Spieldatum),
          Datum = as.Date(Datum))
 
-Einnahmen_und_Ausgaben[[2]] <- Einnahmen_und_Ausgaben[[2]]|>
+Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   mutate(Datum = as.Date(Datum))
 
 Einnahmen_und_Ausgaben
