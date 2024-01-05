@@ -27,7 +27,8 @@ Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 Einnahmen_und_Ausgaben
 
-# error handling: Alle Kategorien sind vorhanden 
+# error handling: 
+# Kategorien nicht vorhanden 
 c_Kategorie = c("Film","Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstige Einnahmen", "Sonstige Ausgaben")
 
 Einnahmen_und_Ausgaben|>
@@ -40,6 +41,7 @@ Einnahmen_und_Ausgaben|>
         x %in% c_Kategorie
       })|>
       unlist()
+    
     if(length(c_y) == sum(c_y)) {
       TRUE
     }else {
