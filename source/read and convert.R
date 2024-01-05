@@ -8,7 +8,7 @@ file.remove("error.log")|>suppressWarnings()
 source("source/functions.R")
 
 ########################################################################
-# Read Ein und Ausgaben
+# Read Einnahmen und Ausgaben Excel sheet
 c_file <- "Einnahmen und Ausgaben.xlsx"
 c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
 Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
