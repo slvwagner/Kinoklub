@@ -45,7 +45,7 @@ Einnahmen_und_Ausgaben|>
     }else {
       msg <- paste0("\nFehler:",
                     "\nKategorie wird mit Script nicht verarbeitet:","\"",c_x[!c_y],"\"",
-                    "\nBitte einer vorhandenen Kategorie zuweisen: ", paste0(c_Kategorie, collapse = ","))
+                    "\nBitte einer vorhandenen Kategorie zuweisen: ", paste0(c_Kategorie, collapse = ", "))
       stop(msg)
       }
   })
@@ -61,8 +61,8 @@ convert_data <- function(c_fileName) {
     c_raw
     l_temp <- list()
     
-    # Extract Swisa
-    p <- START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT #swisa
+    # Extract suisa
+    p <- START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT #suisa
     index <- c_raw|>
       str_detect(p)
     
@@ -96,7 +96,7 @@ convert_data <- function(c_fileName) {
     names(l_temp)[ii] <- "Datum"
     ii <- ii+1
     
-    # Extract Swisa-Vorabzug
+    # Extract suisa-Vorabzug
     p <- DGT%R%DOT%R%one_or_more(DGT)%R%"%"%R%SPC%R%"SUISA" #Datum
     index <- c_raw|>
       str_detect(p)
