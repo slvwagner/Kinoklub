@@ -29,21 +29,21 @@ p <- or1(paste0(df_verkaufsartikel$`Artikelname Kassensystem`))
 l_extracted <- list()
 
 for (ii in 1:length(l_raw)) {
-  l_extracted[[ii]] <- tibble(Verkaufartikel_string = c_raw[[ii]][str_detect(c_raw[[ii]], p)])
+  l_extracted[[ii]] <- tibble(Verkaufartikel_string = l_raw[[ii]][str_detect(l_raw[[ii]], p)])
 }
 names(l_extracted) <- c_fileDate
 l_extracted
 
 p <- "Manko" 
 for (ii in 1:length(l_raw)) {
-  l_extracted[[ii]]["Überschuss / Manko"] <- c_raw[[ii]][str_detect(c_raw[[ii]], "Manko")]
+  l_extracted[[ii]]["Überschuss / Manko"] <- l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]
 }
 
 df_Kioskverkauf <- l_extracted|>
   lapply(function(x){
     y <- x$Verkaufartikel_string|>
       str_split(pattern = "\t", simplify = T)
-    colnames(y) <- c("Verkaufsartikel", "Einzelpreis", "Anzahl", "", "Betrag")
+    colnames(y) <- c("Verkaufsartikel", "Einzelpreis", "Anzahl", "V4", "Betrag")
     y <- as_tibble(y)|>
       select(-V4)|>
       mutate(Einzelpreis = as.numeric(Einzelpreis),
@@ -53,6 +53,8 @@ df_Kioskverkauf <- l_extracted|>
       as.numeric()
     return(y)
   })
+
+df_Kioskverkauf
 
 df_Kioskverkauf <- bind_rows(df_Kioskverkauf, .id = "Datum")|>
   mutate(Datum = lubridate::dmy(Datum))
