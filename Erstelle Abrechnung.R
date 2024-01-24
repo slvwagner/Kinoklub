@@ -13,7 +13,7 @@ rm(list = ls())
 c_run_single <- TRUE
 
 # Mehrwertsteuersatz
-c_MWST <- 7.7 #%
+c_MWST <- 8 #%
 
 # Ausgabeformat / html, word und pdf. Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex)
 # df_Render <- tibble(Render  = c("html_document","word_document","pdf_document"), 
