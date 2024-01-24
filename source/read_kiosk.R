@@ -10,6 +10,8 @@ library(readxl)
 
 # verkaufsartikel
 c_files <- list.files(pattern = "Einkauf Kiosk", recursive = T)
+
+if(sum(str_detect(c_files, "~")) > 0) stop("\nEinkauf Kiosk wurde mit Excel geöffnet. Bitte schliessen!")
 df_verkaufsartikel <- read_excel(c_files)
 
 # Kioskabrechnung
@@ -91,7 +93,8 @@ l_Kiosk <- l_Kiosk |>
       mutate(
         Verkaufsartikel = if_else(is.na(Datum), Verkaufsartikel, Artikelname),
         Einzelpreis = Betrag / Anzahl
-      )
+      )|>
+      select(-Artikelname, -`Anzahl verkaufter Artikel`, -Verkaufspreis, -Datum)
   })
 names(l_Kiosk) <- c_fileDate
 l_Kiosk
@@ -101,5 +104,5 @@ df_Kioskverkauf <- l_Kiosk|>
 
 df_Kioskverkauf|>
   group_by(Datum)|>
-  reframe(Betrag = sum(Betrag))
+  reframe(`Gewinn/Verlust` = sum(Betrag))
 
