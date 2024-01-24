@@ -260,8 +260,6 @@ df_Mapping_Einkaufspreise
 
 ########################################################################
 # Convert data from "Kiosk xx.xx.xx.txt" files
-ii <- 3
-c_files[3]
 
 l_Kiosk <- list()
 for(ii in 1:length(c_files)){
