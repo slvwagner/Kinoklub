@@ -14,9 +14,13 @@ c_files <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 if(sum(str_detect(c_files, "~")) > 0) stop("\nEinkauf Kiosk wurde mit Excel geöffnet. Bitte schliessen!")
 df_verkaufsartikel <- read_excel(c_files)
 
+c_path <- "input/advance tickets"
 # Kioskabrechnung
-c_files <- list.files(pattern = "Kiosk_neu", recursive = T)
+c_files <- list.files(c_path,pattern = "Kiosk", recursive = T)
+c_files <- paste0(c_path,"/", c_files)
+
 l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
+l_raw
 
 ## extract file date 
 c_fileDate <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))%R%DOT%R%"txt" )[,2]
