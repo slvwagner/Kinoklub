@@ -301,13 +301,17 @@ for(ii in 1:length(c_files)){
 }
 
 df_Kiosk <- l_Kiosk|>
-  bind_rows()
+  bind_rows(.id = "Datum")|>
+  mutate(Datum = lubridate::dmy(Datum))
+df_Kiosk
 
 df_Kiosk <- df_Kiosk|>
-  mutate(Gewinn = Einzelpreis-(Anzahl*Einkaufspreis))|>
+  mutate(Gewinn = Betrag-(Anzahl*Einkaufspreis))|>
   mutate(Kassiert = Betrag,
-         Verkaufspreis = Einzelpreis)|>
-  select(Datum,Verkaufsartikel,Verkaufspreis,Anzahl,Betrag,Kassiert,Einkaufspreis,Gewinn)
+         Verkaufspreis = Einzelpreis)
+
+# |>
+#   select(Datum,Verkaufsartikel,Verkaufspreis,Anzahl,Betrag,Kassiert,Einkaufspreis,Gewinn)
 
 ########################################################################
 # read show times
@@ -517,7 +521,7 @@ error
 ########################################################################
 # Gewinn Kiosk
 
-ii <- 3
+ii <- 1
 
 l_GV_Kiosk <- list()
 for (ii in 1:length(c_Date)) {
@@ -526,7 +530,8 @@ for (ii in 1:length(c_Date)) {
     reframe(Kassiert = sum(Kassiert),
             Gewinn = sum(Gewinn, na.rm = T))|>
     mutate(Datum = c_Date[ii],
-           `Suisa Nummer` =c_suisa_nr[ii])
+           `Suisa Nummer` = c_suisa_nr[ii]
+           )
   l_GV_Kiosk[[ii]]
 }
 l_GV_Kiosk
@@ -536,6 +541,7 @@ df_GV_Kiosk <- l_GV_Kiosk|>
   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
   select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
 
+df_GV_Kiosk
 
 ########################################################################
 # Gewinn Filmvorführung
