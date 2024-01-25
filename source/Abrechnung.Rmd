@@ -175,7 +175,23 @@ df_GV_Eintritt|>
   knitr::kable()
 ```
 
+## Eventausgaben
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
+  select(Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+```
 
+
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
+  select(Bezeichnung, Betrag)|>
+  reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))|>
+  knitr::kable()
+```
 
 ## Kiosk
 
