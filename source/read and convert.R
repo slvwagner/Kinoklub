@@ -413,11 +413,16 @@ error
 
 ii <- 1
 
+df_Kiosk|>
+  group_by(Datum)|>
+  reframe(sum(Kassiert), 
+          sum(Gewinn))
+
 l_GV_Kiosk <- list()
 for (ii in 1:length(c_Date)) {
   l_GV_Kiosk[[ii]] <- df_Kiosk|>
     filter(Datum == c_Date[ii])|>
-    reframe(Kassiert = sum(Kassiert),
+    reframe(Kassiert = sum(Kassiert, na.rm = T),
             Gewinn = sum(Gewinn, na.rm = T))|>
     mutate(Datum = c_Date[ii],
            `Suisa Nummer` = c_suisa_nr[ii]
@@ -433,20 +438,29 @@ df_GV_Kiosk <- l_GV_Kiosk|>
 
 df_GV_Kiosk
 
+
 ########################################################################
 # Gewinn Filmvorführung
 ########################################################################
 
+
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
-  l_GV_Vorfuehrung[[ii]] <- tibble(Datum = c_Date[ii], 
-                                   `Suisa Nummer` = c_suisa_nr[ii],
-                                   `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]`)
+  c_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
+    filter(Datum == c_Date[ii])|>
+    select(Betrag)|>
+    pull()
+  
+  l_GV_Vorfuehrung[[ii]] <- tibble(
+    Datum = c_Date[ii],
+    `Suisa Nummer` = c_suisa_nr[ii],
+    `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben
+  )
 }
 
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
   bind_rows()
-
+df_GV_Vorfuehrung
 
 ########################################################################
 # write to Excel
@@ -465,7 +479,7 @@ list(Eintritte= df_Eintritt,
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets)
 

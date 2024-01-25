@@ -213,10 +213,10 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T))|>
+  reframe(`Kassiert [CHF]` = sum(Kassiert, na.rm = T),
+          `Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T))|>
   knitr::kable()
 ```
-
 
 ### Kioskumsatz pro Gast
 
@@ -268,6 +268,20 @@ df_show |>
   rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
 ```
+
+
+
+## Kassa Überschuss / Manko 
+**Achtung!** \
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+```{r}
+df_manko_uerberschuss|>
+  filter(Datum == c_Datum)|>
+  select(-Datum)|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
+  knitr::kable()
+```
+
 
 \
 \

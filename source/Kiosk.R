@@ -197,7 +197,8 @@ df_Kiosk <- l_Kiosk|>
   mutate(Datum = lubridate::dmy(Datum))
 
 df_Kiosk <- df_Kiosk|>
-  mutate(Gewinn = Betrag-(Anzahl*Einkaufspreis))|>
+  mutate(Gewinn = if_else(is.na(Einkaufspreis),Betrag,Betrag-(Anzahl*Einkaufspreis))
+         )|>
   rename(Kassiert = Betrag,
          Verkaufspreis = Einzelpreis)
 
