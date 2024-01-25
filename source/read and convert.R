@@ -8,7 +8,9 @@ file.remove("error.log")|>suppressWarnings()
 source("source/functions.R")
 
 ########################################################################
-# Read Einnahmen und Ausgaben Excel sheet
+# Einnahmen und Ausgangen einlesen aus Excel 
+########################################################################
+
 c_file <- "Einnahmen und Ausgaben.xlsx"
 c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
 
@@ -28,7 +30,9 @@ Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 
 ########################################################################
+# Eintritt abrechnung aus Advanced tickes konvertieren
 # Function to read and convert data from Film.txt files ()
+########################################################################
 convert_data_Film_txt <- function(c_fileName) {
   l_data <- list()
   for(kk in 1:length(c_fileName)){
@@ -144,6 +148,7 @@ convert_data_Film_txt <- function(c_fileName) {
 
 ########################################################################
 # Eintritt aus Advance Tickets
+########################################################################
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 l_Eintritt <- convert_data_Film_txt(c_files)
@@ -163,6 +168,7 @@ df_Eintritt
 
 ########################################################################
 # Filmvorführungen
+########################################################################
 
 df_Flimvorfuerungen <- l_Eintritt|>
   lapply( function(x){ 
@@ -177,6 +183,9 @@ c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
 
 
 ########################################################################
+# Kiosk Einkaufspreise 
+########################################################################
+
 # read Einkaufspreise 
 c_files <- list.files(pattern = START%R%"Einkauf", recursive = T)
 l_Einkaufspreise <- lapply(c_files, readxl::read_excel)
@@ -190,9 +199,7 @@ df_Einkaufspreise <- l_Einkaufspreise |>
 df_Einkaufspreise
 
 
-
-########################################################################
-# Suchen der korrekten Einkaufspreise
+# Suchen nach unterschiedlichen Einkaufspreisen
 c_files<- list.files(pattern = START%R%"Kiosk", recursive = T)
 
 c_Date_Kiosk <- c_files|>
@@ -228,8 +235,9 @@ df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>
 df_Mapping_Einkaufspreise
 
 ########################################################################
+# Kioskabrechnungen von advanced tickets
 # Convert data from "Kiosk xx.xx.xx.txt" files
-
+########################################################################
 source("source/read_kiosk.R")
 
 ii <- 1
@@ -287,7 +295,8 @@ df_Kiosk <- df_Kiosk|>
 
 
 ########################################################################
-# read show times
+# show times
+########################################################################
 
 # error handling file not found
 try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
@@ -318,8 +327,10 @@ df_show <- df_show|>
             )
 
 ########################################################################
-# Verleiherabgaben
+# Verleiher
+########################################################################
 
+# Verleiherabganen
 df_verleiherabgaben <- readxl::read_excel("input/Verleiherabgaben.xlsx")|>
   mutate(Datum = as.Date(Datum))
 df_verleiherabgaben
@@ -328,16 +339,15 @@ df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
 df_Eintritt
 
-########################################################################
+
 # VerleiherRechnung 
- 
 df_Verleiher_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
   select(Datum, Filmtitel, `Suisa Nummer`)
 df_Verleiher_Rechnnung
 
-# Verleiherabgaben sind im Dropdown zu finden
-Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
+# # Verleiherabgaben sind im Dropdown zu finden
+# Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
 
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
   left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
@@ -350,7 +360,7 @@ df_Verleiher_Rechnnung
 df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
   filter(`keine Verleiherrechnung`)
 
-
+# error handling
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
                    day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel,"\n")
@@ -360,6 +370,7 @@ if(nrow(df_keine_Rechnnung)>0) {
 
 ########################################################################
 # Gewinn/Verlust Eintitt
+########################################################################
 
 l_GV <- list()
 ii <- 1
@@ -496,6 +507,7 @@ error
 
 ########################################################################
 # Gewinn Kiosk
+########################################################################
 
 ii <- 1
 
@@ -521,6 +533,7 @@ df_GV_Kiosk
 
 ########################################################################
 # Gewinn Filmvorführung
+########################################################################
 
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
@@ -535,6 +548,7 @@ df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
 
 ########################################################################
 # write to Excel
+########################################################################
 dir.create("output/") |> suppressWarnings()
 
 list(Eintritte= df_Eintritt,
@@ -554,9 +568,16 @@ remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_s
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
        convert_data_Film_txt, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
 
+
+########################################################################
+# Nicht benütigte spalten (columns) löschen für die Bericht erstellung
+########################################################################
 df_Kiosk <-df_Kiosk|>
   select(-((ncol(df_Kiosk)-1):ncol(df_Kiosk)), -`Verkaufs-preis`, -`Einkaufs- preis`, -Menge, -Lieferant, -Artikel)
 
+
+########################################################################
 # user interaction
+########################################################################
 writeLines("Datenkonvertierung erfolgt")
 
