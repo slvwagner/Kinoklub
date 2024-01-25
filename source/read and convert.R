@@ -577,6 +577,8 @@ remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_s
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
        convert_data, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
 
+df_Kiosk <-df_Kiosk|>
+  select(-((ncol(df_Kiosk)-1):ncol(df_Kiosk)), -`Verkaufs-preis`, -`Einkaufs- preis`, -Menge, -Lieferant, -Artikel)
 
 # user interaction
 writeLines("Datenkonvertierung erfolgt")
