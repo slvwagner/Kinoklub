@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 1
+ii <- 3
 ```
 
 ```{r echo=FALSE}
@@ -278,7 +278,7 @@ df_manko_uerberschuss|>
   filter(Datum == c_Datum)|>
   select(-Datum)|>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 

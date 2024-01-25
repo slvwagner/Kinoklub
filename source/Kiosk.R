@@ -36,7 +36,7 @@ p1 <- or1(paste0(df_verkaufsartikel$`Artikelname Kassensystem`))
 p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 
 # Detect Überschuss Manko 
-p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT %R% one_or_more(DGT))
+p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
 l_extracted <- list()
 for (ii in 1:length(l_raw)) {
@@ -85,25 +85,16 @@ Spezialpreisekiosk
 ########################################################################
 # join Spez Verkaufsartikel
 ########################################################################
+ii <- 1
 
-l_Kiosk <- l_Kiosk |>
-  lapply(function(x) {
-     y <- x|>
-      left_join(
-        Spezialpreisekiosk |>
-          filter(Datum == pull(distinct(
-            Spezialpreisekiosk, Datum
-          ))[ii]),
-        by = c(Verkaufsartikel = "Spezialpreis")
-      ) |>
-      mutate(
-        Verkaufsartikel = if_else(is.na(Datum), Verkaufsartikel, Artikelname),
-        Einzelpreis = Betrag / Anzahl
-      )|>
-      select(-Artikelname, -`Anzahl verkaufter Artikel`, -Verkaufspreis, -Datum)
-  })
-names(l_Kiosk) <- c_fileDate
-l_Kiosk
+df_Kiosk <- l_Kiosk|>
+  bind_rows(.id = "Datum")|>
+  mutate(Datum = lubridate::dmy(Datum))|>
+  left_join(Spezialpreisekiosk, 
+            by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
+            )|>
+  mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
+  select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)
 
 ########################################################################
 # Kiosk Einkaufspreise 
@@ -161,42 +152,34 @@ df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>
 
 df_Mapping_Einkaufspreise
 
-
 ########################################################################
-# Kioskabrechnungen von advanced Tickets
-# Convert data from "Kiosk xx.xx.xx.txt" files
+# Join Einkaufspreise 
 ########################################################################
 
-ii <- 2
-for(ii in 1:length(c_files)){
-  
-  # Einkaufspreise
-  c_select <- df_Mapping_Einkaufspreise|>
-    filter(Datum == c_Date_Kiosk[ii])|>
-    select(Einkaufspreise)|>
-    pull()
-  c_select  
-  
-  l_Kiosk[[ii]]
-  
-  l_Kiosk[[ii]] <- l_Kiosk[[ii]] |>
-        left_join(
-          df_Einkaufspreise |>
-            select(-((ncol(df_Einkaufspreise)-1):ncol(df_Einkaufspreise)))|>
-            filter(Datum == c_select)|>
-            rename(Einkaufspreis = `Einkaufs- preis`),
-          by = c(Verkaufsartikel  = "Artikelname Kassensystem")
-        )|>
-    select(-Datum, -`Verkaufs-preis`, -Menge, -Lieferant, -Gewinn, -Artikel)
+l_Kiosk <- list()
+for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
+  l_Kiosk[[ii]] <- df_Kiosk|>
+    filter(Datum == df_Mapping_Einkaufspreise$Datum[ii])|>
+    left_join(df_Einkaufspreise|>
+                filter(Datum == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
+                select(-Datum), 
+              by = c(Verkaufsartikel = "Artikelname Kassensystem")
+              )
 }
-
 l_Kiosk
 
 df_Kiosk <- l_Kiosk|>
-  bind_rows(.id = "Datum")|>
-  mutate(Datum = lubridate::dmy(Datum))
+  bind_rows()
 
 df_Kiosk <- df_Kiosk|>
+  select(-Artikel,-`Verkaufs-preis`, -Menge, -Lieferant, -(ncol(df_Kiosk)-1),  -ncol(df_Kiosk))
+
+########################################################################
+# Gewinn
+########################################################################
+
+df_Kiosk <- df_Kiosk|>
+  rename(Einkaufspreis = `Einkaufs- preis`)|>
   mutate(Gewinn = if_else(is.na(Einkaufspreis),Betrag,Betrag-(Anzahl*Einkaufspreis))
          )|>
   rename(Kassiert = Betrag,
@@ -214,7 +197,6 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        c_Date_Kiosk, c_Einkaufslistendatum,
        p,p1,p2,p3,
        ii,
-       c_select, 
        c_path, c_fileDate, c_files)
 
 ## User interaction
