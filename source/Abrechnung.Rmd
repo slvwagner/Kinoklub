@@ -52,7 +52,7 @@ df_temp <- df_GV_Vorfuehrung|>
 
 ```{r echo=FALSE}
 df_temp|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -75,7 +75,7 @@ df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Film Umsatz [sFR]` = `Umsatz`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -100,7 +100,7 @@ df_Eintritt|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
   rename(
          Eintritt = Zahlend)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -119,7 +119,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
   df_Verleiher_Rechnnung |>
     slice(ii) |>
     select(Firmennamen, Betrag)|>
-    knitr::kable()
+    knitr::kable(digits = 2)
 }
 ```
 
@@ -138,7 +138,7 @@ df_temp <- df_GV_Eintritt|>
 ```{r}
 df_temp|>
   select(`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
-    knitr::kable()
+    knitr::kable(digits = 2)
 ```
 
 
@@ -156,7 +156,7 @@ df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(`Sonstige Kosten [CHF]`)|>
   rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 #### MWST auf Verleiherrechnung
@@ -164,7 +164,7 @@ df_GV_Eintritt|>
 df_GV_Eintritt|>
   slice(ii)|>
   select(`MWST auf die Verleiherrechnung [CHF]`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 ### Gewinn Verlust aus Tickerverkauf
@@ -172,7 +172,7 @@ df_GV_Eintritt|>
 df_GV_Eintritt|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 ## Eventausgaben
@@ -181,7 +181,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 
@@ -213,7 +213,8 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T))|>
+  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen()
+          )|>
   knitr::kable()
 ```
 

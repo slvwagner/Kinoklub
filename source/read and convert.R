@@ -401,14 +401,14 @@ l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
   df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
-  print(df_Eventausgaben)  
+ 
   if(nrow(df_Eventausgaben)<1) c_Eventausgaben <- 0
   else c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
   
   l_GV_Vorfuehrung[[ii]] <- tibble(
     Datum = c_Date[ii],
     `Suisa Nummer` = c_suisa_nr[ii],
-    `Gewinn/Verlust [CHF]` = l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben
+    `Gewinn/Verlust [CHF]` =round5Rappen(l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben)
   )
 }
 
@@ -433,8 +433,8 @@ list(Eintritte= df_Eintritt,
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  
-       c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
+       c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets)
 
 
