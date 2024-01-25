@@ -89,7 +89,7 @@ df_Eintritt|>
 
 ```
 
-### Kino Besucherzahl
+### Kino Besucherzahlen
 
 ```{r echo=FALSE}
 df_Eintritt|>
