@@ -30,8 +30,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 
 ########################################################################
-# Eintritt abrechnung aus Advanced tickes konvertieren
-# Function to read and convert data from Film.txt files ()
+# Eintrittabrechnung aus Advanced Tickets konvertieren
 ########################################################################
 convert_data_Film_txt <- function(c_fileName) {
   l_data <- list()
@@ -235,7 +234,7 @@ df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>
 df_Mapping_Einkaufspreise
 
 ########################################################################
-# Kioskabrechnungen von advanced tickets
+# Kioskabrechnungen von advanced Tickets
 # Convert data from "Kiosk xx.xx.xx.txt" files
 ########################################################################
 source("source/read_kiosk.R")
