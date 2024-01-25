@@ -213,8 +213,7 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kassiert [CHF]` = sum(Kassiert, na.rm = T),
-          `Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T))|>
+  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T))|>
   knitr::kable()
 ```
 
