@@ -180,6 +180,15 @@ df_Flimvorfuerungen
 c_Date <- df_Flimvorfuerungen$Datum
 c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
 
+########################################################################
+# Eventausgaben
+########################################################################
+
+Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
+
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")
+
 
 ########################################################################
 # Kiosk Einkaufspreise 
@@ -339,7 +348,7 @@ df_Eintritt <- df_Eintritt|>
 df_Eintritt
 
 
-# VerleiherRechnung 
+# Verleiherrechnung 
 df_Verleiher_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
   select(Datum, Filmtitel, `Suisa Nummer`)
@@ -569,7 +578,7 @@ remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_s
 
 
 ########################################################################
-# Nicht benütigte spalten (columns) löschen für die Bericht erstellung
+# Nicht benütigte spalten (columns) löschen für die Bericherstellung
 ########################################################################
 df_Kiosk <-df_Kiosk|>
   select(-((ncol(df_Kiosk)-1):ncol(df_Kiosk)), -`Verkaufs-preis`, -`Einkaufs- preis`, -Menge, -Lieferant, -Artikel)
