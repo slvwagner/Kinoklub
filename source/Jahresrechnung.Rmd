@@ -16,7 +16,7 @@ Bericht wurde am `r act_date` erstellt.
 ## Kino Vorführungen
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
-  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkosten können sich noch ändern und demnach die die MWST auf die Verleiherabgaben")
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. \nDie Nebenkosten können sich noch ändern und demnach die die MWST auf die Verleiherabgaben")
 }
 ```
 
