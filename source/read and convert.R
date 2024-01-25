@@ -359,53 +359,6 @@ df_GV_Eintritt <- l_GV|>
 names(df_GV_Eintritt)
 df_GV_Eintritt$`Gewinn/Verlust [CHF]`
 
-########################################################################
-# error handling Eintritt Abrechnung nicht vorhanden
-
-error <- df_Kiosk|>
-  distinct(Datum, .keep_all = T)|>
-  left_join(df_Eintritt|>
-              distinct(Datum)|>
-              mutate(Eintrittabrechnung = T),
-            by = join_by(Datum)
-  )
-
-error
-
-# if((error$Eintrittabrechnung|>is.na()|>sum())>0) {
-#   error <- error|>
-#     filter(is.na(Eintrittabrechnung))|>
-#     select(Datum)|>
-#     mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
-#   error <- str_c("\nEs  gibt keine Datei: ",
-#                  "Eintritt ",error$Datum,".txt",
-#                  "\nBitter herunterladen und Abspeichern unter:\n",
-#                  "Eintritt ",error$Datum,".txt"
-#                  )
-#   stop(error)
-# }
-
-
-# ########################################################################
-# # error handling Kiosk Abrechnung
-# 
-# error <- df_Eintritt|>
-#   distinct(Datum, .keep_all = T)|>
-#   left_join(df_Kiosk|>
-#               distinct(Datum)|>
-#               mutate(Kioskabrechnung = T),
-#             by = join_by(Datum)
-#   )
-# 
-# if((error$Kioskabrechnung|>is.na()|>sum())>0) {
-#   error <- error|>
-#     filter(is.na(Kioskabrechnung))|>
-#     select(Datum, `Suisa Nummer`, Filmtitel)|>
-#     mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
-#   error <- str_c("\nFür den Film: ", error$Filmtitel,"am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " gib es keine Datei:\n",
-#                  "Kiosk ",error$Datum,".txt")
-#   stop(error)
-# }
 
 ########################################################################
 # Gewinn Kiosk
