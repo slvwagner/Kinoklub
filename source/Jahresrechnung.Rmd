@@ -60,6 +60,16 @@ df_temp|>
 ```
 
 
+## Eventausgaben
+
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")|>
+  select(Bezeichnung, Betrag)|>
+  reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))|>
+  knitr::kable()
+```
+
 ## Kiosk
 
 ```{r}
@@ -87,6 +97,18 @@ df_temp|>
   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
   knitr::kable()
 
+```
+
+## Kassa Überschuss / Manko 
+**Achtung!** \
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+
+```{r}
+df_manko_uerberschuss|>
+  select(-Datum)|>
+  reframe(`Überschuss / Manko` = sum(`Überschuss / Manko`, na.rm = T))|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
+  knitr::kable()
 ```
 
 ## Werbung
@@ -232,11 +254,18 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 ```{r}
 df_temp <- tibble(
-  Kategorie = c("Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  Kategorie = c("Ticketverkauf", "Eventausgaben","Kiosk", "Kasse: Überschuss / Manko ","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     df_GV_Eintritt |>
       select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
       reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`)) |>
+      pull(),
+    (
+        Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+          filter(Kategorie == "Eventausgaben")|>
+          select(Bezeichnung, Betrag)|>
+          reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))
+    )|>
       pull(),
     (
       df_Kiosk |>
@@ -246,6 +275,12 @@ df_temp <- tibble(
         filter(Kategorie == "Kiosk") |>
         reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
+      pull(),
+    (
+      df_manko_uerberschuss|>
+        select(-Datum)|>
+        reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko`, na.rm = T))
+    )|>
       pull(),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>

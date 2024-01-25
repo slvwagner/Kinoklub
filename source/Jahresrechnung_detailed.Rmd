@@ -114,6 +114,25 @@ df_GV_Eintritt|>
 ```
 
 
+## Eventausgaben
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")|>
+  select(Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+```
+
+
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")|>
+  select(Bezeichnung, Betrag)|>
+  reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))|>
+  knitr::kable()
+```
+
+
 ## Kiosk
 ### Einahmen
 
@@ -168,6 +187,29 @@ df_temp|>
 ```
 
 
+## Kassa Überschuss / Manko 
+**Achtung!** \
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+```{r}
+df_manko_uerberschuss|>
+  left_join(df_Eintritt |>
+              distinct(Filmtitel, .keep_all = T) |>
+              select(Filmtitel, Datum),
+            by = "Datum"
+            ) |>
+  select(Datum, Filmtitel, `Überschuss / Manko`) |>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
+  mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) |>
+  knitr::kable()
+```
+
+```{r}
+df_manko_uerberschuss|>
+  select(-Datum)|>
+  reframe(`Überschuss / Manko` = sum(`Überschuss / Manko`, na.rm = T))|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
+  knitr::kable()
+```
 
 ## Werbung
 ### Einnahmen
@@ -368,14 +410,20 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 
 
-
 ```{r}
 df_temp <- tibble(
-  Kategorie = c("Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  Kategorie = c("Ticketverkauf", "Eventausgaben","Kiosk", "Kasse: Überschuss / Manko ","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     df_GV_Eintritt |>
       select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
-      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`, na.rm = T)) |>
+      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`)) |>
+      pull(),
+    (
+        Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+          filter(Kategorie == "Eventausgaben")|>
+          select(Bezeichnung, Betrag)|>
+          reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))
+    )|>
       pull(),
     (
       df_Kiosk |>
@@ -383,8 +431,14 @@ df_temp <- tibble(
         arrange(desc(`Betrag [CHF]`)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Kiosk") |>
-        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
+        reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
+      pull(),
+    (
+      df_manko_uerberschuss|>
+        select(-Datum)|>
+        reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko`, na.rm = T))
+    )|>
       pull(),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
@@ -392,7 +446,7 @@ df_temp <- tibble(
         reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Werbung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
+        reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
       pull(),
     (
@@ -401,30 +455,27 @@ df_temp <- tibble(
         reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Vermietung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
+        reframe(`Betrag [CHF]` = sum(Betrag))
     ) |>
-      pull(),-(
-        Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-          filter(Kategorie == "Personalaufwand") |>
-          reframe(`Summe [CHF]` = sum(Betrag, na.rm = T)) |>
-          pull()
-      ),
+      pull(),
+    -(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+      filter(Kategorie == "Personalaufwand") |>
+      reframe(`Summe [CHF]` = sum(Betrag, na.rm = T)) |>
+      pull()), 
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
-        filter(Kategorie == "Sonstige Einnahmen") |>
+        filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4]) |>
         reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-        filter(Kategorie == "Sonstige Ausgaben") |>
-        reframe(`Betrag [CHF]` = sum(Betrag,na.rm = T))
+        filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4]) |>
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull()
   )
 ) 
 
-
 df_temp|>
   knitr::kable()
-
 ```
 
 ```{r}
