@@ -11,12 +11,13 @@ source("source/functions.R")
 # Read Einnahmen und Ausgaben Excel sheet
 c_file <- "Einnahmen und Ausgaben.xlsx"
 c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
+
 Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
   readxl::read_excel(paste0("Input/",c_file), 
                      sheet = x)
 })
 names(Einnahmen_und_Ausgaben) <- c_sheets
-c_sheets
+Einnahmen_und_Ausgaben
 
 Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   mutate(Spieldatum = as.Date(Spieldatum),
@@ -24,33 +25,6 @@ Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   mutate(Datum = as.Date(Datum))
-
-Einnahmen_und_Ausgaben
-
-# error handling: 
-# Kategorien nicht vorhanden 
-c_Kategorie = c("Film","Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstige Einnahmen", "Sonstige Ausgaben")
-
-Einnahmen_und_Ausgaben|>
-  lapply( function(x){
-    c_x <- x$Kategorie|>
-      unique()
-    
-    c_y <- c_x|>
-      lapply(function(x){
-        x %in% c_Kategorie
-      })|>
-      unlist()
-    
-    if(length(c_y) == sum(c_y)) {
-      TRUE
-    }else {
-      msg <- paste0("\nFehler:",
-                    "\nKategorie wird mit Script nicht verarbeitet:","\"",c_x[!c_y],"\"",
-                    "\nBitte einer vorhandenen Kategorie zuweisen: ", paste0(c_Kategorie, collapse = ", "))
-      stop(msg)
-      }
-  })
 
 
 ########################################################################
@@ -362,9 +336,12 @@ df_Verleiher_Rechnnung <- df_Eintritt|>
   select(Datum, Filmtitel, `Suisa Nummer`)
 df_Verleiher_Rechnnung
 
+# Verleiherabgaben sind im Dropdown zu finden
+Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
+
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
   left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-              filter(Kategorie == "Film")|>
+              filter(Kategorie == "Verleiher")|>
               select(-Datum,-Kategorie),
             by = c("Datum" = "Spieldatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
