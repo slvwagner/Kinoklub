@@ -213,7 +213,7 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen()
+  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)
           )|>
   knitr::kable(digits = 2)
 ```
