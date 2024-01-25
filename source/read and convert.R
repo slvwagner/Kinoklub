@@ -275,7 +275,7 @@ if(nrow(df_keine_Rechnnung)>0) {
 ########################################################################
 
 l_GV <- list()
-ii <- 1
+ii <- 3
 for (ii in 1:length(c_Date)) {
   c_Besucher <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
@@ -364,7 +364,7 @@ df_GV_Eintritt$`Gewinn/Verlust [CHF]`
 # Gewinn Kiosk
 ########################################################################
 
-ii <- 1
+ii <- 3
 
 df_Kiosk|>
   group_by(Datum)|>
@@ -396,13 +396,14 @@ df_GV_Kiosk
 # Gewinn Filmvorführung
 ########################################################################
 
-
+ii <- 3
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
-  c_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
-    filter(Datum == c_Date[ii])|>
-    select(Betrag)|>
-    pull()
+  df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
+    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+  print(df_Eventausgaben)  
+  if(nrow(df_Eventausgaben)<1) c_Eventausgaben <- 0
+  else c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
   
   l_GV_Vorfuehrung[[ii]] <- tibble(
     Datum = c_Date[ii],
