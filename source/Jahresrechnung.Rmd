@@ -170,7 +170,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Einnahmen
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Sonstige Einnahmen")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
@@ -181,7 +181,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Sonstige Einnahmen")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))|>
   knitr::kable()
 
@@ -190,7 +190,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ### Ausgaben
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Sonstige Ausgaben")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   group_by(Bezeichnung)|>
   reframe(Betrag = sum(Betrag, na.rm = T))|>
@@ -203,7 +203,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Sonstige Ausgaben")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   reframe(`Summe [CHF]` = sum(Betrag))|>
   knitr::kable()
 
@@ -212,11 +212,11 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Differenz
 ```{r}
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Sonstige Einnahmen")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))-
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Sonstige Ausgaben")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)))|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))|>
   knitr::kable()
 
 ```
@@ -271,10 +271,10 @@ df_temp <- tibble(
       pull()), 
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
-        filter(Kategorie == "Sonstige Einnahmen") |>
+        filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4]) |>
         reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-        filter(Kategorie == "Sonstige Ausgaben") |>
+        filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4]) |>
         reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull()

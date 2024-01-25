@@ -306,7 +306,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Einnahmen
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Sonstige Einnahmen")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
@@ -326,7 +326,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ### Ausgaben
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Sonstige Ausgaben")|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
