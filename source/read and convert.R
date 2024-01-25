@@ -193,7 +193,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ########################################################################
 # Kioskabrechnungen
 ########################################################################
-source("source/read_kiosk.R")
+source("source/Kiosk.R")
 
 
 ########################################################################
@@ -465,17 +465,9 @@ list(Eintritte= df_Eintritt,
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
-       c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
-       convert_data_Film_txt, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
-
-
-########################################################################
-# Nicht benütigte spalten (columns) löschen für die Bericherstellung
-########################################################################
-df_Kiosk <-df_Kiosk|>
-  select(-((ncol(df_Kiosk)-1):ncol(df_Kiosk)), -`Verkaufs-preis`, -`Einkaufs- preis`, -Menge, -Lieferant, -Artikel)
+       convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets)
 
 
 ########################################################################

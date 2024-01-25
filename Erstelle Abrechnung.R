@@ -111,6 +111,8 @@ remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single)
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
+remove(df_temp, df_Render)
+
 #############################################################################################################################################
 # User Interaktion
 

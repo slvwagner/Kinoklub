@@ -112,6 +112,7 @@ l_Kiosk
 # read Einkaufspreise 
 c_files <- list.files(pattern = START%R%"Einkauf", recursive = T)
 l_Einkaufspreise <- lapply(c_files, readxl::read_excel)
+l_Einkaufspreise
 
 p <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
 names(l_Einkaufspreise) <- c_files|>str_extract(p)
@@ -121,15 +122,18 @@ df_Einkaufspreise <- l_Einkaufspreise |>
   mutate(Datum = lubridate::dmy(Datum)|>as.Date())
 df_Einkaufspreise
 
+########################################################################
+# Kiosk Verkauf 
+########################################################################
 
-# Suchen nach unterschiedlichen Einkaufspreisen
-c_files<- list.files(pattern = START%R%"Kiosk", recursive = T)
+c_files <- list.files(c_path,pattern = START%R%"Kiosk", recursive = T)
+c_files <- c_files <- paste0(c_path,"/", c_files)
+c_files
 
 c_Date_Kiosk <- c_files|>
   str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
   dmy()|>
   as.Date()
-
 
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
@@ -191,7 +195,6 @@ l_Kiosk
 df_Kiosk <- l_Kiosk|>
   bind_rows(.id = "Datum")|>
   mutate(Datum = lubridate::dmy(Datum))
-df_Kiosk
 
 df_Kiosk <- df_Kiosk|>
   mutate(Gewinn = Betrag-(Anzahl*Einkaufspreis))|>
@@ -204,14 +207,14 @@ df_Kiosk|>
   reframe(`Gewinn/Verlust` = sum(Kassiert))
 
 # remove no more needed variables
-remove(df_Einkaufspreise,
-       df_Mapping_Einkaufspreise,
+remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        df_verkaufsartikel,
-       l_extracted, l_Kiosk,l_raw, 
+       l_extracted, l_raw, 
        c_Date_Kiosk, c_Einkaufslistendatum,
        p,p1,p2,p3,
        ii,
        c_select, 
        c_path, c_fileDate, c_files)
 
-
+## User interaction
+writeLines("\nKiosk data read")
