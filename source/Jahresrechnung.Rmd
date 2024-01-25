@@ -67,7 +67,7 @@ df_temp <- bind_rows(
   tibble(
     Bezeichnung = "Einnahmen aus Verkauf",
     df_Kiosk |>
-      reframe(`Betrag [CHF]` = sum(Betrag)) |>
+      reframe(`Betrag [CHF]` = sum(Kassiert)) |>
       arrange(desc(`Betrag [CHF]`))
   ),
   tibble(
@@ -240,7 +240,7 @@ df_temp <- tibble(
       pull(),
     (
       df_Kiosk |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) |>
+        reframe(`Betrag [CHF]` = sum(Kassiert)) |>
         arrange(desc(`Betrag [CHF]`)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Kiosk") |>

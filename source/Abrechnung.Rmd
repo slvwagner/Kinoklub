@@ -184,7 +184,7 @@ df_GV_Eintritt|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  select(-Datum, -Betrag)|>
+  select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
          `Kiosk Gewinn [CHF]` = `Gewinn`,
@@ -197,7 +197,6 @@ df_Kiosk|>
 ```{r echo=FALSE}
 df_Kiosk|>
   filter(Datum == c_Datum)|>
-  select(-Betrag)|>
   reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn))|>
   knitr::kable()
 ```

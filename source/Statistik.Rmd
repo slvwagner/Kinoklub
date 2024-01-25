@@ -171,7 +171,6 @@ df_GV_Kiosk|>
 ### Verkaufsartikel 
 ```{r }
 df_temp <- df_Kiosk|>
-  select(-Betrag)|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(Kassiert),
@@ -221,7 +220,6 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Kiosk|>
-  select(-Betrag)|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(Kassiert),

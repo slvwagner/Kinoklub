@@ -121,14 +121,14 @@ df_GV_Eintritt|>
 df_Kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Betrag))|>
+          `Betrag [CHF]` = sum(Kassiert))|>
   arrange(desc(`Betrag [CHF]`))|>
   knitr::kable()
 ```
 
 ```{r}
 df_Kiosk|>
-  reframe(`Summe [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Kassiert))|>
   arrange(desc(`Summe [CHF]`))|>
   knitr::kable()
 ```
@@ -156,7 +156,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Differenz
 ```{r}
 df_temp <- df_Kiosk|>
-  reframe(`Betrag [CHF]` = sum(Betrag))|>
+  reframe(`Betrag [CHF]` = sum(Kassiert))|>
   arrange(desc(`Betrag [CHF]`))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Kiosk")|>
@@ -362,6 +362,9 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 ```
 
+
+
+
 ```{r}
 df_temp <- tibble(
   Kategorie = c("Ticketverkauf", "Kiosk", "Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
@@ -372,7 +375,7 @@ df_temp <- tibble(
       pull(),
     (
       df_Kiosk |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) |>
+        reframe(`Betrag [CHF]` = sum(Kassiert)) |>
         arrange(desc(`Betrag [CHF]`)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Kiosk") |>

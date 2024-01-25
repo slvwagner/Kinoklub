@@ -307,11 +307,10 @@ df_Kiosk
 
 df_Kiosk <- df_Kiosk|>
   mutate(Gewinn = Betrag-(Anzahl*Einkaufspreis))|>
-  mutate(Kassiert = Betrag,
+  rename(Kassiert = Betrag,
          Verkaufspreis = Einzelpreis)
 
-# |>
-#   select(Datum,Verkaufsartikel,Verkaufspreis,Anzahl,Betrag,Kassiert,Einkaufspreis,Gewinn)
+
 
 ########################################################################
 # read show times
