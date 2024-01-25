@@ -29,7 +29,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 ########################################################################
 # Function to read and convert data from Film.txt files ()
-convert_data <- function(c_fileName) {
+convert_data_Film_txt <- function(c_fileName) {
   l_data <- list()
   for(kk in 1:length(c_fileName)){
     # read in data
@@ -146,7 +146,7 @@ convert_data <- function(c_fileName) {
 # Eintritt aus Advance Tickets
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
-l_Eintritt <- convert_data(c_files)
+l_Eintritt <- convert_data_Film_txt(c_files)
 names(l_Eintritt) <- c_files|>str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
 l_Eintritt
@@ -552,7 +552,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
-       convert_data, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
+       convert_data_Film_txt, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
 
 df_Kiosk <-df_Kiosk|>
   select(-((ncol(df_Kiosk)-1):ncol(df_Kiosk)), -`Verkaufs-preis`, -`Einkaufs- preis`, -Menge, -Lieferant, -Artikel)
