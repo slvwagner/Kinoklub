@@ -215,11 +215,6 @@ df_Einkaufspreise <- l_Einkaufspreise |>
   mutate(Datum = lubridate::dmy(Datum)|>as.Date())
 df_Einkaufspreise
 
-########################################################################
-# Kiosk Spezialpreise
-Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
-  mutate(Datum = as.Date(Datum))
-Spezialpreisekiosk
 
 
 ########################################################################
@@ -261,39 +256,11 @@ df_Mapping_Einkaufspreise
 ########################################################################
 # Convert data from "Kiosk xx.xx.xx.txt" files
 
-l_Kiosk <- list()
-for(ii in 1:length(c_files)){
-  l_Kiosk[[ii]] <- read_delim(c_files[ii], 
-                              delim = "\t", escape_double = FALSE, 
-                              col_types = cols(Platzkategorie = col_character(), 
-                                               Preis = col_double(), Tax...3 = col_double(), 
-                                               Anzahl = col_double(), Betrag = col_double(), 
-                                               Kassiert = col_double(), Vorausbezahlt = col_double(), 
-                                               Fakturieren = col_double(), Tax...9 = col_double()), 
-                              trim_ws = F)|>
-    suppressWarnings()|>
-    suppressMessages()
-  
-  l_Kiosk[[ii]]
-  # remove summary
-  try(l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    filter(!(l_Kiosk[[ii]]$Platzkategorie|>str_detect(START%R%one_or_more(DGT)))),
-    outFile = "error.log"
-    )
-  if(list.files(pattern = "error.log")|>length()>0) stop(paste0("\n",c_files[ii],"\nscheint ein unbekanntes format zu haben.Bitte korrigieren")) # Error handling
+source("source/read_kiosk.R")
 
-  # Spez Preise Kiosk
-  index <- is.na(l_Kiosk[[ii]]$Preis)
-  
-  l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    mutate(Preis = if_else(index, l_Kiosk[[ii]]$Betrag/l_Kiosk[[ii]]$Anzahl,l_Kiosk[[ii]]$Preis),
-           Datum = c_Date_Kiosk[ii])
-  
-  l_Kiosk[[ii]]
-  
-  l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    left_join(Spezialpreisekiosk, by = c("Datum","Platzkategorie" = "Spezialpreis"))
-  l_Kiosk[[ii]]
+ii <- 1
+for(ii in 1:length(c_files)){
+
   # Einkaufspreise
   c_select <- df_Mapping_Einkaufspreise|>
     filter(Datum == c_Date_Kiosk[ii])|>
@@ -301,45 +268,45 @@ for(ii in 1:length(c_files)){
     pull()
   c_select  
   
+  l_Kiosk[[ii]]
+  
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
-    mutate(Platzkategorie = if_else(!is.na(Artikelname),Artikelname,Platzkategorie)
-           )|>
     left_join(df_Einkaufspreise|>
                 filter(Datum == c_select),
-              by = c(Platzkategorie ="Artikelname Kassensystem"))
+              by = c(Verkaufsartikel  ="Artikelname Kassensystem")
+              )
+  
+  l_Kiosk[[ii]]|>
+    mutate(`Einkaufs- preis` = if_else(is.na(`Einkaufs- preis`),Einkaufspreis,`Einkaufs- preis`)
+           )
   
   l_Kiosk[[ii]] <- l_Kiosk[[ii]]|>
     mutate(Einkaufspreis = if_else(!is.na(Einkaufspreis),Einkaufspreis, `Einkaufs- preis`)
            )|>
-    select(1:13)|>
-    select(-Artikelname,-Verkaufspreis)
+    mutate(Datum = Datum[1])
+
+
   
-  # Error Handling: Kein Gewinn berchenbar da Einkuafspreis nicht vorhanden 
-  if(is.na(l_Kiosk[[ii]]$Einkaufspreis)|>sum()>0){
-    df_error <- l_Kiosk[[ii]]|>
-      filter(is.na(Einkaufspreis))
-    df_error
-    stop( paste0("Datum:",day(c_Date_Kiosk[ii]),".",month(c_Date_Kiosk[ii]),".",year(c_Date_Kiosk[ii]),
-                    "\nIm der Kioskabrechnung ist der Verkaufsartikel \"", df_error$Platzkategorie[1], "\" nicht korrekt definiert. \n",
-                    "Bitte prüfe ob dieser Artikel in der \"Spezialpreisekiosk.xlsx\" oder in \"Einkauf Kiosk.xlsx\" definiert ist.\n"))
-  }
-  
+  # # Error Handling: Kein Gewinn berchenbar da Einkuafspreis nicht vorhanden 
+  # if(is.na(l_Kiosk[[ii]]$Einkaufspreis)|>sum()>0){
+  #   df_error <- l_Kiosk[[ii]]|>
+  #     filter(is.na(Betrag))
+  #   df_error
+  #   stop( paste0("Datum:",day(c_Date_Kiosk[ii]),".",month(c_Date_Kiosk[ii]),".",year(c_Date_Kiosk[ii]),
+  #                   "\nIm der Kioskabrechnung ist der Verkaufsartikel \"", df_error$Verkaufsartikel[1], "\" nicht korrekt definiert. \n",
+  #                   "Bitte prüfe ob dieser Artikel in der \"Spezialpreisekiosk.xlsx\" oder in \"Einkauf Kiosk.xlsx\" definiert ist.\n"))
+  # }
+  # 
 
 }
 
 df_Kiosk <- l_Kiosk|>
-  bind_rows()|>
-  mutate(`Tax...3` = NULL,
-         Vorausbezahlt = NULL,
-         Fakturieren = NULL,
-         `Tax...9` = NULL
-         )|>
-  rename(Verkaufsartikel = Platzkategorie,
-         Verkaufspreis = Preis,
-         Datum = Datum.x)
+  bind_rows()
 
 df_Kiosk <- df_Kiosk|>
-  mutate(Gewinn = Kassiert-(Anzahl*Einkaufspreis))|>
+  mutate(Gewinn = Einzelpreis-(Anzahl*Einkaufspreis))|>
+  mutate(Kassiert = Betrag,
+         Verkaufspreis = Einzelpreis)|>
   select(Datum,Verkaufsartikel,Verkaufspreis,Anzahl,Betrag,Kassiert,Einkaufspreis,Gewinn)
 
 ########################################################################
@@ -510,40 +477,42 @@ error <- df_Kiosk|>
             by = join_by(Datum)
   )
 
-if((error$Eintrittabrechnung|>is.na()|>sum())>0) {
-  error <- error|>
-    filter(is.na(Eintrittabrechnung))|>
-    select(Datum)|>
-    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
-  error <- str_c("\nEs  gibt keine Datei: ",
-                 "Eintritt ",error$Datum,".txt",
-                 "\nBitter herunterladen und Abspeichern unter:\n",
-                 "Eintritt ",error$Datum,".txt"
-                 )
-  stop(error)
-}
+error
+
+# if((error$Eintrittabrechnung|>is.na()|>sum())>0) {
+#   error <- error|>
+#     filter(is.na(Eintrittabrechnung))|>
+#     select(Datum)|>
+#     mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
+#   error <- str_c("\nEs  gibt keine Datei: ",
+#                  "Eintritt ",error$Datum,".txt",
+#                  "\nBitter herunterladen und Abspeichern unter:\n",
+#                  "Eintritt ",error$Datum,".txt"
+#                  )
+#   stop(error)
+# }
 
 
-########################################################################
-# error handling Kiosk Abrechnung
-
-error <- df_Eintritt|>
-  distinct(Datum, .keep_all = T)|>
-  left_join(df_Kiosk|>
-              distinct(Datum)|>
-              mutate(Kioskabrechnung = T),
-            by = join_by(Datum)
-  )
-
-if((error$Kioskabrechnung|>is.na()|>sum())>0) {
-  error <- error|>
-    filter(is.na(Kioskabrechnung))|>
-    select(Datum, `Suisa Nummer`, Filmtitel)|>
-    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
-  error <- str_c("\nFür den Film: ", error$Filmtitel,"am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " gib es keine Datei:\n",
-                 "Kiosk ",error$Datum,".txt")
-  stop(error)
-}
+# ########################################################################
+# # error handling Kiosk Abrechnung
+# 
+# error <- df_Eintritt|>
+#   distinct(Datum, .keep_all = T)|>
+#   left_join(df_Kiosk|>
+#               distinct(Datum)|>
+#               mutate(Kioskabrechnung = T),
+#             by = join_by(Datum)
+#   )
+# 
+# if((error$Kioskabrechnung|>is.na()|>sum())>0) {
+#   error <- error|>
+#     filter(is.na(Kioskabrechnung))|>
+#     select(Datum, `Suisa Nummer`, Filmtitel)|>
+#     mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)-2000))
+#   error <- str_c("\nFür den Film: ", error$Filmtitel,"am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " gib es keine Datei:\n",
+#                  "Kiosk ",error$Datum,".txt")
+#   stop(error)
+# }
 
 ########################################################################
 # Gewinn Kiosk
@@ -598,7 +567,7 @@ list(Eintritte= df_Eintritt,
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, index, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
+remove(l_Eintritt, l_Kiosk, c_files, m, c_raw, l_GV, l_GV_Kiosk, c_Besucher, c_suisa_nr, 
        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii,
        c_Einkaufslistendatum, c_select,p,l_Einkaufspreise,df_Mapping_Einkaufspreise,
        convert_data, c_Date_Kiosk,c_file, c_Verleiherrechnung, c_sheets)
