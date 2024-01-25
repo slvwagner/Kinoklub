@@ -67,7 +67,7 @@ df_temp <- bind_rows(
   tibble(
     Bezeichnung = "Einnahmen aus Verkauf",
     df_Kiosk |>
-      reframe(`Betrag [CHF]` = sum(Kassiert)) |>
+      reframe(`Betrag [CHF]` = sum(Kassiert, na.rm = T)) |>
       arrange(desc(`Betrag [CHF]`))
   ),
   tibble(
@@ -84,7 +84,7 @@ df_temp|>
 
 ```{r}
 df_temp|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
   knitr::kable()
 
 ```
@@ -97,13 +97,13 @@ df_temp <- bind_rows(
     Bezeichnung = "Kinowerbeeinnahmen",
     Einnahmen_und_Ausgaben[["Einnahmen"]] |>
       filter(Kategorie == "Werbung") |>
-      reframe(`Betrag [CHF]` = sum(Betrag))
+      reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
   ),
   tibble(
     Bezeichnung = "Werbeausgaben",
     Einnahmen_und_Ausgaben[["Ausgaben"]] |>
       filter(Kategorie == "Werbung") |>
-      reframe(`Betrag [CHF]` = -sum(Betrag))
+      reframe(`Betrag [CHF]` = -sum(Betrag, na.rm = T))
   )
 )
 
@@ -126,11 +126,11 @@ df_temp <- bind_rows(
     tibble(Bezeichnung = "Kinovermietungseinnahmen",
            Einnahmen_und_Ausgaben[["Einnahmen"]] |>
              filter(Kategorie == "Vermietung") |>
-             reframe(`Betrag [CHF]` = sum(Betrag))),
+             reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))),
     tibble(Bezeichnung = "Vermietungsausgaben",
            Einnahmen_und_Ausgaben[["Ausgaben"]] |>
              filter(Kategorie == "Vermietung") |>
-             reframe(`Betrag [CHF]` = -sum(Betrag)))
+             reframe(`Betrag [CHF]` = -sum(Betrag, na.rm = T)))
 )
 
 df_temp|>
@@ -139,7 +139,7 @@ df_temp|>
 ```
 ```{r}
 df_temp|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
   knitr::kable()
 
 ```
@@ -150,7 +150,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Personalaufwand")|>
   select(Datum, Bezeichnung,Betrag)|>
   group_by(Bezeichnung)|>
-  reframe(Betrag = sum(Betrag))|>
+  reframe(Betrag = sum(Betrag, na.rm = T))|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 
@@ -182,7 +182,7 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Sonstige Einnahmen")|>
-  reframe(`Summe [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))|>
   knitr::kable()
 
 ```
@@ -193,7 +193,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
   select(Datum, Bezeichnung,Betrag)|>
   group_by(Bezeichnung)|>
-  reframe(Betrag = sum(Betrag))|>
+  reframe(Betrag = sum(Betrag, na.rm = T))|>
   rename(`Betrag [CHF]` = Betrag)|>
   # arrange(Datum)|>
   # mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
@@ -240,7 +240,7 @@ df_temp <- tibble(
       pull(),
     (
       df_Kiosk |>
-        reframe(`Betrag [CHF]` = sum(Kassiert)) |>
+        reframe(`Betrag [CHF]` = sum(Kassiert, na.rm = T)) |>
         arrange(desc(`Betrag [CHF]`)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Kiosk") |>
@@ -250,7 +250,7 @@ df_temp <- tibble(
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Werbung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Werbung") |>
         reframe(`Betrag [CHF]` = sum(Betrag))
@@ -259,7 +259,7 @@ df_temp <- tibble(
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Vermietung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Vermietung") |>
         reframe(`Betrag [CHF]` = sum(Betrag))
@@ -267,15 +267,15 @@ df_temp <- tibble(
       pull(),
     -(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
       filter(Kategorie == "Personalaufwand") |>
-      reframe(`Summe [CHF]` = sum(Betrag)) |>
+      reframe(`Summe [CHF]` = sum(Betrag, na.rm = T)) |>
       pull()), 
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Sonstige Einnahmen") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Sonstige Ausgaben") |>
-        reframe(`Betrag [CHF]` = sum(Betrag))
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull()
   )

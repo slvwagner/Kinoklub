@@ -19,7 +19,7 @@ Bericht wurde am `r act_date` erstellt.
 df_Eintritt|>
   filter(Zahlend)|>
   group_by(Platzkategorie)|>
-  reframe(`Betrag [CHF]` = sum(Umsatz))|>
+  reframe(`Betrag [CHF]` = sum(Umsatz, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))|>
   knitr::kable()
 ```
@@ -49,7 +49,7 @@ df_GV_Eintritt|>
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 
@@ -109,7 +109,7 @@ tibble(Bezeichnung = "MWST auf Verleiherleistungen",
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 
@@ -121,7 +121,7 @@ df_GV_Eintritt|>
 df_Kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Kassiert))|>
+          `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))|>
   knitr::kable()
 ```
@@ -156,11 +156,11 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Differenz
 ```{r}
 df_temp <- df_Kiosk|>
-  reframe(`Betrag [CHF]` = sum(Kassiert))|>
+  reframe(`Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Kiosk")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
 
 df_temp|>
   knitr::kable()
@@ -176,7 +176,8 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
   select(Datum, Firmennamen , Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -194,7 +195,8 @@ Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
   select(Datum, Bezeichnung , Firmennamen, Betrag)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 
@@ -213,10 +215,10 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)) - 
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) - 
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Werbung")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)))|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))|>
   knitr::kable()
 
 
@@ -231,7 +233,8 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
   select(Datum, Bezeichnung, Betrag)|>
-    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   rename(`Betrag [CHF]` = Betrag)|>
   knitr::kable()
 
@@ -269,10 +272,10 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r}
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Vermietung")|>
-  reframe(`Betrag [CHF]`=sum(Betrag))-
+  reframe(`Betrag [CHF]`=sum(Betrag, na.rm = T))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
-  reframe(`Betrag [CHF]`=sum(Betrag)))|>
+  reframe(`Betrag [CHF]`=sum(Betrag, na.rm = T)))|>
   knitr::kable()
   
 ```
@@ -293,7 +296,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r echo=FALSE}
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Personalaufwand")|>
-  reframe(`Summe [CHF]` = sum(Betrag))|>
+  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))|>
   knitr::kable()
 
 ```
@@ -327,7 +330,8 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
-  arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   knitr::kable()
 
 ```
@@ -344,10 +348,10 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ```{r}
 (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie == "Sonstige Einnahmen")|>
-  reframe(`Betrag [CHF]` = sum(Betrag))-
+  reframe(`Betrag [CHF]` = sum(Betrag,na.rm = T))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Sonstige Ausgaben")|>
-  reframe(`Betrag [CHF]` = sum(Betrag)))|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))|>
   knitr::kable()
 
 ```
@@ -371,47 +375,47 @@ df_temp <- tibble(
   `Betrag [CHF]` = c(
     df_GV_Eintritt |>
       select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`) |>
-      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`)) |>
+      reframe(`Betrag [CHF]` = sum(`Gewinn/Verlust [CHF]`, na.rm = T)) |>
       pull(),
     (
       df_Kiosk |>
-        reframe(`Betrag [CHF]` = sum(Kassiert)) |>
+        reframe(`Betrag [CHF]` = sum(Kassiert, na.rm = T)) |>
         arrange(desc(`Betrag [CHF]`)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Kiosk") |>
-        reframe(`Betrag [CHF]` = sum(Betrag))
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull(),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Werbung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Werbung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag))
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull(),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Vermietung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Vermietung") |>
-        reframe(`Betrag [CHF]` = sum(Betrag))
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
     ) |>
       pull(),-(
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
           filter(Kategorie == "Personalaufwand") |>
-          reframe(`Summe [CHF]` = sum(Betrag)) |>
+          reframe(`Summe [CHF]` = sum(Betrag, na.rm = T)) |>
           pull()
       ),
     (
       Einnahmen_und_Ausgaben[["Einnahmen"]] |>
         filter(Kategorie == "Sonstige Einnahmen") |>
-        reframe(`Betrag [CHF]` = sum(Betrag)) -
+        reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) -
         Einnahmen_und_Ausgaben[["Ausgaben"]] |>
         filter(Kategorie == "Sonstige Ausgaben") |>
-        reframe(`Betrag [CHF]` = sum(Betrag))
+        reframe(`Betrag [CHF]` = sum(Betrag,na.rm = T))
     ) |>
       pull()
   )
