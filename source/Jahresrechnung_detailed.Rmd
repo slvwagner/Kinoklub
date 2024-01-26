@@ -14,25 +14,63 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 Bericht wurde am `r act_date` erstellt.
 
 ## Kino Vorführungen
-### Einnahmen Ticketverkauf
+### Eintritte
+
+#### Zahlend / Gratis 
 ```{r}
 df_Eintritt|>
-  filter(Zahlend)|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  knitr::kable()
+```
+
+##### Details
+```{r}
+df_Eintritt|>
   group_by(Platzkategorie)|>
-  reframe(`Betrag [CHF]` = sum(Umsatz))|>
-  arrange(desc(`Betrag [CHF]`))|>
+  reframe(Anzahl = sum(Anzahl))|>
   knitr::kable()
+```
+
+### Umsatz
+```{r echo=FALSE}
+if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkosten können sich noch ändern und demnach die die MWST auf die Verleiherabgaben")
+}
 ```
 
 
 ```{r}
-df_Eintritt|>
-  reframe(`Summe [CHF]` = sum(Umsatz))|>
-  arrange(desc(`Summe [CHF]`))|>
-  knitr::kable()
-  
-```
+df_temp <- bind_rows(
+  tibble(Bezeichnung = "Einnahmen Ticketverkauf",
+         df_Eintritt |>
+           reframe(`Betrag [CHF]` = sum(Umsatz))),
+  tibble(
+    Bezeichnung = "Suisaabgaben",
+    df_GV_Eintritt |>
+      select(Datum, Filmtitel, `SUISA-Abzug [CHF]`) |>
+      reframe(`Betrag [CHF]` = -sum(`SUISA-Abzug [CHF]`))),
+  tibble(
+    Bezeichnung = "Verleigerabgaben",
+    df_GV_Eintritt |>
+      select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`) |>
+      reframe(`Betrag [CHF]` = -sum(`Verleiher-Abzug [CHF]`))),
+  tibble(
+    Bezeichnung = "Nebenkosten Verleigerabgaben",
+    df_GV_Eintritt |>
+      select(Datum, Filmtitel, `Sonstige Kosten [CHF]`) |>
+      reframe(`Betrag [CHF]` = -sum(`Sonstige Kosten [CHF]`, na.rm = T))),
+  tibble(Bezeichnung = "MWST auf Verleiherleistungen",
+         df_GV_Eintritt|>
+           select(`MWST auf die Verleiherrechnung [CHF]`)|>
+           reframe(`Betrag [CHF]` = -sum(`MWST auf die Verleiherrechnung [CHF]`))
+         )
+)  
 
+df_temp|>
+  knitr::kable()
+```
 
 ### Ausgaben für Vorführungen
 #### Suisaabgaben

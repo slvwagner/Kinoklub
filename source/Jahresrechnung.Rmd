@@ -14,6 +14,20 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 Bericht wurde am `r act_date` erstellt.
 
 ## Kino Vorführungen
+
+### Eintritte
+
+#### Zahlend / Gratis 
+```{r}
+df_Eintritt|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  knitr::kable()
+```
+
+
+### Umsatz
 ```{r echo=FALSE}
 if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Nebenkosten können sich noch ändern und demnach die die MWST auf die Verleiherabgaben")
