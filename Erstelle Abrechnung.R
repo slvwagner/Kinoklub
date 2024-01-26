@@ -35,6 +35,13 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 #############################################################################################################################################
+# löschen aller files im output folder
+c_path <- "output"
+c_files <- paste0(c_path,"/",list.files(c_path))
+c_files
+file.remove(c_files)
+
+#############################################################################################################################################
 # Jahresrechnung detalliert
 rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
                   df_Render$Render,
