@@ -24,9 +24,19 @@ df_Render <- tibble::tibble(Render  = c("html_document"),
 
 #############################################################################################################################################
 # Script start
+#############################################################################################################################################
+
+# löschen aller files im output folder
+c_path <- "output"
+c_files <- paste0(c_path,"/",list.files(c_path))
+c_files
+file.remove(c_files)
+
 
 # Daten einlesen und konvertieren
 source("source/read and convert.R")
+
+
 
 #############################################################################################################################################
 # index pro suisa_nr und Datume erstellen
