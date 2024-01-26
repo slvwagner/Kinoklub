@@ -68,6 +68,7 @@ paste("Bericht: \nStatistik erstellt")|>
 
 #############################################################################################################################################
 # Erstellen der Berichte für gewählte Vorführungen
+ii <- 1
 if(c_run_single){
   for(ii in 1:nrow(df_mapping)){
   
@@ -75,13 +76,40 @@ if(c_run_single){
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
   
-    # Ändern des Templates mit user eingaben
+    # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum 
     index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
     index
-  
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
+    
+    # writeLines(c_raw, paste0("source/temp.Rmd"))
+
+    # Ändern des Templates Titel Filmname 
+    index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
+    c_temp1 <- df_GV_Vorfuehrung|>
+      filter(Datum == df_GV_Vorfuehrung$Datum[ii])|>
+      left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
+      select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+      mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+             Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
+      )|>
+      rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+      select(Filmtitel)|>
+      pull()
+
+    c_temp <- c_raw[(index)]|>
+      str_split("\"", simplify = T)|>
+      as.vector()
+    
+    c_temp <- c_temp[1:2]
+    c_temp <- paste0(c(c_temp), collapse = "\"")
+    c_temp <- paste0(c(c_temp, " "), collapse = "")
+    c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
+    c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
+    
+    # neues file schreiben
     writeLines(c_raw, paste0("source/temp.Rmd"))
-  
+    
+      
     # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
                       df_Render$Render,
