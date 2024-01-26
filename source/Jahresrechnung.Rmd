@@ -14,6 +14,18 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 Bericht wurde am `r act_date` erstellt.
 
 ## Filmvorführungen
+
+### Eintritte
+#### Zahlend / Gratis 
+```{r}
+df_Eintritt|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  knitr::kable()
+```
+
+
 ### Einnahmen Ticketverkauf
 ```{r}
 df_Eintritt|>
