@@ -172,7 +172,7 @@ df_Kiosk <- l_Kiosk|>
   bind_rows()
 
 df_Kiosk <- df_Kiosk|>
-  select(-Artikel,-`Verkaufs-preis`, -Menge, -Lieferant, -(ncol(df_Kiosk)-1),  -ncol(df_Kiosk))
+  select(-Artikel,-`Verkaufs-preis`, -Menge, -(ncol(df_Kiosk)-1),  -ncol(df_Kiosk))
 
 ########################################################################
 # Gewinn
