@@ -90,13 +90,75 @@ Eventausgaben|>
   knitr::kable(digits = 2)
 ```
 
+
 ## Kiosk
+### Einahmen
 
 ```{r}
-Kiosk|>
+KioskEinnahmen <- df_Kiosk|>
+  group_by(Verkaufsartikel, Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
+  arrange(desc(`Betrag [CHF]`))|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  arrange(desc(`Summe [CHF]`))
+
+KioskEinnahmen|>
+  knitr::kable(digits = 2)
+```
+
+
+### Ausgaben
+#### Einkauf Getränke
+Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
+```{r}
+EinkaufGetränke <- df_Kiosk|>
+  filter(Lieferant == "Schüwo")|>
+  group_by(Verkaufsartikel, Verkaufspreis, Einkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Betrag [CHF]` = sum(Anzahl  * Einkaufspreis, na.rm = T))|>
+  arrange(desc(Anzahl))|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+
+EinkaufGetränke|>
   knitr::kable()
 ```
 
+
+#### Einkauf Kino
+```{r echo=FALSE}
+EinkaufKino <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Kiosk")|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+
+EinkaufKino|>  
+  knitr::kable()
+```
+
+
+### Differenz
+```{r}
+Kiosk <- tibble(Bezeichnung = c("Einnahmen","Einkauf Getränke", "Einkauf Kino"),
+                `Betrag [CHF]` = c(KioskEinnahmen|>pull(),
+                                   -(EinkaufGetränke|>pull()),
+                                   -(EinkaufKino|>pull()))
+                )
+
+Kiosk|>
+  knitr::kable()
+
+```
+
+```{r}
+Kiosk <- Kiosk|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+
+Kiosk|>
+  knitr::kable()
+```
 
 ## Kasse
 **Achtung!** \
