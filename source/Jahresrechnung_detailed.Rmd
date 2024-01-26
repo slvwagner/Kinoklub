@@ -17,10 +17,10 @@ Bericht wurde am `r act_date` erstellt.
 ### Einnahmen Ticketverkauf
 ```{r}
 df_Eintritt|>
-  filter(Zahlend)|>
   group_by(Platzkategorie)|>
-  reframe(`Betrag [CHF]` = sum(Umsatz, na.rm = T))|>
-  arrange(desc(`Betrag [CHF]`))|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(Umsatz, na.rm = T))|>
+  arrange(desc(`Umsatz [CHF]`))|>
   knitr::kable()
 ```
 
@@ -34,7 +34,7 @@ df_Eintritt|>
 ```
 
 
-### Ausgaben für Vorführungen
+### Abgaben Ticketverkauf
 #### Suisaabgaben
 
 ```{r}
@@ -105,7 +105,7 @@ tibble(Bezeichnung = "MWST auf Verleiherleistungen",
 ```
 
 
-### Gewinn / Verlust aus Vorführungen
+### Differenz
 ```{r}
 Filmvorführungen <- df_GV_Eintritt|>
   select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
@@ -180,14 +180,14 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 ### Differenz
 ```{r}
-df_temp <- df_Kiosk|>
+Kiosk <- df_Kiosk|>
   reframe(`Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Kiosk")|>
   reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T))
 
-df_temp|>
+Kiosk|>
   knitr::kable()
 
 ```
@@ -427,7 +427,7 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 
 ```{r}
-df_temp <- tibble(
+GewinnVerlust <- tibble(
   Kategorie = c("Filmvorführungen", "Eventausgaben","Kiosk", "Kasse","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     Filmvorführungen |>
@@ -449,13 +449,13 @@ df_temp <- tibble(
   )
 ) 
 
-df_temp|>
+GewinnVerlust|>
   knitr::kable()
 ```
 
 ```{r}
-df_temp|>
-  reframe("Gewinn / Verlust [CHF]" = sum(`Betrag [CHF]`))|>
+GewinnVerlust|>
+  reframe("Gewinn / Verlust [CHF]" = sum(`Betrag [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 

@@ -68,7 +68,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 \
 
 
-## Kino Eintritte
+## Filmvorführungen
 
 ```{r echo=FALSE}
 df_Eintritt|>
@@ -107,10 +107,10 @@ df_Eintritt|>
 
 
 
-## Filmabgaben
+### Filmabgaben
 
 
-### Verleiherrechnung
+#### Verleiherrechnung
 
 ```{r echo=FALSE}
 if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
@@ -124,7 +124,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 ```
 
 
-### Prozentualle Abgaben
+#### Prozentualle Abgaben
 Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **CHF 150.-**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
@@ -143,7 +143,7 @@ df_temp|>
 
 
 
-### Reklamematerial und Porto
+#### Reklamematerial und Porto
 
 ```{r echo=FALSE}
 if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
