@@ -151,7 +151,8 @@ convert_data_Film_txt <- function(c_fileName) {
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 l_Eintritt <- convert_data_Film_txt(c_files)
-names(l_Eintritt) <- c_files|>str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
+names(l_Eintritt) <- c_files|>
+  str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
 l_Eintritt
 df_Eintritt <- l_Eintritt|>
@@ -289,18 +290,23 @@ for (ii in 1:length(c_Date)) {
     pull()
   c_Gratis
   
+  ##Brutto 
   c_Umsatz <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
     reframe(Umsatz = sum(Umsatz))|>
     pull()
   
-  c_suisaabzug <- (distinct(df_Eintritt|>filter(Datum == c_Date[ii]), 
-                            `SUISA-Vorabzug`)|>pull())/100
+  c_suisaabzug <- (distinct(df_Eintritt|>filter(Datum == c_Date[ii]), `SUISA-Vorabzug`)|>
+                     pull())/100
   c_suisaabzug
   
+  ## Netto 3
+  c_Netto3 <- c_Umsatz-round5Rappen(c_Umsatz*c_suisaabzug)
+  c_Netto3
+  
+  ## Prozent von Netto 3 bezahlt werden müssen
   c_verleiherabzug <- (distinct(df_Eintritt|>filter(Datum == c_Date[ii]), 
                                `Abzug [%]`)|>pull())/100
-  c_verleiherabzug
   
   c_Verleiherrechnung <- df_Verleiher_Rechnnung |>
         filter(Datum == c_Date[ii]) |>
@@ -309,18 +315,29 @@ for (ii in 1:length(c_Date)) {
   
   c_Verleiherrechnung
   
+  # Mehrwertsteuer auf der Verleiherrechnung 
   c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung-(c_Verleiherrechnung/(1+(c_MWST/100))))
   c_MWST_Abzug
   
-  if(is.na(c_MWST_Abzug)) { # Wemm keine Verleiherrechnung vorhanden ist muss die MWST vom Umsatz berechnet werden.
-    c_MWST_Abzug <- round5Rappen((c_Umsatz*c_verleiherabzug)*(c_MWST/100))
+  # Berechnung der Abgaben
+  if(is.na(c_MWST_Abzug)) { # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
+    
+    c_Verleiherrechnung <- round5Rappen(c_Netto3*c_verleiherabzug)
+    c_Verleiherrechnung
+    
+    ### Wenn die ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
+    if(c_verleiherabzug < 150) c_Verleiherrechnung <- 150
+    
+    c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung)*(c_MWST/100)
+    
     }
   c_MWST_Abzug
-  
+  c_Verleiherrechnung
   
   # Error handling Verleiherabgaben
   if(is.na(c_verleiherabzug)) {
-    error <- df_Eintritt|>filter(Datum == c_Date[ii])|>
+    error <- df_Eintritt|>
+      filter(Datum == c_Date[ii])|>
       distinct(Datum,.keep_all = T)|>
       select(Datum, `Suisa Nummer`, Filmtitel)|>
       mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
@@ -328,21 +345,24 @@ for (ii in 1:length(c_Date)) {
                    "\nVerleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.")
     stop(error)
   }
-
+  
+  
+  
   l_GV[[ii]] <- tibble(Datum = c_Date[ii],
                        `Suisa Nummer` = c_suisa_nr[ii],
-                       Umsatz = c_Umsatz, 
+                       Brutto = c_Umsatz, 
                        Verleiherrechnung = c_Verleiherrechnung,
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
                        `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
-                       `Verleiher-Abzug [%]` =c_verleiherabzug*100,
-                       `Verleiher-Abzug [CHF]` = round5Rappen(c_Umsatz*c_verleiherabzug),
+                       `Netto 3` = c_Netto3,
+                       `Verleiher-Abzug [%]` = c_verleiherabzug*100,
+                       `Verleiher-Abzug [CHF]` = c_Verleiherrechnung,
                        `MWST Satz auf die Verleiherrechnung [%]` = c_MWST,
-                       `MWST auf die Verleiherrechnung [CHF]` = c_MWST_Abzug
+                       `MWST auf die Verleiherrechnung [CHF]` =  c_MWST_Abzug
                        )|>
-    mutate(`Verleiher-Abzug [CHF]` = if_else(`Verleiher-Abzug [CHF]` > 150, `Verleiher-Abzug [CHF]`, 150),
+    mutate(## Gewinn berechnung
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = round5Rappen(Umsatz - sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,
+           `Gewinn/Verlust [CHF]` = round5Rappen(`Netto 3` - sum(`Verleiher-Abzug [CHF]`,
                                                               `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,
                                                               na.rm = T))
            )|>

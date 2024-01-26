@@ -111,7 +111,7 @@ df_temp <- df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,na.rm = T))|>
     select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
-  rename(`Umsatz [CHF]` = Umsatz)
+  rename(`Umsatz [CHF]` = Brutto)
 ```
 
 ```{r}

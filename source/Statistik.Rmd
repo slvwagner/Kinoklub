@@ -18,10 +18,10 @@ Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks.
 
 ```{r}
 df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Umsatz, `Gewinn/Verlust [CHF]`)|>
+  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
   arrange(Datum)|>
     mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  rename(`Umsatz [CHF]` = Umsatz)|>
+  rename(`Umsatz [CHF]` = Brutto)|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 
 df_temp|>
@@ -125,7 +125,7 @@ df_Eintritt|>
 ### Filmabgaben
 ```{r echo=FALSE}
 df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Umsatz, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
+  select(Datum, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
   arrange(Datum)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
