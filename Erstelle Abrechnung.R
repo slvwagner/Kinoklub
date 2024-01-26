@@ -25,6 +25,12 @@ df_Render <- tibble::tibble(Render  = c("html_document"),
 #############################################################################################################################################
 # Script start
 
+# löschen aller files im output folder
+c_path <- "output"
+c_files <- paste0(c_path,"/",list.files(c_path))
+c_files
+file.remove(c_files)
+
 # Daten einlesen und konvertieren
 source("source/read and convert.R")
 
@@ -33,13 +39,6 @@ source("source/read and convert.R")
 df_mapping <- tibble(Datum = c_Date)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
-
-#############################################################################################################################################
-# löschen aller files im output folder
-c_path <- "output"
-c_files <- paste0(c_path,"/",list.files(c_path))
-c_files
-file.remove(c_files)
 
 #############################################################################################################################################
 # Jahresrechnung detalliert
