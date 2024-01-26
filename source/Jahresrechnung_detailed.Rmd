@@ -29,7 +29,8 @@ df_Eintritt|>
 ##### Details
 ```{r}
 df_Eintritt|>
-  group_by(Platzkategorie)|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   reframe(Anzahl = sum(Anzahl))|>
   knitr::kable()
 ```

@@ -146,29 +146,35 @@ df_GV_Eintritt|>
   knitr::kable(digits = 2)
 ```
 
+
+
 ### Gewinn Verlust aus Tickerverkauf
 ```{r}
-df_GV_Eintritt|>
+Filmvorführungen <- df_GV_Eintritt|>
   filter(Datum == c_Date[ii])|>
-  select(`Gewinn/Verlust [CHF]`)|>
+  select(`Gewinn/Verlust [CHF]`)
+
+Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
 
 ## Eventausgaben
 ```{r}
-Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
   select(Bezeichnung, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+
+Eventausgaben|>
   knitr::kable(digits = 2)
 ```
 
 
 ```{r}
-Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
-  select(Bezeichnung, Betrag)|>
-  reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))|>
+Eventausgaben <- Eventausgaben|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+
+Eventausgaben|>
   knitr::kable()
 ```
 
@@ -177,23 +183,28 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ### Pro Artikel
 
 ```{r echo=FALSE}
-df_Kiosk|>
+Kiosk <- df_Kiosk|>
   filter(Datum == c_Datum)|>
   select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
          `Kiosk Gewinn [CHF]` = `Gewinn`,
-         `Verkaufspreis [CHF]`=`Verkaufspreis`)|>
+         `Verkaufspreis [CHF]`=`Verkaufspreis`)
+
+Kiosk|>
   knitr::kable()
 
 ```
 
 
+### Gewinn
 ```{r echo=FALSE}
-df_Kiosk|>
+Kiosk <- df_Kiosk|>
   filter(Datum == c_Datum)|>
   reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)
-          )|>
+          )
+
+Kiosk|>
   knitr::kable(digits = 2)
 ```
 
@@ -250,25 +261,44 @@ df_show |>
 
 
 
-## Kassa Überschuss / Manko 
+## Kasse
 **Achtung!** \
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
 ```{r}
-df_manko_uerberschuss|>
+Manko <- df_manko_uerberschuss|>
   filter(Datum == c_Datum)|>
   select(-Datum)|>
-  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)
+
+Manko|>
   knitr::kable(digits = 2)
 ```
 
 
 ## Gewinn / Verlust
 ```{r}
+df_temp <- tibble(
+  Bezeichnung = c("Flimvorführung", "Eventausgaben", "Kiosk", "Kasse: Manko / Überschuss"),
+   `Betrag [CHF]` = c(
+  Filmvorführungen|>
+    pull(),
+  -(Eventausgaben|>pull()),
+  Kiosk|>
+    pull(),
+  Manko|>
+    pull()
+  )
+)
 
+df_temp|>
+  knitr::kable()
 ```
 
-
-
+```{r}
+df_temp|>
+  reframe(`Gewinn / Verlust [CHF]`=sum(`Betrag [CHF]`, na.rm = T))|>
+  knitr::kable()
+```
 
 \
 \
