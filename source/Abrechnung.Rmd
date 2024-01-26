@@ -35,8 +35,7 @@ c_verleiherabgaben <- df_verleiherabgaben|>
   pull()
 ```
 
-## Erfolg
-Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
+## Übersicht 
 
 ```{r echo=FALSE}
 df_temp <- df_GV_Vorfuehrung|>
@@ -46,7 +45,8 @@ df_temp <- df_GV_Vorfuehrung|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )|>
-  rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)
+  rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+  select(-`Total Gewinn [CHF]`)
 ```
 
 
@@ -67,49 +67,28 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 \
 \
 
-
-## Filmvorführungen
+## Filmvorführung
+### Kino Besucherzahlen und Umsatz
 
 ```{r echo=FALSE}
-df_Eintritt|>
+df_temp <- df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  rename(`Film Umsatz [sFR]` = `Umsatz`)|>
-  knitr::kable(digits = 2)
+  rename(`Film Umsatz [sFR]` = `Umsatz`)
 
+df_temp|>
+  knitr::kable()
 ```
 
 ```{r echo=FALSE}
-df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  reframe(Umsatz = sum(Umsatz))|>
-  rename(`Film Umsatz [CHF]` = `Umsatz`)|>
+df_temp|>
+  reframe(`Film Umsatz [CHF]` = sum(`Film Umsatz [sFR]`, na.rm = T))|>
   knitr::kable()
 
 ```
 
-### Kino Besucherzahlen
-
-```{r echo=FALSE}
-df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz, Zahlend)|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(
-         Eintritt = Zahlend)|>
-  knitr::kable(digits = 2)
-
-```
-
-
-
 
 ### Filmabgaben
-
-
 #### Verleiherrechnung
 
 ```{r echo=FALSE}
@@ -281,6 +260,14 @@ df_manko_uerberschuss|>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)|>
   knitr::kable(digits = 2)
 ```
+
+
+## Gewinn / Verlust
+```{r}
+
+```
+
+
 
 
 \
