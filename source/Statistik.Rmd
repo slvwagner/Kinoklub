@@ -72,7 +72,7 @@ df_Eintritt|>
   theme(
   panel.background = element_rect(fill = "#322f3b",
                                 colour = "#322f3b",
-                                size = 0.5, linetype = "solid"),
+                                linewidth = 0.5, linetype = "solid"),
   plot.background = element_rect(fill = "#322f3b"),
   axis.title = element_text(colour = "#f4cccc", size  = 20),
   axis.text= element_text(colour = "#f4cccc"),
@@ -106,7 +106,7 @@ df_temp|>
   theme(
   panel.background = element_rect(fill = "#322f3b",
                                 colour = "#322f3b",
-                                size = 0.5, linetype = "solid"),
+                                linewidth = 0.5, linetype = "solid"),
   plot.background = element_rect(fill = "#322f3b"),
   axis.title = element_text(colour = "#f4cccc", size =15),
   axis.text= element_text(colour = "#f4cccc"),
@@ -240,7 +240,7 @@ df_temp|>
   theme(
   panel.background = element_rect(fill = "#322f3b",
                                 colour = "#322f3b",
-                                size = 0.5, linetype = "solid"),
+                                linewidth = 0.5, linetype = "solid"),
   plot.background = element_rect(fill = "#322f3b"),
   axis.title = element_text(colour = "#f4cccc", size  = 20),
   axis.text= element_text(colour = "#f4cccc")
