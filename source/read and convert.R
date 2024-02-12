@@ -234,8 +234,14 @@ df_show <- df_show|>
 ########################################################################
 
 # Verleiherabganen
-df_verleiherabgaben <- readxl::read_excel("input/Verleiherabgaben.xlsx")|>
-  mutate(Datum = as.Date(Datum))
+c_file <- "input/Verleiherabgaben.xlsx"
+c_sheets <- readxl::excel_sheets(c_file)
+c_sheets
+
+df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
+  mutate(Datum = as.Date(Datum))|>
+  left_join(readxl::read_excel(c_file,c_sheets[2]))
+
 df_verleiherabgaben
 
 df_Eintritt <- df_Eintritt|>
