@@ -1,4 +1,4 @@
-## read in all kiosk files (neu)
+## read in all kiosk files
 
 library(rebus)
 library(tidyverse)
@@ -53,15 +53,16 @@ l_Kiosk <- l_extracted |>
   lapply(function(x) {
     y <- x[[1]]$Verkaufartikel_string |>
       str_split(pattern = "\t", simplify = T)
-    colnames(y) <- c("Verkaufsartikel", "Einzelpreis", "Anzahl", "V4", "Betrag")
+    y <- cbind(y[,1:2],y[,ncol(y)]) # renmove unused columns
+    colnames(y) <- c("Verkaufsartikel", "Einzelpreis", "Betrag")
+    
     y <- as_tibble(y) |>
-      select(-V4) |>
       mutate(
         Einzelpreis = as.numeric(Einzelpreis),
-        Anzahl = as.numeric(Anzahl),
         Betrag = as.numeric(Betrag),
-        Einzelpreis = Betrag / Anzahl
-      )
+        Anzahl = Betrag / Einzelpreis,
+      )|>
+      select(Verkaufsartikel, Einzelpreis, Anzahl, Betrag)
   })
 l_Kiosk
 
