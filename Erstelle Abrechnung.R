@@ -15,8 +15,24 @@ c_run_single <- TRUE
 # Mehrwertsteuersatz
 c_MWST <- 7.7 #%
 
-#############################################################################################################################################
+# Ausgabeformate
+# 1 = only html
+# 2 = html and docx
+# 3 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+c_render_option <- "3" 
 
+#############################################################################################################################################
+# Script start
+# Ausgabeformat(e)
+df_Render <- switch (
+  c_render_option,
+  "1" = tibble::tibble(Render  = c("html_document"), 
+                       fileExt = c(".html")),
+  "2" = tibble::tibble(Render  = c("html_document","word_document"), 
+                       fileExt = c(".html", ".docx")),
+  "3" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"), 
+                       fileExt = c(".html", ".docx", ".pdf"))
+)
 
 # löschen aller files im output folder
 c_path <- "output"
