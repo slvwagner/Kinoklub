@@ -1,0 +1,38 @@
+---
+title: "Abrechnung Filmvorführung"
+output: 
+  html_document:
+    css: Kinoklub_dark.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+```
+
+Bericht wurde am `r act_date` erstellt.
+
+```{r variablen, include=FALSE}
+ii <- 3
+```
+
+```{r echo=FALSE}
+df_mapping <- tibble(Datum = c_Date)|>
+  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+         index = row_number())
+
+c_Datum <- c_Date[ii]
+
+c_suisa <- df_show|>
+  filter(Datum == c_Date[ii])|>
+  select(`Suisa Nummer`)|>
+  pull()
+
+c_verleiherabgaben <- df_verleiherabgaben|>
+  filter(Datum == c_Datum & Suisa == c_suisa)|>
+  select(`Abzug [%]`)|>
+  pull()
+```
+
+## Verleiherrechnung
