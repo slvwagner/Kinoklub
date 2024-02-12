@@ -162,7 +162,7 @@ Filmvorführungen <- df_GV_Eintritt|>
   distinct(`Suisa Nummer`,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)
-Filmvorführungen
+
 Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
