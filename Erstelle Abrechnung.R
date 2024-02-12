@@ -13,7 +13,7 @@ rm(list = ls())
 c_run_single <- TRUE
 
 # Mehrwertsteuersatz
-c_MWST <- 8 #%
+c_MWST <- 8.1 #%
 
 # Ausgabeformate
 # 1 = only html
