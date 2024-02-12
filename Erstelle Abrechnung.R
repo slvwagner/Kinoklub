@@ -19,7 +19,7 @@ c_MWST <- 7.7 #%
 # 1 = only html
 # 2 = html and docx
 # 3 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "3" 
+c_render_option <- "1" 
 
 #############################################################################################################################################
 # Script start
