@@ -136,7 +136,7 @@ df_GV_Eintritt|>
 ```{r echo=FALSE}
 df_GV_Eintritt|>
   reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Abzug [CHF]`),
-          `Abgaben and den Verleiger [CHF]` = sum(`Verleiher-Abzug [CHF]`)
+          `Abgaben and den Verleiher [CHF]` = sum(`Verleiher-Abzug [CHF]`)
           )|>
   knitr::kable()
 
