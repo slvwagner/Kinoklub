@@ -159,42 +159,17 @@ if(c_run_single){
     index
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
     
-    # writeLines(c_raw, paste0("source/temp.Rmd"))
-    
-    # # Ändern des Templates Titel Filmname 
-    # index <- (1:length(c_raw))[c_raw|>str_detect("Verleiherabrechnung")]
-    # c_temp1 <- df_GV_Vorfuehrung|>
-    #   filter(Datum == df_GV_Vorfuehrung$Datum[ii])|>
-    #   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-    #   select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-    #   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
-    #          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-    #   )|>
-    #   rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
-    #   select(Filmtitel)|>
-    #   pull()
-    # 
-    # c_temp <- c_raw[(index)]|>
-    #   str_split("\"", simplify = T)|>
-    #   as.vector()
-    # 
-    # c_temp <- c_temp[1:2]
-    # c_temp <- paste0(c(c_temp), collapse = "\"")
-    # c_temp <- paste0(c(c_temp, " "), collapse = "")
-    # c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
-    # c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-    
     # neues file schreiben
-    writeLines(c_raw, paste0("source/temp.Rmd"))
+    writeLines(c_raw, paste0("source/Verleiherabrechnung.Rmd"))
     
     # Render
-    rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render$Render,
+    rmarkdown::render(input = paste0("source/Verleiherabrechnung.Rmd"),
+                      output_format = df_Render$Render,
                       output_dir = paste0(getwd(), "/output"))
     
     # Rename the file
     for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
+      file.rename(from = paste0(getwd(),"/output/Verleiherabrechnung",df_Render$fileExt[jj]), 
                   to   = paste0(getwd(),"/output/", "Verleiherabrechnung", df_mapping$user_Datum[ii],df_Render$fileExt[jj])
       )
     }
