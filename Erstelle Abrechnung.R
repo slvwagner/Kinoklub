@@ -56,36 +56,36 @@ df_mapping <- tibble(Datum = c_Date)|>
 
 df_mapping
 
-# #############################################################################################################################################
-# # Jahresrechnung detalliert
-# rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-# print(clc)
-# 
-# paste("Bericht: \nJahresrechnung detailliert erstellt")|>
-#   writeLines()
-# 
-# #############################################################################################################################################
-# # Jahresrechnung
-# rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-# print(clc)
-# 
-# paste("Bericht: \nJahresrechnung erstellt")|>
-#   writeLines()
-# 
-# 
-# #############################################################################################################################################
-# # Statistik
-# rmarkdown::render(paste0("source/Statistik.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-# print(clc)
-# 
-# paste("Bericht: \nStatistik erstellt")|>
-#   writeLines()
+#############################################################################################################################################
+# Jahresrechnung detalliert
+rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nJahresrechnung detailliert erstellt")|>
+  writeLines()
+
+#############################################################################################################################################
+# Jahresrechnung
+rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nJahresrechnung erstellt")|>
+  writeLines()
+
+
+#############################################################################################################################################
+# Statistik
+rmarkdown::render(paste0("source/Statistik.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nStatistik erstellt")|>
+  writeLines()
 
 
 #############################################################################################################################################
