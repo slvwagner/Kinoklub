@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 3
+ii <- 1
 ```
 
 ```{r echo=FALSE}
@@ -163,7 +163,10 @@ Filmvorführungen <- df_GV_Eintritt|>
   distinct(`Suisa Nummer`,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)
+```
 
+
+```{r}
 Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
