@@ -86,7 +86,10 @@ for (ii in 1:length(l_Kiosk)) {
     colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
     
     l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
-  }
+  }else {
+    stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
+                "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
+    }
 }
 
 l_Kiosk
