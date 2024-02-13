@@ -140,7 +140,7 @@ if(c_run_single){
     # Rename the file
     for (jj in 1:length(df_Render$Render)) {
       file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
-                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
+                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
                   )
     }
   
@@ -170,7 +170,7 @@ if(c_run_single){
     # Rename the file
     for (jj in 1:length(df_Render$Render)) {
       file.rename(from = paste0(getwd(),"/output/Verleiherabrechnung",df_Render$fileExt[jj]), 
-                  to   = paste0(getwd(),"/output/", "Verleiherabrechnung", df_mapping$user_Datum[ii],df_Render$fileExt[jj])
+                  to   = paste0(getwd(),"/output/", "Verleiherabrechnung ", df_mapping$user_Datum[ii],df_Render$fileExt[jj])
       )
     }
     
