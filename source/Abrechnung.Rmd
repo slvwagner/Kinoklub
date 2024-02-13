@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 3
+ii <- 1
 ```
 
 ```{r echo=FALSE}
@@ -103,8 +103,16 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 ```
 
 
+```{r}
+c_Verleiger_garantie <- df_verleiherabgaben|>
+  filter(Datum == c_Datum )|>
+  select(`Minimal Abzug`)|>
+  pull()
+```
+
+
 #### Prozentualle Abgaben
-Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **CHF 150.-**
+Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **`r c_Verleiger_garantie`.- [CHF].**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_temp <- df_GV_Eintritt|>
@@ -116,7 +124,8 @@ df_temp <- df_GV_Eintritt|>
 
 ```{r}
 df_temp|>
-  select(`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
+  rename(`SUISA-Vorabzug [CHF]` = `SUISA-Abzug [CHF]`)|>
+  select(`SUISA-Vorabzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
     knitr::kable(digits = 2)
 ```
 
@@ -151,9 +160,13 @@ df_GV_Eintritt|>
 ### Gewinn Verlust aus Tickerverkauf
 ```{r}
 Filmvorführungen <- df_GV_Eintritt|>
+  distinct(`Suisa Nummer`,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)
+```
 
+
+```{r}
 Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
@@ -304,6 +317,5 @@ df_temp|>
 \
 \
 \
-
 
 

@@ -240,7 +240,7 @@ c_sheets
 
 df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
   mutate(Datum = as.Date(Datum))|>
-  left_join(readxl::read_excel(c_file,c_sheets[2]))
+  left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
 
 df_verleiherabgaben
 
@@ -269,79 +269,168 @@ df_Verleiher_Rechnnung
 df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
   filter(`keine Verleiherrechnung`)
 
-# error handling
+# error handling, keine Verleiherrechnung
 if(nrow(df_keine_Rechnnung)>0) {
   warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
                    day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel,"\n")
           )  
 }
 
+df_Eintritt
+
 
 ########################################################################
 # Gewinn/Verlust Eintitt
 ########################################################################
+df_Kinopreise <- df_Eintritt|>
+  distinct(Platzkategorie,.keep_all = T)|>
+  select(Platzkategorie, Verkaufspreis)
+df_Kinopreise
+
+# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
+c_P_kat_verechnen <- c("Kinoförderer")
+
 
 l_GV <- list()
-ii <- 3
+l_Abgaben <- list()
+ii <- 1
 for (ii in 1:length(c_Date)) {
-  c_Besucher <- df_Eintritt|>
+  
+  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden
+  c_Kinofoerder_gratis <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
-    reframe(Besucherzahl = sum(Anzahl))|>
+    distinct(`Kinoförderer gratis?`)|>
+    mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "ja", T, F))|>
     pull()
-  c_Besucher
+  c_Kinofoerder_gratis
+
+  if(!c_Kinofoerder_gratis){ # Kinoföderer müssen abgerechnet werden
+    df_temp <- df_Eintritt |>
+      filter(Datum == c_Date[ii], Zahlend) |>
+      bind_rows(
+        df_Eintritt |>
+          filter(Datum == c_Date[ii], Platzkategorie %in% c_P_kat_verechnen)|>
+          mutate(Abrechnungspreis = df_Kinopreise|>
+                   filter(Platzkategorie == "Ermässigt")|>
+                   select(Verkaufspreis)|>pull()
+                 )
+      )|>
+      mutate(Umsatz = if_else(is.na(Abrechnungspreis), Umsatz, Abrechnungspreis *  Anzahl))|>
+      select(-Abrechnungspreis)
+    df_temp
+    
+    c_Besucher <- df_temp|>
+      reframe(Anzahl = sum(Anzahl))|>
+      pull()
+    c_Besucher
+    
+    c_Gratis <- df_Eintritt |>
+      filter(Datum == c_Date[ii])|>
+      reframe(Anzahl = sum(Anzahl))|>
+      pull() - c_Besucher
+    c_Gratis
+    
+    ##Brutto
+    c_Brutto <- df_temp |>
+      filter(Datum == c_Date[ii]) |>
+      reframe(Umsatz = sum(Umsatz)) |>
+      pull()
+    c_Brutto
+    
+  } else { # Kinoföderer sind gratis
+    
+    df_temp <- df_Eintritt |>
+      filter(Datum == c_Date[ii], Zahlend) 
+    df_temp
+    
+    c_Besucher <- df_Eintritt |>
+      filter(Datum == c_Date[ii]) |>
+      reframe(Besucherzahl = sum(Anzahl)) |>
+      pull()
+    c_Besucher
+    
+    c_Gratis <- df_Eintritt |>
+      filter(Datum == c_Date[ii], !Zahlend) |>
+      reframe(Gratiseintritte = sum(Anzahl)) |>
+      pull()
+    c_Gratis
+    
+    ##Brutto
+    c_Brutto <- df_temp |>
+      filter(Datum == c_Date[ii]) |>
+      reframe(Umsatz = sum(Umsatz)) |>
+      pull()
+    c_Brutto
+  } 
   
-  c_Gratis <- df_Eintritt|>
-    filter(Datum == c_Date[ii], !Zahlend)|>
-    reframe(Gratiseintritte = sum(Anzahl))|>
+  c_Umsatz <- df_Eintritt |>
+    filter(Datum == c_Date[ii]) |>
+    reframe(Umsatz = sum(Umsatz)) |>
     pull()
-  c_Gratis
+  c_Umsatz
   
-  ##Brutto 
-  c_Umsatz <- df_Eintritt|>
-    filter(Datum == c_Date[ii])|>
-    reframe(Umsatz = sum(Umsatz))|>
-    pull()
+  l_Abgaben[[ii]] <- df_temp
+  l_Abgaben[[ii]]
   
-  c_suisaabzug <- (distinct(df_Eintritt|>filter(Datum == c_Date[ii]), `SUISA-Vorabzug`)|>
-                     pull())/100
+  c_suisaabzug <- (distinct(df_Eintritt |> 
+                filter(Datum == c_Date[ii]), `SUISA-Vorabzug`) |>
+       pull()) / 100
   c_suisaabzug
   
   ## Netto 3
-  c_Netto3 <- c_Umsatz-round5Rappen(c_Umsatz*c_suisaabzug)
+  c_Netto3 <- c_Brutto - round5Rappen(c_Brutto * c_suisaabzug)
   c_Netto3
   
-  ## Prozent von Netto 3 bezahlt werden müssen
-  c_verleiherabzug <- (distinct(df_Eintritt|>filter(Datum == c_Date[ii]), 
-                               `Abzug [%]`)|>pull())/100
   
-  c_Verleiherrechnung <- df_Verleiher_Rechnnung |>
-        filter(Datum == c_Date[ii]) |>
-        select(Betrag) |>
-        pull()
+  # minimale Abgaben an den Verleiher
+  c_Verleiger_garantie <- df_verleiherabgaben |>
+    filter(Datum == c_Date[ii])|>
+  select(`Minimal Abzug`)|>
+  pull()
+  c_Verleiger_garantie
+  
+  # prozentual abgabe von netto 3 an den Verleiher
+  c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
+                                         filter(Datum == c_Date[ii]),
+                                       `Abzug [%]`) |> pull()) / 100
+  c_verleiherabzug_prozent
+  
+  # Abgabe an den Verleiher
+  c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
+  c_Verleiherabzug
+  
+  ### Wenn die ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
+  if (c_Verleiherabzug < c_Verleiger_garantie) {
+    c_Verleiherabzug <- c_Verleiger_garantie
+  }
+  c_Verleiherabzug
+  
+  #### Berechnung der Abgaben
+  # Verleiherrechnung vorhanden ?
+  c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
+    filter(Datum == c_Date[ii])|>
+    select(`keine Verleiherrechnung`)|>
+    pull()
   
   c_Verleiherrechnung
   
-  # Mehrwertsteuer auf der Verleiherrechnung 
-  c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung-(c_Verleiherrechnung/(1+(c_MWST/100))))
-  c_MWST_Abzug
-  
-  # Berechnung der Abgaben
-  if(is.na(c_MWST_Abzug)) { # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
+  if (c_Verleiherrechnung) {
+    # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
     
-    c_Verleiherrechnung <- round5Rappen(c_Netto3*c_verleiherabzug)
-    c_Verleiherrechnung
+    # Mehrwertsteuer auf der Verleiherrechnung
+    c_MWST_Abzug <-
+      round5Rappen(c_Verleiherabzug - (c_Verleiherabzug / (1 + (c_MWST / 100) ))
+                   )
+    c_MWST_Abzug
     
-    ### Wenn die ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
-    if(c_verleiherabzug < 150) c_Verleiherrechnung <- 150
-    
-    c_MWST_Abzug <- round5Rappen(c_Verleiherrechnung)*(c_MWST/100)
-    
+  }else {
+    c_MWST_Abzug <- round5Rappen(c_Verleiherabzug) * (c_MWST / 100)
     }
+  
   c_MWST_Abzug
-  c_Verleiherrechnung
   
   # Error handling Verleiherabgaben
-  if(is.na(c_verleiherabzug)) {
+  if(is.na(c_MWST_Abzug)) {
     error <- df_Eintritt|>
       filter(Datum == c_Date[ii])|>
       distinct(Datum,.keep_all = T)|>
@@ -352,38 +441,51 @@ for (ii in 1:length(c_Date)) {
     stop(error)
   }
   
+  # Verleiherrechnung Betrag
+  c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
+    filter(Datum == c_Date[ii])|>
+    select(Betrag)|>
+    pull()
   
+  c_Verleiherrechnung
+  df_temp
   
   l_GV[[ii]] <- tibble(Datum = c_Date[ii],
                        `Suisa Nummer` = c_suisa_nr[ii],
                        Brutto = c_Umsatz, 
                        Verleiherrechnung = c_Verleiherrechnung,
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
-                       `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
+                       `SUISA-Abzug [CHF]` = round5Rappen(c_Brutto*c_suisaabzug), 
                        `Netto 3` = c_Netto3,
-                       `Verleiher-Abzug [%]` = c_verleiherabzug*100,
-                       `Verleiher-Abzug [CHF]` = c_Verleiherrechnung,
+                       `Verleiher-Abzug [%]` = c_verleiherabzug_prozent*100,
+                       `Verleiher-Abzug [CHF]` = c_Verleiherabzug,
                        `MWST Satz auf die Verleiherrechnung [%]` = c_MWST,
                        `MWST auf die Verleiherrechnung [CHF]` =  c_MWST_Abzug
                        )|>
     mutate(## Gewinn berechnung
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = round5Rappen(`Netto 3` - sum(`Verleiher-Abzug [CHF]`,
+           `Gewinn/Verlust [CHF]` = round5Rappen(Brutto - sum(`Verleiher-Abzug [CHF]`,
                                                               `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,
                                                               na.rm = T))
            )|>
     left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
   
   l_GV[[ii]]
+
 }
 
 l_GV
 
 df_GV_Eintritt <- l_GV|>
   bind_rows()
+df_GV_Eintritt
 
-names(df_GV_Eintritt)
-df_GV_Eintritt$`Gewinn/Verlust [CHF]`
+df_Abgaben <- l_Abgaben|>
+  bind_rows()|>
+  bind_rows(df_Eintritt|>
+              filter(!Zahlend, !(Platzkategorie %in% c_P_kat_verechnen)))
+
+df_Abgaben
 
 
 ########################################################################
@@ -460,8 +562,10 @@ list(Eintritte= df_Eintritt,
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
-       c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
-       convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets)
+       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
+       convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
+       c_Verleiger_garantie, c_Verleiherabzug,
+       c_verleiherabzug_prozent)
 
 
 ########################################################################
