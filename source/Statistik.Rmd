@@ -42,16 +42,25 @@ df_temp|>
 
 ```{r echo=FALSE}
 
-df_Eintritt|>  
+df_temp <- df_Eintritt|>  
   arrange(Datum)|> 
   select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(Eintritt = Zahlend)|>
+  rename(Eintritt = Zahlend)
+
+df_temp|>
   knitr::kable()
 
 ```
+
+```{r}
+df_temp|>
+  reframe(Summe = sum(Anzahl, na.rm = T))|>
+  knitr::kable()
+```
+
 
 \
 \

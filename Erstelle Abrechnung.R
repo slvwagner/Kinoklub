@@ -160,9 +160,9 @@ for (jj in 1:length(df_Render$Render)) {
   )
 }
 
-rmarkdown::render(paste0("source/Statistik.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
+# rmarkdown::render(paste0("source/Statistik.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
 paste("Bericht: \nStatistik erstellt")|>
