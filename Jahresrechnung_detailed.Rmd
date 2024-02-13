@@ -1,0 +1,627 @@
+---
+title: "Detallierte Jahresabrechnung Kinoklub"
+output: 
+  html_document:
+    css: Kinoklub_dark.css
+    toc: true
+---
+## Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
+* [1 Filmvorführungen](#A_1_Filmvorführungen)
+    + [1.1 Eintritte](#A_1.1_Eintritte)
+        + [1.1.1 Zahlend / Gratis](#A_1.1.1_Zahlend / Gratis)
+            + [1.1.1.1 Details](#A_1.1.1.1_Details)
+    + [1.2 Einnahmen Ticketverkauf](#A_1.2_Einnahmen Ticketverkauf)
+    + [1.3 Abgaben Ticketverkauf](#A_1.3_Abgaben Ticketverkauf)
+        + [1.3.1 Suisaabgaben](#A_1.3.1_Suisaabgaben)
+        + [1.3.2 Verleigerabgaben](#A_1.3.2_Verleigerabgaben)
+        + [1.3.3 Nebenkosten](#A_1.3.3_Nebenkosten)
+        + [1.3.4 MWST auf Verleiherleistungen](#A_1.3.4_MWST auf Verleiherleistungen)
+    + [1.4 Differenz](#A_1.4_Differenz)
+* [2 Eventausgaben](#A_2_Eventausgaben)
+* [3 Kiosk](#A_3_Kiosk)
+    + [3.1 Einahmen](#A_3.1_Einahmen)
+    + [3.2 Ausgaben](#A_3.2_Ausgaben)
+        + [3.2.1 Einkauf Getränke](#A_3.2.1_Einkauf Getränke)
+        + [3.2.2 Einkauf Kino](#A_3.2.2_Einkauf Kino)
+    + [3.3 Differenz](#A_3.3_Differenz)
+* [4 Kasse](#A_4_Kasse)
+* [5 Werbung](#A_5_Werbung)
+    + [5.1 Einnahmen](#A_5.1_Einnahmen)
+    + [5.2 Ausgaben](#A_5.2_Ausgaben)
+    + [5.3 Differenz](#A_5.3_Differenz)
+* [6 Vermietungen](#A_6_Vermietungen)
+    + [6.1 Einnahmen](#A_6.1_Einnahmen)
+    + [6.2 Ausgaben](#A_6.2_Ausgaben)
+    + [6.3 Differenz](#A_6.3_Differenz)
+* [7 Personalaufwand](#A_7_Personalaufwand)
+* [8 Sonstiges](#A_8_Sonstiges)
+    + [8.1 Einnahmen](#A_8.1_Einnahmen)
+    + [8.2 Ausgaben](#A_8.2_Ausgaben)
+    + [8.3 Differenz](#A_8.3_Differenz)
+* [9 Gewinn / Verlust](#A_9_Gewinn / Verlust)
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
+```
+
+Bericht wurde am `r act_date` erstellt.
+
+## 1 Filmvorführungen<a name="A_1_Filmvorführungen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+### 1.1 Eintritte<a name="A_1.1_Eintritte"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+#### 1.1.1 Zahlend / Gratis<a name="A_1.1.1_Zahlend / Gratis"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+df_Eintritt|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
+  knitr::kable()
+```
+
+##### 1.1.1.1 Details<a name="A_1.1.1.1_Details"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+df_Eintritt|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  knitr::kable()
+```
+
+
+### 1.2 Einnahmen Ticketverkauf<a name="A_1.2_Einnahmen Ticketverkauf"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+df_Eintritt|>
+  group_by(Platzkategorie)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(Umsatz, na.rm = T))|>
+  arrange(desc(`Umsatz [CHF]`))|>
+  knitr::kable()
+```
+
+
+```{r}
+df_Eintritt|>
+  reframe(`Summe [CHF]` = sum(Umsatz))|>
+  arrange(desc(`Summe [CHF]`))|>
+  knitr::kable()
+  
+```
+
+
+### 1.3 Abgaben Ticketverkauf<a name="A_1.3_Abgaben Ticketverkauf"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+#### 1.3.1 Suisaabgaben<a name="A_1.3.1_Suisaabgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+```{r}
+df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Filmtitel,`SUISA-Abzug [CHF]`)|>
+  knitr::kable()
+```
+
+
+```{r}
+df_GV_Eintritt|>
+  select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
+  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`, na.rm = T))|>
+  knitr::kable()
+```
+
+#### 1.3.2 Verleigerabgaben<a name="A_1.3.2_Verleigerabgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+```{r}
+df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Filmtitel,`Verleiher-Abzug [CHF]`)|>
+  knitr::kable()
+```
+
+```{r}
+df_GV_Eintritt|>
+  select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`)|>
+  reframe(`Summe [CHF]` = sum(`Verleiher-Abzug [CHF]`))|>
+  knitr::kable()
+```
+
+
+#### 1.3.3 Nebenkosten<a name="A_1.3.3_Nebenkosten"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
+```{r echo=FALSE}
+if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.")
+}
+```
+
+```{r}
+df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)|>
+  knitr::kable()
+```
+
+```{r}
+df_GV_Eintritt|>
+  select(Datum, Filmtitel, `Sonstige Kosten [CHF]`)|>
+  reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T))|>
+  knitr::kable()
+```
+
+#### 1.3.4 MWST auf Verleiherleistungen<a name="A_1.3.4_MWST auf Verleiherleistungen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+tibble(Bezeichnung = "MWST auf Verleiherleistungen",
+       df_GV_Eintritt |>
+         select(`MWST auf die Verleiherrechnung [CHF]`) |>
+         reframe(`Betrag [CHF]` = sum(`MWST auf die Verleiherrechnung [CHF]`))
+) |>
+  knitr::kable()
+```
+
+
+### 1.4 Differenz<a name="A_1.4_Differenz"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+Filmvorführungen <- df_GV_Eintritt|>
+  select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
+  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`, na.rm = T))
+
+Filmvorführungen|>
+  knitr::kable(digits = 2)
+```
+
+
+## 2 Eventausgaben<a name="A_2_Eventausgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")|>
+  select(Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+```
+
+
+```{r}
+Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Eventausgaben")|>
+  select(Bezeichnung, Betrag)|>
+  reframe(`Summe [CHF]` = sum(Betrag,na.rm = T))
+
+Eventausgaben|>
+  knitr::kable(digits = 2)
+```
+
+
+## 3 Kiosk<a name="A_3_Kiosk"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+### 3.1 Einahmen<a name="A_3.1_Einahmen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+```{r}
+KioskEinnahmen <- df_Kiosk|>
+  group_by(Verkaufsartikel, Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
+  arrange(desc(`Betrag [CHF]`))
+
+KioskEinnahmen|>
+  knitr::kable()
+```
+
+```{r}
+KioskEinnahmen <- KioskEinnahmen|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  arrange(desc(`Summe [CHF]`))
+
+KioskEinnahmen|>
+  knitr::kable(digits = 2)
+```
+
+
+### 3.2 Ausgaben<a name="A_3.2_Ausgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+#### 3.2.1 Einkauf Getränke<a name="A_3.2.1_Einkauf Getränke"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
+```{r}
+EinkaufGetränke <- df_Kiosk|>
+  filter(Lieferant == "Schüwo")|>
+  group_by(Verkaufsartikel, Verkaufspreis, Einkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Betrag [CHF]` = sum(Anzahl  * Einkaufspreis, na.rm = T))|>
+  arrange(desc(Anzahl))
+
+EinkaufGetränke|>
+  knitr::kable()
+```
+
+```{r}
+EinkaufGetränke <- EinkaufGetränke|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+
+EinkaufGetränke|>
+  knitr::kable()
+```
+
+
+#### 3.2.2 Einkauf Kino<a name="A_3.2.2_Einkauf Kino"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+EinkaufKino <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Kiosk")|>
+    arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+
+EinkaufKino|>
+  knitr::kable()
+```
+
+```{r}
+EinkaufKino <- EinkaufKino|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+
+EinkaufKino|>  
+  knitr::kable()
+```
+
+
+### 3.3 Differenz<a name="A_3.3_Differenz"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+Kiosk <- tibble(Bezeichnung = c("Einnahmen","Einkauf Getränke", "Einkauf Kino"),
+                `Betrag [CHF]` = c(KioskEinnahmen|>pull(),
+                                   -(EinkaufGetränke|>pull()),
+                                   -(EinkaufKino|>pull()))
+                )
+
+Kiosk|>
+  knitr::kable()
+
+```
+
+```{r}
+Kiosk <- Kiosk|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+
+Kiosk|>
+  knitr::kable()
+```
+
+
+## 4 Kasse<a name="A_4_Kasse"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+**Achtung!** \
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+```{r}
+df_manko_uerberschuss|>
+  left_join(df_Eintritt |>
+              distinct(Filmtitel, .keep_all = T) |>
+              select(Filmtitel, Datum),
+            by = "Datum"
+            ) |>
+  select(Datum, Filmtitel, `Überschuss / Manko`) |>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
+  mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) |>
+  knitr::kable()
+```
+
+```{r}
+Kasse <- df_manko_uerberschuss|>
+  select(-Datum)|>
+  reframe(`Überschuss / Manko` = sum(`Überschuss / Manko`, na.rm = T))|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)
+
+Kasse|>
+  knitr::kable(digits = 2)
+```
+
+## 5 Werbung<a name="A_5_Werbung"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+### 5.1 Einnahmen<a name="A_5.1_Einnahmen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Datum, Firmennamen , Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### 5.2 Ausgaben<a name="A_5.2_Ausgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  select(Datum, Bezeichnung , Firmennamen, Betrag)|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### 5.3 Differenz<a name="A_5.3_Differenz"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+
+Werbung <- (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) - 
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Werbung")|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))
+
+Werbung|>
+  knitr::kable()
+```
+
+
+
+## 6 Vermietungen<a name="A_6_Vermietungen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+### 6.1 Einnahmen<a name="A_6.1_Einnahmen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
+  select(Datum, Bezeichnung, Betrag)|>
+    arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Summe [CHF]`=sum(Betrag, na.rm = T))|>
+  knitr::kable()
+
+```
+
+### 6.2 Ausgaben<a name="A_6.2_Ausgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Summe [CHF]`=sum(Betrag, na.rm = T))|>
+  knitr::kable()
+
+```
+
+### 6.3 Differenz<a name="A_6.3_Differenz"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+Vermietung <- (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Betrag [CHF]`=sum(Betrag, na.rm = T))-
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Vermietung")|>
+  reframe(`Betrag [CHF]`=sum(Betrag, na.rm = T)))
+
+Vermietung|>
+  knitr::kable()
+  
+```
+
+## 7 Personalaufwand<a name="A_7_Personalaufwand"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Personalaufwand <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Personalaufwand")|>
+  select(Datum, Bezeichnung,Betrag)|>
+  group_by(Bezeichnung)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+
+Personalaufwand|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Personalaufwand <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == "Personalaufwand")|>
+  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))
+
+Personalaufwand|>
+  knitr::kable()
+
+```
+
+## 8 Sonstiges<a name="A_8_Sonstiges"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+### 8.1 Einnahmen<a name="A_8.1_Einnahmen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  select(Datum, Bezeichnung,Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))|>
+  knitr::kable()
+
+```
+
+### 8.2 Ausgaben<a name="A_8.2_Ausgaben"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  select(Datum, Bezeichnung,Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  arrange(Datum)|>
+  arrange(Datum)|>   
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Summe [CHF]` = sum(Betrag))|>
+  knitr::kable()
+
+```
+
+### 8.3 Differenz<a name="A_8.3_Differenz"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+```{r}
+Sonstiges <- (Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Betrag [CHF]` = sum(Betrag,na.rm = T))-
+  Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))
+
+Sonstiges|>
+  knitr::kable()
+
+```
+
+
+## 9 Gewinn / Verlust<a name="A_9_Gewinn / Verlust"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+
+```{r echo=FALSE}
+if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+  writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf werden sich noch ändern.")
+}
+
+```
+
+
+
+```{r}
+GewinnVerlust <- tibble(
+  Kategorie = c("Filmvorführungen", "Eventausgaben","Kiosk", "Kasse","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  `Betrag [CHF]` = c(
+    Filmvorführungen |>
+      pull(),
+    Eventausgaben|>
+      pull(),
+    Kiosk|>
+      pull(),
+    Kasse|>
+      pull(),
+    Werbung|>
+      pull(),
+    Vermietung|>
+      pull(),
+    -1*(Personalaufwand|>pull()),
+    Sonstiges|>
+      pull()
+  )
+) 
+
+GewinnVerlust|>
+  knitr::kable()
+```
+
+```{r}
+GewinnVerlust|>
+  reframe("Gewinn / Verlust [CHF]" = sum(`Betrag [CHF]`, na.rm = T))|>
+  knitr::kable()
+```
+
+
+\
+\
+\
+\
+\
+\

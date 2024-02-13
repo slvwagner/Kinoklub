@@ -12,6 +12,9 @@ rm(list = ls())
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
 
+#Sollen inhaltsverzeichnisse erstellt werden
+toc <- TRUE
+
 # Mehrwertsteuersatz
 c_MWST <- 8.1 #%
 
@@ -58,9 +61,34 @@ df_mapping
 
 #############################################################################################################################################
 # Jahresrechnung detalliert
-rmarkdown::render(paste0("source/Jahresrechnung_detailed.Rmd"),
+
+# Einlesen
+c_raw <- readLines("source/Jahresrechnung_detailed.Rmd")
+c_raw
+  
+# Inhaltsverzeichnis 
+if(toc){# neues file schreiben mit toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}else {# neues file schreiben ohne toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}
+
+# Render
+rmarkdown::render(paste0("source/temp.Rmd"),
                   df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
+
+# Rename the file
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
+              to   = paste0(getwd(),"/output/", "Jahresrechnung_detailed",df_Render$fileExt[jj] )
+  )
+}
+
 print(clc)
 
 paste("Bericht: \nJahresrechnung detailliert erstellt")|>
@@ -68,9 +96,34 @@ paste("Bericht: \nJahresrechnung detailliert erstellt")|>
 
 #############################################################################################################################################
 # Jahresrechnung
-rmarkdown::render(paste0("source/Jahresrechnung.Rmd"),
+
+# Einlesen
+c_raw <- readLines("source/Jahresrechnung.Rmd")
+c_raw
+
+# Inhaltsverzeichnis 
+if(toc){# neues file schreiben mit toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}else {# neues file schreiben ohne toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}
+
+# Render
+rmarkdown::render(paste0("source/temp.Rmd"),
                   df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
+
+# Rename the file
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
+              to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render$fileExt[jj] )
+  )
+}
+
 print(clc)
 
 paste("Bericht: \nJahresrechnung erstellt")|>
@@ -79,6 +132,34 @@ paste("Bericht: \nJahresrechnung erstellt")|>
 
 #############################################################################################################################################
 # Statistik
+
+# Einlesen
+c_raw <- readLines("source/Statistik.Rmd")
+c_raw
+
+# Inhaltsverzeichnis 
+if(toc){# neues file schreiben mit toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}else {# neues file schreiben ohne toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}
+
+# Render
+rmarkdown::render(paste0("source/temp.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+
+# Rename the file
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
+              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+  )
+}
+
 rmarkdown::render(paste0("source/Statistik.Rmd"),
                   df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
@@ -129,8 +210,16 @@ if(c_run_single){
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
     
-    # neues file schreiben
-    writeLines(c_raw, paste0("source/temp.Rmd"))
+    # Inhaltsverzeichnis 
+    if(toc){# neues file schreiben mit toc
+      c_raw|>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+        writeLines(paste0("source/temp.Rmd"))
+    }else {# neues file schreiben ohne toc
+        c_raw|>
+          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+          writeLines(paste0("source/temp.Rmd"))
+      }
     
     # Render
     rmarkdown::render(paste0("source/temp.Rmd"),

@@ -93,6 +93,7 @@ Brutto|>
   knitr::kable()
 ```
 
+### Netto 3
 ```{r}
 df_temp <- Brutto|>
   mutate(Tax = 0,
