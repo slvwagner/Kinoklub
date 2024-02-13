@@ -110,12 +110,18 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 ```
 
 ```{r}
-df_GV_Eintritt|>
+df_temp <- df_GV_Eintritt|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)|>
+  select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)
+```
+
+```{r}
+df_temp|>
+  mutate(`Sonstige Kosten [CHF]` = `Sonstige Kosten [CHF]`|>round5Rappen())|>
   knitr::kable()
 ```
+
 
 ```{r}
 df_GV_Eintritt|>
