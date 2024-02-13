@@ -289,6 +289,7 @@ df_Kinopreise
 
 
 l_GV <- list()
+l_Abgaben <- list()
 ii <- 2
 for (ii in 1:length(c_Date)) {
   
@@ -359,9 +360,10 @@ for (ii in 1:length(c_Date)) {
     c_Umsatz
   } 
   
-  df_temp
-  l_Eintritt[[ii]] <- df_temp
-
+  
+  l_Abgaben[[ii]] <- df_temp
+  l_Abgaben[[ii]]
+  
   c_suisaabzug <- (distinct(df_Eintritt |> 
                 filter(Datum == c_Date[ii]), `SUISA-Vorabzug`) |>
        pull()) / 100
@@ -469,10 +471,10 @@ df_GV_Eintritt <- l_GV|>
   bind_rows()
 df_GV_Eintritt
 
-df_Eintritt <- l_Eintritt|>
+df_Abgaben <- l_Abgaben|>
   bind_rows()
 
-df_Eintritt
+l_Abgaben
 
 
 ########################################################################
@@ -548,9 +550,11 @@ list(Eintritte= df_Eintritt,
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-# remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
-#        c_suisaabzug, c_verleiherabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
-#        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets)
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
+       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
+       convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
+       c_suisa_nr,  c_Verleiger_garantie, c_Verleiherabzug,
+       c_verleiherabzug_prozent)
 
 
 ########################################################################

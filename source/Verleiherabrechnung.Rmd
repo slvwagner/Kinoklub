@@ -1,0 +1,118 @@
+---
+output: 
+  html_document:
+    css: Kinoklub_dark.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+```
+
+```{r variablen, include=FALSE}
+ii <- 1
+```
+
+```{r include=FALSE}
+df_mapping <- tibble(Datum = c_Date)|>
+  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+         index = row_number())
+
+c_Datum <- c_Date[ii]
+
+c_suisa <- df_show|>
+  filter(Datum == c_Date[ii])|>
+  select(`Suisa Nummer`)|>
+  pull()
+
+```
+
+
+\
+
+**TaB* AtelierKino** \
+Tunaustrasse 5 \
+5734 Reinach \
+\
+
+```{r}
+df_temp <- df_verleiherabgaben|>
+  filter(Datum == c_Datum, Suisa == c_suisa)
+```
+
+`r df_temp$Verleiher` \
+`r df_temp$Adresse` \
+`r df_temp$PLZ` `r df_temp$Ort` \
+\
+\
+Reinach den `r act_date` 
+\
+\
+
+
+## Verleiherabrechnung
+```{r}
+df_show|>
+  filter(Datum == c_Datum, `Suisa Nummer` == c_suisa)|>
+  select(`Suisa Nummer`, Filmtitel, Datum, Anfang, Ende, Saal)|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+         Ende = paste0(lubridate::hour(Ende),":", lubridate::minute(Ende)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+         Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
+         )|>
+  knitr::kable()
+```
+
+### Eintritte und Umsatz
+```{r}
+df_temp <- df_Abgaben|>
+  filter(Datum == c_Datum, `Suisa Nummer` == c_suisa)
+
+c_suisa_prozent <- df_temp|>
+  distinct(`SUISA-Vorabzug`)|>
+  pull()
+
+df_temp <- df_temp|>
+  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+  rename(`Umsatz [CHF]` = Umsatz,
+         `Verkaufspreis [CHF]` = Verkaufspreis)
+
+df_temp|>
+  knitr::kable()
+```
+
+
+```{r}
+Brutto <- df_temp|>
+  reframe(`Brutto [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
+```
+
+
+```{r}
+Brutto|>
+  knitr::kable()
+```
+
+```{r}
+df_temp <- Brutto|>
+  mutate(Tax = 0,
+         `Netto 1 [CHF]` = `Brutto [CHF]`,
+         `Netto 0.00%` = 0,
+         `Netto 2 [CHF]` = `Brutto [CHF]`,
+         `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round(2)
+         )
+
+df_temp|>
+  select(-`Brutto [CHF]`)|>
+  t()|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp|>
+  mutate(`Netto 3 [CHF]` = `Brutto [CHF]` - `SUISA-Vorabzug [CHF]`)|>
+  select(`Netto 3 [CHF]`)|>
+  knitr::kable()
+```
+
