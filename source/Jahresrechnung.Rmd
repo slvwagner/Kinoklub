@@ -60,7 +60,8 @@ df_temp <- df_GV_Eintritt|>
           `Sonstige Kosten` = sum(`Sonstige Kosten [CHF]`, na.rm = T),
           `MWST auf die Verleiherrechnung` = sum(`MWST auf die Verleiherrechnung [CHF]`, na.rm = T)
           )|>
-  pivot_longer(everything(), names_to = "Abgaben", values_to = "Betrag [CHF]")
+  pivot_longer(everything(), names_to = "Abgaben", values_to = "Betrag [CHF]")|>
+  mutate(`Betrag [CHF]` = `Betrag [CHF]`|>round5Rappen())
 
 df_temp  |>
   knitr::kable()
