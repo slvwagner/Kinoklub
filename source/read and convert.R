@@ -293,7 +293,7 @@ c_P_kat_verechnen <- c("Kinoförderer")
 
 l_GV <- list()
 l_Abgaben <- list()
-ii <- 2
+ii <- 1
 for (ii in 1:length(c_Date)) {
   
   # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden
@@ -331,11 +331,11 @@ for (ii in 1:length(c_Date)) {
     c_Gratis
     
     ##Brutto
-    c_Umsatz <- df_temp |>
+    c_Brutto <- df_temp |>
       filter(Datum == c_Date[ii]) |>
       reframe(Umsatz = sum(Umsatz)) |>
       pull()
-    c_Umsatz
+    c_Brutto
     
   } else { # Kinoföderer sind gratis
     
@@ -356,13 +356,18 @@ for (ii in 1:length(c_Date)) {
     c_Gratis
     
     ##Brutto
-    c_Umsatz <- df_Eintritt |>
+    c_Brutto <- df_temp |>
       filter(Datum == c_Date[ii]) |>
       reframe(Umsatz = sum(Umsatz)) |>
       pull()
-    c_Umsatz
+    c_Brutto
   } 
   
+  c_Umsatz <- df_Eintritt |>
+    filter(Datum == c_Date[ii]) |>
+    reframe(Umsatz = sum(Umsatz)) |>
+    pull()
+  c_Umsatz
   
   l_Abgaben[[ii]] <- df_temp
   l_Abgaben[[ii]]
@@ -373,7 +378,7 @@ for (ii in 1:length(c_Date)) {
   c_suisaabzug
   
   ## Netto 3
-  c_Netto3 <- c_Umsatz - round5Rappen(c_Umsatz * c_suisaabzug)
+  c_Netto3 <- c_Brutto - round5Rappen(c_Brutto * c_suisaabzug)
   c_Netto3
   
   
@@ -400,8 +405,6 @@ for (ii in 1:length(c_Date)) {
   }
   c_Verleiherabzug
   
-  c_MWST_Abzug <- round5Rappen(c_Verleiherabzug) * (c_MWST / 100)
-  
   #### Berechnung der Abgaben
   # Verleiherrechnung vorhanden ?
   c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
@@ -420,7 +423,10 @@ for (ii in 1:length(c_Date)) {
                    )
     c_MWST_Abzug
     
-  }
+  }else {
+    c_MWST_Abzug <- round5Rappen(c_Verleiherabzug) * (c_MWST / 100)
+    }
+  
   c_MWST_Abzug
   
   # Error handling Verleiherabgaben
@@ -449,7 +455,7 @@ for (ii in 1:length(c_Date)) {
                        Brutto = c_Umsatz, 
                        Verleiherrechnung = c_Verleiherrechnung,
                        `SUISA-Abzug [%]` = c_suisaabzug*100,
-                       `SUISA-Abzug [CHF]` = round5Rappen(c_Umsatz*c_suisaabzug), 
+                       `SUISA-Abzug [CHF]` = round5Rappen(c_Brutto*c_suisaabzug), 
                        `Netto 3` = c_Netto3,
                        `Verleiher-Abzug [%]` = c_verleiherabzug_prozent*100,
                        `Verleiher-Abzug [CHF]` = c_Verleiherabzug,
@@ -458,7 +464,7 @@ for (ii in 1:length(c_Date)) {
                        )|>
     mutate(## Gewinn berechnung
            `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-           `Gewinn/Verlust [CHF]` = round5Rappen(`Netto 3` - sum(`Verleiher-Abzug [CHF]`,
+           `Gewinn/Verlust [CHF]` = round5Rappen(Brutto - sum(`Verleiher-Abzug [CHF]`,
                                                               `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,
                                                               na.rm = T))
            )|>

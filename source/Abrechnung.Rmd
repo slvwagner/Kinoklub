@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 3
+ii <- 1
 ```
 
 ```{r echo=FALSE}
@@ -71,7 +71,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 ### Kino Besucherzahlen und Umsatz
 
 ```{r echo=FALSE}
-df_temp <- df_Abgaben|>
+df_temp <- df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Film Umsatz [sFR]` = `Umsatz`)
@@ -163,7 +163,10 @@ Filmvorführungen <- df_GV_Eintritt|>
   distinct(`Suisa Nummer`,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)
+```
 
+
+```{r}
 Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
