@@ -38,6 +38,8 @@ p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 # Detect Überschuss Manko 
 p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
+ii <- 3
+
 l_extracted <- list()
 for (ii in 1:length(l_raw)) {
   l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
@@ -53,19 +55,52 @@ l_Kiosk <- l_extracted |>
   lapply(function(x) {
     y <- x[[1]]$Verkaufartikel_string |>
       str_split(pattern = "\t", simplify = T)
-    y <- cbind(y[,1:2],y[,ncol(y)]) # renmove unused columns
-    colnames(y) <- c("Verkaufsartikel", "Einzelpreis", "Betrag")
-    
-    y <- as_tibble(y) |>
-      mutate(
-        Einzelpreis = as.numeric(Einzelpreis),
-        Betrag = as.numeric(Betrag),
-        Anzahl = Betrag / Einzelpreis,
-      )|>
-      select(Verkaufsartikel, Einzelpreis, Anzahl, Betrag)
+    return(y)
   })
 l_Kiosk
 
+# Wie viele Spalten
+c_lenght <- l_Kiosk|>
+  lapply(ncol)|>
+  unlist()
+
+ii <- 1
+for (ii in 1:length(l_Kiosk)) {
+  if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
+    l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
+    x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
+      apply(2, as.numeric)
+    colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+
+    x <- x|>
+      as_tibble()|>
+      mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
+      select(-Korrektur)
+    
+    l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
+    
+  }else if(c_lenght[ii] == 5){ # keine Korrekturbuchungen
+    l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:3,5)]
+    x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
+      apply(2, as.numeric)
+    colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
+    
+    l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
+  }
+}
+
+l_Kiosk
+
+df_Kiosk <- l_Kiosk|>
+  bind_rows(.id = "Datum")|>
+  mutate(Datum = dmy(Datum),
+         Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis))
+df_Kiosk
+
+
+######################################################################## 
+# Extrakt Überschuss / Manko
+######################################################################## 
 df_manko_uerberschuss <- l_extracted |>
   lapply(function(x) {
      x[[2]]
@@ -84,18 +119,17 @@ Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
 Spezialpreisekiosk
 
 ########################################################################
-# join Spez Verkaufsartikel
+# join Spezpreise mit Verkaufsartikel
 ########################################################################
 ii <- 1
 
-df_Kiosk <- l_Kiosk|>
-  bind_rows(.id = "Datum")|>
-  mutate(Datum = lubridate::dmy(Datum))|>
+df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk, 
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
             )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
   select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)
+
 
 ########################################################################
 # Kiosk Einkaufspreise 
