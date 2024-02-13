@@ -71,7 +71,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 ### Kino Besucherzahlen und Umsatz
 
 ```{r echo=FALSE}
-df_temp <- df_Eintritt|>
+df_temp <- df_Abgaben|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Film Umsatz [sFR]` = `Umsatz`)
@@ -124,7 +124,8 @@ df_temp <- df_GV_Eintritt|>
 
 ```{r}
 df_temp|>
-  select(`SUISA-Abzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
+  rename(`SUISA-Vorabzug [CHF]` = `SUISA-Abzug [CHF]`)|>
+  select(`SUISA-Vorabzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
     knitr::kable(digits = 2)
 ```
 

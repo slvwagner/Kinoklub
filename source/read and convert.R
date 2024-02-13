@@ -287,6 +287,9 @@ df_Kinopreise <- df_Eintritt|>
   select(Platzkategorie, Verkaufspreis)
 df_Kinopreise
 
+# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
+c_P_kat_verechnen <- c("Kinoförderer")
+
 
 l_GV <- list()
 l_Abgaben <- list()
@@ -306,7 +309,7 @@ for (ii in 1:length(c_Date)) {
       filter(Datum == c_Date[ii], Zahlend) |>
       bind_rows(
         df_Eintritt |>
-          filter(Datum == c_Date[ii], Platzkategorie == "Kinoförderer")|>
+          filter(Datum == c_Date[ii], Platzkategorie %in% c_P_kat_verechnen)|>
           mutate(Abrechnungspreis = df_Kinopreise|>
                    filter(Platzkategorie == "Ermässigt")|>
                    select(Verkaufspreis)|>pull()
@@ -472,9 +475,11 @@ df_GV_Eintritt <- l_GV|>
 df_GV_Eintritt
 
 df_Abgaben <- l_Abgaben|>
-  bind_rows()
+  bind_rows()|>
+  bind_rows(df_Eintritt|>
+              filter(!Zahlend, !(Platzkategorie %in% c_P_kat_verechnen)))
 
-l_Abgaben
+df_Abgaben
 
 
 ########################################################################
@@ -553,7 +558,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
-       c_suisa_nr,  c_Verleiger_garantie, c_Verleiherabzug,
+       c_Verleiger_garantie, c_Verleiherabzug,
        c_verleiherabzug_prozent)
 
 
