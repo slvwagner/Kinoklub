@@ -230,10 +230,9 @@ df_show <- df_show|>
             )
 
 ########################################################################
-# Verleiher
+# Verleiherabgaben einlesen
 ########################################################################
 
-# Verleiherabganen
 c_file <- "input/Verleiherabgaben.xlsx"
 c_sheets <- readxl::excel_sheets(c_file)
 c_sheets
@@ -248,8 +247,9 @@ df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
 df_Eintritt
 
-
+########################################################################
 # Verleiherrechnung 
+########################################################################
 df_Verleiher_Rechnnung <- df_Eintritt|>
   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
   select(Datum, Filmtitel, `Suisa Nummer`)
@@ -278,7 +278,6 @@ if(nrow(df_keine_Rechnnung)>0) {
 
 df_Eintritt
 
-
 ########################################################################
 # Gewinn/Verlust Eintitt
 ########################################################################
@@ -288,15 +287,16 @@ df_Kinopreise <- df_Eintritt|>
 df_Kinopreise
 
 # Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-c_P_kat_verechnen <- c("Kinoförderer")
+c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 
 
 l_GV <- list()
 l_Abgaben <- list()
 ii <- 1
 for (ii in 1:length(c_Date)) {
-  
-  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden
+
+  ######################################################################
+  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden anders behandelt
   c_Kinofoerder_gratis <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
     distinct(`Kinoförderer gratis?`)|>
@@ -304,14 +304,14 @@ for (ii in 1:length(c_Date)) {
     pull()
   c_Kinofoerder_gratis
 
-  if(!c_Kinofoerder_gratis){ # Kinoföderer müssen abgerechnet werden
+  if(!c_Kinofoerder_gratis){ # Kinoföderer müssen abgerechnet werden 
     df_temp <- df_Eintritt |>
       filter(Datum == c_Date[ii], Zahlend) |>
       bind_rows(
         df_Eintritt |>
           filter(Datum == c_Date[ii], Platzkategorie %in% c_P_kat_verechnen)|>
           mutate(Abrechnungspreis = df_Kinopreise|>
-                   filter(Platzkategorie == "Ermässigt")|>
+                   filter(Platzkategorie == "Ermässigt")|> # Kategorieren werden mit Ermässigt ersetzt
                    select(Verkaufspreis)|>pull()
                  )
       )|>
