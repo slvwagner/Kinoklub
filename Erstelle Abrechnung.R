@@ -280,7 +280,9 @@ remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single)
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-remove(df_temp, df_Render, df_mapping)
+remove(df_temp, df_Render, df_mapping, Brutto,
+       c_temp, c_temp1,
+       c_render_option)
 
 #############################################################################################################################################
 # User Interaktion
