@@ -614,16 +614,18 @@ list(Eintritte= df_Eintritt,
      `Gewinn Verlust Eintritt` = df_GV_Eintritt,
      Kiosk = df_Kiosk,
      `Gewinn Kiosk` = df_GV_Kiosk,
+     `Gewinn Verlust Vorführung` = df_GV_Vorfuehrung,
      Verleiherabgaben  = df_verleiherabgaben,
      Einkaufspreise = df_Einkaufspreise,
      Spezialpreisekiosk = Spezialpreisekiosk,
+     Ticketpreise = df_Kinopreise,
      Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
      Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
-       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
+       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,c_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
        c_Verleiger_garantie, c_Verleiherabzug,
        c_verleiherabzug_prozent)
