@@ -439,7 +439,7 @@ for (ii in 1:length(c_Date)) {
   c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
   c_Verleiherabzug
   
-  ### Wenn die Abgabe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
+  ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
   if (c_Verleiherabzug < c_Verleiger_garantie) {
     c_Verleiherabzug <- c_Verleiger_garantie
   }
