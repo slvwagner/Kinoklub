@@ -274,6 +274,19 @@ if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", pa
                                 "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
 )
 
+# Prozentualer und Fixer Abzug definiert
+df_temp <- df_Eintritt|>
+  filter(!is.na(`Abzug [%]`) & !is.na(`Abzug fix [CHF]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0){ 
+  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+              "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
+              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+  )
+}
+
 ########################################################################
 # Verleiherrechnung 
 ########################################################################
@@ -416,7 +429,7 @@ for (ii in 1:length(c_Date)) {
   pull()
   c_Verleiger_garantie
   
-  # prozentual abgabe von netto 3 an den Verleiher
+  # prozentual Abgabe von Netto 3 an den Verleiher
   c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
                                          filter(Datum == c_Date[ii]),
                                        `Abzug [%]`) |> pull()) / 100
@@ -426,7 +439,7 @@ for (ii in 1:length(c_Date)) {
   c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
   c_Verleiherabzug
   
-  ### Wenn die ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
+  ### Wenn die Ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
   if (c_Verleiherabzug < c_Verleiger_garantie) {
     c_Verleiherabzug <- c_Verleiger_garantie
   }
