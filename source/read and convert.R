@@ -263,9 +263,9 @@ if(nrow(df_temp)>0){
        )
 }
 
-# kein minimal Abzug definiert
+# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden fall ein Fixerabzug definiert wurde)
 df_temp <- df_Eintritt|>
-  filter(is.na(`Minimal Abzug`))|>
+  filter(is.na(`Minimal Abzug`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
