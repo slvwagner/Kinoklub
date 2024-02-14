@@ -252,7 +252,7 @@ df_Eintritt
 
 # kein prozentualer noch fixer abzug definiert
 df_temp <- df_Eintritt|>
-  filter(is.na(`Abzug [%]`) | is.na(`Abzug fix [CHF]`))|>
+  filter(is.na(`Abzug [%]`) & is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
