@@ -234,7 +234,7 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        l_extracted, l_raw, 
        c_Date_Kiosk, c_Einkaufslistendatum,
        p,p1,p2,p3,
-       ii,
+       ii,x,
        c_path, c_fileDate, c_files)
 
 ## User interaction

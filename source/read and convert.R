@@ -248,6 +248,59 @@ df_Eintritt <- df_Eintritt|>
 df_Eintritt
 
 ########################################################################
+## Errorhandling 
+
+# kein prozentualer noch fixer abzug definiert
+df_temp <- df_Eintritt|>
+  filter(is.na(`Abzug [%]`) & is.na(`Abzug fix [CHF]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0){ 
+  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+              "\nwurde werder kein Abzug definiert.",
+              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+       )
+}
+
+# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden fall ein Fixerabzug definiert wurde)
+df_temp <- df_Eintritt|>
+  filter(is.na(`Minimal Abzug`) & !is.na(`Abzug [%]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+                                "\nwurde werder kein Minimal Abzug definiert.",
+                                "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+)
+
+# Prozentualer und Fixer Abzug definiert
+df_temp <- df_Eintritt|>
+  filter(!is.na(`Abzug [%]`) & !is.na(`Abzug fix [CHF]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0){ 
+  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+              "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
+              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+  )
+}
+
+# minimal und Fixer Abzug definiert
+df_temp <- df_Eintritt|>
+  filter(!is.na(`Minimal Abzug`) & !is.na(`Abzug fix [CHF]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0){
+  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+              "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
+              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+  )
+}
+
+########################################################################
 # Verleiherrechnung 
 ########################################################################
 df_Verleiher_Rechnnung <- df_Eintritt|>
@@ -389,23 +442,32 @@ for (ii in 1:length(c_Date)) {
   pull()
   c_Verleiger_garantie
   
-  # prozentual abgabe von netto 3 an den Verleiher
+  # prozentual Abgabe von Netto 3 an den Verleiher
   c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
                                          filter(Datum == c_Date[ii]),
                                        `Abzug [%]`) |> pull()) / 100
   c_verleiherabzug_prozent
   
-  # Abgabe an den Verleiher
-  c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
-  c_Verleiherabzug
-  
-  ### Wenn die ababbe von Netto 3 kleiner 150CHF ist muss minimal 150 abgegeben werden
-  if (c_Verleiherabzug < c_Verleiger_garantie) {
-    c_Verleiherabzug <- c_Verleiger_garantie
+  ##################################################
+  # Abzug fix oder prozentual 
+  if(is.na(c_verleiherabzug_prozent)) { # Abzug fix
+    c_Verleiherabzug <- distinct(df_Eintritt |> 
+               filter(Datum == c_Date[ii]), `Abzug fix [CHF]`
+             )|>
+      pull()
+  }else{ # prozentualer Abzug
+    # Abgabe an den Verleiher
+    c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
+    
+    ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
+    if (c_Verleiherabzug < c_Verleiger_garantie) {
+      c_Verleiherabzug <- c_Verleiger_garantie
+    }
   }
   c_Verleiherabzug
   
-  #### Berechnung der Abgaben
+  ##################################################
+  # Berechnung der Abgaben
   # Verleiherrechnung vorhanden ?
   c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
     filter(Datum == c_Date[ii])|>
@@ -414,9 +476,8 @@ for (ii in 1:length(c_Date)) {
   
   c_Verleiherrechnung
   
+  # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
   if (c_Verleiherrechnung) {
-    # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
-    
     # Mehrwertsteuer auf der Verleiherrechnung
     c_MWST_Abzug <-
       round5Rappen(c_Verleiherabzug - (c_Verleiherabzug / (1 + (c_MWST / 100) ))
@@ -553,16 +614,18 @@ list(Eintritte= df_Eintritt,
      `Gewinn Verlust Eintritt` = df_GV_Eintritt,
      Kiosk = df_Kiosk,
      `Gewinn Kiosk` = df_GV_Kiosk,
+     `Gewinn Verlust Vorführung` = df_GV_Vorfuehrung,
      Verleiherabgaben  = df_verleiherabgaben,
      Einkaufspreise = df_Einkaufspreise,
      Spezialpreisekiosk = Spezialpreisekiosk,
+     Ticketpreise = df_Kinopreise,
      Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
      Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
      )|>
   write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
 
-remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,
-       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,
+remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
+       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,c_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
        c_Verleiger_garantie, c_Verleiherabzug,
        c_verleiherabzug_prozent)
