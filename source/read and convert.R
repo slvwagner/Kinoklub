@@ -628,7 +628,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,c_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
-       c_Verleiher_garantie, c_Verleiherabzug, 
+       c_Verleiher_garantie, c_Verleiherabzug,
        c_verleiherabzug_prozent)
 
 

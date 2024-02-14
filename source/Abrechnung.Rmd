@@ -104,7 +104,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 
 ```{r}
-c_Verleiger_garantie <- df_verleiherabgaben|>
+c_Verleiher_garantie <- df_verleiherabgaben|>
   filter(Datum == c_Datum )|>
   select(`Minimal Abzug`)|>
   pull()
@@ -112,7 +112,7 @@ c_Verleiger_garantie <- df_verleiherabgaben|>
 
 
 #### Prozentualle Abgaben
-Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **`r c_Verleiger_garantie`.- [CHF].**
+Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_temp <- df_GV_Eintritt|>

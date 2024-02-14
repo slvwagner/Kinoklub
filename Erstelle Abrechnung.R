@@ -273,7 +273,7 @@ if(c_run_single){
   remove(c_raw, index,ii,jj)
 }
 
-remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single)
+remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie, Einnahmen_und_Ausgaben )
 
 #############################################################################################################################################
 # remove temp files 
