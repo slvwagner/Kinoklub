@@ -248,6 +248,33 @@ df_Eintritt <- df_Eintritt|>
 df_Eintritt
 
 ########################################################################
+## Errorhandling 
+
+# kein prozentualer noch fixer abzug definiert
+df_temp <- df_Eintritt|>
+  filter(is.na(`Abzug [%]`) | is.na(`Abzug fix [CHF]`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0){ 
+  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+              "\nwurde werder kein Abzug definiert.",
+              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+       )
+}
+
+# kein minimal Abzug definiert
+df_temp <- df_Eintritt|>
+  filter(is.na(`Minimal Abzug`))|>
+  distinct(Filmtitel,.keep_all = T)
+df_temp
+
+if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+                                "\nwurde werder kein Minimal Abzug definiert.",
+                                "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+)
+
+########################################################################
 # Verleiherrechnung 
 ########################################################################
 df_Verleiher_Rechnnung <- df_Eintritt|>
