@@ -435,17 +435,26 @@ for (ii in 1:length(c_Date)) {
                                        `Abzug [%]`) |> pull()) / 100
   c_verleiherabzug_prozent
   
-  # Abgabe an den Verleiher
-  c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
-  c_Verleiherabzug
-  
-  ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
-  if (c_Verleiherabzug < c_Verleiger_garantie) {
-    c_Verleiherabzug <- c_Verleiger_garantie
+  ##################################################
+  # Abzug fix oder prozentual 
+  if(is.na(c_verleiherabzug_prozent)) { # Abzug fix
+    c_Verleiherabzug <- distinct(df_Eintritt |> 
+               filter(Datum == c_Date[ii]), `Abzug fix [CHF]`
+             )|>
+      pull()
+  }else{ # prozentualer Abzug
+    # Abgabe an den Verleiher
+    c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
+    
+    ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
+    if (c_Verleiherabzug < c_Verleiger_garantie) {
+      c_Verleiherabzug <- c_Verleiger_garantie
+    }
   }
   c_Verleiherabzug
   
-  #### Berechnung der Abgaben
+  ##################################################
+  # Berechnung der Abgaben
   # Verleiherrechnung vorhanden ?
   c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
     filter(Datum == c_Date[ii])|>
@@ -454,9 +463,8 @@ for (ii in 1:length(c_Date)) {
   
   c_Verleiherrechnung
   
+  # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
   if (c_Verleiherrechnung) {
-    # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
-    
     # Mehrwertsteuer auf der Verleiherrechnung
     c_MWST_Abzug <-
       round5Rappen(c_Verleiherabzug - (c_Verleiherabzug / (1 + (c_MWST / 100) ))
