@@ -436,11 +436,11 @@ for (ii in 1:length(c_Date)) {
   
   
   # minimale Abgaben an den Verleiher
-  c_Verleiger_garantie <- df_verleiherabgaben |>
+  c_Verleiher_garantie <- df_verleiherabgaben |>
     filter(Datum == c_Date[ii])|>
   select(`Minimal Abzug`)|>
   pull()
-  c_Verleiger_garantie
+  c_Verleiher_garantie
   
   # prozentual Abgabe von Netto 3 an den Verleiher
   c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
@@ -460,8 +460,8 @@ for (ii in 1:length(c_Date)) {
     c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
     
     ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
-    if (c_Verleiherabzug < c_Verleiger_garantie) {
-      c_Verleiherabzug <- c_Verleiger_garantie
+    if (c_Verleiherabzug < c_Verleiher_garantie) {
+      c_Verleiherabzug <- c_Verleiher_garantie
     }
   }
   c_Verleiherabzug
@@ -601,6 +601,7 @@ for (ii in 1:length(c_Date)) {
   )
 }
 
+
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
   bind_rows()
 df_GV_Vorfuehrung
@@ -627,7 +628,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,c_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
-       c_Verleiger_garantie, c_Verleiherabzug,
+       c_Verleiher_garantie, c_Verleiherabzug,
        c_verleiherabzug_prozent)
 
 

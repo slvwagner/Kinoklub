@@ -273,14 +273,16 @@ if(c_run_single){
   remove(c_raw, index,ii,jj)
 }
 
-remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single)
+remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie, Einnahmen_und_Ausgaben )
 
 #############################################################################################################################################
 # remove temp files 
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-remove(df_temp, df_Render, df_mapping)
+remove(df_temp, df_Render, df_mapping, Brutto,
+       c_temp, c_temp1,
+       c_render_option)
 
 #############################################################################################################################################
 # User Interaktion
