@@ -4,6 +4,12 @@ library(rebus)
 library(tidyverse)
 library(readxl)
 
+source("source/functions.R")
+
+if(!r_is.defined(c_MWST)){
+  c_MWST <- 8.1
+  }
+
 ######################################################################## 
 # Read in files
 ######################################################################## 

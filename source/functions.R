@@ -478,3 +478,10 @@ r_toc_for_Rmd <- function(
   
   return(c_Rmd)
 }
+
+
+r_is.defined <- function(sym) {
+  sym <- deparse(substitute(sym))
+  env <- parent.frame()
+  exists(sym, env)
+}

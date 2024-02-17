@@ -7,6 +7,10 @@ file.remove("error.log")|>suppressWarnings()
 
 source("source/functions.R")
 
+if(!r_is.defined(c_MWST)){
+  c_MWST <- 8.1
+}
+
 ########################################################################
 # Einnahmen und Ausgangen einlesen aus Excel 
 ########################################################################
@@ -196,6 +200,16 @@ Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 ########################################################################
 source("source/Kiosk.R")
 
+n_kiosk <- df_Kiosk|>distinct(Datum, .keep_all = T)
+n_Film <- df_Eintritt|>distinct(Datum, .keep_all = T )
+
+#############
+# Error handling
+if(n_kiosk|>nrow() > n_Film|>nrow()){
+  stop("Es fehlt einen Kioskabrechnung")
+}else if(df_Kiosk|>distinct(Datum)|>nrow() < df_Eintritt|>distinct(Datum)|>nrow()){
+  stop("Es fehlt einen Kinoabrechnug")
+}
 
 ########################################################################
 # show times
@@ -342,10 +356,11 @@ df_Kinopreise
 # Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
 c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 
+c_Date[3]
 
 l_GV <- list()
 l_Abgaben <- list()
-ii <- 1
+ii <- 3
 for (ii in 1:length(c_Date)) {
 
   ######################################################################
@@ -628,7 +643,7 @@ list(Eintritte= df_Eintritt,
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,c_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
-       c_Verleiher_garantie, c_Verleiherabzug,
+       c_Verleiher_garantie, c_Verleiherabzug,n_Film,n_kiosk,
        c_verleiherabzug_prozent)
 
 
