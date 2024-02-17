@@ -160,7 +160,7 @@ df_GV_Eintritt|>
 ### Gewinn Verlust aus Tickerverkauf
 ```{r}
 Filmvorführungen <- df_GV_Eintritt|>
-  distinct(`Suisa Nummer`,.keep_all = T)|>
+  distinct(Datum,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
   select(`Gewinn/Verlust [CHF]`)
 ```
