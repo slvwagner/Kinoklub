@@ -249,16 +249,16 @@ if(c_run_single){
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
     
     # neues file schreiben
-    writeLines(c_raw, paste0("source/Verleiherabrechnung.Rmd"))
+    writeLines(c_raw, paste0("source/temp.Rmd"))
     
     # Render
-    rmarkdown::render(input = paste0("source/Verleiherabrechnung.Rmd"),
+    rmarkdown::render(input = paste0("source/temp.Rmd"),
                       output_format = df_Render$Render,
                       output_dir = paste0(getwd(), "/output"))
     
     # Rename the file
     for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/Verleiherabrechnung",df_Render$fileExt[jj]), 
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
                   to   = paste0(getwd(),"/output/", "Verleiherabrechnung ", df_mapping$user_Datum[ii],df_Render$fileExt[jj])
       )
     }
