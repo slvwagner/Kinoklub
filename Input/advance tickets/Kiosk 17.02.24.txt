@@ -31,6 +31,6 @@ CC	21			-262.00
 - Abo/Gutsch. gegen Rg./Kreditkarten			0.00
 - CHF an Bank			0.00
 - Spesen			0.00
-+/- Überschuss | Manko			214.50
-Solde		533.00
++/- Überschuss | Manko			9.50
+Solde		328.00
 MWSt 8.1%	8.35	
