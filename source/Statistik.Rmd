@@ -171,6 +171,53 @@ df_GV_Eintritt|>
 
 ```
 
+## Abos
+
+### Einnahmen
+```{r}
+df_temp1 <- df_Abo_Verkauf|>
+  mutate(`kumulierte Summe [CHF]` = cumsum(Betrag),
+         `kumulierte Anzahl` = cumsum(Anzahl),
+         Datum = Datum|>as.Date()
+         )
+df_temp1|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp1 <- df_temp1|>
+  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))
+
+df_temp1|>
+  knitr::kable()
+```
+
+
+### Ausgaben
+```{r}
+df_temp2 <- df_Eintritt |>
+  filter(str_detect(Platzkategorie, "Abo")) |>
+  mutate(
+    `kumulierte Summe [CHF]` = cumsum(Umsatz),
+    `kumulierte Anzahl` = cumsum(Anzahl)
+  )|>
+  select(Datum,Platzkategorie,Verkaufspreis, Anzahl,  Umsatz)
+
+df_temp2|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp2 <- df_temp2|>
+  reframe(`Summe [CHF]` = sum(Umsatz, na.rm = T))
+
+df_temp2|>
+  knitr::kable()
+```
+
+
 
 ## Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
