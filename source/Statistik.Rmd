@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-## Gewinn Verlust aus Ticketverkauf
+## Gewinn/Verlust aus Ticketverkauf
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
@@ -68,11 +68,11 @@ df_temp <- df_GV_Eintritt|>
 
 df_temp|>
   ggplot(aes(Datum, cumsum))+
-  geom_col()+
+  geom_col(fill ="darkorange2")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose aus Kionvorführungen",
-       y = "Kumulierter Gewinn [CHF]")+
+  labs(title = "Gewinnprognose Kionvorführungen",
+       y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 
 ```
@@ -147,6 +147,29 @@ df_Eintritt|>
   knitr::kable()
 ```
 
+##### Prognose
+```{r fig.width=10}
+df_temp <- df_Eintritt|>
+  filter(Zahlend)|>
+  group_by(Datum)|>
+  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Film Umsatz [CHF]`))
+```
+
+
+```{r fig.width=10}
+df_temp|>
+  ggplot(aes(Datum,cumsum))+
+  geom_col(fill = "darkorange2")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
+  labs(title = "Ticketumsatzprognose",
+       y = "Kumulierter Umsatz [CHF]")+
+  my_template
+
+```
+
 
 ### Filmabgaben
 ```{r echo=FALSE}
@@ -167,6 +190,23 @@ df_GV_Eintritt|>
           `Abgaben and den Verleiher [CHF]` = sum(`Verleiher-Abzug [CHF]`)
           )|>
   knitr::kable()
+
+```
+
+#### Prognose
+```{r fig.width=10}
+df_temp <- df_temp|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Verleiher-Abzug [CHF]`))
+
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill = "darkorange2")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
+  labs(title = "Prognose Verleiherabgaben",
+       y = "Kumulierte Verleiherabgaben [CHF]")+
+  my_template
 
 ```
 
@@ -193,7 +233,7 @@ df_temp1|>
 ```
 
 
-### Ausgaben
+### Eingelöst
 ```{r}
 df_temp2 <- df_Eintritt |>
   filter(str_detect(Platzkategorie, "Abo")) |>
@@ -250,7 +290,7 @@ df_temp <- df_GV_Kiosk|>
 
 df_temp|>
   ggplot(aes(Datum, cumsum))+
-  geom_col()+
+  geom_col(fill = "darkorange2")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
   labs(title = "Gewinnprognose aus Kioskverkäufen",y = "Kumulierter Gewinn [CHF]")+
@@ -377,22 +417,33 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  arrange((Datum))|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
+  arrange((Datum))
 ```
 
 
 ```{r }
 df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   knitr::kable()
-
-df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
-  knitr::kable(digits = 2)
-
 ```
 
+
+```{r }
+df_temp|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
+  knitr::kable(digits = 2)
+```
+
+#### Prognose
+```{r fig.width=10}
+df_temp|>
+  ggplot(aes(Datum, `Umsatz pro Gast [CHF]`))+
+  geom_col(fill ="cyan4")+
+  geom_hline(yintercept = mean(df_temp$`Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+
+  labs(title = "Umsatz pro Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
+  my_template
+```
 
 ### Kiosk Umsatz pro zahlender Gast
 ```{r }
@@ -410,21 +461,41 @@ df_temp <- df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
-  arrange((Datum))|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]`= Umsatz)
+  arrange((Datum))
 ```
 
 
 ```{r }
 df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+  select(-Ende, -Saal, -Version, -Alter)|>
+  filter(!is.na(`Suisa Nummer`))|>
+  rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
+```
 
-df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`)/sum(Besucher))|>
+
+```{r }
+df_temp1 <- df_temp|>
+  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz, na.rm = T) / sum(Besucher, na.rm = T),
+          )
+
+df_temp1|>
   knitr::kable(digits = 2)
 ```
+
+#### Prognose
+```{r fig.width=10}
+df_temp|>
+  filter(!is.na(Umsatz))|>
+  ggplot(aes(Datum, `Umsatz pro Gast [CHF]`))+
+  geom_col(fill ="cyan4")+
+  geom_hline(yintercept = df_temp1$`Umsatz pro Gast [CHF]`, linewidth =2 , color = "darkorange2")+
+  labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
+  my_template
+```
+
+
+
 
