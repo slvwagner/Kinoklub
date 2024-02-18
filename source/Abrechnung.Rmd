@@ -171,7 +171,34 @@ Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
 
-## Eventausgaben
+## Event
+
+### Einnahmen
+
+```{r}
+Eventeinnahmen <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+  filter(Kategorie == "Vermietung", Datum == c_Datum)|>
+  select(Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+
+Eventeinnahmen|>
+  knitr::kable(digits = 2)
+```
+
+```{r}
+Eventeinnahmen <- Eventeinnahmen|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+
+Eventeinnahmen|>
+  knitr::kable()
+
+```
+
+
+
+
+### Ausgaben
+
 ```{r}
 Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
@@ -291,15 +318,12 @@ Manko|>
 ## Gewinn / Verlust
 ```{r}
 df_temp <- tibble(
-  Bezeichnung = c("Flimvorführung", "Eventausgaben", "Kiosk", "Kasse: Manko / Überschuss"),
-   `Betrag [CHF]` = c(
-  Filmvorführungen|>
-    pull(),
-  -(Eventausgaben|>pull()),
-  Kiosk|>
-    pull(),
-  Manko|>
-    pull()
+  Bezeichnung = c("Flimvorführung", "Eventeinnahmen","Eventausgaben", "Kiosk", "Kasse: Manko / Überschuss"),
+  `Betrag [CHF]` = c(Filmvorführungen|>pull(),
+                     Eventeinnahmen|>pull(),
+                     -(Eventausgaben|>pull()),
+                     Kiosk|>pull(),
+                     Manko|>pull()
   )
 )
 
