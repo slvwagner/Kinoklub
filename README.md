@@ -10,7 +10,8 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 -   "Eintritte 02.12.23.txt" \
     Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt"
-    
+    Es muss die Kalenderwoche sowie der Film ausgewählt werden. \
+    ![Eintritt](doc/eintritt.png)
 -   "Kiosk 02.12.23.txt"" \
     Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt". \
     Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.   
