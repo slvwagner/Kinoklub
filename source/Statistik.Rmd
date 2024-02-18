@@ -214,21 +214,19 @@ df_temp|>
 
 ### Einnahmen
 ```{r}
-df_temp1 <- df_Abo_Verkauf|>
-  mutate(`kumulierte Summe [CHF]` = cumsum(Betrag),
-         `kumulierte Anzahl` = cumsum(Anzahl),
-         Datum = Datum|>as.Date()
-         )
-df_temp1|>
+df_Abo_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
   knitr::kable()
 ```
 
 
 ```{r}
-df_temp1 <- df_temp1|>
-  reframe(`Summe [CHF]` = sum(Betrag, na.rm = T))
+df_temp <- df_Abo_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
 
-df_temp1|>
+df_temp|>
   knitr::kable()
 ```
 
@@ -237,10 +235,6 @@ df_temp1|>
 ```{r}
 df_temp2 <- df_Eintritt |>
   filter(str_detect(Platzkategorie, "Abo")) |>
-  mutate(
-    `kumulierte Summe [CHF]` = cumsum(Umsatz),
-    `kumulierte Anzahl` = cumsum(Anzahl)
-  )|>
   select(Datum,Platzkategorie,Verkaufspreis, Anzahl,  Umsatz)
 
 df_temp2|>
