@@ -12,10 +12,9 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
 
-
 Bericht wurde am `r act_date` erstellt.
 
-## Gewinn Verlust aus Kionvorführungen
+## Gewinn Verlust aus Ticketverkauf
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
