@@ -255,7 +255,24 @@ df_show <- df_show|>
             by = c("Datum" = "Datum")
             )|>
   arrange(Datum)
-df_show
+
+df_show|>
+  filter()
+
+## error handling 
+df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
+  anti_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
+  left_join(df_Eintritt, by = join_by(Datum, `Suisa Nummer`))|>
+  distinct(Datum, .keep_all = T)
+df_temp
+
+if(nrow(df_temp) != 0) {
+  stop(paste0(
+    "\nFür den Film: ",df_temp$Filmtitel, " am ", 
+    day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
+    " gibt es keinen Eintrag in der Datei Input/advance tickets/show.txt\nBitte herunterladen und abspeichern")
+  )}
+
 
 ########################################################################
 # Verleiherabgaben einlesen
