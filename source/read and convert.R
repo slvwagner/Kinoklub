@@ -168,7 +168,9 @@ df_Eintritt <- l_Eintritt|>
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
 
-df_Eintritt
+df_Eintritt|>
+  filter()
+
 
 ########################################################################
 # Filmvorführungen
@@ -221,13 +223,22 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
       suppressWarnings(),
     outFile = "error.log"
     )
-if(length(list.files(pattern = "error.log"))>0) stop("\nDatei Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+if(length(list.files(pattern = "error.log"))>0) stop("\nDatei input/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
 
-m <- c_raw[3:length(c_raw)]|>
+c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
+  mutate(index = row_number(),
+         index = if_else(found, index, NA))|>
+  filter(!is.na(index))|>
+  arrange(index)|>
+  slice(1)|>
+  pull()
+c_select
+
+m <- c_raw[c_select:length(c_raw)]|>
   str_split("\t", simplify = T)
-m <- m[,1:(ncol(m)-1)] 
-colnames(m) <- c_raw[2]|>
-  str_split("\t", simplify = T)|>as.vector()
+colnames(m) <- m[1,]
+m <- m[2:nrow(m),]
+m
 
 df_show <- m|>
   as_tibble()|>
@@ -235,13 +246,16 @@ df_show <- m|>
          Anfang = parse_time(Anfang),
          Ende = parse_time(Ende))|>
   select(Datum,Anfang, Ende, Saal, Titel, Version, Alter)|>
-  rename(Filmtitel = Titel)
+  rename(Filmtitel = Titel)|>
+  arrange(Datum)
 
 df_show <- df_show|>
   left_join(df_Eintritt|>
               distinct(Datum, `Suisa Nummer`),
             by = c("Datum" = "Datum")
-            )
+            )|>
+  arrange(Datum)
+df_show
 
 ########################################################################
 # Verleiherabgaben einlesen
