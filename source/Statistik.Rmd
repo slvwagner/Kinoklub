@@ -235,7 +235,9 @@ df_temp|>
 ```{r}
 df_temp2 <- df_Eintritt |>
   filter(str_detect(Platzkategorie, "Abo")) |>
-  select(Datum,Platzkategorie,Verkaufspreis, Anzahl,  Umsatz)
+    group_by(Datum, Platzkategorie, Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          Umsatz = sum(Umsatz))
 
 df_temp2|>
   knitr::kable()
@@ -244,12 +246,20 @@ df_temp2|>
 
 ```{r}
 df_temp2 <- df_temp2|>
-  reframe(`Summe [CHF]` = sum(Umsatz, na.rm = T))
+  reframe(`Summe der Anzahl` = sum(Anzahl, na.rm = T),
+          `Summe [CHF]` = sum(Umsatz, na.rm = T))
 
 df_temp2|>
   knitr::kable()
 ```
 
+### Kredit 
+Die Differenz von Einnahmen und Eingelöststen Abos. 
+
+```{r}
+tibble(`Differenz [CHF]` = df_temp$`Summe Betrag [CHF]` - df_temp2$`Summe [CHF]`)|>
+  knitr::kable()
+```
 
 
 ## Kiosk-Gewinn pro Vorführung 
