@@ -9,15 +9,19 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 **/input/advance tickets** abzuspeichern.
 
 -   "Eintritte 02.12.23.txt" \
-    Copy paste von html für jede Vorführung und Speichern unter "Eintritt xx.xx.xx.txt"
+    Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt"
     
 -   "Kiosk 02.12.23.txt"" \
-    Copy paste von html für jede Vorführung und Speichern unter "Kiosk xx.xx.xx.txt". \
+    Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt". \
     Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.   
     Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden. \
-    ![](doc/Kiosk.png)
+    ![Kiosk](doc/Kiosk.png)
 -   "Shows.txt" \
-    Copy paste von html für die gewünschte Abrechnungsperiode und Speichern unter "Shows.txt"
+    Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt" \
+    Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren. \
+    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
+    ![Shows](doc/shows.png)
+    
 
 ## Konfigurations Dateien
 
