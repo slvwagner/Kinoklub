@@ -11,6 +11,8 @@ act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
+
+
 Bericht wurde am `r act_date` erstellt.
 
 ## Gewinn Verlust aus Kionvorführungen
@@ -34,6 +36,47 @@ df_temp|>
   knitr::kable()
 ```
 
+### Prognose
+```{r}
+my_template <- 
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size  = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.position = c(.95, .25),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_blank(),
+    title = element_text(color = "#f4cccc", size  = 22)
+  )
+```
+
+
+```{r fig.width=10}
+df_temp <- df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
+
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col()+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
+  labs(title = "Gewinnprognose aus Kionvorführungen",
+       y = "Kumulierter Gewinn [CHF]")+
+  my_template
+
+```
 
 
 
@@ -77,23 +120,7 @@ df_Eintritt|>
   geom_col()+
   scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) +
   coord_flip()+
-  theme_bw()+
-  theme(
-  panel.background = element_rect(fill = "#322f3b",
-                                colour = "#322f3b",
-                                linewidth = 0.5, linetype = "solid"),
-  plot.background = element_rect(fill = "#322f3b"),
-  axis.title = element_text(colour = "#f4cccc", size  = 20),
-  axis.text= element_text(colour = "#f4cccc"),
-  legend.position = c(.95, .25),
-  legend.justification = c("right", "top"),
-  legend.box.just = "right",
-  legend.margin = margin(6, 6, 6, 6),
-  legend.background = element_rect(fill = "#322f3b", color = "black"),
-  legend.text = element_text(color = "#f4cccc"),
-  legend.title = element_blank()
-  
-  )
+  my_template
 ```
 
 
@@ -111,16 +138,7 @@ df_temp|>
   geom_col(show.legend = F, fill = "cyan4")+
   labs(x = "Platzkategorie")+
   coord_flip()+
-  theme_bw()+
-  theme(
-  panel.background = element_rect(fill = "#322f3b",
-                                colour = "#322f3b",
-                                linewidth = 0.5, linetype = "solid"),
-  plot.background = element_rect(fill = "#322f3b"),
-  axis.title = element_text(colour = "#f4cccc", size =15),
-  axis.text= element_text(colour = "#f4cccc"),
-  title = element_text(colour = "#f4cccc", size = 20),
-  )
+  my_template
 ```
 
 
@@ -133,9 +151,11 @@ df_Eintritt|>
 
 ### Filmabgaben
 ```{r echo=FALSE}
-df_GV_Eintritt|>
+df_temp <- df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
-  arrange(Datum)|>
+  arrange(Datum)
+
+df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   knitr::kable()
@@ -150,6 +170,7 @@ df_GV_Eintritt|>
   knitr::kable()
 
 ```
+
 
 ## Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
@@ -174,6 +195,23 @@ df_GV_Kiosk|>
   knitr::kable()
 
 ```
+
+### Prognose
+```{r fig.width=10}
+df_temp <- df_GV_Kiosk|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(Gewinn))
+
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col()+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
+  labs(title = "Gewinnprognose aus Kioskverkäufen",y = "Kumulierter Gewinn [CHF]")+
+  my_template
+
+```
+
 
 ## Kiosk 
 
