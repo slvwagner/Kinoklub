@@ -30,7 +30,7 @@ c_suisa <- df_show|>
   pull()
 
 c_verleiherabgaben <- df_verleiherabgaben|>
-  filter(Datum == c_Datum & Suisa == c_suisa)|>
+  filter(Datum == c_Datum)|>
   select(`Abzug [%]`)|>
   pull()
 ```
@@ -39,7 +39,7 @@ c_verleiherabgaben <- df_verleiherabgaben|>
 
 ```{r echo=FALSE}
 df_temp <- df_GV_Vorfuehrung|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == c_Datum )|>
   left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
   select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
@@ -72,7 +72,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == c_Datum)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Film Umsatz [sFR]` = `Umsatz`)
 
@@ -116,7 +116,7 @@ Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Um
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_temp <- df_GV_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == c_Datum)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,na.rm = T))|>
     select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
   rename(`Umsatz [CHF]` = Brutto)
@@ -141,7 +141,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 ```{r echo=FALSE}
 df_GV_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == c_Datum)|>
   select(`Sonstige Kosten [CHF]`)|>
   rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]`)|>
   knitr::kable(digits = 2)
