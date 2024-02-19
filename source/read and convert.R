@@ -236,8 +236,11 @@ c_select
 
 m <- c_raw[c_select:length(c_raw)]|>
   str_split("\t", simplify = T)
-colnames(m) <- m[1,]
-m <- m[2:nrow(m),]
+m
+c_names <- m[1,m[1,] != ""]
+
+m <- m[2:nrow(m),m[1,] != ""]
+colnames(m) <- c_names
 m
 
 df_show <- m|>
