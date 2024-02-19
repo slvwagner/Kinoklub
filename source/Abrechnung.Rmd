@@ -198,7 +198,7 @@ Eventeinnahmen|>
 
 ```{r}
 Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Eventausgaben", Datum == c_Datum)|>
+  filter(Kategorie == "Eventausgaben", Spieldatum == c_Datum)|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
