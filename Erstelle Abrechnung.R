@@ -43,7 +43,7 @@ my_template <-
     legend.margin = margin(6, 6, 6, 6),
     legend.background = element_rect(fill = "#322f3b", color = "black"),
     legend.text = element_text(color = "#f4cccc"),
-    legend.title = element_blank(),
+    legend.title = element_text(size = 12),
     title = element_text(color = "#f4cccc", size  = 22)
   )
 
