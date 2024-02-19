@@ -9,28 +9,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
-
-my_template <- 
-  theme_bw() +
-  theme(
-    panel.background = element_rect(
-      fill = "#322f3b",
-      colour = "#322f3b",
-      linewidth = 0.5,
-      linetype = "solid"
-    ),
-    plot.background = element_rect(fill = "#322f3b"),
-    axis.title = element_text(colour = "#f4cccc", size  = 15),
-    axis.text = element_text(colour = "#f4cccc"),
-    legend.position = c(.95, .25),
-    legend.justification = c("right", "top"),
-    legend.box.just = "right",
-    legend.margin = margin(6, 6, 6, 6),
-    legend.background = element_rect(fill = "#322f3b", color = "black"),
-    legend.text = element_text(color = "#f4cccc"),
-    legend.title = element_blank(),
-    title = element_text(color = "#f4cccc", size  = 22)
-  )
 ```
 
 Bericht wurde am `r act_date` erstellt.

@@ -24,6 +24,31 @@ c_MWST <- 8.1 #%
 # 3 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- "1" 
 
+# template für diagramme
+my_template <- 
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size  = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.position = c(.95, .25),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_blank(),
+    title = element_text(color = "#f4cccc", size  = 22)
+  )
+
+
+
 #############################################################################################################################################
 # Script start
 #############################################################################################################################################

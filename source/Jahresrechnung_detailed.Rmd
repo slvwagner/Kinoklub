@@ -31,7 +31,8 @@ df_Eintritt|>
 df_temp <- df_Eintritt|>
   group_by(Platzkategorie, Verkaufspreis)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
-  reframe(Anzahl = sum(Anzahl))
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(desc(`Verkaufspreis [CHF]`))
 
 df_temp|>
   knitr::kable()
@@ -46,18 +47,20 @@ df_temp|>
 
 ### Einnahmen Ticketverkauf
 ```{r}
-df_Eintritt|>
-  group_by(Platzkategorie)|>
+df_temp <- df_Eintritt|>
+  group_by(Platzkategorie, Verkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` = sum(Umsatz, na.rm = T))|>
-  arrange(desc(`Umsatz [CHF]`))|>
+  arrange(desc(Verkaufspreis))
+
+df_temp|>
   knitr::kable()
 ```
 
 
 ```{r}
 df_Eintritt|>
-  reframe(`Summe [CHF]` = sum(Umsatz))|>
+  reframe(`Summe [CHF]` = sum(Umsatz, na.rm = T))|>
   arrange(desc(`Summe [CHF]`))|>
   knitr::kable()
   
