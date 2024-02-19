@@ -2,7 +2,8 @@
 # Bitte beachte das README.md
 # Diesen Script erstellt die Jahresabrechnung für den Kinoclub.
 # Es kann auch pro Vorführung einen Rechnung erstellt werden. 
-#
+# Autor: Florian Wagner
+# florian.wagner@wagnius.ch
 # V0.7.0
 #############################################################################################################################################
 rm(list = ls())

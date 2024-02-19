@@ -138,14 +138,23 @@ df_temp|>
 
 
 ```{r fig.width=10}
-df_Eintritt|>
+df_temp <- df_Eintritt|>
   group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
   mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
   group_by(Platzkategorie, Verkaufspreis, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
-  arrange((Zahlend), (Anzahl))|> # arrange the plot
-  mutate(Platzkategorie = factor(Platzkategorie)|>fct_inorder(),
+  arrange(desc(Zahlend),desc(Anzahl))
+
+# Sortierung für Plot
+c_sort <- df_temp|>
+  distinct(Platzkategorie)|>
+  pull()
+
+c_sort <- c_sort[length(c_sort):1]
+
+df_temp|> # arrange the plot
+  mutate(Platzkategorie = factor(Platzkategorie, levels = c_sort),
          `Verkaufspreis [CHF]` = paste(Verkaufspreis,".-")
          )|>
   mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
@@ -183,7 +192,9 @@ df_temp <- df_Eintritt|>
   filter(Zahlend != 0)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   reframe(Umsatz = sum(Umsatz))|>
-  arrange(desc(Umsatz))|>
+  arrange(desc(Umsatz))
+
+df_temp <- df_temp|>
   mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
          `Anteil [%]` = round(Umsatz/(sum(Umsatz)/100),1)
          )|>
@@ -206,17 +217,24 @@ df_temp <- df_Eintritt|>
   filter(Zahlend)|>
   group_by(Platzkategorie, Verkaufspreis)|>
   reframe(`Umsatz [CHF]` = sum(Umsatz))|>
-  arrange(desc(`Umsatz [CHF]`))|>
-  mutate(Platzkategorie = factor(Platzkategorie)|>fct_inorder(),
-         `Verkaufspreis [CHF]` = paste0(Verkaufspreis,".-"))
+  arrange(desc(`Umsatz [CHF]`))
+
+# Sortierung für Plot
+c_sort <- df_temp|>
+  distinct(Platzkategorie)|>
+  pull()
+
+c_sort <- c_sort[length(c_sort):1]
 
 df_temp|>
+  mutate(Platzkategorie = factor(Platzkategorie, levels = c_sort),
+         `Verkaufspreis [CHF]` = paste0(Verkaufspreis,".-"))|>
   ggplot(aes(x = Platzkategorie, `Umsatz [CHF]`, fill = `Verkaufspreis [CHF]`))+
   geom_col()+
   labs(x = "Platzkategorie")+
   coord_flip()+
   my_template+
-  theme(legend.position = c(1, 1))
+  theme(legend.position = c(1, 0.7))
 
 ```
 
@@ -230,19 +248,6 @@ df_temp <- df_Eintritt|>
   mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-"))
          )
 ```
-
-<!-- ```{r fig.width=10} -->
-<!-- df_temp|> -->
-<!--   ggplot(aes(Platzkategorie, Umsatz, fill = `Verkaufspreis [CHF]`))+ -->
-<!--   geom_col()+ -->
-<!--   coord_flip()+ -->
-<!--   my_template+ -->
-<!--   theme(legend.position = c(.99, .45)) -->
-
-<!-- ``` -->
-
-
-
 
 
 ##### Prognose
