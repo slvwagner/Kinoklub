@@ -11,9 +11,10 @@ Gesamt	1	29	33	640.00
 Platzkategorie	Preis	Tax	Anzahl	Umsatz
 Erwachsene	25.00	0.0000	12	300.00
 Ermässigt	20.00	0.0000	17	340.00
+Spezialpreis	0.00	0.0000	26	0.00
 Kinoförderer	0.00	0.0000	1	0.00
 Green Card	0.00	0.0000	1	0.00
-Mitarbeiter*in	0.00	0.0000	31	0.00
+Mitarbeiter*in	0.00	0.0000	5	0.00
 Gesamt	62	640.00
 Brutto	640.00
 Tax	-0.00
