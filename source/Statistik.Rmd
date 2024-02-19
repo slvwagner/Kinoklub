@@ -114,6 +114,25 @@ df_temp|>
   knitr::kable()
 ```
 
+
+
+
+```{r fig.width=10}
+
+df_Eintritt|>
+  group_by(Platzkategorie, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(Anzahl)|>
+  mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|>
+  mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
+  ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+
+  geom_col()+
+  scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) +
+  coord_flip()+
+  my_template+
+  theme(legend.title = element_blank())
+```
+
 ```{r}
 df_temp <- df_Eintritt|>
   group_by(Platzkategorie, Verkaufspreis)|>
@@ -134,24 +153,6 @@ df_temp|>
   theme(legend.position = c(.95, .99))
 
 ```
-
-
-```{r fig.width=10}
-
-df_Eintritt|>
-  group_by(Platzkategorie, Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  arrange(Anzahl)|>
-  mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|>
-  mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
-  ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+
-  geom_col()+
-  scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) +
-  coord_flip()+
-  my_template+
-  theme(legend.title = element_blank())
-```
-
 
 #### Umsatz
 
