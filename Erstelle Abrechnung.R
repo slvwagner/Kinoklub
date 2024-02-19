@@ -37,7 +37,6 @@ my_template <-
     plot.background = element_rect(fill = "#322f3b"),
     axis.title = element_text(colour = "#f4cccc", size  = 15),
     axis.text = element_text(colour = "#f4cccc"),
-    legend.position = c(.95, .25),
     legend.justification = c("right", "top"),
     legend.box.just = "right",
     legend.margin = margin(6, 6, 6, 6),

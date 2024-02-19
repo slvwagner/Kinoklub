@@ -100,10 +100,30 @@ df_temp <- df_Eintritt|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  rename(Eintritt = Zahlend)
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
+         `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  rename(Eintritt = Zahlend)|>
+  arrange(desc(Anzahl))
 
 df_temp|>
+  knitr::kable()
+
+```
+
+```{r echo=FALSE}
+df_temp <- df_Eintritt|>  
+  arrange(Datum)|> 
+  group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
+  
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
   knitr::kable()
 
 ```
@@ -118,41 +138,42 @@ df_temp|>
 
 
 ```{r fig.width=10}
-
 df_Eintritt|>
-  group_by(Platzkategorie, Zahlend)|>
+  group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
-  arrange(Anzahl)|>
-  mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|>
+  mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  group_by(Platzkategorie, Verkaufspreis, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange((Zahlend), (Anzahl))|> # arrange the plot
+  mutate(Platzkategorie = factor(Platzkategorie)|>fct_inorder(),
+         `Verkaufspreis [CHF]` = paste(Verkaufspreis,".-")
+         )|>
   mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
-  ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+
-  geom_col()+
-  scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) +
-  coord_flip()+
-  my_template+
-  theme(legend.title = element_blank())
-```
-
-```{r}
-df_temp <- df_Eintritt|>
-  group_by(Platzkategorie, Verkaufspreis)|>
-  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  arrange(desc(`Verkaufspreis [CHF]`))|>
-  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-"))
-         )
-```
-
-
-```{r fig.width=10}
-df_temp|>
   ggplot(aes(Platzkategorie, Anzahl, fill = `Verkaufspreis [CHF]`))+
   geom_col()+
   coord_flip()+
   my_template+
-  theme(legend.position = c(.95, .99))
+  theme(legend.position = c(.95, .35))
 
 ```
+
+
+<!-- ```{r fig.width=10} -->
+<!-- df_temp|> -->
+<!--   group_by(Platzkategorie, Zahlend)|> -->
+<!--   reframe(Anzahl = sum(Anzahl))|> -->
+<!--   arrange(Anzahl)|> -->
+<!--   mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|> -->
+<!--   mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|> -->
+<!--   ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+ -->
+<!--   geom_col()+ -->
+<!--   scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) + -->
+<!--   coord_flip()+ -->
+<!--   my_template+ -->
+<!--   theme(legend.title = element_blank(), -->
+<!--         legend.position = c(.95, .45)) -->
+<!-- ``` -->
+
 
 #### Umsatz
 
@@ -162,9 +183,12 @@ df_temp <- df_Eintritt|>
   filter(Zahlend != 0)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   reframe(Umsatz = sum(Umsatz))|>
-  arrange(desc(`Verkaufspreis [CHF]`))|>
-  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-"))
-         )
+  arrange(desc(Umsatz))|>
+  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
+         `Anteil [%]` = round(Umsatz/(sum(Umsatz)/100),1)
+         )|>
+  select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, Umsatz)|>
+  rename(`Umsatz [CHF]` = Umsatz)
 
 df_temp|>
   knitr::kable()
@@ -173,23 +197,26 @@ df_temp|>
 
 ```{r}
 df_Eintritt|>
-  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  reframe(`Summe Umsatz [CHF]` = sum(Umsatz))|>
   knitr::kable()
 ```
 
 ```{r fig.width=10, fig.height=3}
 df_temp <- df_Eintritt|>
   filter(Zahlend)|>
-  group_by(Platzkategorie)|>
+  group_by(Platzkategorie, Verkaufspreis)|>
   reframe(`Umsatz [CHF]` = sum(Umsatz))|>
-  arrange((`Umsatz [CHF]`))
+  arrange(desc(`Umsatz [CHF]`))|>
+  mutate(Platzkategorie = factor(Platzkategorie)|>fct_inorder(),
+         Verkaufspreis = factor(Verkaufspreis))
 
 df_temp|>
-  ggplot(aes(x = factor(Platzkategorie, levels = Platzkategorie), `Umsatz [CHF]`))+
-  geom_col(show.legend = F, fill = "cyan4")+
+  ggplot(aes(x = Platzkategorie, `Umsatz [CHF]`, fill = Verkaufspreis))+
+  geom_col()+
   labs(x = "Platzkategorie")+
   coord_flip()+
-  my_template
+  my_template+
+  theme(legend.position = c(.95, 1))
 
 ```
 
@@ -204,15 +231,15 @@ df_temp <- df_Eintritt|>
          )
 ```
 
-```{r}
-df_temp|>
-  ggplot(aes(Platzkategorie, Umsatz, fill = `Verkaufspreis [CHF]`))+
-  geom_col()+
-  coord_flip()+
-  my_template+
-  theme(legend.position = c(.99, .45))
+<!-- ```{r fig.width=10} -->
+<!-- df_temp|> -->
+<!--   ggplot(aes(Platzkategorie, Umsatz, fill = `Verkaufspreis [CHF]`))+ -->
+<!--   geom_col()+ -->
+<!--   coord_flip()+ -->
+<!--   my_template+ -->
+<!--   theme(legend.position = c(.99, .45)) -->
 
-```
+<!-- ``` -->
 
 
 
