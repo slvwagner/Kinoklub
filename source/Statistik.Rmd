@@ -34,7 +34,7 @@ df_temp|>
 
 ### Prognose
 ```{r fig.width=10}
-df_temp <- df_GV_Eintritt|>
+df_temp <- df_GV_Vorfuehrung|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
 
@@ -153,7 +153,7 @@ df_Eintritt|>
   geom_col()+
   coord_flip()+
   my_template+
-  theme(legend.position = c(.95, .35))
+  theme(legend.position = c(1, .45))
 
 ```
 
@@ -208,15 +208,15 @@ df_temp <- df_Eintritt|>
   reframe(`Umsatz [CHF]` = sum(Umsatz))|>
   arrange(desc(`Umsatz [CHF]`))|>
   mutate(Platzkategorie = factor(Platzkategorie)|>fct_inorder(),
-         Verkaufspreis = factor(Verkaufspreis))
+         `Verkaufspreis [CHF]` = paste0(Verkaufspreis,".-"))
 
 df_temp|>
-  ggplot(aes(x = Platzkategorie, `Umsatz [CHF]`, fill = Verkaufspreis))+
+  ggplot(aes(x = Platzkategorie, `Umsatz [CHF]`, fill = `Verkaufspreis [CHF]`))+
   geom_col()+
   labs(x = "Platzkategorie")+
   coord_flip()+
   my_template+
-  theme(legend.position = c(.95, 1))
+  theme(legend.position = c(1, 1))
 
 ```
 
