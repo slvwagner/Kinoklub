@@ -357,11 +357,12 @@ df_Verleiher_Rechnnung <- df_Eintritt|>
 df_Verleiher_Rechnnung
 
 # # Verleiherabgaben sind im Dropdown zu finden
-# Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
+Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
+Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5]
 
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
   left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-              filter(Kategorie == "Verleiher")|>
+              filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|>
               select(-Datum,-Kategorie),
             by = c("Datum" = "Spieldatum"))|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
@@ -603,12 +604,6 @@ df_Abgaben
 ########################################################################
 
 ii <- 3
-
-df_Kiosk|>
-  group_by(Datum)|>
-  reframe(sum(Kassiert), 
-          sum(Gewinn))
-
 l_GV_Kiosk <- list()
 for (ii in 1:length(c_Date)) {
   df_temp <- df_show|>filter(Datum == c_Date[ii])
@@ -636,16 +631,31 @@ df_GV_Kiosk
 # Gewinn Filmvorführung
 ########################################################################
 
-ii <- 3
+ii <- 4
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
   df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
-    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
- 
-  df_temp <- df_show|>filter(Datum == c_Date[ii])
+    filter(Spieldatum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+  df_Eventausgaben
+
+  if(nrow(df_Eventausgaben) < 1) {
+    c_Eventausgaben <- 0
+  } else {
+    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
+  }
+    
+  df_Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen |>
+    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])
+  df_Eventeinnahmen
   
-  if(nrow(df_Eventausgaben)<1) c_Eventausgaben <- 0
-  else c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
+  if(nrow(df_Eventeinnahmen) < 1) {
+    c_Eventeinnahmen <- 0
+  } else {
+    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T)
+  }
+  
+  df_temp <- df_show|>filter(Datum == c_Date[ii])
+  df_temp
   
   l_GV_Vorfuehrung[[ii]] <- tibble(
     Datum = c_Date[ii],
@@ -653,7 +663,7 @@ for (ii in 1:length(c_Date)) {
     Ende = df_temp$Ende,
     `Suisa Nummer` = c_suisa_nr[ii],
     Filmtitel = df_temp$Filmtitel,
-    `Gewinn/Verlust [CHF]` =round5Rappen(l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben)
+    `Gewinn/Verlust [CHF]` =round5Rappen(l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben + c_Eventeinnahmen)
   )
 }
 
