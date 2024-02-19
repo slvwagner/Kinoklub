@@ -45,7 +45,7 @@ c_path <- "output"
 if(dir.exists(c_path)){
   c_files <- paste0(c_path,"/",list.files(c_path))
   c_files
-  file.remove(c_files)
+  file.remove(c_files)|>suppressWarnings()
 }
 
 # Daten einlesen und konvertieren
