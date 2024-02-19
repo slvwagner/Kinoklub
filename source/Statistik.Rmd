@@ -468,7 +468,7 @@ df_temp|>
 
 ```{r }
 df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
   knitr::kable(digits = 2)
 ```
 
@@ -515,7 +515,7 @@ df_temp|>
 
 ```{r }
 df_temp1 <- df_temp|>
-  reframe(`Umsatz pro Gast [CHF]` = sum(Umsatz, na.rm = T) / sum(Besucher, na.rm = T),
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(Umsatz, na.rm = T) / sum(Besucher, na.rm = T),
           )
 
 df_temp1|>
@@ -528,7 +528,7 @@ df_temp|>
   filter(!is.na(Umsatz))|>
   ggplot(aes(Datum, `Umsatz pro Gast [CHF]`))+
   geom_col(fill ="cyan4")+
-  geom_hline(yintercept = df_temp1$`Umsatz pro Gast [CHF]`, linewidth =2 , color = "darkorange2")+
+  geom_hline(yintercept = df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`, linewidth =2 , color = "darkorange2")+
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
