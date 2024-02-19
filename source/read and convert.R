@@ -256,8 +256,8 @@ df_show <- df_show|>
             )|>
   arrange(Datum)
 
-df_show|>
-  filter()
+df_show <- df_show|>
+  filter(!is.na(`Suisa Nummer`))
 
 ## error handling 
 df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
@@ -608,6 +608,8 @@ df_Kiosk|>
 
 l_GV_Kiosk <- list()
 for (ii in 1:length(c_Date)) {
+  df_temp <- df_show|>filter(Datum == c_Date[ii])
+  
   l_GV_Kiosk[[ii]] <- df_Kiosk|>
     filter(Datum == c_Date[ii])|>
     reframe(Kassiert = sum(Kassiert, na.rm = T),
@@ -637,21 +639,25 @@ for (ii in 1:length(c_Date)) {
   df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
  
+  df_temp <- df_show|>filter(Datum == c_Date[ii])
+  
   if(nrow(df_Eventausgaben)<1) c_Eventausgaben <- 0
   else c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
   
   l_GV_Vorfuehrung[[ii]] <- tibble(
     Datum = c_Date[ii],
+    Anfang = df_temp$Anfang,
+    Ende = df_temp$Ende,
     `Suisa Nummer` = c_suisa_nr[ii],
+    Filmtitel = df_temp$Filmtitel,
     `Gewinn/Verlust [CHF]` =round5Rappen(l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben)
   )
 }
 
+df_GV_Vorfuehrung <- l_GV_Vorfuehrung |>
+  bind_rows() 
 
-df_GV_Vorfuehrung <- l_GV_Vorfuehrung|>
-  bind_rows()
 df_GV_Vorfuehrung
-
 ########################################################################
 # write to Excel
 ########################################################################

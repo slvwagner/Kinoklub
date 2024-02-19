@@ -9,34 +9,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
-```
 
-
-Bericht wurde am `r act_date` erstellt.
-
-## Gewinn/Verlust aus Ticketverkauf
-Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
-
-```{r}
-df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
-  arrange(Datum)|>
-    mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  rename(`Umsatz [CHF]` = Brutto)|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
-
-df_temp|>
-  knitr::kable()
-```
-
-```{r}
-df_temp|>
-  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
-  knitr::kable()
-```
-
-### Prognose
-```{r}
 my_template <- 
   theme_bw() +
   theme(
@@ -60,7 +33,29 @@ my_template <-
   )
 ```
 
+Bericht wurde am `r act_date` erstellt.
 
+## Gewinn/Verlust
+```{r}
+df_temp <- df_GV_Vorfuehrung|>
+  arrange(Datum)
+    
+
+df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+  select(-Ende)|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  knitr::kable()
+```
+
+### Prognose
 ```{r fig.width=10}
 df_temp <- df_GV_Eintritt|>
   arrange(Datum)|>
@@ -71,7 +66,46 @@ df_temp|>
   geom_col(fill ="darkorange2")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose Kionvorführungen",
+  labs(title = "Gewinnprognose",
+       y = "Kumulierter Gewinn/Verlust [CHF]")+
+  my_template
+```
+
+
+## Ticketverkauf
+Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
+
+```{r}
+df_temp <- df_GV_Eintritt|>
+  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
+  rename(`Umsatz [CHF]` = Brutto)|>
+  arrange(Datum)
+
+df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+  knitr::kable()
+```
+
+```{r}
+df_temp|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  knitr::kable()
+```
+
+
+### Prognose
+```{r fig.width=10}
+df_temp <- df_temp|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
+
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill ="darkorange2")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
+  labs(title = "Gewinnprognose aus Ticketverkauf",
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 

@@ -191,8 +191,6 @@ if(c_run_single){
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_GV_Vorfuehrung|>
       filter(Datum == df_GV_Vorfuehrung$Datum[ii])|>
-      left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-      select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
              Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
       )|>

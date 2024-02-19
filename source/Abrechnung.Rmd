@@ -38,15 +38,12 @@ c_verleiherabgaben <- df_verleiherabgaben|>
 ## Übersicht 
 
 ```{r echo=FALSE}
-df_temp <- df_GV_Vorfuehrung|>
+df_temp <- df_show|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-  select(Datum, Anfang,`Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`)|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )|>
-  rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
-  select(-`Total Gewinn [CHF]`)
+  select(-Saal)
 ```
 
 
