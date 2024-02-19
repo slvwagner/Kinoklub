@@ -73,7 +73,6 @@ if(toc){# neues file schreiben mit toc
     writeLines(paste0("source/temp.Rmd"))
 }else {# neues file schreiben ohne toc
   c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
     writeLines(paste0("source/temp.Rmd"))
 }
 
@@ -108,7 +107,6 @@ if(toc){# neues file schreiben mit toc
     writeLines(paste0("source/temp.Rmd"))
 }else {# neues file schreiben ohne toc
   c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
     writeLines(paste0("source/temp.Rmd"))
 }
 
@@ -144,7 +142,6 @@ if(toc){# neues file schreiben mit toc
     writeLines(paste0("source/temp.Rmd"))
 }else {# neues file schreiben ohne toc
   c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
     writeLines(paste0("source/temp.Rmd"))
 }
 
@@ -215,7 +212,6 @@ if(c_run_single){
         writeLines(paste0("source/temp.Rmd"))
     }else {# neues file schreiben ohne toc
         c_raw|>
-          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
           writeLines(paste0("source/temp.Rmd"))
       }
     
