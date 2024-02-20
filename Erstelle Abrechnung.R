@@ -14,7 +14,7 @@ library(tidyverse)
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
 
-#Sollen inhaltsverzeichnisse erstellt werden
+# Sollen Inhaltsverzeichnisse erstellt werden
 toc <- TRUE
 
 # Mehrwertsteuersatz
@@ -57,12 +57,14 @@ my_template <-
 # Script start
 #############################################################################################################################################
 
-# Create TOC for README.md file 
+# Create TOC for doc/README.Rmd file 
 source("source/functions.R")
 r_toc_for_Rmd(readLines("doc/README.Rmd"), 
               toc_heading_string = "Inhaltsverzeichnis",
               create_nb = TRUE)|>
   writeLines("README.md")
+# Render READ me
+rmarkdown::render(paste0("README.md"))
 
 # Ausgabeformat(e)
 df_Render <- switch (

@@ -64,29 +64,94 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren. \
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
     ![Shows](doc/shows.png)
-    
 
 ## Konfigurations Dateien
 
+Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
+
+### Abrechnung für Filmvorführungen
+-   Für jede Filmvorführung eine Abrechnung erstellen. \
+    c_run_single <- TRUE  
+-   Keine Abrechnug für Filmvorführung  erstellen. \
+    c_run_single <- FALSE  
+
+### Inhaltsverzeichnisse 
+Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
+
+-   Ja \
+    toc <- TRUE Ja
+-   Nein \
+    toc <- FALSE
+
+### Mehrwertsteuersatz
+c_MWST <- 8.1 #%
+
+### Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
+c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
+\ 
+In der Datei "Verleiherabgaben.xlsx" kann die Abrechnungsvariante definiert werden
+
+### Ausgabeformate
+
+-   c_render_option <- "1"  only html
+-   c_render_option <- "2"  html and docx
+-   c_render_option <- "3"  html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+ 
+
+
+## Excel Dateien 
 Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
--   "Einkauf Kiosk xx.xx.xx.xlsx" \
-    Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File erstellt werden. 
-    Die älteren Dateien dürfen nicht gelöscht werden.
-    
--   "Spezialpreisekiosk.xlsx" \
-    Definition der Sonderangebote \
-    Diese Datei wird benötigt um die Spezialpreise Spez 1 / Spez 2 / Spez 3 / Spez 4 nachzuschlagen. 
-    
--   "Verleiherabgaben.xlsx" \
-    Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" definiert werden oder nur der "Abzug fix [CHF]" definiert werden. Beide Einträge sind nicht erlaubt. \
-    Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden ob die Kinoförderer als gratis abgerechnet werden dürfen. Wenn **nein** gewählt wurde dann werden die Platzkategorieen `r c_P_kat_verechnen`` auch     als Umsatzt für die Verleiherabrechnung gewertet was die Verleigerabgaben für diese Fälle vergrössert.      
+### Einkaufspreise 
+Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx" \
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden. \
 
--   "Einnahmen und Ausgaben.xlsx" \
-    Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. \
+-   Achtung! \ 
+    Die alte Dateien dürfen nicht gelöscht werden.
+
+
+### Spezialpreise Kiosk
+In der Datei **"Spezialpreisekiosk.xlsx"** müssen die Sonderangebote definiert werden. \
+Diese Datei wird benötigt um die Spezialpreise 
+
+-   Spez 1  
+-   Spez 2  
+-   Spez 3 
+-   Spez 4 
+
+nach zuschlagen. 
+
+
+### Verleiherabgaben    
+Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert werden. \
+
+-   Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" oder nur der "Abzug fix [CHF]" definiert werden. \ 
+    Beide Einträge sind nicht erlaubt. 
+    
+-   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen. \
+    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen  welche in `c_P_kat_verechnen` definiert sind als Umsatz verrechnet.  \
+    Die Verleiherabrechnung wird ändert sich dadurch  was die Abgeben an den Verleiher vergrössert. 
+
+### Einnahmen und Ausgaben
+"Einnahmen und Ausgaben.xlsx" \
+Alle Einnahmen und Ausgaben müssen definiert werden. \
+Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und jenach Kategorie der Rechnung zugewiesen. 
+
+
+#### Filmabrechnung
+Für die Filmabrechnung die folgenden Definitionen wichtig.
+
+-   Filmabrechnung-Einahmen \
+    Die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. \
+    
+-   Filmabrechnung-Ausgaben \
+    Die Kategorie **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt. \
+    
+-   Verleiherrechnung-Ausgaben \
+    Die Kategorie **Verleiher** wird pro Filmabrechnung (Spieldatum) berücksichtigt. \
     
 
-## Ausgabe 
+## Ausgabe / Output 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
 - Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
