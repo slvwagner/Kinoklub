@@ -65,7 +65,8 @@ df_Render <- switch (
   "2" = tibble::tibble(Render  = c("html_document","word_document"), 
                        fileExt = c(".html", ".docx")),
   "3" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"), 
-                       fileExt = c(".html", ".docx", ".pdf"))
+                       fileExt = c(".html", ".docx", ".pdf")),
+  stop("\nDie verwendete Renderoption is nicht definiert")
 )
 
 # löschen aller files im output folder
