@@ -6,11 +6,11 @@ output:
 
 # Kinoklub
 Author: Florian Wagner \
-E-Mail: florian.wagner@wagnius.ch
-
+\
 Script zur Abrechnung für den Kinoklub TaB. 
 Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. 
 \
+Bei Fehlern kann ein "Issue" in Github erfasst werden. \
 \
 Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. Eine Änderung muss deshalb in der Datei "doc/README.Rmd" vorgenommen werden.  
 
