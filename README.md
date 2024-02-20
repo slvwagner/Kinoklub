@@ -4,26 +4,26 @@ output:
     css: source/Kinoklub_dark.css
 ---
 # Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
-* [1 Kinoklub](#A_1_Kinoklub)
-    + [1.1 Installation](#A_1.1_Installation)
-    + [1.2 Datensätze](#A_1.2_Datensätze)
-    + [1.3 Konfigurations Dateien](#A_1.3_Konfigurations Dateien)
-        + [1.3.1 Abrechnung für Filmvorführungen](#A_1.3.1_Abrechnung für Filmvorführungen)
-        + [1.3.2 Inhaltsverzeichnisse](#A_1.3.2_Inhaltsverzeichnisse)
-        + [1.3.3 Mehrwertsteuersatz](#A_1.3.3_Mehrwertsteuersatz)
-        + [1.3.4 Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.](#A_1.3.4_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.)
-        + [1.3.5 Ausgabeformate](#A_1.3.5_Ausgabeformate)
-    + [1.4 Excel Dateien](#A_1.4_Excel Dateien)
-        + [1.4.1 Einkaufspreise](#A_1.4.1_Einkaufspreise)
-        + [1.4.2 Spezialpreise Kiosk](#A_1.4.2_Spezialpreise Kiosk)
-        + [1.4.3 Verleiherabgaben](#A_1.4.3_Verleiherabgaben)
-        + [1.4.4 Einnahmen und Ausgaben](#A_1.4.4_Einnahmen und Ausgaben)
-            + [1.4.4.1 Filmabrechnung](#A_1.4.4.1_Filmabrechnung)
-    + [1.5 Ausgabe / Output](#A_1.5_Ausgabe / Output)
+* [Kinoklub](#A_Kinoklub)
+    + [Installation](#A_Installation)
+    + [Datensätze](#A_Datensätze)
+    + [Konfigurations Dateien](#A_Konfigurations Dateien)
+        + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
+        + [Inhaltsverzeichnisse](#A_Inhaltsverzeichnisse)
+        + [Mehrwertsteuersatz](#A_Mehrwertsteuersatz)
+        + [Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.](#A_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.)
+        + [Ausgabeformate](#A_Ausgabeformate)
+    + [Excel Dateien](#A_Excel Dateien)
+        + [Einkaufspreise](#A_Einkaufspreise)
+        + [Spezialpreise Kiosk](#A_Spezialpreise Kiosk)
+        + [Verleiherabgaben](#A_Verleiherabgaben)
+        + [Einnahmen und Ausgaben](#A_Einnahmen und Ausgaben)
+            + [Filmabrechnung](#A_Filmabrechnung)
+    + [Ausgabe / Output](#A_Ausgabe / Output)
 
 
 
-# 1 Kinoklub<a name="A_1_Kinoklub"></a>
+# Kinoklub<a name="A_Kinoklub"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Author: Florian Wagner \
@@ -44,7 +44,7 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.  
 
-## 1.1 Installation<a name="A_1.1_Installation"></a>
+## Installation<a name="A_Installation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -73,7 +73,7 @@ Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werde
     source("Erstelle Abrechnung.R")
 ```
 
-## 1.2 Datensätze<a name="A_1.2_Datensätze"></a>
+## Datensätze<a name="A_Datensätze"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -95,13 +95,13 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
     ![Shows](doc/shows.png)
 
-## 1.3 Konfigurations Dateien<a name="A_1.3_Konfigurations Dateien"></a>
+## Konfigurations Dateien<a name="A_Konfigurations Dateien"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
 Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
 
-### 1.3.1 Abrechnung für Filmvorführungen<a name="A_1.3.1_Abrechnung für Filmvorführungen"></a>
+### Abrechnung für Filmvorführungen<a name="A_Abrechnung für Filmvorführungen"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 -   Für jede Filmvorführung eine Abrechnung erstellen. \
@@ -109,7 +109,7 @@ Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition
 -   Keine Abrechnug für Filmvorführung  erstellen. \
     c_run_single <- FALSE  
 
-### 1.3.2 Inhaltsverzeichnisse<a name="A_1.3.2_Inhaltsverzeichnisse"></a>
+### Inhaltsverzeichnisse<a name="A_Inhaltsverzeichnisse"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
@@ -119,19 +119,19 @@ Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
 -   Nein \
     toc <- FALSE
 
-### 1.3.3 Mehrwertsteuersatz<a name="A_1.3.3_Mehrwertsteuersatz"></a>
+### Mehrwertsteuersatz<a name="A_Mehrwertsteuersatz"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 c_MWST <- 8.1 #%
 
-### 1.3.4 Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.<a name="A_1.3.4_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen."></a>
+### Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.<a name="A_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen."></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 \ 
 In der Datei "Verleiherabgaben.xlsx" kann die Abrechnungsvariante definiert werden
 
-### 1.3.5 Ausgabeformate<a name="A_1.3.5_Ausgabeformate"></a>
+### Ausgabeformate<a name="A_Ausgabeformate"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -141,12 +141,12 @@ In der Datei "Verleiherabgaben.xlsx" kann die Abrechnungsvariante definiert werd
  
 
 
-## 1.4 Excel Dateien<a name="A_1.4_Excel Dateien"></a>
+## Excel Dateien<a name="A_Excel Dateien"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
-### 1.4.1 Einkaufspreise<a name="A_1.4.1_Einkaufspreise"></a>
+### Einkaufspreise<a name="A_Einkaufspreise"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx" \
@@ -156,7 +156,7 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
     Die alte Dateien dürfen nicht gelöscht werden.
 
 
-### 1.4.2 Spezialpreise Kiosk<a name="A_1.4.2_Spezialpreise Kiosk"></a>
+### Spezialpreise Kiosk<a name="A_Spezialpreise Kiosk"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 In der Datei **"Spezialpreisekiosk.xlsx"** müssen die Sonderangebote definiert werden. \
@@ -170,7 +170,7 @@ Diese Datei wird benötigt um die Spezialpreise
 nach zuschlagen. 
 
 
-### 1.4.3 Verleiherabgaben<a name="A_1.4.3_Verleiherabgaben"></a>
+### Verleiherabgaben<a name="A_Verleiherabgaben"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert werden. \
@@ -182,7 +182,7 @@ Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert 
     Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen  welche in `c_P_kat_verechnen` definiert sind als Umsatz verrechnet.  \
     Die Verleiherabrechnung wird ändert sich dadurch  was die Abgeben an den Verleiher vergrössert. 
 
-### 1.4.4 Einnahmen und Ausgaben<a name="A_1.4.4_Einnahmen und Ausgaben"></a>
+### Einnahmen und Ausgaben<a name="A_Einnahmen und Ausgaben"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 "Einnahmen und Ausgaben.xlsx" \
@@ -190,7 +190,7 @@ Alle Einnahmen und Ausgaben müssen definiert werden. \
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und jenach Kategorie der Rechnung zugewiesen. 
 
 
-#### 1.4.4.1 Filmabrechnung<a name="A_1.4.4.1_Filmabrechnung"></a>
+#### Filmabrechnung<a name="A_Filmabrechnung"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Für die Filmabrechnung die folgenden Definitionen wichtig.
@@ -205,7 +205,7 @@ Für die Filmabrechnung die folgenden Definitionen wichtig.
     Die Kategorie **Verleiher** wird pro Filmabrechnung (Spieldatum) berücksichtigt. \
     
 
-## 1.5 Ausgabe / Output<a name="A_1.5_Ausgabe / Output"></a>
+## Ausgabe / Output<a name="A_Ausgabe / Output"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
