@@ -17,34 +17,6 @@ Bericht wurde am `r act_date` erstellt.
 
 ### Eintritte
 
-#### Zahlend / Gratis 
-```{r}
-df_Eintritt|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))|>
-  knitr::kable()
-```
-
-##### Details
-```{r}
-df_temp <- df_Eintritt|>
-  group_by(Platzkategorie, Verkaufspreis)|>
-  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  arrange(desc(`Verkaufspreis [CHF]`))
-
-df_temp|>
-  knitr::kable()
-```
-
-```{r}
-df_temp|>
-  reframe(Summe = sum(Anzahl,na.rm = T))|>
-  knitr::kable()
-```
-
-
 ### Einnahmen Ticketverkauf
 ```{r}
 df_temp <- df_Eintritt|>
