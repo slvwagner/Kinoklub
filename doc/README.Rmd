@@ -4,28 +4,12 @@ output:
     css: source/Kinoklub_dark.css
 ---
 
-some_code <- "Your code here"
-cat(some_code)
-
 <head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
 </head>
 
 
-```{=html}
-<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
 
-<pre id="code-to-copy">
-some_code <- "Your code here"
-cat(some_code)
-</pre>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    new ClipboardJS('.btn');
-  });
-</script>
-
-```
 
 # Kinoklub
 Author: Florian Wagner \
@@ -63,9 +47,37 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
     install.packages("openxlsx")
     install.packages("flextable")
 ```
+```{=html}
+<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
+
+<pre id="code-to-copy">
+    install.packages("rmarkdown")
+    install.packages("tidyverse")
+    install.packages("rebus")
+    install.packages("openxlsx")
+    install.packages("flextable")
+</pre>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    new ClipboardJS('.btn');
+  });
+</script>
+```
 8.  Run the Script:
 ```
     source("Erstelle Abrechnung.R")
+```
+```{=html}
+<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
+
+<pre id="code-to-copy">
+    source("Erstelle Abrechnung.R")
+</pre>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    new ClipboardJS('.btn');
+  });
+</script>
 ```
 
 ## Datensätze
