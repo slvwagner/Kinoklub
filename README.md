@@ -1,4 +1,8 @@
-
+---
+output: 
+  html_document:
+    css: Kinoklub_dark.css
+---
 # Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
 * [1 Kinoklub](#A_1_Kinoklub)
     + [1.1 Installation](#A_1.1_Installation)
@@ -7,17 +11,18 @@
     + [1.4 Ausgabe](#A_1.4_Ausgabe)
 
 
+
 # 1 Kinoklub<a name="A_1_Kinoklub"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Author: Florian Wagner
+Author: Florian Wagner \
 E-Mail: florian.wagner@wagnius.ch
 
 Script zur Abrechnung für den Kinoklub TaB. 
 Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. 
 \
 \
-Das  Readme file wird aus der Datei "doc/README.md" erstellt. Eine Änderung muss deshalb da vorgenommen werden.  
+Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. Eine Änderung muss deshalb in der Datei "doc/README.Rmd" vorgenommen werden.  
 
 ## 1.1 Installation<a name="A_1.1_Installation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
