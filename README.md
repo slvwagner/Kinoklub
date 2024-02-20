@@ -1,7 +1,7 @@
 ---
 output: 
   html_document:
-    css: Kinoklub_dark.css
+    css: source/Kinoklub_dark.css
 ---
 # Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
 * [1 Kinoklub](#A_1_Kinoklub)
@@ -42,11 +42,11 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
 6.  Start Rstudio from the Kinoklub folder.
 7.  Install the needed packages in the R Terminal
     ```
-    install.packages("rmarkdown")
-    install.packages("tidyverse")
-    install.packages("rebus")
-    install.packages("openxlsx")
-    install.packages("flextable")
+    install.packages("rmarkdown");
+    install.packages("tidyverse");
+    install.packages("rebus");
+    install.packages("openxlsx");
+    install.packages("flextable");
     ```
 8.  Run the Script:
     ```
