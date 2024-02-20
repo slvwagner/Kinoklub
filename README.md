@@ -1,4 +1,5 @@
 ---
+title: Dokumentation
 output: 
   html_document:
     css: source/Kinoklub_dark.css
@@ -129,7 +130,7 @@ c_MWST <- 8.1 #%
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".   \
 Die Variable  `c_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden.  \
-c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
+`c_P_kat_verechnen` <- c("Kinoförderer","Spezialpreis")
 \ 
 
 ### Ausgabeformate<a name="A_Ausgabeformate"></a>
