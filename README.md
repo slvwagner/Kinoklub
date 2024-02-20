@@ -10,8 +10,12 @@
 # 1 Kinoklub<a name="A_1_Kinoklub"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
+Author: Florian Wagner
+E-Mail: florian.wagner@wagnius.ch
 
 Script zur Abrechnung für den Kinoklub TaB. 
+Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. 
+\
 \
 Das  Readme file wird aus der Datei "doc/README.md" erstellt. Eine Änderung muss deshalb da vorgenommen werden.  
 
