@@ -31,3 +31,11 @@ a {
 a:hover {
   color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
 }
+
+
+.output {
+  background-color: #00eaea;  /* Change this color to your desired output background color */
+  padding: 10px;
+  border-radius: 15px;
+  color: #000000;
+}
