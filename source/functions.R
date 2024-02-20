@@ -489,5 +489,5 @@ r_is.defined <- function(sym) {
 # Create TOC for README.md file 
 r_toc_for_Rmd(readLines("doc/README.Rmd"), 
               toc_heading_string = "Inhaltsverzeichnis",
-              create_nb = F)|>
+              create_nb = TRUE)|>
   writeLines("README.md")

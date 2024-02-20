@@ -4,27 +4,31 @@ output:
     css: source/Kinoklub_dark.css
 ---
 # Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
-* [Kinoklub](#A_Kinoklub)
-    + [Installation](#A_Installation)
-    + [Datensätze](#A_Datensätze)
-    + [Konfigurations Dateien](#A_Konfigurations Dateien)
-    + [Ausgabe](#A_Ausgabe)
+* [1 Kinoklub](#A_1_Kinoklub)
+    + [1.1 Installation](#A_1.1_Installation)
+    + [1.2 Datensätze](#A_1.2_Datensätze)
+    + [1.3 Konfigurations Dateien](#A_1.3_Konfigurations Dateien)
+    + [1.4 Ausgabe](#A_1.4_Ausgabe)
 
 
 
-# Kinoklub<a name="A_Kinoklub"></a>
+# 1 Kinoklub<a name="A_1_Kinoklub"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Author: Florian Wagner \
 \
 Script zur Abrechnung für den Kinoklub TaB. 
-Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. 
+Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. \
+Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
+```
+source("Erstelle Abrechnung.R")
+```
 \
 Bei Fehlern kann ein "Issue" in Github erfasst werden. \
 \
 Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. Eine Änderung muss deshalb in der Datei "doc/README.Rmd" vorgenommen werden.  
 
-## Installation<a name="A_Installation"></a>
+## 1.1 Installation<a name="A_1.1_Installation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -53,7 +57,7 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
     source("Erstelle Abrechnung.R")
     ```
 
-## Datensätze<a name="A_Datensätze"></a>
+## 1.2 Datensätze<a name="A_1.2_Datensätze"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -76,7 +80,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     ![Shows](doc/shows.png)
     
 
-## Konfigurations Dateien<a name="A_Konfigurations Dateien"></a>
+## 1.3 Konfigurations Dateien<a name="A_1.3_Konfigurations Dateien"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -92,7 +96,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 -   "Einnahmen und Ausgaben.xlsx" \
     Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. 
 
-## Ausgabe<a name="A_Ausgabe"></a>
+## 1.4 Ausgabe<a name="A_1.4_Ausgabe"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.

@@ -8,7 +8,11 @@ output:
 Author: Florian Wagner \
 \
 Script zur Abrechnung für den Kinoklub TaB. 
-Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. 
+Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. \
+Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
+```
+source("Erstelle Abrechnung.R")
+```
 \
 Bei Fehlern kann ein "Issue" in Github erfasst werden. \
 \
