@@ -80,9 +80,9 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
     source("Erstelle Abrechnung.R")
 ```
 ```{=html}
-<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
+<button class="btn" data-clipboard-target="#code-to-copy1">Copy</button>
 
-<pre id="code-to-copy">
+<pre id="code-to-copy1">
     source("Erstelle Abrechnung.R")
 </pre>
 <script>
