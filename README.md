@@ -117,13 +117,15 @@ Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes 
 -   "Einkauf Kiosk xx.xx.xx.xlsx" \
     Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File erstellt werden. 
     Die älteren Dateien dürfen nicht gelöscht werden.
+    
 -   "Spezialpreisekiosk.xlsx" \
     Definition der Sonderangebote \
     Diese Datei wird benötigt um die Spezialpreise Spez 1 / Spez 2 / Spez 3 / Spez 4 nachzuschlagen. 
+    
 -   "Verleiherabgaben.xlsx" \
     Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" definiert werden oder nur der "Abzug fix [CHF]" definiert werden. Beide Einträge sind nicht erlaubt. \
-    Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden ob die Kinoförderer als gratis abgerechnet werden dürfen. Wenn **nein** gewählt wurde dann werden die Kinoföderer als    
-    Für gewisse Verleiher dürfen keine  
+    Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden ob die Kinoförderer als gratis abgerechnet werden dürfen. Wenn **nein** gewählt wurde dann werden die Platzkategorieen `r c_P_kat_verechnen`` auch     als Umsatzt für die Verleiherabrechnung gewertet was die Verleigerabgaben für diese Fälle vergrössert.      
+
 -   "Einnahmen und Ausgaben.xlsx" \
     Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. \
     
