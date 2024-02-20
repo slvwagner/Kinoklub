@@ -29,7 +29,12 @@ c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 # 3 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- "1" 
 
-# template für diagramme
+
+#############################################################################################################################################
+# Script start
+#############################################################################################################################################
+
+# template für diagramme (Bei einer Änderung soll auch das css geändert werden)
 my_template <- 
   theme_bw() +
   theme(
@@ -51,12 +56,6 @@ my_template <-
     title = element_text(color = "#f4cccc", size  = 22)
   )
 
-
-
-#############################################################################################################################################
-# Script start
-#############################################################################################################################################
-
 # Create TOC for doc/README.Rmd file 
 source("source/functions.R")
 r_toc_for_Rmd(readLines("doc/README.Rmd"), 
@@ -64,7 +63,9 @@ r_toc_for_Rmd(readLines("doc/README.Rmd"),
               create_nb = TRUE)|>
   writeLines("README.md")
 # Render READ me
-rmarkdown::render(paste0("README.md"))
+rmarkdown::render(paste0("README.md"), 
+                  output_dir  = "doc/",
+                  output_file = "Dokumentation.html")
 
 # Ausgabeformat(e)
 df_Render <- switch (
