@@ -485,3 +485,7 @@ r_is.defined <- function(sym) {
   env <- parent.frame()
   exists(sym, env)
 }
+
+# Create TOC for README.md file 
+r_toc_for_Rmd(readLines("doc/README.md"), toc_heading_string = "Inhaltsverzeichnis")|>
+  writeLines("README.md")

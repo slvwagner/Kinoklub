@@ -1,22 +1,12 @@
 
-# Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
-* [1 Kinoklub](#A_1_Kinoklub)
-    + [1.1 Datensätze](#A_1.1_Datensätze)
-    + [1.2 Konfigurations Dateien](#A_1.2_Konfigurations Dateien)
-    + [1.3 Ausgabe](#A_1.3_Ausgabe)
-    + [1.4 Installation](#A_1.4_Installation)
-
-
-# 1 Kinoklub<a name="A_1_Kinoklub"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
+# Kinoklub
 
 Script zur Abrechnung für den Kinoklub TaB. 
+
+
 Das  Readme file wird aus der Datei "doc/README.md" erstellt. Eine Änderung muss deshalb da vorgenommen werden.  
 
-## 1.1 Datensätze<a name="A_1.1_Datensätze"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
+## Datensätze
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis
 **/input/advance tickets** abzuspeichern.
@@ -37,9 +27,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     ![Shows](doc/shows.png)
     
 
-## 1.2 Konfigurations Dateien<a name="A_1.2_Konfigurations Dateien"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
+## Konfigurations Dateien
 
 Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
@@ -53,9 +41,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 -   "Einnahmen und Ausgaben.xlsx" \
     Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. 
 
-## 1.3 Ausgabe<a name="A_1.3_Ausgabe"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
+## Ausgabe 
 Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
 
 - Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
@@ -63,9 +49,7 @@ Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
 - Zusätzliche Daten sind in der Statistik ersichtlich.
 - Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
-## 1.4 Installation<a name="A_1.4_Installation"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
+## Installation
 
 1.  Download and install R \
     <https://cran.r-project.org/bin/windows/base/>
