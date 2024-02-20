@@ -46,11 +46,11 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
 6.  Start Rstudio from the Kinoklub folder.
 7.  Install the needed packages in the R Terminal
 ```
-    install.packages("rmarkdown");
-    install.packages("tidyverse");
-    install.packages("rebus");
-    install.packages("openxlsx");
-    install.packages("flextable");
+    install.packages("rmarkdown")
+    install.packages("tidyverse")
+    install.packages("rebus")
+    install.packages("openxlsx")
+    install.packages("flextable")
 ```
 8.  Run the Script:
 ```
@@ -62,7 +62,7 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
 
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis
-**/input/advance tickets** abzuspeichern.
+**.../Kinoklub/input/advance tickets/** abzuspeichern.
 
 -   "Eintritte 02.12.23.txt" \
     Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt"
@@ -84,7 +84,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
-Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert werden:
+Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
 -   "Einkauf Kiosk xx.xx.xx.xlsx" \
     Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File erstellt werden. 
@@ -99,7 +99,7 @@ Im Verzeichniss **/input** kann mit Hilfe von Excelfiles folgendes definiert wer
 ## 1.4 Ausgabe<a name="A_1.4_Ausgabe"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
+Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
 - Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
 - Die Erfolgsrechnung wird über alle Datensätze erstellt.
