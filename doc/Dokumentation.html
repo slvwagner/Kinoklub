@@ -366,9 +366,8 @@ display: none;
 Filmvorführungen</a></li>
 <li><a href="#A_Inhaltsverzeichnisse">Inhaltsverzeichnisse</a></li>
 <li><a href="#A_Mehrwertsteuersatz">Mehrwertsteuersatz</a></li>
-<li><a href="#A_Platzkategorien%20ohne%20Umsatz%20die%20für%20gewisse%20Verleiher%20dennoch%20abgerechnet%20werden%20müssen.">Platzkategorien
-ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden
-müssen.</a></li>
+<li><a href="#A_Platzkategorien%20ohne%20Umsatz%20die%20dennoch%20abgerechnet%20werden%20müssen.">Platzkategorien
+ohne Umsatz die dennoch abgerechnet werden müssen.</a></li>
 <li><a href="#A_Ausgabeformate">Ausgabeformate</a></li>
 </ul></li>
 <li><a href="#A_Excel%20Dateien">Excel Dateien</a>
@@ -472,10 +471,10 @@ Filmvorführungen<a name="A_Abrechnung für Filmvorführungen"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ul>
 <li>Für jede Filmvorführung eine Abrechnung erstellen.<br />
-c_run_single &lt;- TRUE<br />
+<code>c_run_single</code> &lt;- TRUE<br />
 </li>
 <li>Keine Abrechnug für Filmvorführung erstellen.<br />
-c_run_single &lt;- FALSE</li>
+<code>c_run_single</code> &lt;- FALSE</li>
 </ul>
 </div>
 <div id="inhaltsverzeichnisse" class="section level3">
@@ -485,9 +484,9 @@ c_run_single &lt;- FALSE</li>
 werden?</p>
 <ul>
 <li>Ja<br />
-toc &lt;- TRUE Ja</li>
+<code>toc</code> &lt;- TRUE Ja</li>
 <li>Nein<br />
-toc &lt;- FALSE</li>
+<code>toc</code> &lt;- FALSE</li>
 </ul>
 </div>
 <div id="mehrwertsteuersatz" class="section level3">
@@ -495,23 +494,25 @@ toc &lt;- FALSE</li>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>c_MWST &lt;- 8.1 #%</p>
 </div>
-<div id="platzkategorien-ohne-umsatz-die-für-gewisse-verleiher-dennoch-abgerechnet-werden-müssen." class="section level3">
-<h3>Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch
-abgerechnet werden
-müssen.<a name="A_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen."></a></h3>
+<div id="platzkategorien-ohne-umsatz-die-dennoch-abgerechnet-werden-müssen." class="section level3">
+<h3>Platzkategorien ohne Umsatz die dennoch abgerechnet werden
+müssen.<a name="A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen."></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>c_P_kat_verechnen &lt;- c(“Kinoförderer”,“Spezialpreis”)   In der
-Datei “Verleiherabgaben.xlsx” kann die Abrechnungsvariante definiert
-werden</p>
+<p>Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet
+werden. Die Defintion findet sich in der Datei “Verleiherabgaben.xlsx”
+TAB “Kinoförderer gratis”.<br />
+Die Variable <code>c_P_kat_verechnen</code> definiert welche
+Platzkategorien ohne Umsatz zusätzlich verrechnet werden.<br />
+c_P_kat_verechnen &lt;- c(“Kinoförderer”,“Spezialpreis”)  </p>
 </div>
 <div id="ausgabeformate" class="section level3">
 <h3>Ausgabeformate<a name="A_Ausgabeformate"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ul>
-<li>c_render_option &lt;- “1” only html</li>
-<li>c_render_option &lt;- “2” html and docx</li>
-<li>c_render_option &lt;- “3” html, docx and pdf (Achtung für pdf
-install Latex for Windows (Miktex) for Mac (MacTex))</li>
+<li><code>c_render_option</code> &lt;- “1” only html</li>
+<li><code>c_render_option</code> &lt;- “2” html and docx</li>
+<li><code>c_render_option</code> &lt;- “3” html, docx and pdf (Achtung
+für pdf install Latex for Windows (Miktex) for Mac (MacTex))</li>
 </ul>
 </div>
 </div>

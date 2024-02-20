@@ -11,7 +11,7 @@ output:
         + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
         + [Inhaltsverzeichnisse](#A_Inhaltsverzeichnisse)
         + [Mehrwertsteuersatz](#A_Mehrwertsteuersatz)
-        + [Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.](#A_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.)
+        + [Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.](#A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.)
         + [Ausgabeformate](#A_Ausgabeformate)
     + [Excel Dateien](#A_Excel Dateien)
         + [Einkaufspreise](#A_Einkaufspreise)
@@ -105,9 +105,9 @@ Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 -   Für jede Filmvorführung eine Abrechnung erstellen. \
-    c_run_single <- TRUE  
+    `c_run_single` <- TRUE  
 -   Keine Abrechnug für Filmvorführung  erstellen. \
-    c_run_single <- FALSE  
+    `c_run_single` <- FALSE  
 
 ### Inhaltsverzeichnisse<a name="A_Inhaltsverzeichnisse"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
@@ -115,29 +115,30 @@ Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition
 Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
 
 -   Ja \
-    toc <- TRUE Ja
+    `toc` <- TRUE Ja
 -   Nein \
-    toc <- FALSE
+    `toc` <- FALSE
 
 ### Mehrwertsteuersatz<a name="A_Mehrwertsteuersatz"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 c_MWST <- 8.1 #%
 
-### Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.<a name="A_Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen."></a>
+### Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.<a name="A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen."></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
+Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".   \
+Die Variable  `c_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden.  \
 c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 \ 
-In der Datei "Verleiherabgaben.xlsx" kann die Abrechnungsvariante definiert werden
 
 ### Ausgabeformate<a name="A_Ausgabeformate"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
--   c_render_option <- "1"  only html
--   c_render_option <- "2"  html and docx
--   c_render_option <- "3"  html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+-   `c_render_option` <- "1"  only html
+-   `c_render_option` <- "2"  html and docx
+-   `c_render_option` <- "3"  html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
  
 
 
