@@ -52,37 +52,9 @@ Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. E
     install.packages("openxlsx")
     install.packages("flextable")
 ```
-```{=html}
-<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
-
-<pre id="code-to-copy">
-    install.packages("rmarkdown")
-    install.packages("tidyverse")
-    install.packages("rebus")
-    install.packages("openxlsx")
-    install.packages("flextable")
-</pre>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    new ClipboardJS('.btn');
-  });
-</script>
-```
 8.  Run the Script:
 ```
     source("Erstelle Abrechnung.R")
-```
-```{=html}
-<button class="btn" data-clipboard-target="#code-to-copy1">Copy</button>
-
-<pre id="code-to-copy1">
-    source("Erstelle Abrechnung.R")
-</pre>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    new ClipboardJS('.btn');
-  });
-</script>
 ```
 
 ## 1.2 Datensätze<a name="A_1.2_Datensätze"></a>
