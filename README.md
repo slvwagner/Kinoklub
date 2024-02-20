@@ -195,15 +195,15 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und jenach
 #### Filmabrechnung<a name="A_Filmabrechnung"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Für die Filmabrechnung die folgenden Definitionen wichtig.
+Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien  werden einer Abrechnung zugewiesen.
 
--   Filmabrechnung-Einahmen \
+-   Einnahmen und Ausgaben.xlsx/Einahmen \
     Die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. \
     
--   Filmabrechnung-Ausgaben \
+-   Einnahmen und Ausgaben.xlsx/Ausgaben \
     Die Kategorie **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt. \
     
--   Verleiherrechnung-Ausgaben \
+-   Einnahmen und Ausgaben.xlsx/Ausgaben \
     Die Kategorie **Verleiher** wird pro Filmabrechnung (Spieldatum) berücksichtigt. \
     
 
