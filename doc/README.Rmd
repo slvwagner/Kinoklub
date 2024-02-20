@@ -4,6 +4,29 @@ output:
     css: source/Kinoklub_dark.css
 ---
 
+some_code <- "Your code here"
+cat(some_code)
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+</head>
+
+
+```{=html}
+<button class="btn" data-clipboard-target="#code-to-copy">Copy</button>
+
+<pre id="code-to-copy">
+some_code <- "Your code here"
+cat(some_code)
+</pre>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    new ClipboardJS('.btn');
+  });
+</script>
+
+```
+
 # Kinoklub
 Author: Florian Wagner \
 \
@@ -74,11 +97,15 @@ Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes 
     Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File erstellt werden. 
     Die älteren Dateien dürfen nicht gelöscht werden.
 -   "Spezialpreisekiosk.xlsx" \
-    Definition der Sonderangebote
+    Definition der Sonderangebote \
+    Diese Datei wird benötigt um die Spezialpreise Spez 1 / Spez 2 / Spez 3 / Spez 4 nachzuschlagen. 
 -   "Verleiherabgaben.xlsx" \
-    Definition der Umsatzabgaben die der Filmverleiher erhält.
+    Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" definiert werden oder nur der "Abzug fix [CHF]" definiert werden. Beide Einträge sind nicht erlaubt. \
+    Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden ob die Kinoförderer als gratis abgerechnet werden dürfen. Wenn **nein** gewählt wurde dann werden die Kinoföderer als    
+    Für gewisse Verleiher dürfen keine  
 -   "Einnahmen und Ausgaben.xlsx" \
-    Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. 
+    Einnahmen und Ausgaben aus Rechnungen und Gutschrifften. \
+    
 
 ## Ausgabe 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.

@@ -7,6 +7,7 @@
 # V0.7.0
 #############################################################################################################################################
 rm(list = ls())
+library(tidyverse)
 #############################################################################################################################################
 # Benutzereinstellungen 
 #############################################################################################################################################
@@ -18,6 +19,9 @@ toc <- TRUE
 
 # Mehrwertsteuersatz
 c_MWST <- 8.1 #%
+
+# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
+c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
 
 # Ausgabeformate
 # 1 = only html
@@ -52,6 +56,13 @@ my_template <-
 #############################################################################################################################################
 # Script start
 #############################################################################################################################################
+
+# Create TOC for README.md file 
+source("source/functions.R")
+r_toc_for_Rmd(readLines("doc/README.Rmd"), 
+              toc_heading_string = "Inhaltsverzeichnis",
+              create_nb = TRUE)|>
+  writeLines("README.md")
 
 # Ausgabeformat(e)
 df_Render <- switch (

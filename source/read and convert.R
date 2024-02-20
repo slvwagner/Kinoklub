@@ -388,8 +388,7 @@ df_Kinopreise <- df_Eintritt|>
   select(Platzkategorie, Verkaufspreis)
 df_Kinopreise
 
-# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
+
 
 c_Date[3]
 
