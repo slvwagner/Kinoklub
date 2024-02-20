@@ -37,7 +37,12 @@ source("Erstelle Abrechnung.R")
 \
 Bei Fehlern kann ein "Issue" in Github erfasst werden. \
 \
-Die Datei "README.md" wird automatisch beim erstellen der Abrechnung erstellt. Eine Änderung muss deshalb in der Datei "doc/README.Rmd" vorgenommen werden.  
+Die Datei "README.md" und die Dokumentation wird automatisch erstellt. 
+```
+source("doc/create Readme and Docu.R")
+```
+
+Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.  
 
 ## 1.1 Installation<a name="A_1.1_Installation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
