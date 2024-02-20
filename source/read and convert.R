@@ -676,7 +676,8 @@ df_GV_Vorfuehrung
 ########################################################################
 dir.create("output/") |> suppressWarnings()
 
-list(Eintritte= df_Eintritt,
+list(Shows = df_show,
+     Eintritte= df_Eintritt,
      `Gewinn Verlust Eintritt` = df_GV_Eintritt,
      Kiosk = df_Kiosk,
      `Gewinn Kiosk` = df_GV_Kiosk,
