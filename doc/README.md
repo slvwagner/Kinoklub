@@ -2,9 +2,35 @@
 # Kinoklub
 
 Script zur Abrechnung für den Kinoklub TaB. 
-
-
+\
 Das  Readme file wird aus der Datei "doc/README.md" erstellt. Eine Änderung muss deshalb da vorgenommen werden.  
+
+## Installation
+
+1.  Download and install R \
+    <https://cran.r-project.org/bin/windows/base/>
+2.  Download and install Rsudio \
+    <https://posit.co/download/rstudio-desktop/>
+3.  Download git: \
+    <https://git-scm.com/downloads>
+5.  Kionklub Scripts download:
+    Navigate to folder you would like to install the Scripts
+    ```
+    git clone https://github.com/slvwagner/Kinoklub
+    ```
+6.  Start Rstudio from the Kinoklub folder.
+7.  Install the needed packages in the R Terminal
+    ```
+    install.packages("rmarkdown")
+    install.packages("tidyverse")
+    install.packages("rebus")
+    install.packages("openxlsx")
+    install.packages("flextable")
+    ```
+8.  Run the Script:
+    ```
+    source("Erstelle Abrechnung.R")
+    ```
 
 ## Datensätze
 
@@ -49,29 +75,4 @@ Alle Dateien die erzeugt wurden finden sich im **/output** Verzeichniss.
 - Zusätzliche Daten sind in der Statistik ersichtlich.
 - Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
-## Installation
 
-1.  Download and install R \
-    <https://cran.r-project.org/bin/windows/base/>
-2.  Download and install Rsudio \
-    <https://posit.co/download/rstudio-desktop/>
-3.  Download git: \
-    <https://git-scm.com/downloads>
-5.  Kionklub Scripts download:
-    Navigate to folder you would like to install the Scripts
-    ```
-    git clone https://github.com/slvwagner/Kinoklub
-    ```
-6.  Start Rstudio from the Kinoklub folder.
-7.  Install the needed packages in the R Terminal
-    ```
-    install.packages("rmarkdown")
-    install.packages("tidyverse")
-    install.packages("rebus")
-    install.packages("openxlsx")
-    install.packages("flextable")
-    ```
-8.  Run the Script:
-    ```
-    source("Erstelle Abrechnung.R")
-    ```
