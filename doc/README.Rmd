@@ -68,7 +68,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 -   "Shows.txt" \
     Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt" \
     Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren. \
-    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
+    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx \
     ![Shows](doc/shows.png)
 
 ## Script Konfiguration
