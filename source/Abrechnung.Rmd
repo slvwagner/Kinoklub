@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 1
+ii <- 5
 ```
 
 ```{r echo=FALSE}
@@ -195,6 +195,14 @@ Eventeinnahmen|>
 
 
 ### Ausgaben
+Als Eventausgaben müssen alle Ausgaben deklariert werden die nur für die jeweilige Filmforführung getätigt wurden. \
+
+-   Ausgaben für die Spezialpreise die in der Datei **".../Kinoklub/input/Spezialpreisekiosk.xlsx"** erfast wurden.  \
+-   Dekomaterial 
+-   Spesen
+-   ...
+
+
 
 ```{r}
 Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
@@ -217,37 +225,52 @@ Eventausgaben|>
 
 ## Kiosk
 
-### Pro Artikel
+### Gewinn pro Artikel
 
 ```{r echo=FALSE}
-Kiosk <- df_Kiosk|>
+df_temp <- df_Kiosk|>
   filter(Datum == c_Datum)|>
   select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
-         `Kiosk Gewinn [CHF]` = `Gewinn`,
          `Verkaufspreis [CHF]`=`Verkaufspreis`)
-
-Kiosk|>
-  knitr::kable()
-
 ```
 
+```{r echo=FALSE}
+df_temp|>
+  filter(!is.na(Lieferant))|>
+  rename(`Gewinn [CHF]` = Gewinn)|>
+  knitr::kable()
+```
 
-### Gewinn
+### Umsatz
+Verkaufsartikel ohne Lieferant sind Spezialpreise definiert.
+```{r echo=FALSE}
+df_temp|>
+  filter(is.na(Lieferant))|>
+  rename(`Umsatz [CHF]` = Gewinn)|>
+  knitr::kable()
+```
+
+### Einnahmen
+Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für Spezialpreise berechnet.  
 ```{r echo=FALSE}
 Kiosk <- df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)
+  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen()
           )
 
 Kiosk|>
   knitr::kable(digits = 2)
 ```
 
-### Kioskumsatz pro Gast
+### Ausgaben 
+**Achtung!**\
+Für Verkaufsartikel ohne Lieferant müssen Eventausgaben definiert werden.
 
-#### Kioskumsatz aller Gäste
+## Kioskumsatz pro Gast
+
+### Kioskumsatz aller Gäste
 
 ```{r echo=FALSE}
 df_show |>
@@ -273,7 +296,7 @@ df_show |>
 ```
 
 
-#### Kioskumsatz pro zahlender Gast
+### Kioskumsatz pro zahlender Gast
 ```{r echo=FALSE}
 df_show |>
   filter(Datum == c_Datum)|>
