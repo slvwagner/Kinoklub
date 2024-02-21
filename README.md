@@ -200,7 +200,9 @@ Alle Einnahmen und Ausgaben müssen definiert werden. \
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
 -   Eventausgaben
+    Alle Ausgaben die für den Eventausgegeben wurden, z.B. Werbung, Esswaren, Spesen
 -   Kiosk
+    
 -   Vermietung
 -   Werbung
 -   Personalaufwand
