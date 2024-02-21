@@ -1,36 +1,30 @@
 ---
-title: Dokumentation
+title: Dokumentation Kinoklub
 output: 
   html_document:
     css: source/Kinoklub_dark.css
 ---
-# Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
-* [Kinoklub](#A_Kinoklub)
-    + [Installation](#A_Installation)
-    + [Datensätze](#A_Datensätze)
-    + [Script Konfiguration](#A_Script Konfiguration)
-        + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
-        + [Inhaltsverzeichnisse](#A_Inhaltsverzeichnisse)
-        + [Mehrwertsteuersatz](#A_Mehrwertsteuersatz)
-        + [Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.](#A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.)
-        + [Ausgabeformate](#A_Ausgabeformate)
-    + [Excel Dateien](#A_Excel Dateien)
-        + [Einkaufspreise](#A_Einkaufspreise)
-        + [Spezialpreise Kiosk](#A_Spezialpreise Kiosk)
-        + [Verleiherabgaben](#A_Verleiherabgaben)
-        + [Einnahmen und Ausgaben](#A_Einnahmen und Ausgaben)
-    + [Berichte](#A_Berichte)
-        + [Abrechnung Filmvorführung](#A_Abrechnung Filmvorführung)
-        + [Jahresabrechnungen](#A_Jahresabrechnungen)
-    + [Ausgabe / Output](#A_Ausgabe / Output)
-* [Berchnungsdokumentation](#A_Berchnungsdokumentation)
-    + [Ablauf](#A_Ablauf)
+## Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
+* [Installation](#A_Installation)
+* [Datensätze](#A_Datensätze)
+* [Script Konfiguration](#A_Script Konfiguration)
+    + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
+    + [Inhaltsverzeichnisse](#A_Inhaltsverzeichnisse)
+    + [Mehrwertsteuersatz](#A_Mehrwertsteuersatz)
+    + [Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.](#A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.)
+    + [Ausgabeformate](#A_Ausgabeformate)
+* [Excel Dateien](#A_Excel Dateien)
+    + [Einkaufspreise](#A_Einkaufspreise)
+    + [Spezialpreise Kiosk](#A_Spezialpreise Kiosk)
+    + [Verleiherabgaben](#A_Verleiherabgaben)
+    + [Einnahmen und Ausgaben](#A_Einnahmen und Ausgaben)
+* [Berichte](#A_Berichte)
     + [Abrechnung Filmvorführung](#A_Abrechnung Filmvorführung)
+    + [Jahresabrechnungen](#A_Jahresabrechnungen)
+    + [Statistik](#A_Statistik)
+* [Ablauf](#A_Ablauf)
 
 
-
-# Kinoklub<a name="A_Kinoklub"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Author: Florian Wagner \
 \
@@ -199,24 +193,77 @@ Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben
 **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** \
 Alle Einnahmen und Ausgaben müssen definiert werden. \
 
+\newpage
 ## Berichte<a name="A_Berichte"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
+
+-   Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+-   Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
+-   Es wird eine Statistik mit Porgnosen erstellt.
+-   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ### Abrechnung Filmvorführung<a name="A_Abrechnung Filmvorführung"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien  werden einer Abrechnung zugewiesen.
+Es wird eine Filmabrechnung pro Event (Datum) erstellt. 
 
+-   Übericht  \
 -   Filmvorführung
+    -   Kino Besucherzahlen und Umsatz
+        -   Filmabgaben\
+        -   Verleiherrechnung\
+            In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
+            wird die Kategorie **Verleiher**  berücksichtigt. 
+        -   Prozentualle Abgaben\
+            Der Suisaabzug wird vom Umsatz berechnet.\
+            
+            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert.\
+            1.    Fall:\
+                  **Netto3** x **Abzug %** > **Minimal Abzug**\
+                  Verleiherabzug: **Netto3** x **Abzug %**
+            2.    Fall:\
+                  **Netto3** x **Abzug %** < **Minimal Abzug**\
+                  Verleiherabzug: **Minimal Abzug**    
+            3.    Fall:\
+                  **Abzug fix [CHF]**\
+                  Verleiherabzug: **Abzug fix [CHF]**
+        -   Reklamematerial und Porto\
+            Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet. 
+        -   MWST auf Verleiherrechnung\
+            1.    Fall: Vereiherrechnung vorhanden\
+                  MWST wird mit der Verleiherrechnung berechnet. 
+            2.    Fall: Vereiherrechnung nicht vorhanden\
+                  MWST wird aus dem Umsatz berechnet.     
+    -   Gewinn / Verlust aus Tickerverkauf\
+        Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
 -   Event
     -   Einnahmen
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** wird die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. 
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
+            wird die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. 
     -   Ausgaben  
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** wird die **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt.
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
+            wird die **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt.
 -   Kiosk
-    -   Einnahmen
-    -   Ausgaben
+    -   Gewinn pro Artikel\
+        In der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\ ist der Gewinn pro Artikel definiert. 
+    -   Umsatz
+        Für den Verkaufsartikel gibte es keine Definition in der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\
+    -   Einnahmen\
+        Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für Spezialpreise berechnet.
+    -   Ausgaben\
+        Achtung!\
+        Für Verkaufsartikel ohne Lieferant müssen Eventausgaben definiert werden.
+-   Kioskumsatz pro Gast
+    -   Kioskumsatz aller Gäste
+    -   Kioskumsatz pro zahlender Gast
+-   Kasse\
+    Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt.
+-   Gewinn / Verlust\
+    Summe aus Einnahmen und Ausgaben
 
+\newpage
 ### Jahresabrechnungen<a name="A_Jahresabrechnungen"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -253,25 +300,36 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben  \
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ... 
 
-    
-\newpage
-## Ausgabe / Output<a name="A_Ausgabe / Output"></a>
+\newpage    
+### Statistik<a name="A_Statistik"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
--   Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+-   Gewinn/Verlust
+    -   Prognose\
+        Die Prognose des Gewinns wird mit der Kumuliertensumme pro Datum erstellt. 
+-   Ticketverkauf
+    -   Prognose
+    -  Eintritte
+        -   Anzahl
+        -   Umsatz
+            -   Prognose
+    -   Filmabgaben
+        -   Prognose
+-   Abos
+    -   Einnahmen
+    -   Eingelöst
+    -   Kredit
+-   Kiosk-Gewinn pro Vorführung
+    -   Prognose
+-   Kiosk
+    -   Verkaufsartikel
+    -   Ladenhüter (keine Verkäufe)
+    -   Kiosk Umsatz pro Gast
+        -   Prognose
+    -   Umsatz pro zahlender Gast
+        -   Prognose
 
--   Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
-
--   Es wird eine Statistik mit Porgnosen erstellt.
-
--   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
-
-
-\newpage
-# Berchnungsdokumentation<a name="A_Berchnungsdokumentation"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 ## Ablauf<a name="A_Ablauf"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
@@ -285,9 +343,4 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 8.    Erstellen Jahresbericht detailed
 11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
 
-
-## Abrechnung Filmvorführung<a name="A_Abrechnung Filmvorführung"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
-
-Pro Filmvorführung wirde eine Abrechnung erstellt
 

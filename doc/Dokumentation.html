@@ -11,7 +11,7 @@
 
 
 
-<title>Dokumentation</title>
+<title>Dokumentation Kinoklub</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,15 +349,13 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Dokumentation</h1>
+<h1 class="title toc-ignore">Dokumentation Kinoklub</h1>
 
 </div>
 
 
-<div id="inhaltsverzeichnis" class="section level1">
-<h1>Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a></h1>
-<ul>
-<li><a href="#A_Kinoklub">Kinoklub</a>
+<div id="inhaltsverzeichnis" class="section level2">
+<h2>Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a></h2>
 <ul>
 <li><a href="#A_Installation">Installation</a></li>
 <li><a href="#A_Datensätze">Datensätze</a></li>
@@ -384,20 +382,10 @@ Ausgaben</a></li>
 <li><a href="#A_Abrechnung%20Filmvorführung">Abrechnung
 Filmvorführung</a></li>
 <li><a href="#A_Jahresabrechnungen">Jahresabrechnungen</a></li>
+<li><a href="#A_Statistik">Statistik</a></li>
 </ul></li>
-<li><a href="#A_Ausgabe%20/%20Output">Ausgabe / Output</a></li>
-</ul></li>
-<li><a href="#A_Berchnungsdokumentation">Berchnungsdokumentation</a>
-<ul>
 <li><a href="#A_Ablauf">Ablauf</a></li>
-<li><a href="#A_Abrechnung%20Filmvorführung">Abrechnung
-Filmvorführung</a></li>
-</ul></li>
 </ul>
-</div>
-<div id="kinoklub" class="section level1">
-<h1>Kinoklub<a name="A_Kinoklub"></a></h1>
-<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Author: Florian Wagner<br />
 <br />
 Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den
@@ -414,6 +402,7 @@ erstellt.</p>
 <p>Eine Änderung muss deshalb in der Datei
 <strong>“doc/README.Rmd”</strong> vorgenommen werden.</p>
 <div style="page-break-after: always;"></div>
+</div>
 <div id="installation" class="section level2">
 <h2>Installation<a name="A_Installation"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
@@ -595,40 +584,128 @@ Verleiher vergrössert.</p></li>
 <p><strong>“…/Kinoklub/input/Einnahmen und Ausgaben.xlsx”</strong><br />
 Alle Einnahmen und Ausgaben müssen definiert werden.<br />
 </p>
+<div style="page-break-after: always;"></div>
 </div>
 </div>
 <div id="berichte" class="section level2">
 <h2>Berichte<a name="A_Berichte"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
+<p>Alle Dateien die erzeugt wurden finden sich im
+<strong>…/Kinoklub/output/</strong> Verzeichniss.</p>
+<ul>
+<li>Für jede Filmvorführung respektive Datum wird ein Abrechnung
+erstellt.</li>
+<li>Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung
+erstellt.</li>
+<li>Es wird eine Statistik mit Porgnosen erstellt.</li>
+<li>Alle verwendeten Datensätze werden in ein Excelfile
+abgespeichert.</li>
+</ul>
 <div id="abrechnung-filmvorführung" class="section level3">
 <h3>Abrechnung
 Filmvorführung<a name="A_Abrechnung Filmvorführung"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden
-Kategorien werden einer Abrechnung zugewiesen.</p>
+<p>Es wird eine Filmabrechnung pro Event (Datum) erstellt.</p>
 <ul>
-<li>Filmvorführung</li>
+<li>Übericht<br />
+</li>
+<li>Filmvorführung
+<ul>
+<li>Kino Besucherzahlen und Umsatz
+<ul>
+<li><p>Filmabgaben<br />
+</p></li>
+<li><p>Verleiherrechnung<br />
+In der Datei <strong>“…/Kinoklub/input/Einnahmen und
+Ausgaben.xlsx”</strong> in den <strong>Ausgaben</strong><br />
+wird die Kategorie <strong>Verleiher</strong> berücksichtigt.</p></li>
+<li><p>Prozentualle Abgaben<br />
+Der Suisaabzug wird vom Umsatz berechnet.<br />
+</p>
+<p>In der Datei
+<strong>“…/Kinoklub/input/Verleiherabgaben.xlsx”</strong> sind
+<strong>Abzug %</strong>, <strong>Minimal Abzug</strong> oder
+<strong>Abzug fix [CHF]</strong> definiert.<br />
+</p>
+<ol style="list-style-type: decimal">
+<li>Fall:<br />
+<strong>Netto3</strong> x <strong>Abzug %</strong> &gt; <strong>Minimal
+Abzug</strong><br />
+Verleiherabzug: <strong>Netto3</strong> x <strong>Abzug %</strong></li>
+<li>Fall:<br />
+<strong>Netto3</strong> x <strong>Abzug %</strong> &lt; <strong>Minimal
+Abzug</strong><br />
+Verleiherabzug: <strong>Minimal Abzug</strong><br />
+</li>
+<li>Fall:<br />
+<strong>Abzug fix [CHF]</strong><br />
+Verleiherabzug: <strong>Abzug fix [CHF]</strong></li>
+</ol></li>
+<li><p>Reklamematerial und Porto<br />
+Das <strong>Reklamematerial und Porto</strong> werden aus der Differenz
+der <strong>Verleiherrechnung</strong> und den <strong>Prozentualle
+Abgaben</strong> berechnet.</p></li>
+<li><p>MWST auf Verleiherrechnung<br />
+</p>
+<ol style="list-style-type: decimal">
+<li>Fall: Vereiherrechnung vorhanden<br />
+MWST wird mit der Verleiherrechnung berechnet.</li>
+<li>Fall: Vereiherrechnung nicht vorhanden<br />
+MWST wird aus dem Umsatz berechnet.<br />
+</li>
+</ol></li>
+</ul></li>
+<li>Gewinn / Verlust aus Tickerverkauf<br />
+Der Gewinn/Verlust wird aus <strong>Umsatz</strong> -
+(<strong>Suisa-Abzug</strong>+<strong>Verleiherabzug</strong>+<strong>MWST</strong>+<strong>Reklamematerial
+und Porto</strong>)</li>
+</ul></li>
 <li>Event
 <ul>
 <li>Einnahmen
 <ul>
 <li>In der Datei <strong>“…/Kinoklub/input/Einnahmen und
-Ausgaben.xlsx”</strong> wird die Kategorie <strong>Vermietung</strong>
-wird pro Filmabrechnung (Datum) berücksichtigt.</li>
+Ausgaben.xlsx”</strong> in den <strong>Ausgaben</strong><br />
+wird die Kategorie <strong>Vermietung</strong> wird pro Filmabrechnung
+(Datum) berücksichtigt.</li>
 </ul></li>
 <li>Ausgaben
 <ul>
 <li>In der Datei <strong>“…/Kinoklub/input/Einnahmen und
-Ausgaben.xlsx”</strong> wird die <strong>Eventausgaben</strong> wird pro
-Filmabrechnung (Spieldatum) berücksichtigt.</li>
+Ausgaben.xlsx”</strong> in den <strong>Ausgaben</strong><br />
+wird die <strong>Eventausgaben</strong> wird pro Filmabrechnung
+(Spieldatum) berücksichtigt.</li>
 </ul></li>
 </ul></li>
 <li>Kiosk
 <ul>
-<li>Einnahmen</li>
-<li>Ausgaben</li>
+<li>Gewinn pro Artikel<br />
+In der Datei <strong>“…/Kinoklub/input/Einkauf Kiosk
+xx.xxx.xx.xlsx”</strong> ist der Gewinn pro Artikel definiert.</li>
+<li>Umsatz Für den Verkaufsartikel gibte es keine Definition in der
+Datei <strong>“…/Kinoklub/input/Einkauf Kiosk
+xx.xxx.xx.xlsx”</strong><br />
+</li>
+<li>Einnahmen<br />
+Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für
+Spezialpreise berechnet.</li>
+<li>Ausgaben<br />
+Achtung!<br />
+Für Verkaufsartikel ohne Lieferant müssen Eventausgaben definiert
+werden.</li>
 </ul></li>
+<li>Kioskumsatz pro Gast
+<ul>
+<li>Kioskumsatz aller Gäste</li>
+<li>Kioskumsatz pro zahlender Gast</li>
+</ul></li>
+<li>Kasse<br />
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets
+genutzt.</li>
+<li>Gewinn / Verlust<br />
+Summe aus Einnahmen und Ausgaben</li>
 </ul>
+<div style="page-break-after: always;"></div>
 </div>
 <div id="jahresabrechnungen" class="section level3">
 <h3>Jahresabrechnungen<a name="A_Jahresabrechnungen"></a></h3>
@@ -690,27 +767,58 @@ Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin,
 </ul>
 <div style="page-break-after: always;"></div>
 </div>
-</div>
-<div id="ausgabe-output" class="section level2">
-<h2>Ausgabe / Output<a name="A_Ausgabe / Output"></a></h2>
+<div id="statistik" class="section level3">
+<h3>Statistik<a name="A_Statistik"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>Alle Dateien die erzeugt wurden finden sich im
-<strong>…/Kinoklub/output/</strong> Verzeichniss.</p>
 <ul>
-<li><p>Für jede Filmvorführung respektive Datum wird ein Abrechnung
-erstellt.</p></li>
-<li><p>Es wird eine Jahresbarechnung und eine detalierte
-Jahresabrechnung erstellt.</p></li>
-<li><p>Es wird eine Statistik mit Porgnosen erstellt.</p></li>
-<li><p>Alle verwendeten Datensätze werden in ein Excelfile
-abgespeichert.</p></li>
+<li>Gewinn/Verlust
+<ul>
+<li>Prognose<br />
+Die Prognose des Gewinns wird mit der Kumuliertensumme pro Datum
+erstellt.</li>
+</ul></li>
+<li>Ticketverkauf
+<ul>
+<li>Prognose</li>
+<li>Eintritte
+<ul>
+<li>Anzahl</li>
+<li>Umsatz
+<ul>
+<li>Prognose</li>
+</ul></li>
+</ul></li>
+<li>Filmabgaben
+<ul>
+<li>Prognose</li>
+</ul></li>
+</ul></li>
+<li>Abos
+<ul>
+<li>Einnahmen</li>
+<li>Eingelöst</li>
+<li>Kredit</li>
+</ul></li>
+<li>Kiosk-Gewinn pro Vorführung
+<ul>
+<li>Prognose</li>
+</ul></li>
+<li>Kiosk
+<ul>
+<li>Verkaufsartikel</li>
+<li>Ladenhüter (keine Verkäufe)</li>
+<li>Kiosk Umsatz pro Gast
+<ul>
+<li>Prognose</li>
+</ul></li>
+<li>Umsatz pro zahlender Gast
+<ul>
+<li>Prognose</li>
+</ul></li>
+</ul></li>
 </ul>
-<div style="page-break-after: always;"></div>
 </div>
 </div>
-<div id="berchnungsdokumentation" class="section level1">
-<h1>Berchnungsdokumentation<a name="A_Berchnungsdokumentation"></a></h1>
-<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <div id="ablauf" class="section level2">
 <h2>Ablauf<a name="A_Ablauf"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
@@ -725,13 +833,6 @@ Konvertiert. Der Script “read and convert.R” benötigt “function.R” und
 <li>Erstellen Abrechnung Filmvorführung pro Datum respektive
 Vorführung</li>
 </ol>
-</div>
-<div id="abrechnung-filmvorführung-1" class="section level2">
-<h2>Abrechnung
-Filmvorführung<a name="A_Abrechnung Filmvorführung"></a></h2>
-<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>Pro Filmvorführung wirde eine Abrechnung erstellt</p>
-</div>
 </div>
 
 
