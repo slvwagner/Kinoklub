@@ -19,8 +19,9 @@ output:
         + [Spezialpreise Kiosk](#A_Spezialpreise Kiosk)
         + [Verleiherabgaben](#A_Verleiherabgaben)
         + [Einnahmen und Ausgaben](#A_Einnahmen und Ausgaben)
-            + [Jahresabrechnungen](#A_Jahresabrechnungen)
-            + [Filmabrechnung](#A_Filmabrechnung)
+    + [Berichte](#A_Berichte)
+        + [Abrechnung Filmvorführung](#A_Abrechnung Filmvorführung)
+        + [Jahresabrechnungen](#A_Jahresabrechnungen)
     + [Ausgabe / Output](#A_Ausgabe / Output)
 * [Berchnungsdokumentation](#A_Berchnungsdokumentation)
     + [Ablauf](#A_Ablauf)
@@ -162,7 +163,7 @@ Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes 
 Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx" \
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden. \
 
--   Achtung! \ 
+-   Achtung!   \
     Die alte Dateien dürfen nicht gelöscht werden.
 
 
@@ -183,7 +184,7 @@ nach zuschlagen.
 ### Verleiherabgaben<a name="A_Verleiherabgaben"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert werden. \
+Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** definiert werden. \
 
 -   Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" oder nur der "Abzug fix [CHF]" definiert werden. \ 
     Beide Einträge sind nicht erlaubt. 
@@ -195,37 +196,63 @@ Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert 
 ### Einnahmen und Ausgaben<a name="A_Einnahmen und Ausgaben"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-"Einnahmen und Ausgaben.xlsx" \
+**".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** \
 Alle Einnahmen und Ausgaben müssen definiert werden. \
 
-#### Jahresabrechnungen<a name="A_Jahresabrechnungen"></a>
+## Berichte<a name="A_Berichte"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
-
--   Eventausgaben
-    Alle Ausgaben die für den Eventausgegeben wurden, z.B. Werbung, Esswaren, Spesen
--   Kiosk
-    
--   Vermietung
--   Werbung
--   Personalaufwand
--   Sonstiges
-
-
-#### Filmabrechnung<a name="A_Filmabrechnung"></a>
+### Abrechnung Filmvorführung<a name="A_Abrechnung Filmvorführung"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien  werden einer Abrechnung zugewiesen.
 
--   Einnahmen und Ausgaben.xlsx/Einahmen \
-    Die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. \
-    
--   Einnahmen und Ausgaben.xlsx/Ausgaben \
-    Die Kategorie **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt. \
-    
--   Einnahmen und Ausgaben.xlsx/Ausgaben \
-    Die Kategorie **Verleiher** wird pro Filmabrechnung (Spieldatum) berücksichtigt. \
+-   Filmvorführung
+-   Event
+    -   Einnahmen
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** wird die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. 
+    -   Ausgaben  
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** wird die **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt.
+-   Kiosk
+    -   Einnahmen
+    -   Ausgaben
+
+### Jahresabrechnungen<a name="A_Jahresabrechnungen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
+
+-   Eventausgaben \
+    Alle Ausgaben die für den Eventausgegeben wurden, z.B. Werbung, Esswaren, Spesen
+-   Kiosk \
+    -   Einnahmen  \
+        Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
+    -   Ausgaben
+        -   Einkauf Getränke  \
+            Die Getränke werden von Theater am Bahnhof eingekauft.  \
+            Falls in der Datei **.../Kinoklub/input/Einkauf Kiosk xx.xx.xx.xlsx** der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben. \
+            Der Getränkeeinkauf wird mit **"Anzahl x Einkaufspreis"** berechnet.
+        -   Einkauf Kino  \
+            Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**  \ 
+            mit Kategorie **Kiosk** definiert. 
+-   Vermietung  \
+    -   Einnahmen  \
+        Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
+    -   Ausgaben  \
+        Mietkosten für Filme und Material, ...
+-   Werbung
+    -   Einnahmen  \
+        Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ... 
+    -   Ausgaben  \
+        Inserate, Drucksachen, Homepage, ...
+-   Personalaufwand  \
+    Löhne
+-   Sonstiges
+    -   Einnahmen  \
+        Sponsoen, Gönner, Kulturbeiträge, ...
+    -   Ausgaben  \
+        Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ... 
+
     
 \newpage
 ## Ausgabe / Output<a name="A_Ausgabe / Output"></a>
@@ -233,10 +260,13 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
--     Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
--     Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
--     Es wird eine Statistik mit Porgnosen erstellt.
--     Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
+-   Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+
+-   Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
+
+-   Es wird eine Statistik mit Porgnosen erstellt.
+
+-   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 
 \newpage

@@ -376,11 +376,14 @@ ohne Umsatz die dennoch abgerechnet werden müssen.</a></li>
 <li><a href="#A_Einkaufspreise">Einkaufspreise</a></li>
 <li><a href="#A_Spezialpreise%20Kiosk">Spezialpreise Kiosk</a></li>
 <li><a href="#A_Verleiherabgaben">Verleiherabgaben</a></li>
-<li><a href="#A_Einnahmen%20und%20Ausgaben">Einnahmen und Ausgaben</a>
-<ul>
-<li><a href="#A_Jahresabrechnungen">Jahresabrechnungen</a></li>
-<li><a href="#A_Filmabrechnung">Filmabrechnung</a></li>
+<li><a href="#A_Einnahmen%20und%20Ausgaben">Einnahmen und
+Ausgaben</a></li>
 </ul></li>
+<li><a href="#A_Berichte">Berichte</a>
+<ul>
+<li><a href="#A_Abrechnung%20Filmvorführung">Abrechnung
+Filmvorführung</a></li>
+<li><a href="#A_Jahresabrechnungen">Jahresabrechnungen</a></li>
 </ul></li>
 <li><a href="#A_Ausgabe%20/%20Output">Ausgabe / Output</a></li>
 </ul></li>
@@ -545,7 +548,8 @@ sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis
 Datum erstellt werden.<br />
 </p>
 <ul>
-<li>Achtung!   Die alte Dateien dürfen nicht gelöscht werden.</li>
+<li>Achtung!<br />
+Die alte Dateien dürfen nicht gelöscht werden.</li>
 </ul>
 </div>
 <div id="spezialpreise-kiosk" class="section level3">
@@ -568,7 +572,8 @@ Diese Datei wird benötigt um die Spezialpreise</p>
 <h3>Verleiherabgaben<a name="A_Verleiherabgaben"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Verleiherabgaben müssen in der Datei
-<strong>“Verleiherabgaben.xlsx”</strong> definiert werden.<br />
+<strong>“…/Kinoklub/input/Verleiherabgaben.xlsx”</strong> definiert
+werden.<br />
 </p>
 <ul>
 <li><p>Im <strong>Tab Verleiherabgaben</strong> muss der “minimal Abzug”
@@ -587,46 +592,103 @@ Verleiher vergrössert.</p></li>
 <div id="einnahmen-und-ausgaben" class="section level3">
 <h3>Einnahmen und Ausgaben<a name="A_Einnahmen und Ausgaben"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>“Einnahmen und Ausgaben.xlsx”<br />
+<p><strong>“…/Kinoklub/input/Einnahmen und Ausgaben.xlsx”</strong><br />
 Alle Einnahmen und Ausgaben müssen definiert werden.<br />
 </p>
-<div id="jahresabrechnungen" class="section level4">
-<h4>Jahresabrechnungen<a name="A_Jahresabrechnungen"></a></h4>
+</div>
+</div>
+<div id="berichte" class="section level2">
+<h2>Berichte<a name="A_Berichte"></a></h2>
+<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
+<div id="abrechnung-filmvorführung" class="section level3">
+<h3>Abrechnung
+Filmvorführung<a name="A_Abrechnung Filmvorführung"></a></h3>
+<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
+<p>Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden
+Kategorien werden einer Abrechnung zugewiesen.</p>
+<ul>
+<li>Filmvorführung</li>
+<li>Event
+<ul>
+<li>Einnahmen
+<ul>
+<li>In der Datei <strong>“…/Kinoklub/input/Einnahmen und
+Ausgaben.xlsx”</strong> wird die Kategorie <strong>Vermietung</strong>
+wird pro Filmabrechnung (Datum) berücksichtigt.</li>
+</ul></li>
+<li>Ausgaben
+<ul>
+<li>In der Datei <strong>“…/Kinoklub/input/Einnahmen und
+Ausgaben.xlsx”</strong> wird die <strong>Eventausgaben</strong> wird pro
+Filmabrechnung (Spieldatum) berücksichtigt.</li>
+</ul></li>
+</ul></li>
+<li>Kiosk
+<ul>
+<li>Einnahmen</li>
+<li>Ausgaben</li>
+</ul></li>
+</ul>
+</div>
+<div id="jahresabrechnungen" class="section level3">
+<h3>Jahresabrechnungen<a name="A_Jahresabrechnungen"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet
 und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien
 werden in den Jahresrechnungen separat behandelt.</p>
 <ul>
-<li><p>Eventausgaben Alle Ausgaben die für den Eventausgegeben wurden,
-z.B. Werbung, Esswaren, Spesen</p></li>
-<li><p>Kiosk</p></li>
-<li><p>Vermietung</p></li>
-<li><p>Werbung</p></li>
-<li><p>Personalaufwand</p></li>
-<li><p>Sonstiges</p></li>
-</ul>
-</div>
-<div id="filmabrechnung" class="section level4">
-<h4>Filmabrechnung<a name="A_Filmabrechnung"></a></h4>
-<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden
-Kategorien werden einer Abrechnung zugewiesen.</p>
+<li>Eventausgaben<br />
+Alle Ausgaben die für den Eventausgegeben wurden, z.B. Werbung,
+Esswaren, Spesen</li>
+<li>Kiosk<br />
+
 <ul>
-<li><p>Einnahmen und Ausgaben.xlsx/Einahmen<br />
-Die Kategorie <strong>Vermietung</strong> wird pro Filmabrechnung
-(Datum) berücksichtigt.<br />
-</p></li>
-<li><p>Einnahmen und Ausgaben.xlsx/Ausgaben<br />
-Die Kategorie <strong>Eventausgaben</strong> wird pro Filmabrechnung
-(Spieldatum) berücksichtigt.<br />
-</p></li>
-<li><p>Einnahmen und Ausgaben.xlsx/Ausgaben<br />
-Die Kategorie <strong>Verleiher</strong> wird pro Filmabrechnung
-(Spieldatum) berücksichtigt.<br />
-</p></li>
+<li>Einnahmen<br />
+Die Einnahmen werden mit <strong>“Anzahl x Verkaufspeis für
+Verkaufsartikel”</strong> berechnet.</li>
+<li>Ausgaben
+<ul>
+<li>Einkauf Getränke<br />
+Die Getränke werden von Theater am Bahnhof eingekauft.<br />
+Falls in der Datei <strong>…/Kinoklub/input/Einkauf Kiosk
+xx.xx.xx.xlsx</strong> der Lieferant <strong>“Schüwo”</strong> definiert
+wurde wird der Verkaufsartikel als Getränk ausgegeben.<br />
+Der Getränkeeinkauf wird mit <strong>“Anzahl x Einkaufspreis”</strong>
+berechnet.</li>
+<li>Einkauf Kino<br />
+Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei
+<strong>“…/Kinoklub/input/Einnahmen und Ausgaben.xlsx”</strong>   mit
+Kategorie <strong>Kiosk</strong> definiert.</li>
+</ul></li>
+</ul></li>
+<li>Vermietung<br />
+
+<ul>
+<li>Einnahmen<br />
+Vermietung Kinosaal, Beiträge von mit Veranstallter, …</li>
+<li>Ausgaben<br />
+Mietkosten für Filme und Material, …</li>
+</ul></li>
+<li>Werbung
+<ul>
+<li>Einnahmen<br />
+Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren,
+…</li>
+<li>Ausgaben<br />
+Inserate, Drucksachen, Homepage, …</li>
+</ul></li>
+<li>Personalaufwand<br />
+Löhne</li>
+<li>Sonstiges
+<ul>
+<li>Einnahmen<br />
+Sponsoen, Gönner, Kulturbeiträge, …</li>
+<li>Ausgaben<br />
+Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin,
+…</li>
+</ul></li>
 </ul>
 <div style="page-break-after: always;"></div>
-</div>
 </div>
 </div>
 <div id="ausgabe-output" class="section level2">
@@ -635,10 +697,13 @@ Die Kategorie <strong>Verleiher</strong> wird pro Filmabrechnung
 <p>Alle Dateien die erzeugt wurden finden sich im
 <strong>…/Kinoklub/output/</strong> Verzeichniss.</p>
 <ul>
-<li><pre><code>Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.</code></pre></li>
-<li><pre><code>Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.</code></pre></li>
-<li><pre><code>Es wird eine Statistik mit Porgnosen erstellt.</code></pre></li>
-<li><pre><code>Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.</code></pre></li>
+<li><p>Für jede Filmvorführung respektive Datum wird ein Abrechnung
+erstellt.</p></li>
+<li><p>Es wird eine Jahresbarechnung und eine detalierte
+Jahresabrechnung erstellt.</p></li>
+<li><p>Es wird eine Statistik mit Porgnosen erstellt.</p></li>
+<li><p>Alle verwendeten Datensätze werden in ein Excelfile
+abgespeichert.</p></li>
 </ul>
 <div style="page-break-after: always;"></div>
 </div>
@@ -661,7 +726,7 @@ Konvertiert. Der Script “read and convert.R” benötigt “function.R” und
 Vorführung</li>
 </ol>
 </div>
-<div id="abrechnung-filmvorführung" class="section level2">
+<div id="abrechnung-filmvorführung-1" class="section level2">
 <h2>Abrechnung
 Filmvorführung<a name="A_Abrechnung Filmvorführung"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
