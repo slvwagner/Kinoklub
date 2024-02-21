@@ -71,7 +71,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
     ![Shows](doc/shows.png)
 
-## Konfigurations Dateien
+## Script Konfiguration
 
 Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
 
@@ -142,7 +142,16 @@ Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert 
 ### Einnahmen und Ausgaben
 "Einnahmen und Ausgaben.xlsx" \
 Alle Einnahmen und Ausgaben müssen definiert werden. \
-Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und jenach Kategorie der Rechnung zugewiesen. 
+
+#### Jahresabrechnungen
+Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
+
+-   Eventausgaben
+-   Kiosk
+-   Vermietung
+-   Werbung
+-   Personalaufwand
+-   Sonstiges
 
 
 #### Filmabrechnung
@@ -161,9 +170,24 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien
 ## Ausgabe / Output 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
-- Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
-- Die Erfolgsrechnung wird über alle Datensätze erstellt.
-- Zusätzliche Daten sind in der Statistik ersichtlich.
-- Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
+-     Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+-     Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
+-     Es wird eine Statistik mit Porgnosen erstellt.
+-     Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
+
+# Berchnungsdokumentation
+## Ablauf
+"Erstelle Abrechnung.R" script führt folgendes auf. 
+
+1.    Konfigurations variablen erstellen.
+2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. 
+      Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+5.    Erstellen Jahresbericht
+8.    Erstellen Jahresbericht detailed
+11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+
+
+## Abrechnung Filmvorführung
+Pro Filmvorführung wirde eine Abrechnung erstellt
 

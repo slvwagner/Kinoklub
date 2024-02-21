@@ -17,7 +17,7 @@ rmarkdown::render(paste0("README.md"),
 #                   output_dir  = "doc/",
 #                   output_file = "Dokumentation.docx")
 
-# rmarkdown::render(input = paste0("README.md"),
-#                   output_format = "pdf_document",
-#                   output_dir  = "doc/",
-#                   output_file = "Dokumentation.pdf")
+rmarkdown::render(input = paste0("README.md"),
+                  output_format = "pdf_document",
+                  output_dir  = "doc/",
+                  output_file = "Dokumentation.pdf")

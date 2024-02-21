@@ -8,7 +8,7 @@ output:
 * [Kinoklub](#A_Kinoklub)
     + [Installation](#A_Installation)
     + [Datensätze](#A_Datensätze)
-    + [Konfigurations Dateien](#A_Konfigurations Dateien)
+    + [Script Konfiguration](#A_Script Konfiguration)
         + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
         + [Inhaltsverzeichnisse](#A_Inhaltsverzeichnisse)
         + [Mehrwertsteuersatz](#A_Mehrwertsteuersatz)
@@ -19,8 +19,12 @@ output:
         + [Spezialpreise Kiosk](#A_Spezialpreise Kiosk)
         + [Verleiherabgaben](#A_Verleiherabgaben)
         + [Einnahmen und Ausgaben](#A_Einnahmen und Ausgaben)
+            + [Jahresabrechnungen](#A_Jahresabrechnungen)
             + [Filmabrechnung](#A_Filmabrechnung)
     + [Ausgabe / Output](#A_Ausgabe / Output)
+* [Berchnungsdokumentation](#A_Berchnungsdokumentation)
+    + [Ablauf](#A_Ablauf)
+    + [Abrechnung Filmvorführung](#A_Abrechnung Filmvorführung)
 
 
 
@@ -96,7 +100,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx
     ![Shows](doc/shows.png)
 
-## Konfigurations Dateien<a name="A_Konfigurations Dateien"></a>
+## Script Konfiguration<a name="A_Script Konfiguration"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 
@@ -189,7 +193,18 @@ Die Verleiherabgaben müssen in der Datei **"Verleiherabgaben.xlsx"** definiert 
 
 "Einnahmen und Ausgaben.xlsx" \
 Alle Einnahmen und Ausgaben müssen definiert werden. \
-Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und jenach Kategorie der Rechnung zugewiesen. 
+
+#### Jahresabrechnungen<a name="A_Jahresabrechnungen"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
+
+-   Eventausgaben
+-   Kiosk
+-   Vermietung
+-   Werbung
+-   Personalaufwand
+-   Sonstiges
 
 
 #### Filmabrechnung<a name="A_Filmabrechnung"></a>
@@ -212,9 +227,30 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
-- Für jede Vorführung respektive Datum wird ein Abrechnung erstellt.
-- Die Erfolgsrechnung wird über alle Datensätze erstellt.
-- Zusätzliche Daten sind in der Statistik ersichtlich.
-- Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
+-     Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+-     Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
+-     Es wird eine Statistik mit Porgnosen erstellt.
+-     Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
+
+# Berchnungsdokumentation<a name="A_Berchnungsdokumentation"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+## Ablauf<a name="A_Ablauf"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+"Erstelle Abrechnung.R" script führt folgendes auf. 
+
+1.    Konfigurations variablen erstellen.
+2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. 
+      Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+5.    Erstellen Jahresbericht
+8.    Erstellen Jahresbericht detailed
+11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+
+
+## Abrechnung Filmvorführung<a name="A_Abrechnung Filmvorführung"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+Pro Filmvorführung wirde eine Abrechnung erstellt
 
