@@ -4,7 +4,7 @@
 # Es kann auch pro Vorführung einen Rechnung erstellt werden. 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
-# V1.0
+# V0.3
 #############################################################################################################################################
 rm(list = ls())
 library(tidyverse)
@@ -297,7 +297,7 @@ if(c_run_single){
   remove(c_raw, index,ii,jj)
 }
 
-remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie, Einnahmen_und_Ausgaben )
+remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
 
 #############################################################################################################################################
 # remove temp files 
