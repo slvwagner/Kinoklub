@@ -307,28 +307,35 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
 
 -   Gewinn/Verlust
     -   Prognose\
-        Die Prognose des Gewinns wird mit der Kumuliertensumme pro Datum erstellt. 
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
 -   Ticketverkauf
-    -   Prognose
+    -   Prognose\
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
     -  Eintritte
-        -   Anzahl
+        -   Anzahl\
+            Diagramm
         -   Umsatz
-            -   Prognose
+            -   Prognose\
+                Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
     -   Filmabgaben
-        -   Prognose
+        -   Prognose\
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
 -   Abos
     -   Einnahmen
     -   Eingelöst
     -   Kredit
 -   Kiosk-Gewinn pro Vorführung
-    -   Prognose
+    -   Prognose\
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
 -   Kiosk
     -   Verkaufsartikel
     -   Ladenhüter (keine Verkäufe)
     -   Kiosk Umsatz pro Gast
-        -   Prognose
+        -   Prognose\
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
     -   Umsatz pro zahlender Gast
-        -   Prognose
+        -   Prognose\
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
 
 
 ## Ablauf<a name="A_Ablauf"></a>
