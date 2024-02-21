@@ -49,6 +49,8 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.  
 
+\newpage
+
 ## Installation<a name="A_Installation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -78,6 +80,8 @@ Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werde
     source("Erstelle Abrechnung.R")
 ```
 
+\newpage
+
 ## Datensätze<a name="A_Datensätze"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -100,6 +104,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx \
     ![Shows](doc/shows.png)
 
+\newpage
 ## Script Konfiguration<a name="A_Script Konfiguration"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -145,8 +150,7 @@ Die Variable  `c_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 -   `c_render_option` <- "2"  html and docx
 -   `c_render_option` <- "3"  html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
  
-
-
+\newpage
 ## Excel Dateien<a name="A_Excel Dateien"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -223,7 +227,7 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt. Die folgenden Kategorien
 -   Einnahmen und Ausgaben.xlsx/Ausgaben \
     Die Kategorie **Verleiher** wird pro Filmabrechnung (Spieldatum) berücksichtigt. \
     
-
+\newpage
 ## Ausgabe / Output<a name="A_Ausgabe / Output"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
@@ -235,6 +239,7 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 -     Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 
+\newpage
 # Berchnungsdokumentation<a name="A_Berchnungsdokumentation"></a>
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
