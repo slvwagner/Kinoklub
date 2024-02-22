@@ -9,7 +9,7 @@ source("source/functions.R")
 
 if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
-  c_P_kat_verechnen <- c("Kinoförderer","Spezialpreis")
+  c_P_kat_verechnen <- c("Kinoförderer")
 }
 
 ########################################################################
@@ -412,7 +412,7 @@ for (ii in 1:length(c_Date)) {
       filter(Datum == c_Date[ii], Zahlend) |>
       bind_rows(
         df_Eintritt |>
-          filter(Datum == c_Date[ii], Platzkategorie %in% c_P_kat_verechnen)|>
+          filter(Datum == c_Date[ii], Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )|>
           mutate(Abrechnungspreis = df_Kinopreise|>
                    filter(Platzkategorie == "Ermässigt")|> # Kategorieren werden mit Ermässigt ersetzt
                    select(Verkaufspreis)|>pull()
@@ -594,10 +594,10 @@ df_GV_Eintritt
 df_Abgaben <- l_Abgaben|>
   bind_rows()|>
   bind_rows(df_Eintritt|>
-              filter(!Zahlend, !(Platzkategorie %in% c_P_kat_verechnen)))
-
+              filter(!Zahlend, !(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )))|>
+  mutate(Verkaufspreis = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer, df_P_kat_verechnen$Verkaufspreis, Verkaufspreis)
+         )
 df_Abgaben
-
 
 ########################################################################
 # Gewinn Kiosk

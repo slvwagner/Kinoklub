@@ -10,7 +10,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
 ```{r variablen, include=FALSE}
-ii <- 6
+ii <- 1
 ```
 
 ```{r include=FALSE}
