@@ -146,8 +146,8 @@ c_MWST <- 8.1 #%
 [Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".   \
-Die Variable  `c_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden.  \
-`c_P_kat_verechnen` <- c("Kinoförderer","Spezialpreis")
+Die Variable  `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
+`df_P_kat_verechnen` <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  13)
 \ 
 
 ### Ausgabeformate<a name="A_Ausgabeformate"></a>

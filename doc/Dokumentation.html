@@ -520,10 +520,11 @@ müssen.<a name="A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden m�
 <p>Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet
 werden. Die Defintion findet sich in der Datei “Verleiherabgaben.xlsx”
 TAB “Kinoförderer gratis”.<br />
-Die Variable <code>c_P_kat_verechnen</code> definiert welche
-Platzkategorien ohne Umsatz zusätzlich verrechnet werden.<br />
-<code>c_P_kat_verechnen</code> &lt;- c(“Kinoförderer”,“Spezialpreis”)
- </p>
+Die Variable <code>df_P_kat_verechnen</code> definiert welche
+Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem
+Preis.<br />
+<code>df_P_kat_verechnen</code> &lt;- tibble(Kinoförderer =
+“Kinoförderer”, Verkaufspreis = 13)  </p>
 </div>
 <div id="ausgabeformate" class="section level3">
 <h3>Ausgabeformate<a name="A_Ausgabeformate"></a></h3>

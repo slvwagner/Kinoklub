@@ -9,7 +9,7 @@ source("source/functions.R")
 
 if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
-  c_P_kat_verechnen <- c("Kinoförderer")
+  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
 }
 
 ########################################################################
@@ -593,7 +593,7 @@ df_GV_Eintritt
 
 df_Abgaben <- l_Abgaben|>
   bind_rows()|>
-  bind_rows(df_Eintritt|>
+  bind_rows(df_Eintritt|> # 
               filter(!Zahlend, !(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )))|>
   mutate(Verkaufspreis = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer, df_P_kat_verechnen$Verkaufspreis, Verkaufspreis)
          )
