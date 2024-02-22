@@ -226,7 +226,9 @@ Eventausgaben|>
 
 ## Kiosk
 
-### Gewinn pro Artikel
+### Einnahmen
+
+#### Gewinn pro Artikel
 
 ```{r echo=FALSE}
 df_temp <- df_Kiosk|>
@@ -244,8 +246,16 @@ df_temp|>
   knitr::kable()
 ```
 
-### Umsatz
-Verkaufsartikel ohne Lieferant sind Spezialpreise definiert.
+```{r}
+df_temp|>
+  filter(!is.na(Lieferant))|>
+  reframe(`Summe [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen())|>
+  knitr::kable()
+```
+
+
+#### Umsatz
+Verkaufsartikel ohne Lieferant
 ```{r echo=FALSE}
 df_temp|>
   filter(is.na(Lieferant))|>
@@ -253,21 +263,27 @@ df_temp|>
   knitr::kable()
 ```
 
-### Einnahmen
+
+```{r}
+df_temp|>
+  filter(is.na(Lieferant))|>
+  reframe(`Summe [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen())|>
+  knitr::kable()
+```
+
+### Ausgaben 
+Summe von **Gewinn pro Artikel** und **Umsatz**
+
+### Differenz
 Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für Spezialpreise berechnet.  
 ```{r echo=FALSE}
 Kiosk <- df_Kiosk|>
   filter(Datum == c_Datum)|>
-  reframe(`Kiosk Gewinn [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen()
-          )
+  reframe(`Summe [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen())
 
 Kiosk|>
   knitr::kable(digits = 2)
 ```
-
-### Ausgaben 
-**Achtung!**\
-Für Verkaufsartikel ohne Lieferant müssen Eventausgaben definiert werden.
 
 ## Kioskumsatz pro Gast
 
