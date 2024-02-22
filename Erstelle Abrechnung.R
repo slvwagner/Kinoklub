@@ -273,19 +273,14 @@ if(c_run_single){
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
     
     # neues file schreiben
-    writeLines(c_raw, paste0("source/temp.Rmd"))
+    writeLines(c_raw, "Verleiherabrechnung.Rmd")
     
     # Render
-    rmarkdown::render(input = paste0("source/temp.Rmd"),
+    rmarkdown::render(input = "Verleiherabrechnung.Rmd",
+                      output_file = paste0("Verleiherabrechnung ", df_mapping$user_Datum[ii], df_Render$fileExt[jj]),
                       output_format = df_Render$Render,
                       output_dir = paste0(getwd(), "/output"))
     
-    # Rename the file
-    for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]), 
-                  to   = paste0(getwd(),"/output/", "Verleiherabrechnung ", df_mapping$user_Datum[ii],df_Render$fileExt[jj])
-      )
-    }
     
     # user interaction
     print(clc)
@@ -293,7 +288,8 @@ if(c_run_single){
       writeLines()
     
   }
-  
+  # remove file 
+  file.remove("Verleiherabrechnung.Rmd")
   remove(c_raw, index,ii,jj)
 }
 
