@@ -43,7 +43,7 @@ df_temp|>
   geom_col(fill ="darkorange2")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose",
+  labs(title = "Gewinnprognose aus Filmvorführung",
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 ```
