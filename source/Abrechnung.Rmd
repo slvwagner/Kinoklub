@@ -168,6 +168,7 @@ Filmvorführungen|>
   knitr::kable(digits = 2)
 ```
 
+\
 ## Event
 
 ### Einnahmen
@@ -224,10 +225,9 @@ Eventausgaben|>
   knitr::kable()
 ```
 
+\
 ## Kiosk
-
 ### Einnahmen
-
 #### Gewinn pro Artikel
 
 ```{r echo=FALSE}
@@ -285,8 +285,8 @@ Kiosk|>
   knitr::kable(digits = 2)
 ```
 
+\
 ## Kioskumsatz pro Gast
-
 ### Kioskumsatz aller Gäste
 
 ```{r echo=FALSE}
@@ -337,7 +337,7 @@ df_show |>
 ```
 
 
-
+\
 ## Kasse
 **Achtung!** \
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
@@ -351,7 +351,7 @@ Manko|>
   knitr::kable(digits = 2)
 ```
 
-
+\
 ## Gewinn / Verlust
 ```{r}
 df_temp <- tibble(
