@@ -31,9 +31,12 @@ df_temp|>
 
 
 ```{r}
-df_Eintritt|>
-  reframe(`Summe [CHF]` = sum(Umsatz, na.rm = T))|>
-  arrange(desc(`Summe [CHF]`))|>
+df_temp <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))|>
+  arrange(desc(`Summe [CHF]`))
+
+
+df_temp|>
   knitr::kable()
   
 ```
