@@ -88,12 +88,6 @@ Brutto <- df_temp|>
 
 
 ```{r}
-Brutto|>
-  knitr::kable()
-```
-
-
-```{r}
 df_temp <- Brutto|>
   mutate(Brutto = Brutto|>pull(),
          Tax = 0,
