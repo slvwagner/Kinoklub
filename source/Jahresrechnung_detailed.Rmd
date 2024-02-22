@@ -61,7 +61,7 @@ df_GV_Eintritt|>
   knitr::kable()
 ```
 
-#### Verleigerabgaben
+#### Verleiherabgaben
 
 ```{r}
 df_GV_Eintritt|>
