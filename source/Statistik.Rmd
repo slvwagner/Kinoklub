@@ -16,12 +16,12 @@ Bericht wurde am `r act_date` erstellt.
 ## Gewinn/Verlust aus Filmvorführung
 ```{r}
 df_temp <- df_GV_Vorfuehrung|>
-  arrange(Datum)
-    
-df_temp|>
+  arrange(Datum)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  select(-Ende)|>
+  select(-Ende)
+
+df_temp|>
   knitr::kable()
 ```
 
@@ -31,6 +31,15 @@ df_temp|>
   reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
+
+### Mean / Median
+```{r}
+df_temp|>
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust [CHF]`)|>round5Rappen(),
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust [CHF]`)|>round5Rappen())|>
+  knitr::kable()
+```
+
 
 ### Prognose
 ```{r fig.width=10}
