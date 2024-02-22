@@ -62,7 +62,6 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 \
 \
-\
 
 ## Filmvorführung
 ### Kino Besucherzahlen und Umsatz
@@ -169,10 +168,9 @@ Filmvorführungen|>
 ```
 
 \
+
 ## Event
-
 ### Einnahmen
-
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
 Eventeinnahmen <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
@@ -226,6 +224,7 @@ Eventausgaben|>
 ```
 
 \
+
 ## Kiosk
 ### Einnahmen
 #### Gewinn pro Artikel
@@ -286,6 +285,7 @@ Kiosk|>
 ```
 
 \
+
 ## Kioskumsatz pro Gast
 ### Kioskumsatz aller Gäste
 
@@ -338,6 +338,7 @@ df_show |>
 
 
 \
+
 ## Kasse
 **Achtung!** \
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
@@ -352,6 +353,7 @@ Manko|>
 ```
 
 \
+
 ## Gewinn / Verlust
 ```{r}
 df_temp <- tibble(
