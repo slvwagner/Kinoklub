@@ -62,6 +62,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 
 \
 \
+\
 
 ## Filmvorführung
 ### Kino Besucherzahlen und Umsatz
@@ -171,6 +172,7 @@ Filmvorführungen|>
 
 ## Event
 ### Einnahmen
+
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
 Eventeinnahmen <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
@@ -286,6 +288,22 @@ Kiosk|>
 
 \
 
+## Kasse
+**Achtung!** \
+Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+```{r}
+Manko <- df_manko_uerberschuss|>
+  filter(Datum == c_Datum)|>
+  select(-Datum)|>
+  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)
+
+Manko|>
+  knitr::kable(digits = 2)
+```
+
+
+\
+
 ## Kioskumsatz pro Gast
 ### Kioskumsatz aller Gäste
 
@@ -334,22 +352,6 @@ df_show |>
   select(-Ende, -Saal, -Version, -Alter, -Datum, -Anfang, -Filmtitel, -`Suisa Nummer`)|>
   rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
-```
-
-
-\
-
-## Kasse
-**Achtung!** \
-Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
-```{r}
-Manko <- df_manko_uerberschuss|>
-  filter(Datum == c_Datum)|>
-  select(-Datum)|>
-  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`)
-
-Manko|>
-  knitr::kable(digits = 2)
 ```
 
 \
