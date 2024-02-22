@@ -94,7 +94,7 @@ df_temp <- Brutto|>
          `Netto 1 [CHF]` = `Brutto [CHF]`,
          `Netto 0.00%` = 0,
          `Netto 2 [CHF]` = `Brutto [CHF]`,
-         `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round(2)
+         `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round5Rappen()
          )
 
 df_temp|>
@@ -106,7 +106,7 @@ df_temp|>
 
 ```{r}
 df_temp|>
-  mutate(`Netto 3 [CHF]` = round5Rappen(`Brutto [CHF]` - `SUISA-Vorabzug [CHF]`))|>
+  mutate(`Netto 3 [CHF]` = (`Brutto [CHF]` - `SUISA-Vorabzug [CHF]`))|>
   select(`Netto 3 [CHF]`)|>
   knitr::kable()
 ```
