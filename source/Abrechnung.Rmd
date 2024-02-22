@@ -172,9 +172,10 @@ Filmvorführungen|>
 
 ### Einnahmen
 
+Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
 Eventeinnahmen <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie == "Vermietung", Datum == c_Datum)|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], Datum == c_Datum)|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
@@ -206,7 +207,7 @@ Als Eventausgaben müssen alle Ausgaben deklariert werden die nur für die jewei
 
 ```{r}
 Eventausgaben <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Eventausgaben", Spieldatum == c_Datum)|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], Spieldatum == c_Datum)|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
