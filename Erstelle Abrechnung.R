@@ -21,7 +21,7 @@ toc <- TRUE
 c_MWST <- 8.1 #%
 
 # Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
+df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  13)
 
 # Ausgabeformate
 # 1 = only html
