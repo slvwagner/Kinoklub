@@ -13,7 +13,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 
 Bericht wurde am `r act_date` erstellt.
 
-## Gewinn/Verlust
+## Gewinn/Verlust aus Filmvorführung
 ```{r}
 df_temp <- df_GV_Vorfuehrung|>
   arrange(Datum)
