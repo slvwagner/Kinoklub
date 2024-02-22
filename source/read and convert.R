@@ -645,7 +645,7 @@ for (ii in 1:length(c_Date)) {
   }
     
   df_Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen |>
-    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])
+    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
   df_Eventeinnahmen
   
   if(nrow(df_Eventeinnahmen) < 1) {
@@ -663,7 +663,9 @@ for (ii in 1:length(c_Date)) {
     Ende = df_temp$Ende,
     `Suisa Nummer` = c_suisa_nr[ii],
     Filmtitel = df_temp$Filmtitel,
-    `Gewinn/Verlust [CHF]` =round5Rappen(l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben + c_Eventeinnahmen)
+    `Gewinn/Verlust [CHF]` =round5Rappen(
+      l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben + c_Eventeinnahmen
+      )
   )
 }
 
