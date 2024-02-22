@@ -269,8 +269,13 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
--   Eventausgaben \
-    Alle Ausgaben die für den Eventausgegeben wurden, z.B. Werbung, Esswaren, Spesen
+-   Filmvorführungen\
+    siehe Abrechnung Filmvorführung / Filmvorführung
+-   Event
+    -   Einnahmen\
+        Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, …
+    -   Ausgaben\
+        Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk \
     -   Einnahmen  \
         Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
