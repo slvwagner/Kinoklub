@@ -6,6 +6,7 @@ output:
 ---
 ## Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a>
 * [Installation](#A_Installation)
+* [Ablauf](#A_Ablauf)
 * [Datensätze](#A_Datensätze)
 * [Script Konfiguration](#A_Script Konfiguration)
     + [Abrechnung für Filmvorführungen](#A_Abrechnung für Filmvorführungen)
@@ -22,7 +23,6 @@ output:
     + [Abrechnung Filmvorführung](#A_Abrechnung Filmvorführung)
     + [Jahresabrechnungen](#A_Jahresabrechnungen)
     + [Statistik](#A_Statistik)
-* [Ablauf](#A_Ablauf)
 
 
 
@@ -74,6 +74,19 @@ Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werde
 ```
     source("Erstelle Abrechnung.R")
 ```
+
+## Ablauf<a name="A_Ablauf"></a>
+[Inhaltsverzeichnis](#Inhaltsverzeichnis)
+
+"Erstelle Abrechnung.R" Script führt folgendes auf. 
+
+1.    Konfigurations variablen erstellen.
+2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. 
+      Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+5.    Erstellen Jahresbericht
+8.    Erstellen Jahresbericht detailed
+11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+
 
 \newpage
 
@@ -270,13 +283,19 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
 -   Filmvorführungen\
-    siehe Abrechnung Filmvorführung / Filmvorführung
+    -   Eintritt
+        -   Einnahmen Ticketverkauf
+        -   Abgaben Ticketverkauf
+            -   Suisaabgaben
+            -   Verleiherabgaben
+            -   Nebenkosten
+            -   MWST auf Verleiherleistungen
 -   Event
-    -   Einnahmen\
-        Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, …
-    -   Ausgaben\
+    -   Eventeinnahmen\
+        Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
+    -   Eventausgaben\
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
--   Kiosk \
+-   Kiosk
     -   Einnahmen  \
         Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
     -   Ausgaben
@@ -343,16 +362,6 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
 
 
-## Ablauf<a name="A_Ablauf"></a>
-[Inhaltsverzeichnis](#Inhaltsverzeichnis)
 
-"Erstelle Abrechnung.R" script führt folgendes auf. 
-
-1.    Konfigurations variablen erstellen.
-2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. 
-      Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
-5.    Erstellen Jahresbericht
-8.    Erstellen Jahresbericht detailed
-11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
 
 

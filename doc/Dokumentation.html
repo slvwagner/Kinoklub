@@ -358,6 +358,7 @@ display: none;
 <h2>Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a></h2>
 <ul>
 <li><a href="#A_Installation">Installation</a></li>
+<li><a href="#A_Ablauf">Ablauf</a></li>
 <li><a href="#A_Datensätze">Datensätze</a></li>
 <li><a href="#A_Script%20Konfiguration">Script Konfiguration</a>
 <ul>
@@ -384,7 +385,6 @@ Filmvorführung</a></li>
 <li><a href="#A_Jahresabrechnungen">Jahresabrechnungen</a></li>
 <li><a href="#A_Statistik">Statistik</a></li>
 </ul></li>
-<li><a href="#A_Ablauf">Ablauf</a></li>
 </ul>
 <p>Author: Florian Wagner<br />
 <br />
@@ -430,6 +430,21 @@ install the Scripts</li>
 <li>Run the Script:</li>
 </ol>
 <pre><code>    source(&quot;Erstelle Abrechnung.R&quot;)</code></pre>
+</div>
+<div id="ablauf" class="section level2">
+<h2>Ablauf<a name="A_Ablauf"></a></h2>
+<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
+<p>“Erstelle Abrechnung.R” Script führt folgendes auf.</p>
+<ol style="list-style-type: decimal">
+<li>Konfigurations variablen erstellen.</li>
+<li>Die Daten werden mit Script “read and convert.R” eingelesen und
+Konvertiert. Der Script “read and convert.R” benötigt “function.R” und
+“Kiosk.R”</li>
+<li>Erstellen Jahresbericht</li>
+<li>Erstellen Jahresbericht detailed</li>
+<li>Erstellen Abrechnung Filmvorführung pro Datum respektive
+Vorführung</li>
+</ol>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="datensätze" class="section level2">
@@ -715,17 +730,29 @@ und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien
 werden in den Jahresrechnungen separat behandelt.</p>
 <ul>
 <li>Filmvorführungen<br />
-siehe Abrechnung Filmvorführung / Filmvorführung</li>
+
+<ul>
+<li>Eintritt
+<ul>
+<li>Einnahmen Ticketverkauf</li>
+<li>Abgaben Ticketverkauf
+<ul>
+<li>Suisaabgaben</li>
+<li>Verleiherabgaben</li>
+<li>Nebenkosten</li>
+<li>MWST auf Verleiherleistungen</li>
+</ul></li>
+</ul></li>
+</ul></li>
 <li>Event
 <ul>
-<li>Einnahmen<br />
+<li>Eventeinnahmen<br />
 Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring,
 …</li>
-<li>Ausgaben<br />
+<li>Eventausgaben<br />
 Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …</li>
 </ul></li>
-<li>Kiosk<br />
-
+<li>Kiosk
 <ul>
 <li>Einnahmen<br />
 Die Einnahmen werden mit <strong>“Anzahl x Verkaufspeis für
@@ -838,21 +865,6 @@ erstellt.</li>
 </ul></li>
 </ul>
 </div>
-</div>
-<div id="ablauf" class="section level2">
-<h2>Ablauf<a name="A_Ablauf"></a></h2>
-<p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
-<p>“Erstelle Abrechnung.R” script führt folgendes auf.</p>
-<ol style="list-style-type: decimal">
-<li>Konfigurations variablen erstellen.</li>
-<li>Die Daten werden mit Script “read and convert.R” eingelesen und
-Konvertiert. Der Script “read and convert.R” benötigt “function.R” und
-“Kiosk.R”</li>
-<li>Erstellen Jahresbericht</li>
-<li>Erstellen Jahresbericht detailed</li>
-<li>Erstellen Abrechnung Filmvorführung pro Datum respektive
-Vorführung</li>
-</ol>
 </div>
 
 
