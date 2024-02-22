@@ -177,7 +177,11 @@ df_temp1|>
 
 ### Differenz 
 ```{r}
-Event <- df_temp|>pull() - df_temp1|>pull()
+Event <- df_temp - df_temp1
+
+Event|>
+  knitr::kable()
+
 ```
 
 
@@ -249,30 +253,7 @@ EinkaufKino|>
   knitr::kable()
 ```
 
-
-### Differenz
-```{r}
-Kiosk <- tibble(Bezeichnung = c("Einnahmen","Einkauf Getränke", "Einkauf Kino"),
-                `Betrag [CHF]` = c(KioskEinnahmen|>pull(),
-                                   -(EinkaufGetränke|>pull()),
-                                   -(EinkaufKino|>pull()))
-                )
-
-Kiosk|>
-  knitr::kable()
-
-```
-
-```{r}
-Kiosk <- Kiosk|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
-
-Kiosk|>
-  knitr::kable()
-```
-
-
-## Kasse
+### Kasse
 **Achtung!** \
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
 ```{r}
@@ -297,6 +278,30 @@ Kasse <- df_temp|>
 
 Kasse|>
   knitr::kable(digits = 2)
+```
+
+
+### Differenz
+```{r}
+Kiosk <- tibble(Bezeichnung = c("Einnahmen","Einkauf Getränke", "Einkauf Kino", "Kasse: Manko/Überschuss"),
+                `Betrag [CHF]` = c(KioskEinnahmen|>pull(),
+                                   -(EinkaufGetränke|>pull()),
+                                   -(EinkaufKino|>pull()),
+                                   Kasse|>pull()
+                                   )
+                )
+
+Kiosk|>
+  knitr::kable()
+
+```
+
+```{r}
+Kiosk <- Kiosk|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+
+Kiosk|>
+  knitr::kable()
 ```
 
 ## Werbung
@@ -510,12 +515,11 @@ if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
 
 ```{r}
 GewinnVerlust <- tibble(
-  Kategorie = c("Filmvorführungen", "Event","Kiosk", "Kasse","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  Kategorie = c("Filmvorführungen", "Event","Kiosk","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     Filmvorführungen |>pull(),
-    Event,
+    Event|>pull(),
     Kiosk|>pull(),
-    Kasse|>pull(),
     Werbung|>pull(),
     Vermietung|>pull(),
     -1*(Personalaufwand|>pull()),
