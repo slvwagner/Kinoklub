@@ -31,7 +31,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 # 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "3" 
+c_render_option <- "1" 
 
 #############################################################################################################################################
 # Script start
