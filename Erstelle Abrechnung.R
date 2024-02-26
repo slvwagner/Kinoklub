@@ -25,9 +25,13 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 
 # Ausgabeformate
 # 1 = only html
-# 2 = html and docx
-# 3 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "1" 
+# 2 = only docx
+# 3 = only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 4 = html and docx
+# 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+c_render_option <- "3" 
 
 #############################################################################################################################################
 # Script start
@@ -61,9 +65,17 @@ df_Render <- switch (
   c_render_option,
   "1" = tibble::tibble(Render  = c("html_document"), 
                        fileExt = c(".html")),
-  "2" = tibble::tibble(Render  = c("html_document","word_document"), 
+  "2" = tibble::tibble(Render  = c("word_document"), 
+                       fileExt = c(".docx")),
+  "3" = tibble::tibble(Render  = c("pdf_document"), 
+                       fileExt = c(".pdf")),
+  "4" = tibble::tibble(Render  = c("html_document","word_document"), 
                        fileExt = c(".html", ".docx")),
-  "3" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"), 
+  "5" = tibble::tibble(Render  = c("html_document","pdf_document"), 
+                       fileExt = c(".html", ".pdf")),
+  "6" = tibble::tibble(Render  = c("word_document","pdf_document"), 
+                       fileExt = c(".docx", ".pdf")),
+  "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"), 
                        fileExt = c(".html", ".docx", ".pdf")),
   stop("\nDie verwendete Renderoption is nicht definiert")
 )
