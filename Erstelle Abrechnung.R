@@ -7,14 +7,26 @@
 # V0.6
 
 #############################################################################################################################################
+# Vorbereiten / Installieren
+#############################################################################################################################################
 rm(list = ls())
-source("source/functions.R")
-library(tidyverse)
-library(rebus)
+# Define libraries to be installed
+packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+
+# working directory 
 c_WD <- getwd()
+
 #############################################################################################################################################
 # Benutzereinstellungen 
 #############################################################################################################################################
+
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
 
@@ -43,6 +55,32 @@ c_SiteMap <- TRUE
 #############################################################################################################################################
 # Script start
 #############################################################################################################################################
+if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
+  # Package names
+  packages <- c("magick")
+  
+  # Install packages not yet installed
+  installed_packages <- packages %in% rownames(installed.packages())
+  
+  if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+  }
+  # Packages loading
+  invisible(lapply(packages, library, character.only = TRUE))
+  
+  # Package names
+  packages <- c("webshot")
+  
+  # Install packages not yet installed
+  installed_packages <- packages %in% rownames(installed.packages())
+  
+  if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+    webshot::install_phantomjs()
+  }
+  # Packages loading
+  invisible(lapply(packages, library, character.only = TRUE))
+}
 
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
@@ -113,6 +151,43 @@ df_mapping <- tibble(Datum = c_Date)|>
 df_mapping
 
 #############################################################################################################################################
+# Statistik
+#############################################################################################################################################
+# Einlesen
+c_raw <- readLines("source/Statistik.Rmd")
+c_raw
+
+# Inhaltsverzeichnis
+if(toc){# neues file schreiben mit toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}else {# neues file schreiben ohne toc
+  c_raw|>
+    writeLines(paste0("source/temp.Rmd"))
+}
+
+# Render
+rmarkdown::render(paste0("source/temp.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+
+# Rename the file
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+  )
+}
+
+# rmarkdown::render(paste0("source/Statistik.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nStatistik erstellt")|>
+  writeLines()
+
+#############################################################################################################################################
 # Jahresrechnung detalliert
 #############################################################################################################################################
 # Einlesen
@@ -180,43 +255,6 @@ print(clc)
 paste("Bericht: \nJahresrechnung erstellt")|>
   writeLines()
 
-
-#############################################################################################################################################
-# Statistik
-#############################################################################################################################################
-# Einlesen
-c_raw <- readLines("source/Statistik.Rmd")
-c_raw
-
-# Inhaltsverzeichnis
-if(toc){# neues file schreiben mit toc
-  c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
-    writeLines(paste0("source/temp.Rmd"))
-}else {# neues file schreiben ohne toc
-  c_raw|>
-    writeLines(paste0("source/temp.Rmd"))
-}
-
-# Render
-rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-
-# Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
-  )
-}
-
-# rmarkdown::render(paste0("source/Statistik.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-print(clc)
-
-paste("Bericht: \nStatistik erstellt")|>
-  writeLines()
 
 
 #############################################################################################################################################
@@ -434,20 +472,21 @@ if(c_SiteMap){
   
   # Render
   rmarkdown::render(input = "Site-Map.Rmd")
-
+  # Remove file
+  file.remove("Site-Map.Rmd")
 }
 
-file.remove("Site-Map.Rmd")
+
 
 #############################################################################################################################################
 # remove temp files 
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-# remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-# remove(df_temp, df_Render, df_mapping, Brutto,
-#        c_temp, c_temp1,
-#        c_render_option)
+remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+remove(df_temp, df_Render, df_mapping, Brutto,
+       c_temp, c_temp1,
+       c_render_option)
 
 #############################################################################################################################################
 # User Interaktion
