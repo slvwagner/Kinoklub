@@ -27,7 +27,18 @@ output:
 
 
 Author: Florian Wagner \
+Script Version: \
+V0.6
 \
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+```
+
+Dokumentation wurde am `r act_date` erstellt.
+
 Script zur Abrechnung für den Kinoklub TaB. 
 Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. \
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
