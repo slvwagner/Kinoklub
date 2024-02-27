@@ -38,7 +38,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 c_render_option <- "1" 
 
 # create Site Map 
-c_SiteMap <- TRUE
+c_SiteMap <- FALSE
 
 #############################################################################################################################################
 # Script start
