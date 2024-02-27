@@ -10,7 +10,7 @@
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "V0.7"
+c_script_version <- "2024 V0.7"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
@@ -52,7 +52,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 c_render_option <- "1" 
 
 # create Site Map 
-c_SiteMap <- FALSE
+c_SiteMap <- TRUE
 
 #############################################################################################################################################
 # Script start
@@ -370,6 +370,16 @@ if(c_SiteMap){
   c_fileNames <-list.files(path = paste0(c_WD,"/output/"),
                            pattern = ".html")
   
+  # sortierung nach datum
+  c_file_dates <- c_fileNames|>
+    str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))|>
+    lubridate::dmy()
+    
+  c_fileNames <- tibble(c_fileNames, c_file_dates)|>
+    arrange(c_file_dates)|>
+    select(c_fileNames)|>
+    pull()
+  
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- c_fileNames|>
     str_extract(START%R%one_or_more(WRD))|>
@@ -385,26 +395,35 @@ if(c_SiteMap){
   c_path
   dir.create(c_path)|>suppressWarnings()
   
+  # Vorschaubilder erzeugen wenn noch nicht vorhanden 
   ii <- 1
   if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
     library(magick)
     writeLines("Site-Map wird erstellt, einen Moment bitte: ")
     
-    for (ii in 1:length(c_fileNames)) {
+    c_select <- !((c_fileNames|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
+    c_select
+    c_fileNames[c_select]
+    c_url[c_select]
+    
+    ii <- 1
+    for (ii in 1:length(c_fileNames[c_select])) {
       # Set the path to the input image
-      input_path <- paste0(c_path, "/",c_fileNames[ii],".png")
+      input_path <- paste0(c_path, "/",c_fileNames[c_select][ii],".png")
+      input_path
   
       # create a webshot, printed html
-      webshot::webshot(url = c_url[ii], file = input_path)
+      webshot::webshot(url = c_url[c_select][ii], file = input_path)
   
       # Read the image crop and resize and save
       image_read(input_path)|>
         image_crop(geometry = "992x992+0+0")|>
-        image_resize("500x500")|>
+        image_resize("4000x400")|>
         image_write(input_path)
   
       writeLines(".", sep = "")
     }
+    
   }
 
   # function to edit raw markdown files
@@ -414,11 +433,12 @@ if(c_SiteMap){
       for (ii in 1:(length(fileNames))) { 
         if(ii == 1){ #letzte Zeile von Rmd
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\")," "
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
                        )
         }else{ # normales einfügen
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                       if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                        raw_rmd[(index+1):length(raw_rmd)]
                        )
         }
@@ -426,7 +446,8 @@ if(c_SiteMap){
     }else{ # normales einfügen 
       for (ii in 1:(length(fileNames))) {
         raw_rmd <- c(raw_rmd[1:index],
-                   paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                   paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                   if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                    raw_rmd[(index+1):length(raw_rmd)]
         )
       }
@@ -439,7 +460,7 @@ if(c_SiteMap){
   c_raw
   
   ii <- ii + 1
-  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss eingefügt werden
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
@@ -462,6 +483,7 @@ if(c_SiteMap){
     c_raw
     
     c_raw[c_index]
+    
     
     # Linkliste einfügen
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
@@ -523,8 +545,6 @@ if(c_raw[c_index+1] != c_script_version){ # Dokumentation anpassen falls neue Ve
   
   source("doc/create Readme and Docu.R")
 }
-
-
 
 
 #############################################################################################################################################

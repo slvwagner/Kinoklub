@@ -1,23 +1,22 @@
-# Create TOC for doc/README.Rmd file 
+# Write README
+readLines("doc/README.Rmd")|>
+  writeLines("README.md")
+
+# Create TOC for Dokumentation
 source("source/functions.R")
 r_toc_for_Rmd(readLines("doc/README.Rmd"), 
               toc_heading_string = "Inhaltsverzeichnis",
-              create_nb = F)|>
-  writeLines("README.md")
+              create_nb = T)|>
+  writeLines("README.Rmd")
 
-# Render READ me
-rmarkdown::render(paste0("README.md"), 
-                  output_dir  = "doc/",
-                  output_file = "Dokumentation.html")
-
-# "html_document","word_document","pdf_document"
-
-# rmarkdown::render(input = paste0("README.md"),
-#                   output_format = "word_document",
-#                   output_dir  = "doc/",
-#                   output_file = "Dokumentation.docx")
-
-rmarkdown::render(input = paste0("README.md"),
+rmarkdown::render(input = paste0("README.Rmd"),
                   output_format = "pdf_document",
                   output_dir  = "doc/",
                   output_file = "Dokumentation.pdf")
+
+# rmarkdown::render(input = paste0("README.Rmd"),
+#                   output_format = "html_document",
+#                   output_dir  = "doc/",
+#                   output_file = "Dokumentation.docx")
+
+file.remove("README.Rmd")
