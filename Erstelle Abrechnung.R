@@ -10,7 +10,7 @@
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "V0.7"
+c_script_version <- "2024 1.0"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
