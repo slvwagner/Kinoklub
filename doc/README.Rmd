@@ -46,7 +46,14 @@ Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werde
     install.packages("rebus")
     install.packages("openxlsx")
     install.packages("flextable")
+```
+```
     install.packages("magick")
+    install.packages("webshot")
+```
+7.  Run this command once in R-Terminal, error MSG can be ignored
+```
+    webshot::install_phantomjs()
 ```
 8.  Run the Script:
 ```
