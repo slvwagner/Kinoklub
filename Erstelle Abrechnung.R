@@ -4,7 +4,7 @@
 # Es kann auch pro Vorführung einen Rechnung erstellt werden. 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
-# V0.4
+# V0.5
 #############################################################################################################################################
 rm(list = ls())
 library(tidyverse)
