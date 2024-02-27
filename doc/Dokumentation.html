@@ -387,8 +387,12 @@ Filmvorführung</a></li>
 </ul></li>
 </ul>
 <p>Author: Florian Wagner<br />
-<br />
-Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den
+Script Version:<br />
+V0.6<br />
+</p>
+<p><code>{r setup, include=FALSE} knitr::opts_chunk$set(echo = FALSE) act_date &lt;- Sys.time()|&gt;as.Date() act_date &lt;- paste0(day(act_date),&quot;.&quot;, month(act_date),&quot;.&quot;, year(act_date))</code></p>
+<p>Dokumentation wurde am <code>r act_date</code> erstellt.</p>
+<p>Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den
 Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser
 Script erstellt.<br />
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:</p>
