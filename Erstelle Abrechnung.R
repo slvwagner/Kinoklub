@@ -10,7 +10,7 @@
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "V0.6"
+c_script_version <- "V0.7"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
@@ -507,17 +507,16 @@ if(c_SiteMap){
 #############################################################################################################################################
 # Einlesen template der Verleiherabrechnung
 c_raw <- readLines("doc/README.Rmd")
-c_raw
+c_raw[8:15]
 
 # Index where to find
 c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
 c_index <- c_index[length(c_index)]
+c_raw[c_index+1]
 
 if(c_raw[c_index+1] != c_script_version){ # Dokumentation anpassen falls neue Version
-  c_raw <- c(c_raw[1:c_index],
-             paste0("\n", c_script_version ),
-             c_raw[(c_index+1):length(c_raw)])
-  
+  c_raw[c_index+1] <- c_script_version
+
   # neues file schreiben
   c_raw|>
     writeLines("doc/README.Rmd")
@@ -543,7 +542,7 @@ remove(df_temp, df_Render, df_mapping, Brutto,
 print(clc)
 paste0("\n****************************************\n",
       "Script Version:  ", c_script_version,
-      "\n\nAlles wurde korrekt ausgeführt\n\n",
+      "\n\nAlles wurde korrekt ausgeführt", if(warnings()|>length()>0) {", es Fehlen aber noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
       "\n****************************************\n")|>
   writeLines()
