@@ -1,0 +1,32 @@
+---
+title: "Site-Map"
+output: 
+  html_document
+---
+
+```{r setup, include=FALSE}
+library(lubridate)
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+```
+
+Site Map wurde am `r act_date` erstellt.
+
+```{css}
+body {
+  background-color: #086c6c;
+  color: #f4cccc;
+}
+```
+
+
+## Statistik
+
+## Abrechnung
+
+## Jahresrechnung_detailed
+
+## Jahresrechnung
+
+## Verleiherabrechnung
