@@ -542,7 +542,7 @@ remove(df_temp, df_Render, df_mapping, Brutto,
 print(clc)
 paste0("\n****************************************\n",
       "Script Version:  ", c_script_version,
-      "\n\nAlles wurde korrekt ausgeführt\n\n",
+      "\n\nAlles wurde korrekt ausgeführt", if(warnings()|>length()>0) {", es Fehlen aber noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
       "\n****************************************\n")|>
   writeLines()

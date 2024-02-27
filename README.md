@@ -28,7 +28,7 @@ output:
 
 Author: Florian Wagner \
 Script Version: \
-V0.6
+V0.7
 \
 
 ```{r setup, include=FALSE}
