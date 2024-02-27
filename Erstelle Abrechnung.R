@@ -1,20 +1,32 @@
 #############################################################################################################################################
-# Bitte beachte das README.md
-# Diesen Script erstellt die Jahresabrechnung für den Kinoclub.
-# Es kann auch pro Vorführung einen Rechnung erstellt werden. 
+# Bitte beachte das README.md und die Dokumentation im Verzeichniss ".../doc"
+# Diesen Script erstellt alle Berichte für den Kinoclub.
+# 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
-# V0.5
+# V0.6
 
 #############################################################################################################################################
+# Vorbereiten / Installieren
+#############################################################################################################################################
 rm(list = ls())
-source("source/functions.R")
-library(tidyverse)
-library(rebus)
+# Define libraries to be installed
+packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+
+# working directory 
 c_WD <- getwd()
+
 #############################################################################################################################################
 # Benutzereinstellungen 
 #############################################################################################################################################
+
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
 
@@ -43,8 +55,34 @@ c_SiteMap <- FALSE
 #############################################################################################################################################
 # Script start
 #############################################################################################################################################
+if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
+  # Package names
+  packages <- c("magick")
+  
+  # Install packages not yet installed
+  installed_packages <- packages %in% rownames(installed.packages())
+  
+  if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+  }
+  # Packages loading
+  invisible(lapply(packages, library, character.only = TRUE))
+  
+  # Package names
+  packages <- c("webshot")
+  
+  # Install packages not yet installed
+  installed_packages <- packages %in% rownames(installed.packages())
+  
+  if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+    webshot::install_phantomjs()
+  }
+  # Packages loading
+  invisible(lapply(packages, library, character.only = TRUE))
+}
 
-# template für diagramme (Bei einer Änderung soll auch das css geändert werden)
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
   theme_bw() +
   theme(
@@ -111,6 +149,43 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 df_mapping
+
+#############################################################################################################################################
+# Statistik
+#############################################################################################################################################
+# Einlesen
+c_raw <- readLines("source/Statistik.Rmd")
+c_raw
+
+# Inhaltsverzeichnis
+if(toc){# neues file schreiben mit toc
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines(paste0("source/temp.Rmd"))
+}else {# neues file schreiben ohne toc
+  c_raw|>
+    writeLines(paste0("source/temp.Rmd"))
+}
+
+# Render
+rmarkdown::render(paste0("source/temp.Rmd"),
+                  df_Render$Render,
+                  output_dir = paste0(getwd(), "/output"))
+
+# Rename the file
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+  )
+}
+
+# rmarkdown::render(paste0("source/Statistik.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
+print(clc)
+
+paste("Bericht: \nStatistik erstellt")|>
+  writeLines()
 
 #############################################################################################################################################
 # Jahresrechnung detalliert
@@ -180,43 +255,6 @@ print(clc)
 paste("Bericht: \nJahresrechnung erstellt")|>
   writeLines()
 
-
-#############################################################################################################################################
-# Statistik
-#############################################################################################################################################
-# Einlesen
-c_raw <- readLines("source/Statistik.Rmd")
-c_raw
-
-# Inhaltsverzeichnis
-if(toc){# neues file schreiben mit toc
-  c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
-    writeLines(paste0("source/temp.Rmd"))
-}else {# neues file schreiben ohne toc
-  c_raw|>
-    writeLines(paste0("source/temp.Rmd"))
-}
-
-# Render
-rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-
-# Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
-  )
-}
-
-# rmarkdown::render(paste0("source/Statistik.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-print(clc)
-
-paste("Bericht: \nStatistik erstellt")|>
-  writeLines()
 
 
 #############################################################################################################################################
@@ -345,11 +383,11 @@ if(c_SiteMap){
   c_path
   dir.create(c_path)|>suppressWarnings()
   
-  library(magick)
-  
-  writeLines("Site-Map wird erstellt, einen Moment bitte: ")
   ii <- 1
   if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
+    library(magick)
+    writeLines("Site-Map wird erstellt, einen Moment bitte: ")
+    
     for (ii in 1:length(c_fileNames)) {
       # Set the path to the input image
       input_path <- paste0(c_path, "/",c_fileNames[ii],".png")
@@ -367,12 +405,8 @@ if(c_SiteMap){
     }
   }
 
-  # Einlesen template der Verleiherabrechnung
-  c_raw <- readLines("source/Site_Map.Rmd")
-  c_raw
-  
   # function to edit raw markdown files
-  edit_Rmd <- function(raw_rmd, index,fileNames, url) {
+  instert_picts <- function(raw_rmd, index,fileNames, url) {
     # create link to pict and link to file 
     if(length(raw_rmd) == index){
       for (ii in 1:(length(fileNames))) { 
@@ -398,8 +432,12 @@ if(c_SiteMap){
     return(raw_rmd)
   }
   
+  # Einlesen template der Verleiherabrechnung
+  c_raw <- readLines("source/Site_Map.Rmd")
+  c_raw
+  
   ii <- ii + 1
-  for (ii in 1:length(c_typ_Berichte)) {
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
@@ -414,16 +452,40 @@ if(c_SiteMap){
       c_select <- str_detect(c_fileNames, START%R%c_typ_Berichte[ii])
     }
     
-    # if(c_typ_Berichte[ii] == "Verleiherabrechnung") stop(paste("\nstop"))
-    
     c_raw
     c_fileNames[c_select]
     c_url[c_select]
     
-    c_raw <- edit_Rmd(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw <- instert_picts(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
     c_raw
     
+    c_raw[c_index]
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Abrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
   }
+  
   c_typ_Berichte[ii]
   c_raw
   
@@ -434,20 +496,21 @@ if(c_SiteMap){
   
   # Render
   rmarkdown::render(input = "Site-Map.Rmd")
-
+  # Remove file
+  file.remove("Site-Map.Rmd")
 }
 
-file.remove("Site-Map.Rmd")
+
 
 #############################################################################################################################################
 # remove temp files 
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-# remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-# remove(df_temp, df_Render, df_mapping, Brutto,
-#        c_temp, c_temp1,
-#        c_render_option)
+remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+remove(df_temp, df_Render, df_mapping, Brutto,
+       c_temp, c_temp1
+       )
 
 #############################################################################################################################################
 # User Interaktion
