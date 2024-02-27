@@ -7,7 +7,7 @@ output:
 
 Author: Florian Wagner \
 Script Version: \
-V0.7
+2024 1.0
 \
 
 ```{r setup, include=FALSE}

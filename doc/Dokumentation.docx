@@ -357,41 +357,43 @@ display: none;
 <div id="inhaltsverzeichnis" class="section level2">
 <h2>Inhaltsverzeichnis<a name="Inhaltsverzeichnis"></a></h2>
 <ul>
-<li><a href="#A_Installation">Installation</a></li>
-<li><a href="#A_Ablauf">Ablauf</a></li>
-<li><a href="#A_Datensätze">Datensätze</a></li>
-<li><a href="#A_Script%20Konfiguration">Script Konfiguration</a>
+<li><a href="#A_1_Installation">1 Installation</a></li>
+<li><a href="#A_2_Ablauf">2 Ablauf</a></li>
+<li><a href="#A_3_Datensätze">3 Datensätze</a></li>
+<li><a href="#A_4_Script%20Konfiguration">4 Script Konfiguration</a>
 <ul>
-<li><a href="#A_Abrechnung%20für%20Filmvorführungen">Abrechnung für
-Filmvorführungen</a></li>
-<li><a href="#A_Inhaltsverzeichnisse">Inhaltsverzeichnisse</a></li>
-<li><a href="#A_Mehrwertsteuersatz">Mehrwertsteuersatz</a></li>
-<li><a href="#A_Platzkategorien%20ohne%20Umsatz%20die%20dennoch%20abgerechnet%20werden%20müssen.">Platzkategorien
-ohne Umsatz die dennoch abgerechnet werden müssen.</a></li>
-<li><a href="#A_Ausgabeformate">Ausgabeformate</a></li>
+<li><a href="#A_4.1_Abrechnung%20für%20Filmvorführungen">4.1 Abrechnung
+für Filmvorführungen</a></li>
+<li><a href="#A_4.2_Inhaltsverzeichnisse">4.2
+Inhaltsverzeichnisse</a></li>
+<li><a href="#A_4.3_Mehrwertsteuersatz">4.3 Mehrwertsteuersatz</a></li>
+<li><a href="#A_4.4_Platzkategorien%20ohne%20Umsatz%20die%20dennoch%20abgerechnet%20werden%20müssen.">4.4
+Platzkategorien ohne Umsatz die dennoch abgerechnet werden
+müssen.</a></li>
+<li><a href="#A_4.5_Ausgabeformate">4.5 Ausgabeformate</a></li>
 </ul></li>
-<li><a href="#A_Excel%20Dateien">Excel Dateien</a>
+<li><a href="#A_5_Excel%20Dateien">5 Excel Dateien</a>
 <ul>
-<li><a href="#A_Einkaufspreise">Einkaufspreise</a></li>
-<li><a href="#A_Spezialpreise%20Kiosk">Spezialpreise Kiosk</a></li>
-<li><a href="#A_Verleiherabgaben">Verleiherabgaben</a></li>
-<li><a href="#A_Einnahmen%20und%20Ausgaben">Einnahmen und
+<li><a href="#A_5.1_Einkaufspreise">5.1 Einkaufspreise</a></li>
+<li><a href="#A_5.2_Spezialpreise%20Kiosk">5.2 Spezialpreise
+Kiosk</a></li>
+<li><a href="#A_5.3_Verleiherabgaben">5.3 Verleiherabgaben</a></li>
+<li><a href="#A_5.4_Einnahmen%20und%20Ausgaben">5.4 Einnahmen und
 Ausgaben</a></li>
 </ul></li>
-<li><a href="#A_Berichte">Berichte</a>
+<li><a href="#A_6_Berichte">6 Berichte</a>
 <ul>
-<li><a href="#A_Abrechnung%20Filmvorführung">Abrechnung
+<li><a href="#A_6.1_Abrechnung%20Filmvorführung">6.1 Abrechnung
 Filmvorführung</a></li>
-<li><a href="#A_Jahresabrechnungen">Jahresabrechnungen</a></li>
-<li><a href="#A_Statistik">Statistik</a></li>
+<li><a href="#A_6.2_Jahresabrechnungen">6.2 Jahresabrechnungen</a></li>
+<li><a href="#A_6.3_Statistik">6.3 Statistik</a></li>
 </ul></li>
 </ul>
 <p>Author: Florian Wagner<br />
 Script Version:<br />
-V0.7<br />
+2024 1.0<br />
 </p>
-<p><code>{r setup, include=FALSE} knitr::opts_chunk$set(echo = FALSE) act_date &lt;- Sys.time()|&gt;as.Date() act_date &lt;- paste0(day(act_date),&quot;.&quot;, month(act_date),&quot;.&quot;, year(act_date))</code></p>
-<p>Dokumentation wurde am <code>r act_date</code> erstellt.</p>
+<p>Dokumentation wurde am 27.2.2024 erstellt.</p>
 <p>Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den
 Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser
 Script erstellt.<br />
@@ -408,7 +410,7 @@ erstellt.</p>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="installation" class="section level2">
-<h2>Installation<a name="A_Installation"></a></h2>
+<h2>1 Installation<a name="A_1_Installation"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ol style="list-style-type: decimal">
 <li>Download and install R<br />
@@ -442,7 +444,7 @@ install the Scripts</li>
 <pre><code>    source(&quot;Erstelle Abrechnung.R&quot;)</code></pre>
 </div>
 <div id="ablauf" class="section level2">
-<h2>Ablauf<a name="A_Ablauf"></a></h2>
+<h2>2 Ablauf<a name="A_2_Ablauf"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>“Erstelle Abrechnung.R” Script führt folgendes auf.</p>
 <ol style="list-style-type: decimal">
@@ -458,7 +460,7 @@ Vorführung</li>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="datensätze" class="section level2">
-<h2>Datensätze<a name="A_Datensätze"></a></h2>
+<h2>3 Datensätze<a name="A_3_Datensätze"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Datensätze können von <a href="https://www.advance-ticket.ch/admin" class="uri">https://www.advance-ticket.ch/admin</a> heruntergeladen
 werden und sind unter dem Verzeichnis <strong>…/Kinoklub/input/advance
@@ -489,14 +491,14 @@ Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen
 <div style="page-break-after: always;"></div>
 </div>
 <div id="script-konfiguration" class="section level2">
-<h2>Script Konfiguration<a name="A_Script Konfiguration"></a></h2>
+<h2>4 Script Konfiguration<a name="A_4_Script Konfiguration"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Datei <strong>“Erstelle Abrechnung.R”</strong> enhält am Anfang
 die folgenden definition die abgeändert werden können um das Verhalten
 des Scripts zu beeinflussen.</p>
 <div id="abrechnung-für-filmvorführungen" class="section level3">
-<h3>Abrechnung für
-Filmvorführungen<a name="A_Abrechnung für Filmvorführungen"></a></h3>
+<h3>4.1 Abrechnung für
+Filmvorführungen<a name="A_4.1_Abrechnung für Filmvorführungen"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ul>
 <li>Für jede Filmvorführung eine Abrechnung erstellen.<br />
@@ -507,7 +509,8 @@ Filmvorführungen<a name="A_Abrechnung für Filmvorführungen"></a></h3>
 </ul>
 </div>
 <div id="inhaltsverzeichnisse" class="section level3">
-<h3>Inhaltsverzeichnisse<a name="A_Inhaltsverzeichnisse"></a></h3>
+<h3>4.2
+Inhaltsverzeichnisse<a name="A_4.2_Inhaltsverzeichnisse"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt
 werden?</p>
@@ -519,13 +522,13 @@ werden?</p>
 </ul>
 </div>
 <div id="mehrwertsteuersatz" class="section level3">
-<h3>Mehrwertsteuersatz<a name="A_Mehrwertsteuersatz"></a></h3>
+<h3>4.3 Mehrwertsteuersatz<a name="A_4.3_Mehrwertsteuersatz"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>c_MWST &lt;- 8.1 #%</p>
 </div>
 <div id="platzkategorien-ohne-umsatz-die-dennoch-abgerechnet-werden-müssen." class="section level3">
-<h3>Platzkategorien ohne Umsatz die dennoch abgerechnet werden
-müssen.<a name="A_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen."></a></h3>
+<h3>4.4 Platzkategorien ohne Umsatz die dennoch abgerechnet werden
+müssen.<a name="A_4.4_Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen."></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet
 werden. Die Defintion findet sich in der Datei “Verleiherabgaben.xlsx”
@@ -537,7 +540,7 @@ Preis.<br />
 “Kinoförderer”, Verkaufspreis = 13)  </p>
 </div>
 <div id="ausgabeformate" class="section level3">
-<h3>Ausgabeformate<a name="A_Ausgabeformate"></a></h3>
+<h3>4.5 Ausgabeformate<a name="A_4.5_Ausgabeformate"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ul>
 <li><code>c_render_option</code> &lt;- “1” only html</li>
@@ -549,12 +552,12 @@ für pdf install Latex for Windows (Miktex) for Mac (MacTex))</li>
 </div>
 </div>
 <div id="excel-dateien" class="section level2">
-<h2>Excel Dateien<a name="A_Excel Dateien"></a></h2>
+<h2>5 Excel Dateien<a name="A_5_Excel Dateien"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Im Verzeichniss <strong>…/Kinoklub/input/</strong> kann mit Hilfe von
 Excelfiles folgendes definiert werden:</p>
 <div id="einkaufspreise" class="section level3">
-<h3>Einkaufspreise<a name="A_Einkaufspreise"></a></h3>
+<h3>5.1 Einkaufspreise<a name="A_5.1_Einkaufspreise"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Einkaufspreise die ab einem bestimmten Datum gültig sind.
 “Einkauf Kiosk xx.xx.xx.xlsx”<br />
@@ -568,7 +571,7 @@ Die alte Dateien dürfen nicht gelöscht werden.</li>
 </ul>
 </div>
 <div id="spezialpreise-kiosk" class="section level3">
-<h3>Spezialpreise Kiosk<a name="A_Spezialpreise Kiosk"></a></h3>
+<h3>5.2 Spezialpreise Kiosk<a name="A_5.2_Spezialpreise Kiosk"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>In der Datei <strong>“Spezialpreisekiosk.xlsx”</strong> müssen die
 Sonderangebote definiert werden.<br />
@@ -584,7 +587,7 @@ Diese Datei wird benötigt um die Spezialpreise</p>
 <p>nach zuschlagen.</p>
 </div>
 <div id="verleiherabgaben" class="section level3">
-<h3>Verleiherabgaben<a name="A_Verleiherabgaben"></a></h3>
+<h3>5.3 Verleiherabgaben<a name="A_5.3_Verleiherabgaben"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Verleiherabgaben müssen in der Datei
 <strong>“…/Kinoklub/input/Verleiherabgaben.xlsx”</strong> definiert
@@ -605,7 +608,8 @@ Verleiher vergrössert.</p></li>
 </ul>
 </div>
 <div id="einnahmen-und-ausgaben" class="section level3">
-<h3>Einnahmen und Ausgaben<a name="A_Einnahmen und Ausgaben"></a></h3>
+<h3>5.4 Einnahmen und
+Ausgaben<a name="A_5.4_Einnahmen und Ausgaben"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p><strong>“…/Kinoklub/input/Einnahmen und Ausgaben.xlsx”</strong><br />
 Alle Einnahmen und Ausgaben müssen definiert werden.<br />
@@ -614,7 +618,7 @@ Alle Einnahmen und Ausgaben müssen definiert werden.<br />
 </div>
 </div>
 <div id="berichte" class="section level2">
-<h2>Berichte<a name="A_Berichte"></a></h2>
+<h2>6 Berichte<a name="A_6_Berichte"></a></h2>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Alle Dateien die erzeugt wurden finden sich im
 <strong>…/Kinoklub/output/</strong> Verzeichniss.</p>
@@ -628,8 +632,8 @@ erstellt.</li>
 abgespeichert.</li>
 </ul>
 <div id="abrechnung-filmvorführung" class="section level3">
-<h3>Abrechnung
-Filmvorführung<a name="A_Abrechnung Filmvorführung"></a></h3>
+<h3>6.1 Abrechnung
+Filmvorführung<a name="A_6.1_Abrechnung Filmvorführung"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Es wird eine Filmabrechnung pro Event (Datum) erstellt.</p>
 <ul>
@@ -734,7 +738,7 @@ Summe aus Einnahmen und Ausgaben</li>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="jahresabrechnungen" class="section level3">
-<h3>Jahresabrechnungen<a name="A_Jahresabrechnungen"></a></h3>
+<h3>6.2 Jahresabrechnungen<a name="A_6.2_Jahresabrechnungen"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <p>Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet
 und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien
@@ -813,7 +817,7 @@ Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin,
 <div style="page-break-after: always;"></div>
 </div>
 <div id="statistik" class="section level3">
-<h3>Statistik<a name="A_Statistik"></a></h3>
+<h3>6.3 Statistik<a name="A_6.3_Statistik"></a></h3>
 <p><a href="#Inhaltsverzeichnis">Inhaltsverzeichnis</a></p>
 <ul>
 <li>Gewinn/Verlust
