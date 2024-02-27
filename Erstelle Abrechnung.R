@@ -521,6 +521,8 @@ if(c_raw[c_index+1] != c_script_version){ # Dokumentation anpassen falls neue Ve
   # neues file schreiben
   c_raw|>
     writeLines("doc/README.Rmd")
+  
+  source("doc/create Readme and Docu.R")
 }
 
 
@@ -539,10 +541,11 @@ remove(df_temp, df_Render, df_mapping, Brutto,
 #############################################################################################################################################
 # User Interaktion
 print(clc)
-paste0("\n********************\n",
-      "Script Version: ", c_script_version,
-      "\nDone\n",
-      "\n********************\n")|>
+paste0("\n****************************************\n",
+      "Script Version:  ", c_script_version,
+      "\n\nAlles wurde korrekt ausgeführt\n\n",
+      paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
+      "\n****************************************\n")|>
   writeLines()
 
 
