@@ -127,8 +127,13 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 ### Ausgabeformate
 
 -   `c_render_option` \<- "1" only html
--   `c_render_option` \<- "2" html and docx
--   `c_render_option` \<- "3" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+-   `c_render_option` \<- "2" only docx
+-   `c_render_option` \<- "3" only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+-   `c_render_option` \<- "4" html and docx
+-   `c_render_option` \<- "5" html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+-   `c_render_option` \<- "6" docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+-   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+
 
 \newpage
 
