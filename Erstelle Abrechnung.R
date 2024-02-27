@@ -383,11 +383,11 @@ if(c_SiteMap){
   c_path
   dir.create(c_path)|>suppressWarnings()
   
-  library(magick)
-  
-  writeLines("Site-Map wird erstellt, einen Moment bitte: ")
   ii <- 1
   if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
+    library(magick)
+    writeLines("Site-Map wird erstellt, einen Moment bitte: ")
+    
     for (ii in 1:length(c_fileNames)) {
       # Set the path to the input image
       input_path <- paste0(c_path, "/",c_fileNames[ii],".png")
@@ -405,12 +405,8 @@ if(c_SiteMap){
     }
   }
 
-  # Einlesen template der Verleiherabrechnung
-  c_raw <- readLines("source/Site_Map.Rmd")
-  c_raw
-  
   # function to edit raw markdown files
-  edit_Rmd <- function(raw_rmd, index,fileNames, url) {
+  instert_picts <- function(raw_rmd, index,fileNames, url) {
     # create link to pict and link to file 
     if(length(raw_rmd) == index){
       for (ii in 1:(length(fileNames))) { 
@@ -436,8 +432,12 @@ if(c_SiteMap){
     return(raw_rmd)
   }
   
+  # Einlesen template der Verleiherabrechnung
+  c_raw <- readLines("source/Site_Map.Rmd")
+  c_raw
+  
   ii <- ii + 1
-  for (ii in 1:length(c_typ_Berichte)) {
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
@@ -452,16 +452,40 @@ if(c_SiteMap){
       c_select <- str_detect(c_fileNames, START%R%c_typ_Berichte[ii])
     }
     
-    # if(c_typ_Berichte[ii] == "Verleiherabrechnung") stop(paste("\nstop"))
-    
     c_raw
     c_fileNames[c_select]
     c_url[c_select]
     
-    c_raw <- edit_Rmd(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw <- instert_picts(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
     c_raw
     
+    c_raw[c_index]
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Abrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
   }
+  
   c_typ_Berichte[ii]
   c_raw
   
