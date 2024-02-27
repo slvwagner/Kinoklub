@@ -10,6 +10,7 @@
 rm(list = ls())
 source("source/functions.R")
 library(tidyverse)
+library(rebus)
 c_WD <- getwd()
 #############################################################################################################################################
 # Benutzereinstellungen 
@@ -337,7 +338,7 @@ if(c_SiteMap){
   c_typ_Berichte
   
   # Convert filenames to URL
-  url <- paste0("file:///", URLencode(paste0(c_WD,"/output/", c_fileNames)), 
+  c_url <- paste0("file:///", URLencode(paste0(c_WD,"/output/", c_fileNames)), 
                 sep = "")
   
   c_path <- paste0(c_WD,"/output/pict")
@@ -346,21 +347,26 @@ if(c_SiteMap){
   
   library(magick)
   
+  writeLines("Site-Map wird erstellt, einen Moment bitte: ")
   ii <- 1
-  # for (ii in 1:length(c_fileNames)) {
-  #   # Set the path to the input image
-  #   input_path <- paste0(c_path, "/",c_fileNames[ii],".png")
-  #   
-  #   # create a webshot, printed html
-  #   webshot::webshot(url = url[ii], file = input_path)
-  #   
-  #   # Read the image crop and resize and save
-  #   image_read(input_path)|>
-  #     image_crop(geometry = "992x992+0+0")|>
-  #     image_resize("400x400")|>
-  #     image_write(input_path)
-  # }
+  if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
+    for (ii in 1:length(c_fileNames)) {
+      # Set the path to the input image
+      input_path <- paste0(c_path, "/",c_fileNames[ii],".png")
   
+      # create a webshot, printed html
+      webshot::webshot(url = c_url[ii], file = input_path)
+  
+      # Read the image crop and resize and save
+      image_read(input_path)|>
+        image_crop(geometry = "992x992+0+0")|>
+        image_resize("500x500")|>
+        image_write(input_path)
+  
+      writeLines(".", sep = "")
+    }
+  }
+
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
@@ -368,20 +374,38 @@ if(c_SiteMap){
   # function to edit raw markdown files
   edit_Rmd <- function(raw_rmd, index,fileNames, url) {
     # create link to pict and link to file 
-    for (ii in 1:(length(fileNames))) {
-      raw_rmd <- c(raw_rmd[1:index],
-                 paste0("[","![",fileNames[ii],"](output/pict/",c_fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
-                 raw_rmd[(index+1):length(raw_rmd)]
-      )
+    if(length(raw_rmd) == index){
+      for (ii in 1:(length(fileNames))) { 
+        if(ii == 1){ #letzte Zeile von Rmd
+          raw_rmd <- c(raw_rmd[1:index],
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\")," "
+                       )
+        }else{ # normales einfügen
+          raw_rmd <- c(raw_rmd[1:index],
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                       raw_rmd[(index+1):length(raw_rmd)]
+                       )
+        }
+      }
+    }else{ # normales einfügen 
+      for (ii in 1:(length(fileNames))) {
+        raw_rmd <- c(raw_rmd[1:index],
+                   paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                   raw_rmd[(index+1):length(raw_rmd)]
+        )
+      }
     }
     return(raw_rmd)
   }
   
-  ii <- 2
+  ii <- ii + 1
   for (ii in 1:length(c_typ_Berichte)) {
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
+    c_index
+    
+    c_raw
     c_raw[c_index]
     
     if(c_typ_Berichte[ii] == "Jahresrechnung"){
@@ -389,17 +413,23 @@ if(c_SiteMap){
     }else{
       c_select <- str_detect(c_fileNames, START%R%c_typ_Berichte[ii])
     }
-    c_fileNames[c_select]
-    url[c_select]
-    c_raw <-edit_Rmd(c_raw,c_index,c_fileNames[c_select], url[c_select])
+    
+    # if(c_typ_Berichte[ii] == "Verleiherabrechnung") stop(paste("\nstop"))
+    
     c_raw
+    c_fileNames[c_select]
+    c_url[c_select]
+    
+    c_raw <- edit_Rmd(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw
+    
   }
   c_typ_Berichte[ii]
   c_raw
   
   # neues file schreiben
   c_raw|>
-    # r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
     writeLines("Site-Map.Rmd")
   
   # Render
@@ -407,20 +437,22 @@ if(c_SiteMap){
 
 }
 
+file.remove("Site-Map.Rmd")
+
 #############################################################################################################################################
 # remove temp files 
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-remove(df_temp, df_Render, df_mapping, Brutto,
-       c_temp, c_temp1,
-       c_render_option)
+# remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+# remove(df_temp, df_Render, df_mapping, Brutto,
+#        c_temp, c_temp1,
+#        c_render_option)
 
 #############################################################################################################################################
 # User Interaktion
-
-paste("\nSite-Map wurde erstellt.")|>
+print(clc)
+paste("\n********************\nDone\n********************\n")|>
   writeLines()
 
 

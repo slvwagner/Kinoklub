@@ -18,15 +18,26 @@ body {
   background-color: #086c6c;
   color: #f4cccc;
 }
+
+a {
+  color: #f4ccfc; /* Set your desired color using a hex code, RGB, or color name */
+  text-decoration: none; /* Optional: Remove the default underline */
+}
+
+a:hover {
+  color: #C623D1; /* Set a different color when the link is hovered over (optional) */
+}
+
+
 ```
 
 
 ## Statistik
 
-## Abrechnung
-
 ## Jahresrechnung_detailed
 
 ## Jahresrechnung
+
+## Abrechnung
 
 ## Verleiherabrechnung
