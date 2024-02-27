@@ -395,6 +395,7 @@ if(c_SiteMap){
   c_path
   dir.create(c_path)|>suppressWarnings()
   
+  # Vorschaubilder erzeugen wenn noch nicht vorhanden 
   ii <- 1
   if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
     library(magick)
@@ -417,7 +418,7 @@ if(c_SiteMap){
       # Read the image crop and resize and save
       image_read(input_path)|>
         image_crop(geometry = "992x992+0+0")|>
-        image_resize("500x500")|>
+        image_resize("4000x400")|>
         image_write(input_path)
   
       writeLines(".", sep = "")
@@ -432,11 +433,12 @@ if(c_SiteMap){
       for (ii in 1:(length(fileNames))) { 
         if(ii == 1){ #letzte Zeile von Rmd
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\")," "
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
                        )
         }else{ # normales einfügen
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                       if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                        raw_rmd[(index+1):length(raw_rmd)]
                        )
         }
@@ -444,7 +446,8 @@ if(c_SiteMap){
     }else{ # normales einfügen 
       for (ii in 1:(length(fileNames))) {
         raw_rmd <- c(raw_rmd[1:index],
-                   paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")","  \\\n\\"),
+                   paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                   if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                    raw_rmd[(index+1):length(raw_rmd)]
         )
       }
@@ -457,7 +460,7 @@ if(c_SiteMap){
   c_raw
   
   ii <- ii + 1
-  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss eingefügt werden
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
@@ -480,6 +483,7 @@ if(c_SiteMap){
     c_raw
     
     c_raw[c_index]
+    
     
     # Linkliste einfügen
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
@@ -541,8 +545,6 @@ if(c_raw[c_index+1] != c_script_version){ # Dokumentation anpassen falls neue Ve
   
   source("doc/create Readme and Docu.R")
 }
-
-
 
 
 #############################################################################################################################################
