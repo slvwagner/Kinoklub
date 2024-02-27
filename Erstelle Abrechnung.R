@@ -509,8 +509,8 @@ list.files(pattern = "temp", recursive = TRUE)|>
 
 remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
 remove(df_temp, df_Render, df_mapping, Brutto,
-       c_temp, c_temp1,
-       c_render_option)
+       c_temp, c_temp1
+       )
 
 #############################################################################################################################################
 # User Interaktion
