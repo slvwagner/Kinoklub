@@ -418,7 +418,7 @@ if(c_SiteMap){
       # Read the image crop and resize and save
       image_read(input_path)|>
         image_crop(geometry = "992x992+0+0")|>
-        image_resize("4000x400")|>
+        image_resize("400x400")|>
         image_write(input_path)
   
       writeLines(".", sep = "")
