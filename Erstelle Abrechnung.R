@@ -1,7 +1,7 @@
 #############################################################################################################################################
-# Bitte beachte das README.md
-# Diesen Script erstellt die Jahresabrechnung für den Kinoclub.
-# Es kann auch pro Vorführung einen Rechnung erstellt werden. 
+# Bitte beachte das README.md und die Dokumentation im Verzeichniss ".../doc"
+# Diesen Script erstellt alle Berichte für den Kinoclub.
+# 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
 # V0.6
@@ -44,7 +44,7 @@ c_SiteMap <- TRUE
 # Script start
 #############################################################################################################################################
 
-# template für diagramme (Bei einer Änderung soll auch das css geändert werden)
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
   theme_bw() +
   theme(
