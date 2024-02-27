@@ -69,6 +69,7 @@ Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werde
     install.packages("rebus")
     install.packages("openxlsx")
     install.packages("flextable")
+    install.packages("magick")
 ```
 8.  Run the Script:
 ```
