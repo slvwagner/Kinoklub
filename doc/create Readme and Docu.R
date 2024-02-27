@@ -1,5 +1,12 @@
 # Write README
-readLines("doc/README.Rmd")|>
+c_raw <- readLines("doc/README.Rmd")
+
+c_raw[index]|>
+  writeLines("README.md")
+
+# Ändern des Templates
+index <- (1:length(c_raw))[c_raw|>str_detect("# Kinoklub")]
+c_raw[index]|>
   writeLines("README.md")
 
 # Create TOC for Dokumentation

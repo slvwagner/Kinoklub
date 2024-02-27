@@ -1,234 +1,237 @@
----
-title: Dokumentation Kinoklub
-output: 
-  html_document:
-    css: source/Kinoklub_dark.css
----
+# Kinoklub 
 
-Author: Florian Wagner \
-Script Version: \
-2024 V0.7
-\
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-act_date <- Sys.time()|>as.Date()
-act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
-```
-
-Dokumentation wurde am `r act_date` erstellt.
-
-Script zur Abrechnung für den Kinoklub TaB. 
-Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt. \
+Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
-```
+
+```         
 source("Erstelle Abrechnung.R")
 ```
+
 \
-Bei Fehlern kann ein "Issue" in Github erfasst werden. \
+Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 \
-Die Datei "README.md" und die Dokumentation wird automatisch erstellt. 
-```
+Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
+
+```         
 source("doc/create Readme and Docu.R")
 ```
 
-Eine Änderung  muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.  
+Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
 \newpage
 
 ## Installation
 
-1.  Download and install R \
+1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
-2.  Download and install Rsudio \
+2.  Download and install Rsudio\
     <https://posit.co/download/rstudio-desktop/>
-3.  Download git: \
+3.  Download git:\
     <https://git-scm.com/downloads>
-5.  Kionklub Scripts download:
-    Navigate to folder you would like to install the Scripts
-```
+4.  Kionklub Scripts download: Navigate to folder you would like to install the Scripts
+
+```         
     git clone https://github.com/slvwagner/Kinoklub
 ```
+
 6.  Start Rstudio from the Kinoklub folder.
 7.  Install the needed packages in the R Terminal
-```
+
+```         
     install.packages("rmarkdown")
     install.packages("tidyverse")
     install.packages("rebus")
     install.packages("openxlsx")
     install.packages("flextable")
 ```
-```
+
+```         
     install.packages("magick")
     install.packages("webshot")
 ```
+
 7.  Run this command once in R-Terminal, error MSG can be ignored
-```
+
+```         
     webshot::install_phantomjs()
 ```
+
 8.  Run the Script:
-```
+
+```         
     source("Erstelle Abrechnung.R")
 ```
 
 ## Ablauf
-"Erstelle Abrechnung.R" Script führt folgendes auf. 
 
-1.    Konfigurations variablen erstellen.
-2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. 
-      Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
-5.    Erstellen Jahresbericht
-8.    Erstellen Jahresbericht detailed
-11.   Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+"Erstelle Abrechnung.R" Script führt folgendes auf.
 
+1.  Konfigurations variablen erstellen.
+2.  Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+3.  Erstellen Jahresbericht
+4.  Erstellen Jahresbericht detailed
+5.  Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
 
 \newpage
 
 ## Datensätze
 
-Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis
-**.../Kinoklub/input/advance tickets/** abzuspeichern.
+Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** abzuspeichern.
 
--   "Eintritte 02.12.23.txt" \
-    Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt"
-    Es muss die Kalenderwoche sowie der Film ausgewählt werden. \
+-   "Eintritte 02.12.23.txt"\
+    Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
     ![Eintritt](doc/eintritt.png)
--   "Kiosk 02.12.23.txt"" \
-    Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt". \
-    Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.   
-    Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden. \
+-   "Kiosk 02.12.23.txt""\
+    Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt".\
+    Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
+    Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
     ![Kiosk](doc/Kiosk.png)
--   "Shows.txt" \
-    Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt" \
-    Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren. \
-    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx \
+-   "Shows.txt"\
+    Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt"\
+    Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
+    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
     ![Shows](doc/shows.png)
 
 \newpage
+
 ## Script Konfiguration
 
 Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
 
 ### Abrechnung für Filmvorführungen
--   Für jede Filmvorführung eine Abrechnung erstellen. \
-    `c_run_single` <- TRUE  
--   Keine Abrechnug für Filmvorführung  erstellen. \
-    `c_run_single` <- FALSE  
 
-### Inhaltsverzeichnisse 
+-   Für jede Filmvorführung eine Abrechnung erstellen.\
+    `c_run_single` \<- TRUE\
+-   Keine Abrechnug für Filmvorführung erstellen.\
+    `c_run_single` \<- FALSE
+
+### Inhaltsverzeichnisse
+
 Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
 
--   Ja \
-    `toc` <- TRUE Ja
--   Nein \
-    `toc` <- FALSE
+-   Ja\
+    `toc` \<- TRUE Ja
+-   Nein\
+    `toc` \<- FALSE
 
 ### Mehrwertsteuersatz
-c_MWST <- 8.1 #%
+
+c_MWST \<- 8.1 #%
 
 ### Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
-Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".   \
-Die Variable  `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
-`df_P_kat_verechnen` <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  13)
-\ 
+
+Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".\
+Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
+`df_P_kat_verechnen` \<- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis = 13)  
 
 ### Ausgabeformate
 
--   `c_render_option` <- "1"  only html
--   `c_render_option` <- "2"  html and docx
--   `c_render_option` <- "3"  html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
- 
+-   `c_render_option` \<- "1" only html
+-   `c_render_option` \<- "2" html and docx
+-   `c_render_option` \<- "3" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+
 \newpage
-## Excel Dateien 
+
+## Excel Dateien
+
 Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
-### Einkaufspreise 
-Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx" \
-Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden. \
+### Einkaufspreise
 
--   Achtung!   \
+Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx"\
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden.\
+
+-   Achtung!\
     Die alte Dateien dürfen nicht gelöscht werden.
 
-
 ### Spezialpreise Kiosk
-In der Datei **"Spezialpreisekiosk.xlsx"** müssen die Sonderangebote definiert werden. \
-Diese Datei wird benötigt um die Spezialpreise 
 
--   Spez 1  
--   Spez 2  
--   Spez 3 
--   Spez 4 
+In der Datei **"Spezialpreisekiosk.xlsx"** müssen die Sonderangebote definiert werden.\
+Diese Datei wird benötigt um die Spezialpreise
 
-nach zuschlagen. 
+-   Spez 1\
+-   Spez 2\
+-   Spez 3
+-   Spez 4
 
+nach zuschlagen.
 
-### Verleiherabgaben    
-Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** definiert werden. \
+### Verleiherabgaben
 
--   Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" oder nur der "Abzug fix [CHF]" definiert werden. \ 
-    Beide Einträge sind nicht erlaubt. 
-    
--   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen. \
-    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen  welche in `c_P_kat_verechnen` definiert sind als Umsatz verrechnet.  \
-    Die Verleiherabrechnung wird ändert sich dadurch  was die Abgeben an den Verleiher vergrössert. 
+Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** definiert werden.\
+
+-   Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" oder nur der "Abzug fix [CHF]" definiert werden.   Beide Einträge sind nicht erlaubt.
+
+-   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
+    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen welche in `c_P_kat_verechnen` definiert sind als Umsatz verrechnet.\
+    Die Verleiherabrechnung wird ändert sich dadurch was die Abgeben an den Verleiher vergrössert.
 
 ### Einnahmen und Ausgaben
-**".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** \
-Alle Einnahmen und Ausgaben müssen definiert werden. \
+
+**".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**\
+Alle Einnahmen und Ausgaben müssen definiert werden.\
 
 \newpage
+
 ## Berichte
+
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
 -   Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
--   Es wird eine Jahresbarechnung  und eine detalierte Jahresabrechnung erstellt.
+-   Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung erstellt.
 -   Es wird eine Statistik mit Porgnosen erstellt.
 -   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ### Abrechnung Filmvorführung
-Es wird eine Filmabrechnung pro Event (Datum) erstellt. 
 
--   Übericht  \
+Es wird eine Filmabrechnung pro Event (Datum) erstellt.
+
+-   Übericht\
 -   Filmvorführung
     -   Kino Besucherzahlen und Umsatz
         -   Filmabgaben\
+
         -   Verleiherrechnung\
-            In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
-            wird die Kategorie **Verleiher**  berücksichtigt. 
+            In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
+            wird die Kategorie **Verleiher** berücksichtigt.
+
         -   Prozentualle Abgaben\
             Der Suisaabzug wird vom Umsatz berechnet.\
-            
+
             In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert.\
-            1.    Fall:\
-                  **Netto3** x **Abzug %** > **Minimal Abzug**\
-                  Verleiherabzug: **Netto3** x **Abzug %**
-            2.    Fall:\
-                  **Netto3** x **Abzug %** < **Minimal Abzug**\
-                  Verleiherabzug: **Minimal Abzug**    
-            3.    Fall:\
-                  **Abzug fix [CHF]**\
-                  Verleiherabzug: **Abzug fix [CHF]**
+
+            1.  Fall:\
+                **Netto3** x **Abzug %** \> **Minimal Abzug**\
+                Verleiherabzug: **Netto3** x **Abzug %**
+            2.  Fall:\
+                **Netto3** x **Abzug %** \< **Minimal Abzug**\
+                Verleiherabzug: **Minimal Abzug**\
+            3.  Fall:\
+                **Abzug fix [CHF]**\
+                Verleiherabzug: **Abzug fix [CHF]**
+
         -   Reklamematerial und Porto\
-            Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet. 
+            Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
+
         -   MWST auf Verleiherrechnung\
-            1.    Fall: Vereiherrechnung vorhanden\
-                  MWST wird mit der Verleiherrechnung berechnet. 
-            2.    Fall: Vereiherrechnung nicht vorhanden\
-                  MWST wird aus dem Umsatz berechnet.     
+
+            1.  Fall: Vereiherrechnung vorhanden\
+                MWST wird mit der Verleiherrechnung berechnet.
+            2.  Fall: Vereiherrechnung nicht vorhanden\
+                MWST wird aus dem Umsatz berechnet.\
     -   Gewinn / Verlust aus Tickerverkauf\
         Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
 -   Event
     -   Einnahmen
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
-            wird die Kategorie **Vermietung**  wird  pro Filmabrechnung (Datum) berücksichtigt. 
-    -   Ausgaben  
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben** \
-            wird die **Eventausgaben** wird  pro Filmabrechnung (Spieldatum) berücksichtigt.
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
+            wird die Kategorie **Vermietung** wird pro Filmabrechnung (Datum) berücksichtigt.
+    -   Ausgaben
+        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
+            wird die **Eventausgaben** wird pro Filmabrechnung (Spieldatum) berücksichtigt.
 -   Kiosk
     -   Gewinn pro Artikel\
-        In der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\ ist der Gewinn pro Artikel definiert. 
-    -   Umsatz
-        Für den Verkaufsartikel gibte es keine Definition in der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\
+        In der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"** ist der Gewinn pro Artikel definiert.
+    -   Umsatz Für den Verkaufsartikel gibte es keine Definition in der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\
     -   Einnahmen\
         Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für Spezialpreise berechnet.
     -   Ausgaben\
@@ -243,7 +246,9 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
     Summe aus Einnahmen und Ausgaben
 
 \newpage
+
 ### Jahresabrechnungen
+
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
 -   Filmvorführungen\
@@ -260,70 +265,65 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Eventausgaben\
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk
-    -   Einnahmen  \
+    -   Einnahmen\
         Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
     -   Ausgaben
-        -   Einkauf Getränke  \
-            Die Getränke werden von Theater am Bahnhof eingekauft.  \
-            Falls in der Datei **.../Kinoklub/input/Einkauf Kiosk xx.xx.xx.xlsx** der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben. \
+        -   Einkauf Getränke\
+            Die Getränke werden von Theater am Bahnhof eingekauft.\
+            Falls in der Datei **.../Kinoklub/input/Einkauf Kiosk xx.xx.xx.xlsx** der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben.\
             Der Getränkeeinkauf wird mit **"Anzahl x Einkaufspreis"** berechnet.
-        -   Einkauf Kino  \
-            Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**  \ 
-            mit Kategorie **Kiosk** definiert. 
--   Vermietung  \
-    -   Einnahmen  \
+        -   Einkauf Kino\
+            Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**   mit Kategorie **Kiosk** definiert.
+-   Vermietung\
+    -   Einnahmen\
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
-    -   Ausgaben  \
+    -   Ausgaben\
         Mietkosten für Filme und Material, ...
 -   Werbung
-    -   Einnahmen  \
-        Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ... 
-    -   Ausgaben  \
+    -   Einnahmen\
+        Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ...
+    -   Ausgaben\
         Inserate, Drucksachen, Homepage, ...
--   Personalaufwand  \
+-   Personalaufwand\
     Löhne
 -   Sonstiges
-    -   Einnahmen  \
+    -   Einnahmen\
         Sponsoen, Gönner, Kulturbeiträge, ...
-    -   Ausgaben  \
-        Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ... 
+    -   Ausgaben\
+        Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
-\newpage    
+\newpage
+
 ### Statistik
 
 -   Gewinn/Verlust
     -   Prognose\
-        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Ticketverkauf
     -   Prognose\
-        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
-    -  Eintritte
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
+    -   Eintritte
         -   Anzahl\
             Diagramm
         -   Umsatz
             -   Prognose\
-                Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
+                Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Filmabgaben
         -   Prognose\
-            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Abos
     -   Einnahmen
     -   Eingelöst
     -   Kredit
 -   Kiosk-Gewinn pro Vorführung
     -   Prognose\
-        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
+        Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Kiosk
     -   Verkaufsartikel
     -   Ladenhüter (keine Verkäufe)
     -   Kiosk Umsatz pro Gast
         -   Prognose\
-            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Umsatz pro zahlender Gast
         -   Prognose\
-            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt. 
-
-
-
-
-
+            Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
