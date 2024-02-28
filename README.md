@@ -1,3 +1,5 @@
+Script Version: 2024 V0.7
+ 
 # Kinoklub 
 
 Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
