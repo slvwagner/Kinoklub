@@ -526,6 +526,151 @@ if(c_SiteMap){
 
 
 
+#############################################################################################################################################
+# create index (Site-Map for Webserver)
+#############################################################################################################################################
+
+#copy data from .../output to .../output/webserver
+c_path <- "output/webserver"
+
+if(!dir.exists(c_path)){
+  dir.create(c_path)
+  dir.create(paste0(c_path,"/pages"))
+}
+
+# copy html 
+paste0("output/",list.files("output/",pattern = "html",include.dirs = FALSE, recursive = FALSE))|>
+  file.copy(paste0(c_path,"/pages"))
+
+# copy png
+paste0("output/pict/",list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE))|>
+  file.copy(paste0(c_path,"/pages"))
+
+
+
+if(c_SiteMap){
+  c_fileNames <-list.files(path = paste0("output/"),
+                           pattern = ".html")
+  c_fileNames
+  # sortierung nach datum
+  c_file_dates <- c_fileNames|>
+    str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))|>
+    lubridate::dmy()
+  
+  c_fileNames <- tibble(c_fileNames, c_file_dates)|>
+    arrange(c_file_dates)|>
+    select(c_fileNames)|>
+    pull()
+  
+  # Was für Berichte typen sind vorhanden
+  c_typ_Berichte <- c_fileNames|>
+    str_extract(START%R%one_or_more(WRD))|>
+    factor()|>
+    levels()
+  c_typ_Berichte
+  
+  # Convert filenames to URL
+  c_url <- paste0("pages/",URLencode(c_fileNames))
+  c_url
+  
+  # function to edit raw markdown files
+  instert_picts <- function(raw_rmd, index,fileNames, url) {
+    # create link to pict and link to file 
+    if(length(raw_rmd) == index){
+      for (ii in 1:(length(fileNames))) { 
+        if(ii == 1){ #letzte Zeile von Rmd
+          raw_rmd <- c(raw_rmd[1:index],
+                       paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
+          )
+        }else{ # normales einfügen
+          raw_rmd <- c(raw_rmd[1:index],
+                       paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                       if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                       raw_rmd[(index+1):length(raw_rmd)]
+          )
+        }
+      }
+    }else{ # normales einfügen 
+      for (ii in 1:(length(fileNames))) {
+        raw_rmd <- c(raw_rmd[1:index],
+                     paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                     if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                     raw_rmd[(index+1):length(raw_rmd)]
+        )
+      }
+    }
+    return(raw_rmd)
+  }
+  
+  # Einlesen template der Verleiherabrechnung
+  c_raw <- readLines("source/Site_Map.Rmd")
+  c_raw
+  
+  ii <- 1
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+    # Index where to insert  
+    c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
+    c_index <- c_index[length(c_index)]
+    c_index
+    
+    c_raw
+    c_raw[c_index]
+    
+    if(c_typ_Berichte[ii] == "Jahresrechnung"){
+      c_select <- str_detect(c_fileNames, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
+    }else{
+      c_select <- str_detect(c_fileNames, START%R%c_typ_Berichte[ii])
+    }
+    
+    c_raw
+    c_fileNames[c_select]
+    c_url[c_select]
+    
+    c_raw <- instert_picts(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw
+    
+    c_raw[c_index]
+    
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
+    
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Abrechnung"){
+      for (jj in 1:length(c_fileNames[c_select])) {
+        c_raw <- c(c_raw[1:(c_index)],
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   c_raw[(c_index+1):length(c_raw)])
+      }
+      c_raw <- c(c_raw[1:(c_index + jj)],
+                 paste0("  \\"), 
+                 c_raw[(c_index + jj + 1):length(c_raw)])
+    }
+  }
+  
+  c_typ_Berichte[ii]
+  c_raw
+  
+  # neues file schreiben
+  c_raw|>
+    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    writeLines("output/webserver/index.Rmd")
+  
+  # Render
+  rmarkdown::render(input = "output/webserver/index.Rmd")
+  # Remove file
+  file.remove("output/webserver/index.Rmd")
+}
+
 
 #############################################################################################################################################
 # Versionierung
