@@ -20,7 +20,7 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-\newpage
+
 
 ## Installation
 
@@ -70,11 +70,11 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 1.  Konfigurations variablen erstellen.
 2.  Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+3.  Erstellen Statistikbericht 
 3.  Erstellen Jahresbericht
 4.  Erstellen Jahresbericht detailed
 5.  Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
 
-\newpage
 
 ## Datensätze
 
@@ -94,7 +94,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
     ![Shows](doc/shows.png)
 
-\newpage
+
 
 ## Script Konfiguration
 
@@ -137,7 +137,7 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 -   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 
 
-\newpage
+
 
 ## Excel Dateien
 
@@ -178,7 +178,7 @@ Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben
 **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**\
 Alle Einnahmen und Ausgaben müssen definiert werden.\
 
-\newpage
+
 
 ## Berichte
 
@@ -252,7 +252,7 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 -   Gewinn / Verlust\
     Summe aus Einnahmen und Ausgaben
 
-\newpage
+
 
 ### Jahresabrechnungen
 
@@ -299,7 +299,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben\
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
-\newpage
+
 
 ### Statistik
 
