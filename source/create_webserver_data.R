@@ -1,6 +1,4 @@
-#############################################################################################################################################
-# create site map
-#############################################################################################################################################
+
 
 # Package names
 packages <- c("xml2")
@@ -11,6 +9,42 @@ if (any(installed_packages == FALSE)) {
 }
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
+
+
+#######################################################
+# function to edit markdown files insert picturs
+#######################################################
+instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
+  # create link to pict and link to file 
+  if(length(raw_rmd) == index){
+    for (ii in 1:(length(fileNames))) { 
+      if(ii == 1){ #letzte Zeile von Rmd
+        raw_rmd <- c(raw_rmd[1:index],
+                     paste0("[","![",fileNames[ii],"](",output_dir,fileNames[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
+        )
+      }else{ # normales einfügen
+        raw_rmd <- c(raw_rmd[1:index],
+                     paste0("[","![",fileNames[ii],"](",output_dir,fileNames[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                     if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                     raw_rmd[(index+1):length(raw_rmd)]
+        )
+      }
+    }
+  }else{ # normales einfügen 
+    for (ii in 1:(length(fileNames))) {
+      raw_rmd <- c(raw_rmd[1:index],
+                   paste0("[","![",fileNames[ii],"](",output_dir,fileNames[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                   if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                   raw_rmd[(index+1):length(raw_rmd)]
+      )
+    }
+  }
+  return(raw_rmd)
+}
+
+#############################################################################################################################################
+# create site map
+#############################################################################################################################################
 
 if(c_SiteMap){
   c_fileNames <-list.files(path = paste0(c_WD,"/output/"),
@@ -72,34 +106,7 @@ if(c_SiteMap){
     
   }
   
-  # function to edit raw markdown files
-  instert_picts <- function(raw_rmd, index,fileNames, url) {
-    # create link to pict and link to file 
-    if(length(raw_rmd) == index){
-      for (ii in 1:(length(fileNames))) { 
-        if(ii == 1){ #letzte Zeile von Rmd
-          raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
-          )
-        }else{ # normales einfügen
-          raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                       if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
-                       raw_rmd[(index+1):length(raw_rmd)]
-          )
-        }
-      }
-    }else{ # normales einfügen 
-      for (ii in 1:(length(fileNames))) {
-        raw_rmd <- c(raw_rmd[1:index],
-                     paste0("[","![",fileNames[ii],"](output/pict/",fileNames[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                     if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
-                     raw_rmd[(index+1):length(raw_rmd)]
-        )
-      }
-    }
-    return(raw_rmd)
-  }
+
   
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
@@ -125,7 +132,7 @@ if(c_SiteMap){
     c_fileNames[c_select]
     c_url[c_select]
     
-    c_raw <- instert_picts(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw <- instert_picts(c_raw,"output/pict/",c_index,c_fileNames[c_select], c_url[c_select])
     c_raw
     
     # Finde die Suisa-Nummern und den Filmtitel im Html
@@ -230,35 +237,6 @@ if(c_SiteMap){
   c_url <- paste0("",URLencode(c_fileNames))
   c_url
   
-  # function to edit raw markdown files
-  instert_picts <- function(raw_rmd, index,fileNames, url) {
-    # create link to pict and link to file 
-    if(length(raw_rmd) == index){
-      for (ii in 1:(length(fileNames))) { 
-        if(ii == 1){ #letzte Zeile von Rmd
-          raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
-          )
-        }else{ # normales einfügen
-          raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                       if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
-                       raw_rmd[(index+1):length(raw_rmd)]
-          )
-        }
-      }
-    }else{ # normales einfügen 
-      for (ii in 1:(length(fileNames))) {
-        raw_rmd <- c(raw_rmd[1:index],
-                     paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                     if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
-                     raw_rmd[(index+1):length(raw_rmd)]
-        )
-      }
-    }
-    return(raw_rmd)
-  }
-  
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
@@ -283,7 +261,7 @@ if(c_SiteMap){
     c_fileNames[c_select]
     c_url[c_select]
     
-    c_raw <- instert_picts(c_raw,c_index,c_fileNames[c_select], c_url[c_select])
+    c_raw <- instert_picts(c_raw,"pict/",c_index,c_fileNames[c_select], c_url[c_select])
     c_raw
     
     c_raw[c_index]
@@ -293,7 +271,7 @@ if(c_SiteMap){
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -305,7 +283,7 @@ if(c_SiteMap){
     if(c_typ_Berichte[ii]=="Abrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")","  \\"), 
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
