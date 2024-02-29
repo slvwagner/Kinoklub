@@ -50,6 +50,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 ```         
     install.packages("magick")
     install.packages("webshot")
+    install.packages("xml2")
 ```
 
 7.  Run this command once in R-Terminal, error MSG can be ignored
