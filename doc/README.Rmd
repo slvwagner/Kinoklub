@@ -86,12 +86,14 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 "Erstelle Abrechnung.R" Script führt folgendes auf.
 
-1.  Konfigurations variablen erstellen.
-2.  Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
-3.  Erstellen Statistikbericht 
-3.  Erstellen Jahresbericht
-4.  Erstellen Jahresbericht detailed
-5.  Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+1.    Konfigurations variablen erstellen.
+2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+3.    Erstellen Statistikbericht 
+3.    Erstellen Jahresbericht
+4.    Erstellen Jahresbericht detailed
+5.    Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+6.    Site-Map wird erstellt
+7.    Daten für Webserver werden erstellt. 
 
 
 ## Datensätze
