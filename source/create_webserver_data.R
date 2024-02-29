@@ -77,7 +77,7 @@ df_temp2
 
 m_Film <- left_join(df_temp2, df_temp1, by = join_by(Datum))|>
   mutate(Datum_ = as.Date(dmy(Datum)))|>
-  arrange(typ,desc(Datum_))
+  arrange(typ,(Datum_))
 m_Film
 
 #############################################################################################################################################
