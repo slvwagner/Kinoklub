@@ -295,6 +295,9 @@ if(c_SiteMap){
   rmarkdown::render(input = "output/webserver/index.Rmd")
   # Remove file
   file.remove("output/webserver/index.Rmd")
+  # Remove directory
+  unlink(paste0(c_path,"/pict"), recursive = TRUE)
+  
 }
 
 #############################################################################################################################################
