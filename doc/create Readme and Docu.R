@@ -22,6 +22,11 @@ rmarkdown::render(input = paste0("README.Rmd"),
                   output_dir  = "doc/",
                   output_file = "Dokumentation.pdf")
 
+rmarkdown::render(input = paste0("README.Rmd"),
+                  output_format = "html_document",
+                  output_dir  = "doc/",
+                  output_file = "Dokumentation.html")
+
 # rmarkdown::render(input = paste0("README.Rmd"),
 #                   output_format = "word_document",
 #                   output_dir  = "doc/",

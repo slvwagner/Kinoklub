@@ -45,9 +45,6 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     install.packages("rebus")
     install.packages("openxlsx")
     install.packages("flextable")
-```
-
-```         
     install.packages("magick")
     install.packages("webshot")
     install.packages("xml2")
@@ -75,7 +72,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 3.    Erstellen Jahresbericht
 4.    Erstellen Jahresbericht detailed
 5.    Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
-6.    Site-Map wird erstellt
+6.    Site-Map mit Berichtvorschau wird erstellt
 7.    Daten für Webserver werden erstellt. 
 
 
