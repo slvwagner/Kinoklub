@@ -42,23 +42,50 @@ instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
   return(raw_rmd)
 }
 
+#######################################################
+# Finde die Suisa-Nummern und den Filmtitel im Html
+# #######################################################
+c_path <- "output/"
+
+df_temp1 <-  list.files(c_path, "Verleiher")|>
+  lapply(function(x){
+    doc <- read_html(paste0(c_path,x))
+    # Find elements to edit 
+    element <- xml_find_first(doc, "body")|>
+      xml_find_first("div")
+    
+    # Find all children of the node
+    children <- xml_children(element)
+    children <- children[[5]]|>
+      xml_children()
+    # Extract data
+    c_raw <- xml_text(children[[2]])[1]|>
+      str_split("\r\n", simplify = T)
+    # Create data to return
+    tibble(`Suisa-Nummer` = c_raw[,7],
+           Filmtitel = c_raw[,8],
+           Datum = c_raw[,9])
+    # c_raw
+  })|>
+  bind_rows()
+df_temp1
+
+df_temp2 <- tibble(FileName = list.files("output/", "html"))|>
+  mutate(Datum = str_extract(FileName,one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)),
+         typ = str_extract(FileName, one_or_more(WRD)))
+df_temp2
+
+m_Film <- left_join(df_temp2, df_temp1, by = join_by(Datum))|>
+  mutate(Datum_ = as.Date(dmy(Datum)))|>
+  arrange(typ,desc(Datum_))
+m_Film
+
 #############################################################################################################################################
 # create site map
 #############################################################################################################################################
 
 if(c_SiteMap){
-  c_fileNames <-list.files(path = paste0(c_WD,"/output/"),
-                           pattern = ".html")
-  
-  # sortierung nach datum
-  c_file_dates <- c_fileNames|>
-    str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))|>
-    lubridate::dmy()
-  
-  c_fileNames <- tibble(c_fileNames, c_file_dates)|>
-    arrange(c_file_dates)|>
-    select(c_fileNames)|>
-    pull()
+  c_fileNames <-m_Film$FileName
   
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- c_fileNames|>
@@ -106,8 +133,6 @@ if(c_SiteMap){
     
   }
   
-
-  
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
@@ -135,34 +160,11 @@ if(c_SiteMap){
     c_raw <- instert_picts(c_raw,"output/pict/",c_index,c_fileNames[c_select], c_url[c_select])
     c_raw
     
-    # Finde die Suisa-Nummern und den Filmtitel im Html
-    c_path <- "output/"
-    m <- list.files(c_path, "Verleiher")|>
-      lapply(function(x){
-        doc <- read_html(paste0(c_path,x))
-        # Find elements to edit 
-        element <- xml_find_first(doc, "body")|>
-          xml_find_first("div")
-        
-        # Find all children of the node
-        children <- xml_children(element)
-        children <- children[[5]]|>
-          xml_children()
-        # Extract data
-        c_raw <- xml_text(children[[2]])[1]|>
-          str_split("\r\n", simplify = T)
-        # Create data to return
-        tibble(`Suisa-Nummer` = c_raw[,7],
-               Filmtitel = c_raw[,8])
-      })|>
-      bind_rows()|>
-      as.matrix()
-    
     # Linkliste einfügen
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"), 
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -174,7 +176,7 @@ if(c_SiteMap){
     if(c_typ_Berichte[ii]=="Abrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"),
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"),
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -213,18 +215,7 @@ paste0("output/pict/",list.files("output/pict/", pattern = "png", include.dirs =
 
 
 if(c_SiteMap){
-  c_fileNames <-list.files(path = paste0("output/"),
-                           pattern = ".html")
-  c_fileNames
-  # sortierung nach datum
-  c_file_dates <- c_fileNames|>
-    str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))|>
-    lubridate::dmy()
-  
-  c_fileNames <- tibble(c_fileNames, c_file_dates)|>
-    arrange(c_file_dates)|>
-    select(c_fileNames)|>
-    pull()
+  c_fileNames <- m_Film$FileName
   
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- c_fileNames|>
@@ -271,7 +262,7 @@ if(c_SiteMap){
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"), 
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -283,7 +274,7 @@ if(c_SiteMap){
     if(c_typ_Berichte[ii]=="Abrechnung"){
       for (jj in 1:length(c_fileNames[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m[jj,2],"  \\"), 
+                   paste0("[",c_fileNames[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
