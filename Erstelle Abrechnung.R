@@ -527,7 +527,7 @@ if(c_SiteMap){
 
 
 #############################################################################################################################################
-# create index (Site-Map for Webserver)
+# Data for Webserver
 #############################################################################################################################################
 
 #copy data from .../output to .../output/webserver
@@ -535,17 +535,11 @@ c_path <- "output/webserver"
 
 if(!dir.exists(c_path)){
   dir.create(c_path)
-  dir.create(paste0(c_path,"/pages"))
+  dir.create(paste0(c_path,"/pict"))
 }
-
-# copy html 
-paste0("output/",list.files("output/",pattern = "html",include.dirs = FALSE, recursive = FALSE))|>
-  file.copy(paste0(c_path,"/pages"))
-
 # copy png
 paste0("output/pict/",list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE))|>
-  file.copy(paste0(c_path,"/pages"))
-
+  file.copy(paste0(c_path,"/pict"))
 
 
 if(c_SiteMap){
@@ -570,7 +564,7 @@ if(c_SiteMap){
   c_typ_Berichte
   
   # Convert filenames to URL
-  c_url <- paste0("pages/",URLencode(c_fileNames))
+  c_url <- paste0("",URLencode(c_fileNames))
   c_url
   
   # function to edit raw markdown files
@@ -580,11 +574,11 @@ if(c_SiteMap){
       for (ii in 1:(length(fileNames))) { 
         if(ii == 1){ #letzte Zeile von Rmd
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
+                       paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")")#,"  \\\n\\")," "
           )
         }else{ # normales einfügen
           raw_rmd <- c(raw_rmd[1:index],
-                       paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                       paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
                        if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                        raw_rmd[(index+1):length(raw_rmd)]
           )
@@ -593,7 +587,7 @@ if(c_SiteMap){
     }else{ # normales einfügen 
       for (ii in 1:(length(fileNames))) {
         raw_rmd <- c(raw_rmd[1:index],
-                     paste0("[","![",fileNames[ii],"](",url[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
+                     paste0("[","![",fileNames[ii],"](", "pict/", url[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
                      if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
                      raw_rmd[(index+1):length(raw_rmd)]
         )
@@ -670,6 +664,52 @@ if(c_SiteMap){
   # Remove file
   file.remove("output/webserver/index.Rmd")
 }
+
+#############################################################################################################################################
+# edit html
+#############################################################################################################################################
+# Package names
+packages <- c("xml2")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+
+
+add_SiteMapLink <- function(file_path) {
+  # load html file
+  doc <- read_html(file_path)
+  
+  # Find elements to edit 
+  element <- xml_find_first(doc, "body")|>
+    xml_find_first("div")
+  
+  # Find all children of the parent node
+  children <- xml_children(element)
+  
+  # Insert Node
+  xml_add_child(children[[1]], paste0("a href=\"",URLencode(paste0("index.html")),"\""), "Site-Map")
+  write_xml(doc, file_path)
+}
+
+#copy data from .../output to .../output/webserver
+c_path <- "output/webserver"
+
+# copy html 
+paste0("output/",list.files("output/",pattern = "html",include.dirs = FALSE, recursive = FALSE))|>
+  file.copy(paste0(c_path,""), overwrite = TRUE)
+
+c_files <- list.files("output/webserver/",pattern = "html"%R%END,include.dirs = FALSE, recursive = FALSE)
+c_files <- paste0("output/webserver/",c_files)
+
+# apply Site-Map link
+c_files|>
+  lapply(add_SiteMapLink)
+
+
 
 
 #############################################################################################################################################
