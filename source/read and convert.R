@@ -224,7 +224,7 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
       suppressWarnings(),
     outFile = "error.log"
     )
-if(length(list.files(pattern = "error.log"))>0) stop("\nDatei input/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+if(length(list.files(pattern = "error.log"))>0) stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
   mutate(index = row_number(),
@@ -274,7 +274,7 @@ if(nrow(df_temp) != 0) {
   stop(paste0(
     "\nFür den Film: ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
-    " gibt es keinen Eintrag in der Datei Input/advance tickets/show.txt\nBitte herunterladen und abspeichern")
+    " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern")
   )}
 
 
@@ -308,7 +308,7 @@ df_temp
 if(nrow(df_temp)>0){ 
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde werder kein Abzug definiert.",
-              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
        )
 }
 
@@ -320,7 +320,7 @@ df_temp
 
 if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder kein Minimal Abzug definiert.",
-                                "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+                                "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
 )
 
 # Prozentualer und Fixer Abzug definiert
@@ -332,7 +332,7 @@ df_temp
 if(nrow(df_temp)>0){ 
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
   )
 }
 
@@ -345,7 +345,7 @@ df_temp
 if(nrow(df_temp)>0){
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im File input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
   )
 }
 
@@ -548,7 +548,7 @@ for (ii in 1:length(c_Date)) {
       select(Datum, `Suisa Nummer`, Filmtitel)|>
       mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
     error <- str_c("\nFür den Film ", error$Filmtitel," am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " wurde keine",
-                   "\nVerleiherabgabe im file \"Verleiherabgaben.xlsx\"definiert.")
+                   "\nVerleiherabgabe im file .../Kinoklub/input/Verleiherabgaben.xlsx definiert.")
     stop(error)
   }
   
