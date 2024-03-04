@@ -182,7 +182,7 @@ Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
 
 # error handling
 # Sind für alle Spezialpreise pro Datum definiert?  
-df_temp <- df_Kiosk|>
+df_spez_preis_na <- df_Kiosk|>
   filter(str_detect(Verkaufsartikel, "Spez")) |>
   distinct(Datum, .keep_all = T) |>
   left_join(
@@ -194,10 +194,11 @@ df_temp <- df_Kiosk|>
   anti_join(Spezialpreisekiosk |>distinct(Datum),
             by = join_by(Datum))
 
-if(nrow(df_temp) > 0) {
+if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ", df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), " wurde der Artikel ", df_temp$Verkaufsartikel," nicht definiert.",
+      "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum), 
+      " wurde der Artikel ", df_spez_preis_na$Verkaufsartikel," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
     )
   )

@@ -342,12 +342,12 @@ if(nrow(df_temp)>0){
 }
 
 # minimal und Fixer Abzug definiert
-df_spez_preis_na <- df_Eintritt|>
+df_temp <- df_Eintritt|>
   filter(!is.na(`Minimal Abzug`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_spez_preis_na)>0){
+if(nrow(df_temp)>0){
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
               "\nBitte korrigieren im File",
