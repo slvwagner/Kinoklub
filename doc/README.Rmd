@@ -43,7 +43,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
-2.  Download and install Rsudio\
+2.  Download and install Rstudio\
     <https://posit.co/download/rstudio-desktop/>
 3.  Download git:\
     <https://git-scm.com/downloads>
