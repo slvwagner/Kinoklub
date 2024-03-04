@@ -7,7 +7,7 @@ output:
 
 Author: Florian Wagner\
 Script Version:\
-2024 V0.8
+2024 V1.0
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
