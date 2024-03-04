@@ -331,7 +331,7 @@ Manko <- df_manko_uerberschuss|>
 
 
 ```{r echo=FALSE}
-df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn por Artikel", "Umsatz", "Manko / Überschuss")), 
+df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz", "Manko / Überschuss")), 
                      bind_rows(df_temp1, df_temp2,Manko)
                      )|>
   rename(`Betrag [CHF]` = `Summe [CHF]`)
