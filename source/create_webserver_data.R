@@ -207,10 +207,13 @@ c_path <- "output/webserver"
 
 if(!dir.exists(c_path)){
   dir.create(c_path)
+}
+if(!dir.exists(paste0(c_path,"/pict"))){
   dir.create(paste0(c_path,"/pict"))
 }
+
 # copy png
-paste0("output/pict/",list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE))|>
+paste0(getwd(),"/output/pict/",list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE))|>
   file.copy(paste0(c_path,"/pict"))
 
 
