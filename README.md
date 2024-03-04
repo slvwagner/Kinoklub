@@ -62,6 +62,10 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     source("Erstelle Abrechnung.R")
 ```
 
+## Git Passwort / Personal Access Token (PAT)
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle "repo" anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen. \
+![]("doc/Personal Access Token Git password.png")
+
 ## Ablauf
 
 "Erstelle Abrechnung.R" Script führt folgendes auf.
