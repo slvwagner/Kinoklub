@@ -9,9 +9,11 @@ source("source/functions.R")
 
 if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
-  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
 }
 
+if(!r_is.defined(df_P_kat_verechnen)){
+  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
+}
 ########################################################################
 # Einnahmen und Ausgangen einlesen aus Excel 
 ########################################################################
