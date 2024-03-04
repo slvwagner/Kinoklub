@@ -65,7 +65,7 @@ if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
 \
 
 ## Filmvorführung
-### Kino Besucherzahlen und Umsatz
+### Kino Umsatz
 
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
@@ -80,6 +80,30 @@ df_temp|>
 ```{r echo=FALSE}
 df_temp|>
   reframe(`Film Umsatz [CHF]` = sum(`Film Umsatz [sFR]`, na.rm = T))|>
+  knitr::kable()
+
+```
+
+### Kino Besucherzahlen
+
+```{r echo=FALSE}
+df_temp <- df_Eintritt|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  group_by(Zahlend)|>
+  reframe(Anzahl = sum(Anzahl, na.rm = T))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))
+
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  knitr::kable()
+```
+
+```{r echo=FALSE}
+df_temp|>
+  reframe(Summe = sum(Anzahl, na.rm = T))|>
   knitr::kable()
 
 ```
