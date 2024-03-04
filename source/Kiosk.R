@@ -179,9 +179,31 @@ df_manko_uerberschuss
 Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
   mutate(Datum = as.Date(Datum))
 
-Spezialpreisekiosk
 
-########################################################################
+# error handling
+# Sind für alle Spezialpreise pro Datum definiert?  
+df_temp <- df_Kiosk|>
+  filter(str_detect(Verkaufsartikel, "Spez")) |>
+  distinct(Datum, .keep_all = T) |>
+  left_join(
+    df_Eintritt |>
+      distinct(Datum, .keep_all = T) |>
+      select(Datum, Filmtitel, `Suisa Nummer`),
+    by = join_by(Datum)
+  )|>
+  anti_join(Spezialpreisekiosk |>distinct(Datum),
+            by = join_by(Datum))
+
+if(nrow(df_temp) > 0) {
+  warning(
+    paste0(
+      "\nFür die Filmvorführung ", df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), " wurde der Artikel ", df_temp$Verkaufsartikel," nicht definiert.",
+      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
+    )
+  )
+}
+
+  ########################################################################
 # join Spezpreise mit Verkaufsartikel
 ########################################################################
 ii <- 1

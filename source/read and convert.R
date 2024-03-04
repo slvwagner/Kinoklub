@@ -309,8 +309,9 @@ df_temp
 
 if(nrow(df_temp)>0){ 
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
-              "\nwurde werder kein Abzug definiert.",
-              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+              "wurde werder kein Abzug definiert.",
+              "\nBitte korrigieren im File:",
+              "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
        )
 }
 
@@ -322,7 +323,8 @@ df_temp
 
 if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder kein Minimal Abzug definiert.",
-                                "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+                                "\nBitte korrigieren im File:",
+                                "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
 )
 
 # Prozentualer und Fixer Abzug definiert
@@ -334,20 +336,22 @@ df_temp
 if(nrow(df_temp)>0){ 
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte korrigieren im File:",
+              "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
   )
 }
 
 # minimal und Fixer Abzug definiert
-df_temp <- df_Eintritt|>
+df_spez_preis_na <- df_Eintritt|>
   filter(!is.na(`Minimal Abzug`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_temp)>0){
+if(nrow(df_spez_preis_na)>0){
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im File .../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte korrigieren im File",
+              "\n.../Kinoklub/input/Verleiherabgaben.xlsx")
   )
 }
 
@@ -376,8 +380,11 @@ df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_keine_Rechnnung)>0) {
-  warning(paste0("\nAchtung für die diesen Film gibt es keine Verleiherrechnung: \n",
-                   day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum), " ",df_keine_Rechnnung$Filmtitel,"\n")
+  warning(paste0("\nAchtung für die diesen Film ", df_keine_Rechnnung$Filmtitel," am ",
+                 day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum)," gibt es keine Verleiherrechnung.",
+                 "\nBitte korrigieren in der Datei:",
+                 "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
+                 )
           )  
 }
 
