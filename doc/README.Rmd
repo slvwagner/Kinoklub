@@ -83,39 +83,129 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen. \
 ![](doc/PAT.png)
 
-## Ablauf
-
-"Erstelle Abrechnung.R" Script führt folgendes auf.
-
-1.    Konfigurations variablen erstellen.
-2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
-3.    Erstellen Statistikbericht 
-3.    Erstellen Jahresbericht
-4.    Erstellen Jahresbericht detailed
-5.    Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
-6.    Site-Map mit Berichtvorschau wird erstellt
-7.    Daten für Webserver werden erstellt. 
-
-
 ## Datensätze
+
+### Advance-Tickets 
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** abzuspeichern.
 
--   **Eintritte 02.12.23.txt**  \
-    Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
-    ![Eintritt](doc/eintritt.png)
--   **Kiosk 02.12.23.txt**  \
-    Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt".\
-    Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
-    Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
-    ![Kiosk](doc/Kiosk.png)
--   Shows.txt"\
-    Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt"\
-    Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
-    Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
-    ![Shows](doc/shows.png)
+#### Eintritte
+**Eintritte 02.12.23.txt**  \
+Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+![Eintritt](doc/eintritt.png)
+
+#### Kiosk
+**Kiosk 02.12.23.txt**  \
+Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt".\
+Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
+Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
+![Kiosk](doc/Kiosk.png)
+
+#### Shows
+**Shows.txt**  \
+Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt"\
+Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
+Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
+![Shows](doc/shows.png)
 
 
+### Excel Dateien
+
+Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
+
+#### Einkaufspreise
+
+Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx"\
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden.\
+
+-   Achtung!\
+    Die alte Dateien dürfen nicht gelöscht werden.
+
+#### Spezialpreise Kiosk
+
+In der Datei **Spezialpreisekiosk.xlsx** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
+Diese Datei wird benötigt um die Spezialpreise
+
+-   Spez 1
+-   Spez 2
+-   Spez 3
+-   Spez 4
+
+nach zuschlagen.
+
+#### Verleiherabgaben
+
+Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
+
+-   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden.   Beide Einträge sind nicht erlaubt.
+
+-   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
+    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen welche in `c_P_kat_verechnen` definiert sind, auch als Umsatz verrechnet.\
+    Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
+
+#### Einnahmen und Ausgaben
+
+Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
+Ja nach **Ausgabentyp** muss eine **Kategorie** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben auf die korrekten in den verschiedenen **Berichten** auszuwerten. 
+
+##### Einnahmen
+
+<!-- ```{r} -->
+<!-- paste("-\t",Einnahmen_und_Ausgaben$dropdown$`drop down`,"\n", collapse = "")|>writeLines() -->
+<!-- ``` -->
+
+
+```{r}
+tibble(Kategorie = Einnahmen_und_Ausgaben$dropdown$`drop down`,
+       Bezeichnung = c("Einnahmen die nicht aus Kiosk oder Tickets gemacht wurden, z.B. Eventsponsoren",
+                       "Einnahmem aus Kioskverkäufen",
+                       "",
+                       "Sonstige Einnahmen, z.B. Sponsoren, Kinoförderer",
+                       "",
+                       "Vermietung Saal, Einnahmen gehen an Theater am Bahnhof AG",
+                       "Werbeeinnahmen z.B. durch Kinowerbung die nicht für jede Filmvorführung abgerechnet werden kann."
+                       ),
+       `Bericht-Berücksichtigung` = c("Abrechnung, Jahresrechnungen, Statistik",
+                              "Abrechnung, Jahresrechnungen, Statistik",
+                              "",
+                              "Jahresrechnungen",
+                              "",
+                              "Jahresrechnungen",
+                              "Jahresrechnungen"
+                              )
+       )|>
+  knitr::kable()
+
+```
+
+##### Ausgaben
+
+<!-- ```{r} -->
+<!-- paste("-\t",Einnahmen_und_Ausgaben$dropdown$`drop down`,"\n", collapse = "")|>writeLines() -->
+<!-- ``` -->
+
+```{r}
+tibble(Kategorie = Einnahmen_und_Ausgaben$dropdown$`drop down`,
+       Bezeichnung = c("Ausgaben für Spezial Verkaufsartikel, Deko, ...",
+                       "Einkauf für Kiosk ohne Getränkeeinkauf Schüwo der über die TabBar abgewickelt wird. ",
+                       "Lohnkosten, Sozialleistungen",
+                       "Ausgaben die über das Jahr anfallen z.B. Reperaturkosten Kinoinfrastruktur, Porto, Spesen u.s.w..",
+                       "Rechnungen der Verleiher die pro **Spieldatum** abgerechnet werden",
+                       "Ausgaben für Vermietungen z.B. Filmmiete, weitere Kosten die der Kinoklub aufwenden musste um die Vermietung durchzuführen.",
+                       "Werbeausgaben für Inserate, Drucksachen, u.s.w"
+                       ),
+       `Bericht-Berücksichtigung` = c("Abrechnung, Jahresrechnungen, Statistik",
+                              "Abrechnung, Jahresrechnungen, Statistik",
+                              "Jahresrechnungen",
+                              "Jahresrechnungen",
+                              "Abrechnung, Jahresrechnungen, Statistik",
+                              "Jahresrechnungen",
+                              "Jahresrechnungen"
+                              )
+       )|>
+  knitr::kable()
+
+```
 
 ## Script Konfiguration
 
@@ -158,46 +248,18 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 -   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 
 
+## Ablauf
 
+"Erstelle Abrechnung.R" Script führt folgendes auf.
 
-## Excel Dateien
-
-Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
-
-### Einkaufspreise
-
-Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx"\
-Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden.\
-
--   Achtung!\
-    Die alte Dateien dürfen nicht gelöscht werden.
-
-### Spezialpreise Kiosk
-
-In der Datei **"Spezialpreisekiosk.xlsx"** müssen die Sonderangebote definiert werden.\
-Diese Datei wird benötigt um die Spezialpreise
-
--   Spez 1\
--   Spez 2\
--   Spez 3
--   Spez 4
-
-nach zuschlagen.
-
-### Verleiherabgaben
-
-Die Verleiherabgaben müssen in der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** definiert werden.\
-
--   Im **Tab Verleiherabgaben** muss der "minimal Abzug" sowie "Abzug %" oder nur der "Abzug fix [CHF]" definiert werden.   Beide Einträge sind nicht erlaubt.
-
--   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
-    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen welche in `c_P_kat_verechnen` definiert sind als Umsatz verrechnet.\
-    Die Verleiherabrechnung wird ändert sich dadurch was die Abgeben an den Verleiher vergrössert.
-
-### Einnahmen und Ausgaben
-
-**".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**\
-Alle Einnahmen und Ausgaben müssen definiert werden.\
+1.    Konfigurations variablen erstellen.
+2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
+3.    Erstellen Statistikbericht 
+3.    Erstellen Jahresbericht
+4.    Erstellen Jahresbericht detailed
+5.    Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
+6.    Site-Map mit Berichtvorschau wird erstellt
+7.    Daten für Webserver werden erstellt. 
 
 
 
