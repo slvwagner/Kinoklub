@@ -358,7 +358,7 @@ if(df_temp3|>nrow()){
 
 ### Differenz
 Achtung!\
-Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt. 
 ```{r echo=FALSE}
 Manko <- df_manko_uerberschuss|>
   filter(Datum == c_Datum)|>
