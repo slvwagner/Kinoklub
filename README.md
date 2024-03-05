@@ -1,6 +1,6 @@
 Script Version: 2024 V1.0
  
-# Kinoklub 
+## Kinoklub 
 
 Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
@@ -92,7 +92,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
     Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
     Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
     ![Kiosk](doc/Kiosk.png)
--   **Shows.txt**  \
+-   Shows.txt"\
     Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt"\
     Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
     Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
