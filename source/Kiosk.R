@@ -36,7 +36,6 @@ c_fileDate <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT
 p <- rebus::or(rebus::optional("-")%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT),
                rebus::optional("-")%R%one_or_more(DGT)
                )
-x <- l_raw[[3]]
 
 l_Abos <- l_raw|>
   lapply(function(x){
