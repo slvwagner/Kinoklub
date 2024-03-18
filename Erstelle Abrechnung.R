@@ -5,6 +5,7 @@
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
 
+# V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 
 
 #############################################################################################################################################
@@ -412,6 +413,4 @@ paste0("\n****************************************\n",
       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
       "\n****************************************\n")|>
   writeLines()
-
-
 

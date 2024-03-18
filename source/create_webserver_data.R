@@ -95,7 +95,7 @@ if(c_SiteMap){
   c_typ_Berichte
   
   # Convert filenames to URL
-  c_url <- paste0(URLencode(paste0(c_WD,"/output/", c_fileNames)), 
+  c_url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", c_fileNames)), 
                   sep = "")
   
   c_path <- paste0(c_WD,"/output/pict")
