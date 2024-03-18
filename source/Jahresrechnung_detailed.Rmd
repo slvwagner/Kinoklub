@@ -310,7 +310,9 @@ df_temp <- df_KassaSaldo|>
   mutate(`Filmvorführung oder Verkauf` = if_else(is.na(Filmtitel), "Verkauf", Filmtitel)
          )|>
   select(Datum, `Filmvorführung oder Verkauf`, Saldo)|>
-  rename(`Saldo [CHF]` = Saldo)
+  rename(`Saldo [CHF]` = Saldo)|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))
 
 df_temp|>
   knitr::kable()
