@@ -222,6 +222,8 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   stop("Es fehlt einen Kinoabrechnug")
 }
 
+
+
 ########################################################################
 # show times
 ########################################################################
@@ -284,6 +286,12 @@ if(nrow(df_temp) != 0) {
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
     " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern")
   )}
+
+########################################################################
+# Abos und Kinogutscheine
+########################################################################
+source("source/Verkauf_Abos_Gutscheine.R")
+
 
 
 ########################################################################

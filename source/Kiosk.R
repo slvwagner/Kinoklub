@@ -5,7 +5,6 @@ library(tidyverse)
 library(readxl)
 
 source("source/functions.R")
-source("source/Verkauf_Abos_Gutscheine.R")
 
 if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
