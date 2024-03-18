@@ -325,6 +325,7 @@ df_temp|>
 ## Abos
 
 ### Einnahmen
+#### Abos
 ```{r}
 df_Abo_Verkauf|>
   mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
@@ -342,8 +343,25 @@ df_temp|>
   knitr::kable()
 ```
 
+#### Kinogutscheine
+```{r}
+df_Kinogutschein_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  knitr::kable()
+```
+
+```{r}
+df_temp <- df_Kinogutschein_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
+
+df_temp|>
+  knitr::kable()
+```
 
 ### Eingelöst
+#### Abos
 ```{r}
 df_temp2 <- df_Eintritt |>
   filter(str_detect(Platzkategorie, "Abo")) |>
