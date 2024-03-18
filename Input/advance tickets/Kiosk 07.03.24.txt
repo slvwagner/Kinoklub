@@ -20,7 +20,7 @@ CC	4			-51.00
 - Abo/Gutsch. gegen Rg./Kreditkarten			0.00
 - CHF an Bank			0.00
 - Spesen			0.00
-+/- Überschuss | Manko			46.00
++/- Überschuss | Manko			-34.00
 Solde		133.00
 MWSt 8.1%	5.66	
 MWSt 2.6%	0.51	
