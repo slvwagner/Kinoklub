@@ -17,7 +17,6 @@ if(!r_is.defined(c_MWST)){
 # verkaufsartikel
 c_files <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 
-if(sum(str_detect(c_files, "~")) > 0) stop("\nEinkauf Kiosk wurde mit Excel geöffnet. Bitte schliessen!")
 df_verkaufsartikel <- read_excel(c_files)
 
 c_path <- "input/advance tickets"
