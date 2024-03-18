@@ -6,7 +6,7 @@
 # florian.wagner@wagnius.ch
 
 # V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
-
+# V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
