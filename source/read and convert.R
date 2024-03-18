@@ -13,7 +13,13 @@ if(!r_is.defined(c_MWST)){
 
 if(!r_is.defined(df_P_kat_verechnen)){
   df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
+  
 }
+
+c_openfiles <- list.files(paste0("Input/"),"~")
+if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
+remove(c_openfiles)
+
 ########################################################################
 # Einnahmen und Ausgangen einlesen aus Excel 
 ########################################################################
