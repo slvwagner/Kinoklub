@@ -400,3 +400,10 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Umsatz pro zahlender Gast
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
+
+## Versionshistorie
+
+V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
+V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt    \
+
+
