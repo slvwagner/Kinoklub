@@ -1,4 +1,4 @@
-Script Version: 2024 V1.2
+Script Version: 2024 V1.1
  
 ## Kinoklub 
 
@@ -347,6 +347,15 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Der Getränkeeinkauf wird mit **"Anzahl x Einkaufspreis"** berechnet.
         -   Einkauf Kino\
             Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**   mit Kategorie **Kiosk** definiert.
+-   Abos / Kinogutscheine
+    - Einnahmen
+        - Abos
+        - Kinogutscheine
+        - Summe
+    - Eingelöst
+        - Abos
+        - Kinogutscheine
+    - Kurzfristiges zinsloses Fremd-Kapital
 -   Vermietung\
     -   Einnahmen\
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...

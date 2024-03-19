@@ -3,6 +3,7 @@
 # Einlesen von doc/README.Rmd
 # Einfügen Versionierung
 # README.md wird automatisch erstellt
+library(tidyverse)
 
 ######################################################################################
 c_raw <- readLines("doc/README.Rmd")
