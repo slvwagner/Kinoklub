@@ -307,7 +307,7 @@ Kiosk|>
 ## Saldo Kassa
 ```{r}
 df_temp <- df_KassaSaldo|>
-  mutate(`Filmvorführung oder Verkauf` = if_else(is.na(Filmtitel), "Verkauf", Filmtitel)
+  mutate(`Filmvorführung oder Verkauf` = if_else(is.na(Filmtitel), "Verkauf Abo und Gutscheine", Filmtitel)
          )|>
   select(Datum, `Filmvorführung oder Verkauf`, Saldo)|>
   rename(`Saldo [CHF]` = Saldo)|>
