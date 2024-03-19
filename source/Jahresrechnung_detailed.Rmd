@@ -304,6 +304,129 @@ Kiosk|>
   knitr::kable()
 ```
 
+
+## Abos / Kinogutscheine
+Kurzfristiges zinsloses Fremd-Kapital.  
+
+### Einnahmen
+#### Abos
+```{r}
+df_Abo_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp <- df_Abo_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
+
+df_temp|>
+  knitr::kable()
+```
+
+#### Kinogutscheine
+```{r}
+df_Kinogutschein_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  knitr::kable()
+```
+
+```{r}
+df_temp1 <- df_Kinogutschein_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
+
+df_temp1|>
+  knitr::kable()
+```
+
+#### Summe
+```{r}
+df_temp <- bind_rows(df_temp, df_temp1)
+df_temp|>
+  knitr::kable()
+
+```
+
+```{r}
+AboGutscheinEinahmen <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Summe Betrag [CHF]`, na.rm = T))
+
+AboGutscheinEinahmen|>
+  knitr::kable()
+```
+
+### Eingelöst
+#### Abos
+```{r}
+df_temp1 <- df_Eintritt |>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  filter(str_detect(Platzkategorie, "Abo")) |>
+    group_by(Datum, Platzkategorie, Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(Umsatz))
+
+df_temp1|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp1 <- df_temp1|>
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
+
+df_temp1|>
+  knitr::kable()
+```
+
+#### Kinogutscheine 
+```{r}
+df_temp2 <- df_Kinogutschein_Eingeloest|>
+   mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  select(Datum, Filmtitel, Verkaufsartikel, Einzelpreis, Anzahl, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+
+df_temp2|>
+  knitr::kable()
+```
+
+```{r}
+df_temp2 <- df_temp2|>
+  reframe(`Summe [CHF]` = sum( abs(`Betrag [CHF]`), na.rm = F))
+
+df_temp2|>
+  knitr::kable()
+```
+
+
+
+### Kurzfristiges zinsloses Fremd-Kapital
+```{r}
+df_temp <- bind_cols(tibble(Bezeichnung = c("Verkaufte Abos", "Verkaufte Kinogutscheine","Eingelöste Abos", "Eingelöste Kinogutscheine")),
+          bind_rows(df_Abo_Verkauf|>
+                      reframe(`Summe [CHF]` = -sum(Betrag,na.rm = T)),
+                    df_Kinogutschein_Verkauf|>
+                      reframe(`Summe [CHF]` = -sum(Betrag,na.rm = T)),
+                    df_temp1, 
+                    df_temp2)
+          )|>
+  rename(`Betrag [CHF]` = `Summe [CHF]`)
+
+df_temp|>
+  knitr::kable()
+```
+
+```{r}
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
+  knitr::kable()
+```
+
+
 ## Werbung
 ### Einnahmen
 ```{r echo=FALSE}

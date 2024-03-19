@@ -1,4 +1,4 @@
-Script Version: 2024 V1.0
+Script Version: 2024 V1.1
  
 ## Kinoklub 
 
