@@ -304,30 +304,6 @@ Kiosk|>
   knitr::kable()
 ```
 
-## Saldo Kassa
-```{r}
-df_temp <- df_KassaSaldo|>
-  mutate(`Filmvorführung oder Verkauf` = if_else(is.na(Filmtitel), "Verkauf Abo und Gutscheine", Filmtitel)
-         )|>
-  select(Datum, `Filmvorführung oder Verkauf`, Saldo)|>
-  rename(`Saldo [CHF]` = Saldo)|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))
-
-df_temp|>
-  knitr::kable()
-```
-
-
-```{r}
-df_temp|>
-  reframe(`Summe [CHF]` = sum(`Saldo [CHF]`, na.rm = T))|>
-  knitr::kable()
-```
-
-
-
-
 
 ## Abos / Kinogutscheine
 Kurzfristiges zinsloses Fremd-Kapital.  
