@@ -5,8 +5,9 @@
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
 
-# V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
-# V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
+# 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
+# 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
+
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
@@ -374,22 +375,50 @@ source("source/create_webserver_data.R")
 #############################################################################################################################################
 # Einlesen template der Verleiherabrechnung
 c_raw <- readLines("doc/README.Rmd")
-c_raw[8:15]
 
 # Index where to find
 c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
 c_index <- c_index[length(c_index)]
 c_raw[c_index+1]
 
-if(c_raw[c_index+1] != c_script_version){ # Dokumentation anpassen falls neue Version
+################################################
+# Dokumentation anpassen falls neue Version
+if(c_raw[c_index+1] != c_script_version){ 
+  ######################################
+  # Aktuelle Version ermitteln
   c_raw[c_index+1] <- c_script_version
 
   # neues file schreiben
   c_raw|>
     writeLines("doc/README.Rmd")
   
+  ######################################
+  # Scrip Versionshistorie ermitteln  
+  c_raw <- readLines("Erstelle Abrechnung.R")
+  p <- "#"%R%SPC%R%one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+  c_Version_hist <- c_raw[str_detect(c_raw, p)]|>
+    str_remove("# ")|>
+    paste0("  \\")
+  c_Version_hist
+  
+  c_last_version  
+  p <- one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+  
+  if(c_Version_hist[length(c_Version_hist)]|>str_extract(p) != c_script_version) stop("\nDer letzte Eintrag der Versionshistorie stimmt nicht mit der Variable c_script_version überein.\nBitte korrigieren")
+  
+  # Versionshistorie in Template einfügen
+  c_raw <- readLines("doc/README.Rmd")
+  c_raw[1:3]
+  # Titel suchen
+  index <- (1:length(c_raw))[c_raw|>str_detect("# Versionshistorie")]
+  index
+  # Ändern des Templates
+  c(c_raw[1:(index + 1)], c_Version_hist,"\n")|>
+    writeLines("doc/README.Rmd")
+  
   source("doc/create Readme and Docu.R")
 }
+
 
 
 #############################################################################################################################################

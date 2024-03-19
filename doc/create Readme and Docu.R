@@ -1,7 +1,14 @@
-# Write README
+# Dokumentation erstellen 
+# 
+# Einlesen von doc/README.Rmd
+# Einfügen Versionierung
+# README.md wird automatisch erstellt
+library(tidyverse)
+
+######################################################################################
 c_raw <- readLines("doc/README.Rmd")
 
-# Titel suchen
+# Scrip Version einfügen 
 index <- (1:length(c_raw))[c_raw|>str_detect("# Kinoklub")]
 # Ändern des Templates
 c(paste0("Script Version: ",c_script_version, collapse = ""),
@@ -9,6 +16,8 @@ c(paste0("Script Version: ",c_script_version, collapse = ""),
   c_raw[index:length(c_raw)])|>
   writeLines("README.md")
 
+
+######################################################################################
 # Create TOC for Dokumentation
 source("source/functions.R")
 r_toc_for_Rmd(readLines("doc/README.Rmd"), 
