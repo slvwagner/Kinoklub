@@ -56,7 +56,10 @@ mean_median|>
 
 ```{r include=FALSE}
 
-n_days_till_now <- (paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date()) - (act_date|>dmy()) 
+start_of_year <- paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date()
+end_of_year <- paste0(Sys.time()|>as.Date()|>year(),"-12-31")|>as.Date()
+
+n_days_till_now <- (start_of_year - act_date|>dmy()) 
 n_days_till_now <- n_days_till_now|>as.integer()|>abs()
 n_days_till_now
 
@@ -76,6 +79,8 @@ if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`
 gewinn <- Gewinn_pro_Vorführung * shows_per_year
 gewinn <- slvwagner::r_signif(gewinn)
 
+# Calculate the time difference to zero
+time_diff <- difftime("1970-01-01", paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date(), units = "days")
 ```
 
 
@@ -92,8 +97,6 @@ df_temp <- df_GV_Vorfuehrung|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
 
-# Calculate the time difference to zero
-time_diff <- difftime("1970-01-01", paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date(), units = "days")
 s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 ```
 
@@ -106,8 +109,8 @@ df_temp|>
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
-  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = paste0("Prognose mit und ohne Sommerpause von ", sommerpause, " Tagen"),
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 ```
@@ -141,12 +144,21 @@ df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
 
+if(df_temp$`Gewinn/Verlust [CHF]`|>mean() > df_temp$`Gewinn/Verlust [CHF]`|>median()){
+  gewinn <- df_temp$`Gewinn/Verlust [CHF]`|>median()
+}else{
+  gewinn <- df_temp$`Gewinn/Verlust [CHF]`|>mean()
+}
+
+s <- (gewinn * shows_per_year)/365
+
 df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
-  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose aus Ticketverkauf",
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 
@@ -309,12 +321,23 @@ df_temp <- df_Eintritt|>
 
 
 ```{r fig.width=10}
+
+if(df_temp$`Film Umsatz [CHF]`|>mean() > df_temp$`Film Umsatz [CHF]`|>median()){
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>median()
+}else{
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>mean()
+}
+
+s <- (gewinn * shows_per_year)/365
+
+
 df_temp|>
   ggplot(aes(Datum,cumsum))+
   geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
-  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Ticketumsatzprognose",
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Umsatz [CHF]")+
   my_template
 
@@ -349,12 +372,21 @@ df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Verleiher-Abzug [CHF]`))
 
+if(df_temp$`Verleiher-Abzug [CHF]`|>mean() > df_temp$`Verleiher-Abzug [CHF]`|>median()){
+  gewinn <- df_temp$`Verleiher-Abzug [CHF]`|>mean()
+}else{
+  gewinn <- df_temp$`Verleiher-Abzug [CHF]`|>median()
+}
+
+s <- (gewinn * shows_per_year)/365
+
 df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
-  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Prognose Verleiherabgaben",
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierte Verleiherabgaben [CHF]")+
   my_template
 
@@ -391,12 +423,22 @@ df_temp <- df_GV_Kiosk|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(Gewinn))
 
+if(df_temp$`Gewinn`|>mean() > df_temp$`Gewinn`|>median()){
+  gewinn <- df_temp$`Gewinn`|>median()
+}else{
+  gewinn <- df_temp$`Gewinn`|>mean()
+}
+
+s <- (gewinn * shows_per_year)/365
+
 df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
-  scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose aus Kioskverkäufen",y = "Kumulierter Gewinn [CHF]")+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Gewinn [CHF]")+
   my_template
 
 ```
