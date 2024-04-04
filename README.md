@@ -1,4 +1,4 @@
-Script Version: 2024 V1.1
+Script Version: 2024 V1.2
  
 ## Kinoklub 
 
@@ -412,7 +412,8 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
 
 ## Versionshistorie
 
-V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
-V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt    \
+2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
+2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt    \
+2024 V1.2 Abrechnung für Kinowerbung hinzugefügt  \
 
 

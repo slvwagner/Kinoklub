@@ -7,13 +7,14 @@
 
 # 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
+# 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt
 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.1"
+c_script_version <- "2024 V1.2"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
@@ -401,7 +402,6 @@ if(c_raw[c_index+1] != c_script_version){
     paste0("  \\")
   c_Version_hist
   
-  c_last_version  
   p <- one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
   
   if(c_Version_hist[length(c_Version_hist)]|>str_extract(p) != c_script_version) stop("\nDer letzte Eintrag der Versionshistorie stimmt nicht mit der Variable c_script_version überein.\nBitte korrigieren")
