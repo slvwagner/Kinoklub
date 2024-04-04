@@ -143,66 +143,9 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 #### Einnahmen und Ausgaben
 
 Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
-Ja nach **Ausgabentyp** muss eine **Kategorie** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben auf die korrekten in den verschiedenen **Berichten** auszuwerten. 
-
-##### Einnahmen
-
-<!-- ```{r} -->
-<!-- paste("-\t",Einnahmen_und_Ausgaben$dropdown$`drop down`,"\n", collapse = "")|>writeLines() -->
-<!-- ``` -->
+Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
 
 
-```{r}
-tibble(Kategorie = Einnahmen_und_Ausgaben$dropdown$`drop down`,
-       Bezeichnung = c("Einnahmen die nicht aus Kiosk oder Tickets gemacht wurden, z.B. Eventsponsoren",
-                       "Einnahmem aus Kioskverkäufen",
-                       "",
-                       "Sonstige Einnahmen, z.B. Sponsoren, Kinoförderer",
-                       "",
-                       "Vermietung Saal, Einnahmen gehen an Theater am Bahnhof AG",
-                       "Werbeeinnahmen z.B. durch Kinowerbung die nicht für jede Filmvorführung abgerechnet werden kann."
-                       ),
-       `Bericht-Berücksichtigung` = c("Abrechnung, Jahresrechnungen, Statistik",
-                              "Abrechnung, Jahresrechnungen, Statistik",
-                              "",
-                              "Jahresrechnungen",
-                              "",
-                              "Jahresrechnungen",
-                              "Jahresrechnungen"
-                              )
-       )|>
-  knitr::kable()
-
-```
-
-##### Ausgaben
-
-<!-- ```{r} -->
-<!-- paste("-\t",Einnahmen_und_Ausgaben$dropdown$`drop down`,"\n", collapse = "")|>writeLines() -->
-<!-- ``` -->
-
-```{r}
-tibble(Kategorie = Einnahmen_und_Ausgaben$dropdown$`drop down`,
-       Bezeichnung = c("Ausgaben für Spezial Verkaufsartikel, Deko, ...",
-                       "Einkauf für Kiosk ohne Getränkeeinkauf Schüwo der über die TabBar abgewickelt wird. ",
-                       "Lohnkosten, Sozialleistungen",
-                       "Ausgaben die über das Jahr anfallen z.B. Reperaturkosten Kinoinfrastruktur, Porto, Spesen u.s.w..",
-                       "Rechnungen der Verleiher die pro **Spieldatum** abgerechnet werden",
-                       "Ausgaben für Vermietungen z.B. Filmmiete, weitere Kosten die der Kinoklub aufwenden musste um die Vermietung durchzuführen.",
-                       "Werbeausgaben für Inserate, Drucksachen, u.s.w"
-                       ),
-       `Bericht-Berücksichtigung` = c("Abrechnung, Jahresrechnungen, Statistik",
-                              "Abrechnung, Jahresrechnungen, Statistik",
-                              "Jahresrechnungen",
-                              "Jahresrechnungen",
-                              "Abrechnung, Jahresrechnungen, Statistik",
-                              "Jahresrechnungen",
-                              "Jahresrechnungen"
-                              )
-       )|>
-  knitr::kable()
-
-```
 
 ## Script Konfiguration
 
