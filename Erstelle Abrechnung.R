@@ -7,7 +7,7 @@
 
 # 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
-# 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt
+# 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx
 
 
 #############################################################################################################################################
