@@ -33,7 +33,7 @@ c_WD <- getwd()
 # Benutzereinstellungen 
 #############################################################################################################################################
 
-sommerpause = 45 # Tage
+sommerpause = 65 # Tage
 
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 c_run_single <- TRUE
