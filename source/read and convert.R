@@ -701,8 +701,13 @@ df_GV_Vorfuehrung
 ########################################################################
 dir.create("output/") |> suppressWarnings()
 
+df_s_Eintritt <- df_Eintritt|>
+  group_by(Datum, Filmtitel, `Suisa Nummer`)|>
+  reframe(Besucher = sum(Anzahl))
+
 list(Shows = df_show,
-     Eintritte= df_Eintritt,
+     Eintritte = df_Eintritt,
+     `Abrechnung Werbung` = df_s_Eintritt,
      `Gewinn Verlust Eintritt` = df_GV_Eintritt,
      Kiosk = df_Kiosk,
      `Gewinn Kiosk` = df_GV_Kiosk,
