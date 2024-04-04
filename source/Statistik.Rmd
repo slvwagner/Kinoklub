@@ -51,11 +51,7 @@ mean_median|>
   knitr::kable()
 ```
 
-
-### Prognose
-
 ```{r include=FALSE}
-
 start_of_year <- paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date()
 end_of_year <- paste0(Sys.time()|>as.Date()|>year(),"-12-31")|>as.Date()
 
@@ -70,6 +66,11 @@ n <- n$`Anzahl Vorführungen`
 
 shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 shows_per_year
+```
+
+### Prognose
+
+```{r include=FALSE}
 
 if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
   Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
@@ -108,8 +109,9 @@ df_temp|>
   # geom_hline(yintercept = Gewinn_pro_Vorführung * shows_per_year, linewidth = 2, color = "darkorange2")+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
@@ -156,8 +158,9 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
@@ -335,8 +338,9 @@ df_temp|>
   ggplot(aes(Datum,cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Umsatz [CHF]")+
   my_template
@@ -384,8 +388,9 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierte Verleiherabgaben [CHF]")+
   my_template
@@ -435,8 +440,9 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn [CHF]")+
   my_template
