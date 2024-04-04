@@ -34,25 +34,87 @@ df_temp|>
 
 ### Mean / Median
 ```{r}
-df_temp|>
+n <- df_temp|>
+  reframe(`Anzahl Vorführungen` = n())
+
+n|>
+    knitr::kable()
+```
+
+
+```{r}
+mean_median <- df_temp|>
   reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust [CHF]`)|>round5Rappen(),
-          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust [CHF]`)|>round5Rappen())|>
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust [CHF]`)|>round5Rappen())
+
+mean_median|>
   knitr::kable()
 ```
 
 
 ### Prognose
-```{r fig.width=10}
+
+```{r include=FALSE}
+
+Sys.time()|>as.Date()|>year()
+
+act_date
+
+
+n_days_till_now <- (paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date()) - (act_date|>dmy()) 
+n_days_till_now <- n_days_till_now|>as.integer()|>abs()
+n_days_till_now
+
+n_days_per_year <- (365 - sommerpause) 
+n_days_per_year
+
+n <- n$`Anzahl Vorführungen`
+
+shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
+shows_per_year
+
+if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
+  Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
+} else {
+  Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
+}
+
+gewinn <- Gewinn_pro_Vorführung * shows_per_year
+
+gewinn <- slvwagner::r_signif(gewinn)
+
+```
+
+
+Bis jetzt gabe es `r n` Vorführungen in `r n_days_till_now` Tagen. Das sind `r n / n_days_till_now` Shows per Tag. \
+Es muss von einer Sommerpause von rund `r sommerpause` Tage ausgegangen werden. In dieser Zeit werden keinen Vorführungen gemacht. \
+Es kann deshalb mit folgenden **Spieltagen** gerechnter werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
+Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
+\
+Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r slvwagner::r_signif(gewinn)` [CHF]** ausgegangen werden.
+
+
+```{r }
 df_temp <- df_GV_Vorfuehrung|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
 
+# Calculate the time difference to zero
+time_diff <- difftime("1970-01-01", paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date(), units = "days")
+s <- (Gewinn_pro_Vorführung * shows_per_year)/365
+```
+
+
+```{r fig.width=10}
+
 df_temp|>
   ggplot(aes(Datum, cumsum))+
+  # geom_hline(yintercept = Gewinn_pro_Vorführung * shows_per_year, linewidth = 2, color = "darkorange2")+
   geom_col(fill ="darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(as.Date("2024-1-1"), as.Date("2024-12-31")))+
-  labs(title = "Gewinnprognose aus Filmvorführung",
+  labs(title = "Gewinnprognose mit und ohne Sommerpause",
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
 ```
