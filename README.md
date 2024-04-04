@@ -141,7 +141,7 @@ Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition
 
 -   Für jede Filmvorführung eine Abrechnung erstellen.\
     `c_run_single` \<- TRUE
--   Keine Abrechnug für Filmvorführung erstellen.\
+-   Es werden nur die Jahresabrechnung und die Statistik-Berichte erstellt.\
     `c_run_single` \<- FALSE
 
 ### Inhaltsverzeichnisse
