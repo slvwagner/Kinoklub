@@ -149,7 +149,7 @@ Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition
 Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
 
 -   Ja\
-    `toc` \<- TRUE Ja
+    `toc` \<- TRUE
 -   Nein\
     `toc` \<- FALSE
 
