@@ -80,7 +80,7 @@ gewinn <- slvwagner::r_signif(gewinn)
 
 
 Bis jetzt gabe es `r n` Vorführungen in `r n_days_till_now` Tagen. \
-Es muss von einer Sommerpause von rund `r sommerpause` Tage ausgegangen werden. In dieser Zeit werden keinen Vorführungen gemacht. \
+Es wird von einer Sommerpause von `r sommerpause` Tage ausgegangen. In dieser Zeit gibt es  keinen Vorführungen. \
 Es kann deshalb mit folgenden **Spieltagen** gerechnet werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
 Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
 \
