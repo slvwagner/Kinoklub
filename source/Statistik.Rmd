@@ -56,11 +56,6 @@ mean_median|>
 
 ```{r include=FALSE}
 
-Sys.time()|>as.Date()|>year()
-
-act_date
-
-
 n_days_till_now <- (paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date()) - (act_date|>dmy()) 
 n_days_till_now <- n_days_till_now|>as.integer()|>abs()
 n_days_till_now
@@ -78,9 +73,7 @@ if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`
 } else {
   Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
 }
-
 gewinn <- Gewinn_pro_Vorführung * shows_per_year
-
 gewinn <- slvwagner::r_signif(gewinn)
 
 ```
@@ -88,7 +81,7 @@ gewinn <- slvwagner::r_signif(gewinn)
 
 Bis jetzt gabe es `r n` Vorführungen in `r n_days_till_now` Tagen. \
 Es muss von einer Sommerpause von rund `r sommerpause` Tage ausgegangen werden. In dieser Zeit werden keinen Vorführungen gemacht. \
-Es kann deshalb mit folgenden **Spieltagen** gerechnter werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
+Es kann deshalb mit folgenden **Spieltagen** gerechnet werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
 Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
 \
 Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r slvwagner::r_signif(gewinn)` [CHF]** ausgegangen werden.
@@ -236,23 +229,6 @@ df_temp|> # arrange the plot
   theme(legend.position = c(1, .45))
 
 ```
-
-
-<!-- ```{r fig.width=10} -->
-<!-- df_temp|> -->
-<!--   group_by(Platzkategorie, Zahlend)|> -->
-<!--   reframe(Anzahl = sum(Anzahl))|> -->
-<!--   arrange(Anzahl)|> -->
-<!--   mutate(Platzkategorie = factor(Platzkategorie, levels = Platzkategorie))|> -->
-<!--   mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|> -->
-<!--   ggplot(aes(Platzkategorie,Anzahl, fill =  `Gäste`))+ -->
-<!--   geom_col()+ -->
-<!--   scale_fill_manual(values = c("Zahlend" = "cyan4", "Gratiseintritt" = "darkorange2")) + -->
-<!--   coord_flip()+ -->
-<!--   my_template+ -->
-<!--   theme(legend.title = element_blank(), -->
-<!--         legend.position = c(.95, .45)) -->
-<!-- ``` -->
 
 
 #### Umsatz
