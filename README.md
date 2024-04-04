@@ -410,6 +410,12 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
+### Daten als Excel-Datei
+Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespeichert. \
+```
+.../Kinoklub/output/Auswertung.xlsx
+```
+
 ## Versionshistorie
 
 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
