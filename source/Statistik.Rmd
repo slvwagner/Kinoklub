@@ -241,7 +241,8 @@ df_temp|> # arrange the plot
   geom_col()+
   coord_flip()+
   my_template+
-  theme(legend.position = c(1, .45))
+  theme(legend.position = "inside")+
+  theme(legend.position.inside = c(1, .4))
 
 ```
 
@@ -296,7 +297,8 @@ df_temp|>
   labs(x = "Platzkategorie")+
   coord_flip()+
   my_template+
-  theme(legend.position = c(1, 0.7))
+  theme(legend.position = "inside")+
+  theme(legend.position.inside = c(1, 0.7))
 
 ```
 
