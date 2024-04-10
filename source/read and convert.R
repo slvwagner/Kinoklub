@@ -618,8 +618,30 @@ l_GV
 
 df_GV_Eintritt <- l_GV|>
   bind_rows()
-df_GV_Eintritt
 
+
+#############################################################
+# error handling Verleiherrechnung ist kleiner als der Vereinbarte minimale Abgabebetrag
+df_Verleiher_Rechnnung
+
+df_temp <- df_GV_Eintritt|>
+  filter(df_GV_Eintritt$`Sonstige Kosten [CHF]` < 0)|>
+  left_join(df_verleiherabgaben, by = join_by(Datum))|>
+  select(Datum, `Suisa Nummer`, Filmtitel, `Minimal Abzug`)|>
+  filter(!is.na(`Minimal Abzug`))
+df_temp
+
+if(length(df_temp) > 0 ) {
+  warning(
+    paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
+                  day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
+                  ),
+           "\nBitte die Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist und dann die Datei .../Input/Verleiherabgaben.xlsx korrigieren."
+           )
+    )
+  }
+
+###
 df_Abgaben <- l_Abgaben|>
   bind_rows()|>
   bind_rows(df_Eintritt|> # 
