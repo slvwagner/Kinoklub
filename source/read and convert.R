@@ -28,9 +28,9 @@ c_file <- "Einnahmen und Ausgaben.xlsx"
 c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
 
 Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
-  readxl::read_excel(paste0("Input/",c_file), 
+  readxl::read_excel(paste0("Input/", c_file),
                      sheet = x)
-})
+    })
 names(Einnahmen_und_Ausgaben) <- c_sheets
 Einnahmen_und_Ausgaben
 
@@ -203,7 +203,7 @@ c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
 Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
 
 Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie == "Eventausgaben")
+  filter(Kategorie == "Event")
 
 
 ########################################################################
@@ -418,7 +418,7 @@ c_Date[3]
 
 l_GV <- list()
 l_Abgaben <- list()
-ii <- 3
+ii <- 6
 for (ii in 1:length(c_Date)) {
 
   ######################################################################
@@ -507,6 +507,7 @@ for (ii in 1:length(c_Date)) {
   c_Netto3 <- c_Brutto - round5Rappen(c_Brutto * c_suisaabzug)
   c_Netto3
   
+  df_Eintritt|> filter(Datum == c_Date[ii])
   
   # minimale Abgaben an den Verleiher
   c_Verleiher_garantie <- df_verleiherabgaben |>
@@ -514,6 +515,11 @@ for (ii in 1:length(c_Date)) {
   select(`Minimal Abzug`)|>
   pull()
   c_Verleiher_garantie
+  
+  if(length(c_Verleiher_garantie) > 1) {
+    print(df_verleiherabgaben |>
+                                           filter(Datum == c_Date[ii]))
+    stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
   
   # prozentual Abgabe von Netto 3 an den Verleiher
   c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
