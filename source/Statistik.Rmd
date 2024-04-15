@@ -90,7 +90,7 @@ Es wird von einer Sommerpause von `r sommerpause` Tage ausgegangen. In dieser Ze
 Es kann deshalb mit folgenden **Spieltagen** gerechnet werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
 Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
 \
-Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r slvwagner::r_signif(gewinn)` [CHF]** ausgegangen werden.
+Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r r_signif(gewinn)` [CHF]** ausgegangen werden.
 
 
 ```{r }
