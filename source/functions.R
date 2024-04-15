@@ -480,6 +480,7 @@ r_toc_for_Rmd <- function(
 }
 
 
+
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
