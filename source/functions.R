@@ -486,4 +486,10 @@ r_is.defined <- function(sym) {
   exists(sym, env)
 }
 
-
+#######################################################################################
+# 
+#######################################################################################
+r_signif <- function (x, significant_digits = 3)
+{
+  format(x, format = "g", digits = significant_digits)
+}

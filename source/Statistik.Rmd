@@ -78,7 +78,7 @@ if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`
   Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
 }
 gewinn <- Gewinn_pro_Vorführung * shows_per_year
-gewinn <- slvwagner::r_signif(gewinn)
+gewinn <- r_signif(gewinn)
 
 # Calculate the time difference to zero
 time_diff <- difftime("1970-01-01", paste0(Sys.time()|>as.Date()|>year(),"-01-01")|>as.Date(), units = "days")
