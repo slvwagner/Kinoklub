@@ -12,7 +12,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 
 #######################################################
-# function to edit markdown files insert picturs
+# function to edit markdown files insert pictures
 #######################################################
 instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
   # create link to pict and link to file 
