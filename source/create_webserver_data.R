@@ -144,7 +144,6 @@ if(c_SiteMap){
       
       writeLines(".", sep = "")
     }
-    
   }
   
   # Einlesen template der Verleiherabrechnung
