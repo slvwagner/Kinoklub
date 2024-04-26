@@ -619,9 +619,11 @@ l_GV
 df_GV_Eintritt <- l_GV|>
   bind_rows()
 
+df_GV_Eintritt
 
 #############################################################
-# error handling Verleiherrechnung ist kleiner als der Vereinbarte minimale Abgabebetrag
+# error handling 
+# Verleiherrechnung ist kleiner als der Vereinbarte minimale Abgabebetrag
 df_Verleiher_Rechnnung
 
 df_temp <- df_GV_Eintritt|>
@@ -636,7 +638,7 @@ if(length(df_temp) > 0 ) {
     paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
                   day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
                   ),
-           "\nBitte die Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist und dann die Datei .../Input/Verleiherabgaben.xlsx korrigieren."
+           "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\n Bitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
            )
     )
   }
