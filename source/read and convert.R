@@ -633,7 +633,7 @@ df_temp <- df_GV_Eintritt|>
   filter(!is.na(`Minimal Abzug`))
 df_temp
 
-if(length(df_temp) > 0 ) {
+if(nrow(df_temp) > 0 ) {
   warning(
     paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
                   day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
