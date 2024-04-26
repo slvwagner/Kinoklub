@@ -638,7 +638,7 @@ if(length(df_temp) > 0 ) {
     paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
                   day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
                   ),
-           "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\n Bitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
+           "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\nBitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
            )
     )
   }
