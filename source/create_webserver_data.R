@@ -96,7 +96,7 @@ m_Film
 #############################################################################################################################################
 
 if(c_SiteMap){
-  c_fileNames <-m_Film$FileName
+  c_fileNames <- m_Film$FileName
   
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- c_fileNames|>
@@ -143,6 +143,53 @@ if(c_SiteMap){
         image_write(input_path)
       
       writeLines(".", sep = "")
+    }
+  }
+  
+  # Feature: Webserver, Vorschaubilder erzeugen falls eine neue Rechnung 
+  df_temp <- tibble(c_fileNames)|>
+    mutate(Filmvorführung = str_detect(c_fileNames, "Filmvorführung "))|>
+    filter(Filmvorführung)|>
+    mutate(Datum = str_extract(c_fileNames, one_or_more(DGT%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)))|>
+             dmy()
+             )
+  
+  keineVerleiherRechnung_old <- read_excel("source/keineVerleiherRechnung_old.xlsx")|>
+    mutate(Datum = as.Date((Datum)))
+  
+  if(!(nrow(keineVerleiherRechnung_old) == nrow(df_keine_Rechnnung))){
+    df_create_pict <- anti_join(keineVerleiherRechnung_old, df_keine_Rechnnung, 
+                                by = join_by(Datum, Filmtitel, `Suisa Nummer`, Bezeichnung, Betrag, Firmennamen, Adresse, 
+                                             Referenz, Rechnungsnummer, Buchungskonto, `Buchungskonto Name`, `keine Verleiherrechnung`))
+    df_create_pict
+    
+    df_temp1 <- df_temp|>
+      left_join(df_create_pict, by = join_by(Datum))|>
+      filter(!is.na(Filmtitel))
+    
+    ii <- 1
+    for (ii in 1:nrow(df_temp1)) {
+      # Set the path to the input image
+      input_path <- paste0(c_path, "/",df_temp1$c_fileNames[ii],".png")
+      input_path
+      
+      # Convert filenames to URL
+      c_url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", df_temp1$c_fileNames[ii])), 
+                      sep = "")
+      c_url
+      
+      # create a webshot, printed html
+      webshot::webshot(url = c_url, file = input_path)
+      
+      # Read the image crop and resize and save
+      image_read(input_path)|>
+        image_crop(geometry = "992x992+0+0")|>
+        image_resize("400x400")|>
+        image_write(input_path)
+      
+      writeLines(".", sep = "")
+      
+      write.xlsx(df_Verleiher_Rechnnung, "source/keineVerleiherRechnung_old.xlsx")
     }
   }
   
