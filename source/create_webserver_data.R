@@ -118,7 +118,7 @@ if(c_SiteMap){
   if(!(length(list.files("output/", "html")) == length(list.files("output/pict/")))
      ){
     library(magick)
-    writeLines("Site-Map wird erstellt, einen Moment bitte: ")
+    writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
     
     c_select <- !((c_fileNames|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
     c_select
