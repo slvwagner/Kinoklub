@@ -1,5 +1,4 @@
 
-
 # Package names
 packages <- c("xml2")
 # Install packages not yet installed
@@ -46,7 +45,9 @@ instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
 # Finde die Suisa-Nummern und den Filmtitel im Html
 # #######################################################
 c_path <- "output/"
- x <- list.files(c_path, "Verleiher")[1]
+x <- list.files(c_path, "Verleiher")[1]
+x
+
 df_temp1 <-  list.files(c_path, "Verleiher")|>
   lapply(function(x){
     doc <- read_html(paste0(c_path,x))
@@ -58,16 +59,26 @@ df_temp1 <-  list.files(c_path, "Verleiher")|>
     children <- xml_children(element)
     children <- children[[5]]|>
       xml_children()
+    
+    children
+    
     # Extract data
     c_raw <- xml_text(children[[2]])[1]|>
       str_split("\n", simplify = T)
+    
+    c_raw
+    
     # Create data to return
     tibble(`Suisa-Nummer` = c_raw[,7],
            Filmtitel = c_raw[,8],
            Datum = c_raw[,9])
-    # c_raw
+
   })|>
-  bind_rows()
+  bind_rows()|>
+  mutate(`Suisa-Nummer` = str_remove(`Suisa-Nummer`, "\r"),
+         Filmtitel = str_remove(Filmtitel, "\r"),
+         Datum = str_remove(Datum, "\r"))
+
 df_temp1
 
 df_temp2 <- tibble(FileName = list.files("output/", "html"))|>
