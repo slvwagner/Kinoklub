@@ -115,7 +115,8 @@ if(c_SiteMap){
   
   # Vorschaubilder erzeugen wenn noch nicht vorhanden 
   ii <- 1
-  if(!length(list.files("output/", "html")) == length(list.files("output/pict/"))){
+  if(!(length(list.files("output/", "html")) == length(list.files("output/pict/")))
+     ){
     library(magick)
     writeLines("Site-Map wird erstellt, einen Moment bitte: ")
     
