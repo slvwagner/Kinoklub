@@ -120,8 +120,10 @@ if(c_SiteMap){
     library(magick)
     writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
     
-    c_select <- !((c_fileNames|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
+    c_select <- !((c_fileNames|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png"))
+                  )
     c_select
+    
     c_fileNames[c_select]
     c_url[c_select]
     
