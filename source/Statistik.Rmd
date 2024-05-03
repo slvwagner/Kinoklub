@@ -1,8 +1,5 @@
 ---
 title: "Statistik Kinoklub"
-output:
-  html_document:
-    css: Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
@@ -587,6 +584,11 @@ df_temp|>
   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
   knitr::kable(digits = 2)
 ```
+
+```{r}
+DT::datatable(df_temp)
+```
+
 
 #### Prognose
 ```{r fig.width=10}
