@@ -1,5 +1,5 @@
 ---
-title: "Jahresabrechnung Kinoklub"
+title: "Detallierte Jahresabrechnung Kinoklub"
 output: 
   html_document:
     css: Kinoklub_dark.css
@@ -25,7 +25,12 @@ df_temp <- df_Eintritt|>
           `Umsatz [CHF]` = sum(Umsatz, na.rm = T))|>
   arrange(desc(Verkaufspreis))
 
+df_temp|>
+  knitr::kable()
+```
 
+
+```{r}
 df_temp <- df_temp|>
   reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))|>
   arrange(desc(`Summe [CHF]`))
@@ -39,6 +44,16 @@ df_temp|>
 
 ### Abgaben Ticketverkauf
 #### Suisaabgaben
+
+```{r}
+df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Filmtitel,`SUISA-Abzug [CHF]`)|>
+  knitr::kable()
+```
+
+
 ```{r}
 df_GV_Eintritt|>
   select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
@@ -46,7 +61,15 @@ df_GV_Eintritt|>
   knitr::kable()
 ```
 
-#### Verleigerabgaben
+#### Verleiherabgaben
+
+```{r}
+df_GV_Eintritt|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Filmtitel,`Verleiher-Abzug [CHF]`)|>
+  knitr::kable()
+```
 
 ```{r}
 df_GV_Eintritt|>
@@ -70,6 +93,13 @@ df_temp <- df_GV_Eintritt|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)
 ```
+
+```{r}
+df_temp|>
+  mutate(`Sonstige Kosten [CHF]` = `Sonstige Kosten [CHF]`|>round5Rappen())|>
+  knitr::kable()
+```
+
 
 ```{r}
 df_GV_Eintritt|>
@@ -109,6 +139,9 @@ df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
+
+df_temp|>
+  knitr::kable()
 ```
 
 ```{r}
@@ -128,6 +161,12 @@ df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
   select(Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
+df_temp1|>
+  knitr::kable()
+```
+
+
+```{r}
 df_temp1 <- df_temp1|>
   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
 
@@ -155,6 +194,9 @@ KioskEinnahmen <- df_Kiosk|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))
+
+KioskEinnahmen|>
+  knitr::kable()
 ```
 
 ```{r}
@@ -173,10 +215,13 @@ Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant i
 ```{r}
 EinkaufGetränke <- df_Kiosk|>
   filter(Lieferant == "Schüwo")|>
-  group_by(Verkaufsartikel, Verkaufspreis, Einkaufspreis)|>
+  group_by(Verkaufsartikel,Verkaufspreis, Einkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Anzahl  * Einkaufspreis, na.rm = T))|>
+          `Betrag [CHF]` = sum(Einkaufspreis))|>
   arrange(desc(Anzahl))
+
+EinkaufGetränke|>
+  knitr::kable()
 ```
 
 ```{r}
@@ -195,6 +240,9 @@ EinkaufKino <- Einnahmen_und_Ausgaben$Ausgaben|>
     arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
+
+EinkaufKino|>
+  knitr::kable()
 ```
 
 ```{r}
@@ -218,6 +266,9 @@ df_temp <- df_manko_uerberschuss|>
   select(Datum, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
   mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) 
+
+df_temp|>
+  knitr::kable()
 ```
 
 ```{r}
@@ -252,6 +303,129 @@ Kiosk <- Kiosk|>
 Kiosk|>
   knitr::kable()
 ```
+
+
+## Abos / Kinogutscheine
+Kurzfristiges zinsloses Fremd-Kapital.  
+
+### Einnahmen
+#### Abos
+```{r}
+df_Abo_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp <- df_Abo_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
+
+df_temp|>
+  knitr::kable()
+```
+
+#### Kinogutscheine
+```{r}
+df_Kinogutschein_Verkauf|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  knitr::kable()
+```
+
+```{r}
+df_temp1 <- df_Kinogutschein_Verkauf|>
+  reframe(`Summ der Anzahl` = sum(Anzahl),
+          `Summe Betrag [CHF]` = sum(Betrag)
+         )
+
+df_temp1|>
+  knitr::kable()
+```
+
+#### Summe
+```{r}
+df_temp <- bind_rows(df_temp, df_temp1)
+df_temp|>
+  knitr::kable()
+
+```
+
+```{r}
+AboGutscheinEinahmen <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Summe Betrag [CHF]`, na.rm = T))
+
+AboGutscheinEinahmen|>
+  knitr::kable()
+```
+
+### Eingelöst
+#### Abos
+```{r}
+df_temp1 <- df_Eintritt |>
+  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  filter(str_detect(Platzkategorie, "Abo")) |>
+    group_by(Datum, Platzkategorie, Verkaufspreis)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(Umsatz))
+
+df_temp1|>
+  knitr::kable()
+```
+
+
+```{r}
+df_temp1 <- df_temp1|>
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
+
+df_temp1|>
+  knitr::kable()
+```
+
+#### Kinogutscheine 
+```{r}
+df_temp2 <- df_Kinogutschein_Eingeloest|>
+   mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
+  select(Datum, Filmtitel, Verkaufsartikel, Einzelpreis, Anzahl, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+
+df_temp2|>
+  knitr::kable()
+```
+
+```{r}
+df_temp2 <- df_temp2|>
+  reframe(`Summe [CHF]` = sum( abs(`Betrag [CHF]`), na.rm = F))
+
+df_temp2|>
+  knitr::kable()
+```
+
+
+
+### Kurzfristiges zinsloses Fremd-Kapital
+```{r}
+df_temp <- bind_cols(tibble(Bezeichnung = c("Verkaufte Abos", "Verkaufte Kinogutscheine","Eingelöste Abos", "Eingelöste Kinogutscheine")),
+          bind_rows(df_Abo_Verkauf|>
+                      reframe(`Summe [CHF]` = -sum(Betrag,na.rm = T)),
+                    df_Kinogutschein_Verkauf|>
+                      reframe(`Summe [CHF]` = -sum(Betrag,na.rm = T)),
+                    df_temp1, 
+                    df_temp2)
+          )|>
+  rename(`Betrag [CHF]` = `Summe [CHF]`)
+
+df_temp|>
+  knitr::kable()
+```
+
+```{r}
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
+  knitr::kable()
+```
+
 
 ## Werbung
 ### Einnahmen
@@ -322,6 +496,10 @@ df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
     arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   rename(`Betrag [CHF]` = Betrag)
+
+df_temp|>
+  knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
@@ -338,6 +516,10 @@ df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+
+df_temp|>
+  knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
@@ -369,6 +551,10 @@ df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+
+df_temp|>
+  knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
@@ -377,6 +563,7 @@ Personalaufwand <- df_temp|>
 
 Personalaufwand|>
   knitr::kable()
+
 ```
 
 ## Sonstiges
@@ -389,6 +576,10 @@ df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+
+df_temp|>
+  knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
@@ -397,6 +588,7 @@ df_temp <- df_temp|>
 
 df_temp|>
   knitr::kable()
+
 ```
 
 ### Ausgaben
@@ -408,6 +600,10 @@ df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
   arrange(Datum)|>
   arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+
+df_temp1|>
+  knitr::kable()
+
 ```
 
 ```{r echo=FALSE}
@@ -416,6 +612,7 @@ df_temp1 <- df_temp1|>
 
 df_temp1|>
   knitr::kable()
+
 ```
 
 ### Differenz
@@ -424,6 +621,7 @@ Sonstiges <- df_temp - df_temp1
 
 Sonstiges|>
   knitr::kable()
+
 ```
 
 

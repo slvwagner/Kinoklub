@@ -9,12 +9,14 @@
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
 # 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet
 # 2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen 
+# 2024 V1.4 Jahresbarechnung detailed entfernt
+
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.3"
+c_script_version <- "2024 V1.4"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -219,40 +221,6 @@ for (jj in 1:length(df_Render$Render)) {
 print(clc)
 
 paste("Bericht: \nStatistik erstellt")|>
-  writeLines()
-
-#############################################################################################################################################
-# Jahresrechnung detalliert-Bericht erstellen
-#############################################################################################################################################
-# Einlesen
-c_raw <- readLines("source/Jahresrechnung_detailed.Rmd")
-c_raw
-
-# Inhaltsverzeichnis
-if(toc){# neues file schreiben mit toc
-  c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
-    writeLines(paste0("source/temp.Rmd"))
-}else {# neues file schreiben ohne toc
-  c_raw|>
-    writeLines(paste0("source/temp.Rmd"))
-}
-
-# Render
-rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-
-# Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Jahresrechnung_detailed",df_Render$fileExt[jj] )
-  )
-}
-
-print(clc)
-
-paste("Bericht: \nJahresrechnung detailliert erstellt")|>
   writeLines()
 
 #############################################################################################################################################
