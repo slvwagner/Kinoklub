@@ -1,4 +1,4 @@
-Script Version: 2024 V1.2
+Script Version: 2024 V1.4
  
 ## Kinoklub 
 
@@ -363,6 +363,8 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 
 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt    \
-2024 V1.2 Abrechnung für Kinowerbung hinzugefügt  \
+2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet  \
+2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen   \
+2024 V1.4 Jahresbarechnung detailed entfernt  \
 
 

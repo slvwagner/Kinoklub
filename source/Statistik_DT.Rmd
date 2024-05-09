@@ -1,14 +1,12 @@
 ---
-title: "Statistik Kinoklub"
-output:
-  html_document:
-    css: Kinoklub_dark.css
+title: "Statistik Kinoklub DT"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
 act_date <- Sys.time()|>as.Date()
-act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -22,7 +20,8 @@ df_temp <- df_GV_Vorfuehrung|>
   select(-Ende)
 
 df_temp|>
-  knitr::kable()
+  DT::datatable(df_temp)
+
 ```
 
 
@@ -130,7 +129,7 @@ df_temp <- df_GV_Eintritt|>
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  knitr::kable()
+  DT::datatable(df_temp)
 ```
 
 ```{r}
@@ -185,7 +184,7 @@ df_temp <- df_Eintritt|>
   arrange(desc(Anzahl))
 
 df_temp|>
-  knitr::kable()
+  DT::datatable(df_temp)
 
 ```
 
@@ -203,7 +202,7 @@ df_temp <- df_Eintritt|>
 ```{r echo=FALSE}
 df_temp|>
   select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
-  knitr::kable()
+  DT::datatable()
 
 ```
 
@@ -265,7 +264,7 @@ df_temp <- df_temp|>
   rename(`Umsatz [CHF]` = Umsatz)
 
 df_temp|>
-  knitr::kable()
+  DT::datatable(df_temp)
 
 ```
 
@@ -359,7 +358,7 @@ df_temp <- df_GV_Eintritt|>
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  knitr::kable()
+  DT::datatable(df_temp)
 ```
 
 
@@ -411,7 +410,7 @@ df_GV_Kiosk|>
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
          )|>
-  knitr::kable()
+  DT::datatable(df_temp)
 
 ```
 
@@ -468,39 +467,8 @@ df_temp <- df_Kiosk|>
 
 
 ```{r }
-# library(flextable)
-flextable::set_flextable_defaults(background.color = "#322f3b", 
-                       font.color = "#f4cccc")
-
-
-flextable::flextable(df_temp)|>
-  flextable::autofit(add_w = 1.5)|>
-  flextable::set_table_properties(opts_html = list(scroll = list( height = "500px",
-                                                                  width = "150px",
-                                                                  freeze_first_column = TRUE )))
-```
-
-
-
-```{r }
-df_temp <- df_Kiosk|>
-  reframe(`Verkaufsartikel` = NA,
-          `Anzahl verkaufter Verkaufsartikel` = sum(Anzahl),
-          `Umsatz Kiosk [CHF]` = sum(Kassiert),
-          `Gewinn Kiosk [CHF]` = sum(Gewinn) ,
-          )|>
-  arrange(desc(`Anzahl verkaufter Verkaufsartikel`))
-
-
 df_temp|>
-  flextable::flextable()|>
-  flextable::autofit(add_w = 1.5)|>
-  flextable::set_table_properties(opts_html = list( scroll = list(height = "100px",
-                                                                  width = "180px",
-                                                                  freeze_first_column = TRUE)
-                                                    )
-                                  )
-
+  DT::datatable(df_temp)
 ```
 
 
@@ -570,17 +538,14 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  arrange((Datum))
-```
-
-
-```{r }
-df_temp|>
+  arrange((Datum))|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  knitr::kable()
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 ```
 
+```{r}
+DT::datatable(df_temp)
+```
 
 ```{r }
 df_temp|>
@@ -625,7 +590,8 @@ df_temp|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)|>
-  knitr::kable()
+  DT::datatable(df_temp)
+
 ```
 
 
@@ -648,6 +614,7 @@ df_temp|>
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
+
 
 
 

@@ -8,16 +8,18 @@
 # 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
 # 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet
+# 2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen 
+# 2024 V1.4 Jahresbarechnung detailed entfernt
 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.2"
+c_script_version <- "2024 V1.4"
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse")
+packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -187,19 +189,8 @@ for (jj in 1:length(df_Render$Render)) {
   )
 }
 
-# rmarkdown::render(paste0("source/Statistik.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
-print(clc)
-
-paste("Bericht: \nStatistik erstellt")|>
-  writeLines()
-
-#############################################################################################################################################
-# Jahresrechnung detalliert-Bericht erstellen
-#############################################################################################################################################
 # Einlesen
-c_raw <- readLines("source/Jahresrechnung_detailed.Rmd")
+c_raw <- readLines("source/Statistik_DT.Rmd")
 c_raw
 
 # Inhaltsverzeichnis
@@ -220,13 +211,16 @@ rmarkdown::render(paste0("source/temp.Rmd"),
 # Rename the file
 for (jj in 1:length(df_Render$Render)) {
   file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Jahresrechnung_detailed",df_Render$fileExt[jj] )
+              to   = paste0(getwd(),"/output/", "Statistik_DT",df_Render$fileExt[jj] )
   )
 }
 
+# rmarkdown::render(paste0("source/Statistik.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
-paste("Bericht: \nJahresrechnung detailliert erstellt")|>
+paste("Bericht: \nStatistik erstellt")|>
   writeLines()
 
 #############################################################################################################################################

@@ -9,9 +9,8 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
-
 #######################################################
-# function to edit markdown files insert pictures
+# function to edit Site-Map: insert pictures
 #######################################################
 instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
   # create link to pict and link to file 
@@ -97,6 +96,7 @@ m_Film
 
 if(c_SiteMap){
   c_fileNames <-m_Film$FileName
+  c_fileNames
   
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- c_fileNames|>
@@ -108,6 +108,7 @@ if(c_SiteMap){
   # Convert filenames to URL
   c_url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", c_fileNames)), 
                   sep = "")
+  c_url
   
   c_path <- paste0(c_WD,"/output/pict")
   c_path
@@ -150,7 +151,7 @@ if(c_SiteMap){
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
   
-  ii <- 1
+  ii <- 4
   for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
