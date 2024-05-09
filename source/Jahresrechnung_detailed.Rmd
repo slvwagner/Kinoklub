@@ -215,9 +215,9 @@ Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant i
 ```{r}
 EinkaufGetränke <- df_Kiosk|>
   filter(Lieferant == "Schüwo")|>
-  group_by(Verkaufsartikel, Verkaufspreis, Einkaufspreis)|>
+  group_by(Verkaufsartikel,Verkaufspreis, Einkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Anzahl  * Einkaufspreis, na.rm = T))|>
+          `Betrag [CHF]` = sum(Einkaufspreis))|>
   arrange(desc(Anzahl))
 
 EinkaufGetränke|>
