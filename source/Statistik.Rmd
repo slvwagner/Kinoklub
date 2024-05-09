@@ -144,15 +144,17 @@ df_temp|>
 
 ### Wochentaganalyse
 ```{r }
-timeRange <- paste0(seq(0,23,1),":00:00","-", seq(1,24,1),":00:00")
+timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+# timeRange <- factor(timeRange, levels = timeRange[length(timeRange):1])
 ```
 
 ```{r}
 m <- str_split(timeRange, "-")|>
   sapply(function(range){
-    hms(df_temp$Anfang) >= hms(range[1]) & hms(df_temp$Anfang) < hms(range[2])
+    hms(df_temp$Anfang) >= hm(range[1]) & hms(df_temp$Anfang) < hm(range[2])
   })
 colnames(m) <- timeRange
+
 ```
 
 ```{r}
@@ -168,21 +170,39 @@ df_temp <- m|>
 ```
 
 
-```{r fig.width=10}
-df_temp|>
+```{r }
+df_temp <- df_temp|>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Umsatz [CHF]`) / n()
-          )|>
+          )
+```
+
+
+```{r }
+df_temp <- df_temp|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
   ggplot(aes(weekday, `Time Range`))+
-  geom_point(size = 20)+
-  geom_text(aes(label = d_gewinn), color = "green")+
-  labs(title = "Durchschnittlicher Gewinn / Verlust [CHF]",
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
        subtitle = "[CHF]")+
   my_template
 ```
 
 ### Prognose
 ```{r fig.width=10}
+df_temp <- df_GV_Eintritt|>
+  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
+  rename(`Umsatz [CHF]` = Brutto)|>
+  arrange(Datum)
+
 df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
