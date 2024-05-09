@@ -13,6 +13,7 @@ Gesamt	1	97	5	1'438.00
 Platzkategorie	Preis	Tax	Anzahl	Umsatz
 Erwachsene	16.00	0.0000	59	944.00
 Ermässigt	13.00	0.0000	38	494.00
+Treppe	10.00	0.0000	20	200.00
 Kinoförderer	0.00	0.0000	5	0.00
 Gesamt	102	1'438.00
 Brutto	1'438.00
