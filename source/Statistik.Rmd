@@ -119,6 +119,8 @@ df_temp|>
 
 
 ## Ticketverkauf
+
+### Gewinn pro Vorführung
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
@@ -139,6 +141,45 @@ df_temp|>
   knitr::kable()
 ```
 
+
+### Wochentaganalyse
+```{r }
+timeRange <- paste0(seq(0,23,1),":00:00","-", seq(1,24,1),":00:00")
+```
+
+```{r}
+m <- str_split(timeRange, "-")|>
+  sapply(function(range){
+    hms(df_temp$Anfang) >= hms(range[1]) & hms(df_temp$Anfang) < hms(range[2])
+  })
+colnames(m) <- timeRange
+```
+
+```{r}
+df_temp <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(weekday = weekdays(Datum)|>
+           factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
+           )
+```
+
+
+```{r fig.width=10}
+df_temp|>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n()
+          )|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20)+
+  geom_text(aes(label = d_gewinn), color = "green")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust [CHF]",
+       subtitle = "[CHF]")+
+  my_template
+```
 
 ### Prognose
 ```{r fig.width=10}
