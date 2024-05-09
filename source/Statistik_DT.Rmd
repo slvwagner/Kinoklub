@@ -1,14 +1,12 @@
 ---
 title: "Statistik Kinoklub"
-output:
-  html_document:
-    css: Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
 act_date <- Sys.time()|>as.Date()
-act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -575,9 +573,10 @@ df_temp <- df_show |>
 
 
 ```{r }
-df_temp|>
+df_temp <- df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
+df_temp|>
   knitr::kable()
 ```
 
@@ -587,6 +586,11 @@ df_temp|>
   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
   knitr::kable(digits = 2)
 ```
+
+```{r}
+DT::datatable(df_temp)
+```
+
 
 #### Prognose
 ```{r fig.width=10}
@@ -648,6 +652,7 @@ df_temp|>
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
+
 
 
 
