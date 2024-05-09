@@ -1,0 +1,10 @@
+Verkauf Kinogutschein	0.00		1			80.00
+1			80.00
+Gesamt		1			80.00
+TWINT						0.00
+CC				
+- Abo/Gutsch. gegen Rg./Kreditkarten			0.00
+- CHF an Bank			0.00
+- Spesen			0.00
++/- Überschuss | Manko			0.00
+Solde		80.00
