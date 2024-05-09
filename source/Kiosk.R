@@ -290,8 +290,15 @@ l_Kiosk
 df_Kiosk <- l_Kiosk|>
   bind_rows()
 
-df_Kiosk <- df_Kiosk|>
-  select(-Artikel,-`Verkaufs-preis`, -Menge, -(ncol(df_Kiosk)-1),  -ncol(df_Kiosk))
+# V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
+df_Kiosk <- bind_rows(df_Kiosk|>
+            filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
+            mutate(Verkaufsartikel = "Popcorn frisch"),
+          df_Kiosk|>
+            filter(! Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))
+          )
+
+
 
 ########################################################################
 # Gewinn
