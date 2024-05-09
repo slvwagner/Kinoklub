@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.5
+2024 V1.6
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -381,5 +381,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen   \
 2024 V1.4 Jahresbarechnung detailed entfernt  \
 2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"  \
+2024 V1.6 Statistik: Wochentaganalyse  \
 
 

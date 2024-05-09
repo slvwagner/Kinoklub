@@ -138,7 +138,6 @@ df_temp|>
   knitr::kable()
 ```
 
-
 ### Prognose
 ```{r fig.width=10}
 df_temp <- df_temp|>
@@ -397,6 +396,8 @@ df_temp|>
   my_template
 
 ```
+
+#### Wochentaganalyse
 
 
 ## Kiosk-Gewinn pro Vorführung 
