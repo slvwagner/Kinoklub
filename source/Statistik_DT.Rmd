@@ -144,10 +144,7 @@ df_temp|>
 ### Wochentaganalyse
 ```{r }
 timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-# timeRange <- factor(timeRange, levels = timeRange[length(timeRange):1])
-```
 
-```{r}
 m <- str_split(timeRange, "-")|>
   sapply(function(range){
     hms(df_temp$Anfang) >= hm(range[1]) & hms(df_temp$Anfang) < hm(range[2])
@@ -165,20 +162,9 @@ df_temp <- m|>
   select(-value)|>
   mutate(weekday = weekdays(Datum)|>
            factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
-           )
-```
-
-
-```{r }
-df_temp <- df_temp|>
+           )|>
   group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n()
-          )
-```
-
-
-```{r }
-df_temp <- df_temp|> 
+  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n())|> 
   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
          )
 ```
