@@ -68,6 +68,46 @@ shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 shows_per_year
 ```
 
+### Wochentaganalyse
+```{r }
+timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+
+m <- str_split(timeRange, "-")|>
+  sapply(function(range){
+    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+  })
+colnames(m) <- timeRange
+```
+
+```{r}
+df_temp <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(Datum = Datum|>dmy())|>
+  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Gewinn/Verlust [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]")+
+  my_template
+```
+
+
 ### Prognose
 
 ```{r include=FALSE}
@@ -160,8 +200,7 @@ df_temp <- m|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(weekday = weekdays(Datum)|>
-           factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
+  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
            )|>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Umsatz [CHF]`) / n()
@@ -448,8 +487,10 @@ df_temp|>
 
 
 ## Kiosk-Gewinn pro Vorführung 
+
+### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
-df_GV_Kiosk|>
+df_temp <- df_GV_Kiosk|>
   arrange((Datum))|> 
   rename(`Umsatz [CHF]` = Kassiert,
          `Kiosk Gewinn [CHF]` = Gewinn)|>
@@ -457,10 +498,12 @@ df_GV_Kiosk|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
-         )|>
-  knitr::kable()
+         )
 
+df_temp|>
+  knitr::kable()
 ```
+
 
 ```{r echo=FALSE}
 df_GV_Kiosk|>
@@ -470,6 +513,46 @@ df_GV_Kiosk|>
   knitr::kable()
 
 ```
+
+### Wochentaganalyse
+```{r }
+timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+
+m <- str_split(timeRange, "-")|>
+  sapply(function(range){
+    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+  })
+colnames(m) <- timeRange
+```
+
+```{r}
+df_temp <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(Datum = Datum|>dmy())|>
+  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Kiosk Gewinn [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]")+
+  my_template
+```
+
 
 ### Prognose
 ```{r fig.width=10}
@@ -617,14 +700,11 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  arrange((Datum))
-```
-
-
-```{r }
-df_temp|>
+  arrange((Datum))|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
+
+df_temp|>
   knitr::kable()
 ```
 
@@ -635,13 +715,80 @@ df_temp|>
   knitr::kable(digits = 2)
 ```
 
-#### Prognose
+
+#### Umsatz pro Datum
+```{r fig.width=10}
+df_temp <- df_show |>
+  left_join(
+    df_Eintritt |>
+      group_by(Datum) |>
+      reframe(`Besucher` = sum(Anzahl))|>
+      left_join(df_Kiosk |>
+                  group_by(Datum) |>
+                  reframe(Umsatz = sum(Kassiert)),
+                by = join_by(Datum)
+                ) |>
+      mutate(`Durchschnittlicher Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
+  by = join_by(Datum)
+  )|>
+  select(-Ende, -Saal, -Version, -Alter)|>
+  filter(!is.na(`Suisa Nummer`))|>
+  rename(`Umsatz [CHF]` = Umsatz)|>
+  arrange((Datum))
+
+```
+
+
 ```{r fig.width=10}
 df_temp|>
-  ggplot(aes(Datum, `Umsatz pro Gast [CHF]`))+
+  ggplot(aes(Datum, `Durchschnittlicher Umsatz pro Gast [CHF]`))+
   geom_col(fill ="cyan4")+
-  geom_hline(yintercept = mean(df_temp$`Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+
-  labs(title = "Umsatz pro Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
+  geom_hline(yintercept = mean(df_temp$`Durchschnittlicher Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+
+  labs(title = "Umsatz pro Gast aus Kioskverkäufen",
+       y = "Kumulierter Umsatz [CHF]")+
+  my_template
+```
+
+#### Wochentaganalyse
+```{r }
+df_temp <- df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
+
+timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+
+m <- str_split(timeRange, "-")|>
+  sapply(function(range){
+    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+  })
+colnames(m) <- timeRange
+```
+
+```{r}
+df_temp <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(Datum = Datum|>dmy())|>
+  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Durchschnittlicher Umsatz pro Gast [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Umsatz pro Gast",
+       subtitle = "[CHF]")+
   my_template
 ```
 
@@ -695,6 +842,3 @@ df_temp|>
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
-
-
-
