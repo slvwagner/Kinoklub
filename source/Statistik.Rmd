@@ -808,7 +808,10 @@ df_temp <- df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
-  arrange((Datum))
+  arrange((Datum))|>
+  select(-Ende, -Saal, -Version, -Alter)|>
+  filter(!is.na(`Suisa Nummer`))|>
+  rename(`Umsatz [CHF]`= Umsatz)
 ```
 
 
@@ -816,29 +819,27 @@ df_temp <- df_show |>
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  select(-Ende, -Saal, -Version, -Alter)|>
-  filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]`= Umsatz)|>
   knitr::kable()
 ```
 
 
 ```{r }
 df_temp1 <- df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(Umsatz, na.rm = T) / sum(Besucher, na.rm = T),
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T) / sum(Besucher, na.rm = T)
           )
 
 df_temp1|>
   knitr::kable(digits = 2)
 ```
 
-#### Prognose
+#### Umsatz pro Tag
 ```{r fig.width=10}
 df_temp|>
-  filter(!is.na(Umsatz))|>
+  filter(!is.na(`Umsatz [CHF]`))|>
   ggplot(aes(Datum, `Umsatz pro Gast [CHF]`))+
   geom_col(fill ="cyan4")+
   geom_hline(yintercept = df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`, linewidth =2 , color = "darkorange2")+
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
+
