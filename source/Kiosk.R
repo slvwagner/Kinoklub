@@ -155,7 +155,8 @@ l_Kiosk
 df_Kiosk <- l_Kiosk|>
   bind_rows(.id = "Datum")|>
   mutate(Datum = dmy(Datum),
-         Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis))
+         Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+         Betrag = if_else(Anzahl == 0, 0, Betrag))
 df_Kiosk
 
 
