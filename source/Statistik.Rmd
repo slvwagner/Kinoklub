@@ -203,7 +203,8 @@ df_temp <- m|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
            )|>
   group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n()
+  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
           )|> 
   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
          )
@@ -445,7 +446,7 @@ df_temp <- df_GV_Eintritt|>
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 
