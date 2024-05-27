@@ -14,7 +14,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 5
+ii <- 22
 ```
 
 ```{r echo=FALSE}
@@ -297,6 +297,7 @@ df_temp1|>
 
 
 #### Umsatz Spezialverkaufsartikel
+
 Verkaufsartikel ohne Lieferant.
 
 ```{r echo=FALSE}
@@ -338,7 +339,17 @@ df_temp2|>
 ```
 
 ### Ausgaben 
-Die Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden.\ 
+Die Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
+
+```{r echo=FALSE}
+if(df_temp2$`Summe [CHF]` > 0) {
+  if(abs(Event$`Betrag [CHF]`) <= 0){
+  writeLines("Achtung es gibt keine Eventausgaben obwohl Spezialverkaufsartikel verkauft wurden.
+             \nBitte die Einkäufe unter Eventausgaben im File .../Kinoklub/input/Einnahmen und Ausgaben.xlsx nachtragen")
+  }
+}
+
+```
 
 ```{r echo=FALSE}
 if(df_temp3|>nrow()){
