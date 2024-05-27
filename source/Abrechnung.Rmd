@@ -279,7 +279,8 @@ df_temp <- df_Kiosk|>
 ```{r echo=FALSE}
 df_temp1 <-  df_temp|>
   filter(!is.na(Lieferant))|>
-  rename(`Gewinn [CHF]` = Gewinn)
+  rename(`Gewinn [CHF]` = Gewinn)|>
+  select(Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`, `Einkaufspreis [CHF]`, Lieferant, `Gewinn [CHF]`)
 
 df_temp1|>
   knitr::kable()
@@ -322,6 +323,7 @@ df_temp2 <- df_temp|>
   rename(`Umsatz [CHF]` = Gewinn)
 
 df_temp2|>
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
   knitr::kable()
 ```
 
