@@ -606,7 +606,7 @@ df_temp <- df_Kiosk|>
 
 ```{r }
 df_temp|>
-  DT::datatable(df_temp)
+  DT::datatable()
 ```
 
 
@@ -654,7 +654,7 @@ df_temp <- df_Einkaufspreise|>
 df_temp|>
   filter(is.na(Anzahl))|>
   select(-Anzahl)|>
-  knitr::kable()
+  DT::datatable()
 
 ```
 
@@ -681,7 +681,7 @@ df_temp <- df_show |>
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 
 df_temp|>
-  knitr::kable()
+  DT::datatable()
 ```
 
 
@@ -795,7 +795,7 @@ df_temp <- df_show |>
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  knitr::kable()
+  DT::datatable()
 ```
 
 
