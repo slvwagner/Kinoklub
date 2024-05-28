@@ -1,5 +1,8 @@
 ---
 title: "Statistik Kinoklub DT"
+output:
+  html_document:
+    css: Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
@@ -450,7 +453,9 @@ df_temp <- df_GV_Eintritt|>
 
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
+         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+         `SUISA-Abzug [CHF]` = round(`SUISA-Abzug [CHF]`,2),
+         `Verleiher-Abzug [CHF]` = round(`Verleiher-Abzug [CHF]`,2))|>
   DT::datatable(df_temp)
 ```
 
