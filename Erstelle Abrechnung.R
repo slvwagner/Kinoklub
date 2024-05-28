@@ -12,12 +12,13 @@
 # 2024 V1.4 Jahresbarechnung detailed entfernt
 # 2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
 # 2024 V1.6 Statistik: Wochentaganalyse
+# 2024 V1.7 Statistik ohne Datatable gelöscht
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.6"
+c_script_version <- "2024 V1.7"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -190,31 +191,31 @@ for (jj in 1:length(df_Render$Render)) {
   )
 }
 
-# Einlesen
-c_raw <- readLines("source/Statistik_DT.Rmd")
-c_raw
-
-# Inhaltsverzeichnis
-if(toc){# neues file schreiben mit toc
-  c_raw|>
-    r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
-    writeLines(paste0("source/temp.Rmd"))
-}else {# neues file schreiben ohne toc
-  c_raw|>
-    writeLines(paste0("source/temp.Rmd"))
-}
-
-# Render
-rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
-
-# Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Statistik_DT",df_Render$fileExt[jj] )
-  )
-}
+# # Einlesen
+# c_raw <- readLines("source/Statistik_DT.Rmd")
+# c_raw
+# 
+# # Inhaltsverzeichnis
+# if(toc){# neues file schreiben mit toc
+#   c_raw|>
+#     r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+#     writeLines(paste0("source/temp.Rmd"))
+# }else {# neues file schreiben ohne toc
+#   c_raw|>
+#     writeLines(paste0("source/temp.Rmd"))
+# }
+# 
+# # Render
+# rmarkdown::render(paste0("source/temp.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
+# 
+# # Rename the file
+# for (jj in 1:length(df_Render$Render)) {
+#   file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+#               to   = paste0(getwd(),"/output/", "Statistik_DT",df_Render$fileExt[jj] )
+#   )
+# }
 
 # rmarkdown::render(paste0("source/Statistik.Rmd"),
 #                   df_Render$Render,
