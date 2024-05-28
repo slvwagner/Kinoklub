@@ -39,3 +39,8 @@ a:hover {
   border-radius: 15px;
   color: #000000;
 }
+
+div.datatables {
+    color: #d3bebe;
+}
+
