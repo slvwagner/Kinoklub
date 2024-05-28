@@ -597,7 +597,7 @@ df_temp <- df_Kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(Kassiert),
-          `Gewinn [CHF]` = sum(Gewinn)|>round5Rappen()
+          `Gewinn [CHF]` = sum(Gewinn)|>round(2)
           )|>
   arrange(desc(Anzahl))
 
