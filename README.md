@@ -121,7 +121,6 @@ nach zuschlagen.
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
-
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
@@ -133,71 +132,45 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
 
 -   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
     Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
-  
 -   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
     Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
-
 -   Kurze Erklärung der **Spaltennamen**
-
-    -   **Kategorie**
-            Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-            
+    -   **Kategorie** \
+        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
         -   Event \
             Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
-            
         -   Kiosk \
             Ausgaben für den Einkauf des Kino-Kiosks
-            
         -   Personalaufwand \ 
             Ausgaben für Gehaltszahlung and Mitarbeiter
-    
         -   Sonstiges \    
             Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
-
         -   Verleiher \
             Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
-
         -   Vermietung \
             Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
-        
         -   Werbung \
             Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können 
-
-
     -   **Spieldatum** \
         Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben/Einnahmen die sich nicht auf ein spezifisches Datum beziehen, kann dieses Feld leer gelassen werden. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
-            
     -   **Bezeichnung** \
         Umschreibung der Buchung
-        
     -   **Datum** \
         Datum der Rechnung/Buchung. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
-    
     -   **Betrag** \
         Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
-    
     -  **Firmenname** \
         Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss. 
-        
     -   **Adresse** Rechnungsteller
-    
     -   **Referenz** Referenznummer der Rechnung
-    
     -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
-    
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
-    
     -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
-    
-
-
--   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. \
-
-
+-   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. 
 
 ## Script Konfiguration
 
-Die Datei **"Erstelle Abrechnung.R"** enthält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
+Die Datei **"Erstelle Abrechnung.R"** enthält am Anfang die folgenden Definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
 
 ### Abrechnung für Filmvorführungen
 
@@ -223,7 +196,7 @@ c_MWST \<- 8.1 #%
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".\
 Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
-`df_P_kat_verechnen` \<- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis = 13)  
+`df_P_kat_verechnen` \<- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis = 13).
 
 ### Ausgabeformate
 
