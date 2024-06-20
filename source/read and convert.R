@@ -34,6 +34,7 @@ Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
 names(Einnahmen_und_Ausgaben) <- c_sheets
 Einnahmen_und_Ausgaben
 
+
 Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   mutate(Spieldatum = as.Date(Spieldatum),
          Datum = as.Date(Datum))
@@ -41,6 +42,18 @@ Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   mutate(Datum = as.Date(Datum))
 
+# Datachecking 
+df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie %in% c("Event","Verleiher"))|>
+  mutate(error = is.na(Spieldatum))|>
+  filter(error)
+  
+if(nrow(df_temp)>0) { 
+  for (ii in 1:nrow(df_temp)) {
+    warning((paste("\nFür die Kategorieen \"Event\" und \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
+                          "\n\nKategorie\tSpieldatum\tBezeichnung\n",df_temp$Kategorie[ii],"\t\t", df_temp$Spieldatum[ii], "\t\t", df_temp$Bezeichnung[ii])))
+  }
+}
 
 ########################################################################
 # Eintrittabrechnung aus Advanced Tickets konvertieren
