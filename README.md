@@ -250,12 +250,15 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
                 1.    Fall: \
                       ("Netto3" x "Abzug") > "Minimal Abzug" \
                       Verleiherabzug: "Netto3" x "Abzug %"
+                      
                 2.    Fall: \
                       ("Netto3" x "Abzug %") < "Minimal Abzug" \
                       Verleiherabzug: Minimal Abzug
+                      
                 3.    Fall: \
                       "Abzug fix [CHF]" \
                       Verleiherabzug: "Abzug fix [CHF]"
+                      
         -   Reklamematerial und Porto \
             Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
         -   MWST auf Verleiherrechnung \
