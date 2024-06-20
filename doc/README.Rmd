@@ -116,7 +116,7 @@ Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden.\
 
 -   Achtung!\
-    Die alte Dateien dürfen nicht gelöscht werden.
+    Die alten Dateien dürfen nicht gelöscht werden.
 
 #### Spezialpreise Kiosk
 
