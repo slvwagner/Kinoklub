@@ -132,18 +132,18 @@ Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen 
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
 
 -   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
   
 -   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
 
--   Kurze Erklärung der **Spaltennamen**\
+-   Kurze Erklärung der **Spaltennamen**
 
     -   **Kategorie**
             Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
             
         -   Event \
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein.Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
             
         -   Kiosk \
             Ausgaben für den Einkauf des Kino-Kiosks
@@ -161,7 +161,7 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
             Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
         
         -   Werbung \
-            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können \ 
+            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können 
 
 
     -   **Spieldatum** \
