@@ -141,7 +141,7 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
             Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
         -   Kiosk \
             Ausgaben für den Einkauf des Kino-Kiosks
-        -   Personalaufwand \ 
+        -   Personalaufwand \
             Ausgaben für Gehaltszahlung and Mitarbeiter
         -   Sonstiges \
             Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
