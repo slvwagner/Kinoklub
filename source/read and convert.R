@@ -418,11 +418,11 @@ c_Date[3]
 
 l_GV <- list()
 l_Abgaben <- list()
-ii <- 6
+ii <- 1
 for (ii in 1:length(c_Date)) {
 
   ######################################################################
-  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden anders behandelt
+  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden und müssen anders behandelt werden. 
   c_Kinofoerder_gratis <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
     distinct(`Kinoförderer gratis?`)|>
