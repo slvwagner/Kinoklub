@@ -309,7 +309,7 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
--   Filmvorführungen\
+-   Filmvorführungen \
     -   Eintritt
         -   Einnahmen Ticketverkauf
         -   Abgaben Ticketverkauf
@@ -318,12 +318,12 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             -   Nebenkosten
             -   MWST auf Verleiherleistungen
 -   Event
-    -   Eventeinnahmen\
+    -   Eventeinnahmen \
         Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
     -   Eventausgaben\
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk
-    -   Einnahmen\
+    -   Einnahmen \
         Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
     -   Ausgaben
         -   Einkauf Getränke\
@@ -341,22 +341,22 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         - Abos
         - Kinogutscheine
     - Kurzfristiges zinsloses Fremd-Kapital
--   Vermietung\
-    -   Einnahmen\
+-   Vermietung \
+    -   Einnahmen \
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Mietkosten für Filme und Material, ...
 -   Werbung
-    -   Einnahmen\
+    -   Einnahmen \
         Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Inserate, Drucksachen, Homepage, ...
--   Personalaufwand\
+-   Personalaufwand \
     Löhne
 -   Sonstiges
-    -   Einnahmen\
+    -   Einnahmen \
         Sponsoen, Gönner, Kulturbeiträge, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
 
@@ -364,35 +364,35 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
 ### Statistik
 
 -   Gewinn/Verlust
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Ticketverkauf
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Eintritte
-        -   Anzahl\
+        -   Anzahl \
             Diagramm
         -   Umsatz
-            -   Prognose\
+            -   Prognose \
                 Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Filmabgaben
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Abos
     -   Einnahmen
     -   Eingelöst
     -   Kredit
 -   Kiosk-Gewinn pro Vorführung
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Kiosk
     -   Verkaufsartikel
     -   Ladenhüter (keine Verkäufe)
     -   Kiosk Umsatz pro Gast
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Umsatz pro zahlender Gast
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ### Daten als Excel-Datei
