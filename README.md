@@ -143,7 +143,7 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
             Ausgaben für den Einkauf des Kino-Kiosks
         -   Personalaufwand \ 
             Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Sonstiges \    
+        -   Sonstiges \
             Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
         -   Verleiher \
             Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
