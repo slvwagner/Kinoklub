@@ -1,5 +1,5 @@
 ---
-title: "Detallierte Jahresabrechnung Kinoklub"
+title: "Jahresabrechnung Kinoklub"
 output: 
   html_document:
     css: Kinoklub_dark.css
