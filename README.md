@@ -237,7 +237,7 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 
 Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
--   Übericht \
+-   Übericht
 -   Filmvorführung
     -   Kino Besucherzahlen und Umsatz
         -   Filmabgaben\
