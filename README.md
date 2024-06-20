@@ -147,7 +147,7 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
         Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
     
     -   Kategorie Verleiher \
-        Rechnungen vom Filmverleiher and den Kionklub
+        Rechnungen vom Filmverleiher and den Kinoklub
     
     -   Kategorie Vermietung \
         Ausgaben die für einen Vermietung getätigt werden.
