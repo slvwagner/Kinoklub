@@ -131,44 +131,91 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
 
--   Im Tab **Einnahmen** werden die Einnahmen verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
+-   Im Tab **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
     Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
-
-    -   Kategorie Event \ 
-        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das sind Ausgaben die für eine Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden, z.B. Werbekosten für einen Filmvorführung , Dekomatierial, Spezielle Verkaufsartikel (Gipfeli), Matierialmiete, u.s.w. \
-
-    -   Kategorie Kiosk \
-        Einkauf für den Kiosk
-
-    -   Kategorie Personalaufwand \ 
-        Gehaltszahlung and Mitarbeiter
+    
+    -   Kategorie
+  
+        -   Kategorie Event \ 
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen die an einer Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden.
+    
+        -   Kategorie Sonstiges \    
+            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
         
-    -   Kategorie Sonstiges \    
-        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
+        -   Kategorie Werbung \
+            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+            
+    -   Bezeichnung \
+        Umschreibung der Buchung
+        
+    -   Datum \
+        Datum der Buchung
     
-    -   Kategorie Verleiher \
-        Rechnungen vom Filmverleiher and den Kinoklub
+    -   Betrag \
+        Betrag der Buchung
     
-    -   Kategorie Vermietung \
-        Ausgaben die für einen Vermietung getätigt werden.
+    -   Firmenname \
+        Welche Firma zahlt den Betrag.
     
-    -   Kategorie Werbung \
-        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+    -   Adresse \
+        Frimen Adresse
+    
+    -   Rechnungsnummer \
+
     
 
--   Im Tab **Ausgaben** werden alle Ausgaben die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+-   Im Tab **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
     Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
 
-    -   Kategorie Event \ 
-        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen die an einer Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden.
-
-    -   Kategorie Sonstiges \    
-        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
+    -   Kategorie
+  
+        -   Event \ 
+          Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das sind Ausgaben die für eine Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden, z.B. Werbekosten für einen Filmvorführung , Dekomatierial, Spezielle Verkaufsartikel (Gipfeli), Matierialmiete, u.s.w. \
+  
+        -   Kiosk \
+            Einkauf für den Kiosk
+  
+        -   Personalaufwand \ 
+            Gehaltszahlung and Mitarbeiter
+          
+        -   Sonstiges \    
+            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
+      
+        -   Verleiher \
+            Rechnungen vom Filmverleiher and den Kinoklub
+      
+        -   Vermietung \
+            Ausgaben die für einen Vermietung getätigt werden.
+      
+        -   Werbung \
+            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+          
+    -   Spieldatum \
+        Für die Kategorieen **Event**, **Verleiher**, muss ein Spieldatum angegeben werden. Das ist nötig um die Zuweisung für einen Filmvorführung vorzunehmen.
+        
+    -   Bezeichnung \
+        Umschreibung der Buchung
+        
+    -   Betrag \
+        Betrag der Buchung
+        
+    -   Firmenname \
+        An wenn muss der Betrag ausbezahlt werden (Rechnungsteller). 
+        
+    -   Adresse Rechnungsteller
     
-    -   Kategorie Werbung \
-        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+    -   Refernz Rechnungsteller
+    
+    -   Rechnungsnummer Rechnungsteller
+    
+    -   Buchungskonto in Bexio (Buchhaltungstool TAB)
+    
+    -   Buchungskonto Name in Bexio (Buchhaltungstool TAB)
+    
+
 
 -   Im Tab **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. \
+
 
 
 ## Script Konfiguration
