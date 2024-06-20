@@ -295,7 +295,7 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
--   Filmvorführungen \
+-   Filmvorführungen
     -   Eintritt
         -   Einnahmen Ticketverkauf
         -   Abgaben Ticketverkauf
@@ -327,7 +327,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         - Abos
         - Kinogutscheine
     - Kurzfristiges zinsloses Fremd-Kapital
--   Vermietung \
+-   Vermietung
     -   Einnahmen \
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
     -   Ausgaben \
