@@ -50,7 +50,7 @@ df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorieen \"Event\" und \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
+    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
                           "\n\nKategorie\tSpieldatum\tBezeichnung\n",df_temp$Kategorie[ii],"\t\t", df_temp$Spieldatum[ii], "\t\t", df_temp$Bezeichnung[ii])))
   }
 }
