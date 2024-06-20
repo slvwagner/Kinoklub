@@ -13,12 +13,13 @@
 # 2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
 # 2024 V1.6 Statistik: Wochentaganalyse
 # 2024 V1.7 Statistik ohne Datatable gelöscht
+# 2024 V1.8 Dokumentations update 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.7"
+c_script_version <- "2024 V1.8"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -408,7 +409,7 @@ remove(df_temp, df_Render, df_mapping, Brutto,
 # User Interaktion
 #############################################################################################################################################
 print(clc)
-paste0("\n****************************************\n",
+paste0("****************************************\n",
       "Script Version:  ", c_script_version,
       "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),

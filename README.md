@@ -1,4 +1,4 @@
-Script Version: 2024 V1.7
+Script Version: 2024 V1.8
  
 ## Kinoklub 
 
@@ -121,7 +121,6 @@ nach zuschlagen.
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
-
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
@@ -131,96 +130,47 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
 
--   Im Tab **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
-    
-    -   Kategorie
-  
-        -   Kategorie Event \ 
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen die an einer Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden.
-    
-        -   Kategorie Sonstiges \    
-            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
-        
-        -   Kategorie Werbung \
-            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
-            
-    -   Bezeichnung \
-        Umschreibung der Buchung
-        
-    -   Datum \
-        Datum der Buchung
-    
-    -   Betrag \
-        Betrag der Buchung
-    
-    -   Firmenname \
-        Welche Firma zahlt den Betrag.
-    
-    -   Adresse \
-        Frimen Adresse
-    
-    -   Rechnungsnummer \
-
-    
-
--   Im Tab **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
-
-    -   Kategorie
-  
-        -   Event \ 
-          Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das sind Ausgaben die für eine Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden, z.B. Werbekosten für einen Filmvorführung , Dekomatierial, Spezielle Verkaufsartikel (Gipfeli), Matierialmiete, u.s.w. \
-  
+-   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
+-   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
+-   Kurze Erklärung der **Spaltennamen**
+    -   **Kategorie** \
+        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+        -   Event \
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
         -   Kiosk \
-            Einkauf für den Kiosk
-  
-        -   Personalaufwand \ 
-            Gehaltszahlung and Mitarbeiter
-          
-        -   Sonstiges \    
+            Ausgaben für den Einkauf des Kino-Kiosks
+        -   Personalaufwand \
+            Ausgaben für Gehaltszahlung and Mitarbeiter
+        -   Sonstiges \
             Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
-      
         -   Verleiher \
-            Rechnungen vom Filmverleiher and den Kinoklub
-      
+            Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
         -   Vermietung \
-            Ausgaben die für einen Vermietung getätigt werden.
-      
+            Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
         -   Werbung \
-            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
-          
-    -   Spieldatum \
-        Für die Kategorieen **Event**, **Verleiher**, muss ein Spieldatum angegeben werden. Das ist nötig um die Zuweisung für einen Filmvorführung vorzunehmen.
-        
-    -   Bezeichnung \
+            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können 
+    -   **Spieldatum** \
+        Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben/Einnahmen die sich nicht auf ein spezifisches Datum beziehen, kann dieses Feld leer gelassen werden. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
+    -   **Bezeichnung** \
         Umschreibung der Buchung
-        
-    -   Betrag \
-        Betrag der Buchung
-        
-    -   Firmenname \
-        An wenn muss der Betrag ausbezahlt werden (Rechnungsteller). 
-        
-    -   Adresse Rechnungsteller
-    
-    -   Refernz Rechnungsteller
-    
-    -   Rechnungsnummer Rechnungsteller
-    
-    -   Buchungskonto in Bexio (Buchhaltungstool TAB)
-    
-    -   Buchungskonto Name in Bexio (Buchhaltungstool TAB)
-    
-
-
--   Im Tab **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. \
-
-
+    -   **Datum** \
+        Datum der Rechnung/Buchung. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
+    -   **Betrag** \
+        Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
+    -  **Firmenname** \
+        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss. 
+    -   **Adresse** Rechnungsteller
+    -   **Referenz** Referenznummer der Rechnung
+    -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
+    -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
+    -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
+-   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. 
 
 ## Script Konfiguration
 
-Die Datei **"Erstelle Abrechnung.R"** enhält am Anfang die folgenden definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
+Die Datei **"Erstelle Abrechnung.R"** enthält am Anfang die folgenden Definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
 
 ### Abrechnung für Filmvorführungen
 
@@ -246,7 +196,7 @@ c_MWST \<- 8.1 #%
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".\
 Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
-`df_P_kat_verechnen` \<- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis = 13)  
+`df_P_kat_verechnen` \<- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis = 13).
 
 ### Ausgabeformate
 
@@ -287,39 +237,34 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 
 Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
--   Übericht\
+-   Übericht
 -   Filmvorführung
     -   Kino Besucherzahlen und Umsatz
-        -   Filmabgaben\
-
+        -   Filmabgaben
         -   Verleiherrechnung\
             In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
             wird die Kategorie **Verleiher** berücksichtigt.
-
         -   Prozentualle Abgaben\
-            Der Suisaabzug wird vom Umsatz berechnet.\
-
-            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert.\
-
-            1.  Fall:\
-                **Netto3** x **Abzug %** \> **Minimal Abzug**\
-                Verleiherabzug: **Netto3** x **Abzug %**
-            2.  Fall:\
-                **Netto3** x **Abzug %** \< **Minimal Abzug**\
-                Verleiherabzug: **Minimal Abzug**\
-            3.  Fall:\
-                **Abzug fix [CHF]**\
-                Verleiherabzug: **Abzug fix [CHF]**
-
-        -   Reklamematerial und Porto\
+            Der Suisaabzug wird vom Umsatz berechnet. \
+            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert. \
+            
+                1.    Fall: \
+                      ("Netto3" x "Abzug") > "Minimal Abzug" \
+                      Verleiherabzug: "Netto3" x "Abzug %"
+                2.    Fall: \
+                      ("Netto3" x "Abzug %") < "Minimal Abzug" \
+                      Verleiherabzug: Minimal Abzug
+                3.    Fall: \
+                      "Abzug fix [CHF]" \
+                      Verleiherabzug: "Abzug fix [CHF]"
+                      
+        -   Reklamematerial und Porto \
             Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
-
-        -   MWST auf Verleiherrechnung\
-
-            1.  Fall: Vereiherrechnung vorhanden\
+        -   MWST auf Verleiherrechnung \
+            1.  Fall: Vereiherrechnung vorhanden \
                 MWST wird mit der Verleiherrechnung berechnet.
-            2.  Fall: Vereiherrechnung nicht vorhanden\
-                MWST wird aus dem Umsatz berechnet.\
+            2.  Fall: Vereiherrechnung nicht vorhanden \
+                MWST wird aus dem Umsatz berechnet.
     -   Gewinn / Verlust aus Tickerverkauf\
         Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
 -   Event
@@ -352,7 +297,7 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
--   Filmvorführungen\
+-   Filmvorführungen
     -   Eintritt
         -   Einnahmen Ticketverkauf
         -   Abgaben Ticketverkauf
@@ -361,12 +306,12 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             -   Nebenkosten
             -   MWST auf Verleiherleistungen
 -   Event
-    -   Eventeinnahmen\
+    -   Eventeinnahmen \
         Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
     -   Eventausgaben\
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk
-    -   Einnahmen\
+    -   Einnahmen \
         Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
     -   Ausgaben
         -   Einkauf Getränke\
@@ -384,22 +329,22 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         - Abos
         - Kinogutscheine
     - Kurzfristiges zinsloses Fremd-Kapital
--   Vermietung\
-    -   Einnahmen\
+-   Vermietung
+    -   Einnahmen \
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Mietkosten für Filme und Material, ...
 -   Werbung
-    -   Einnahmen\
+    -   Einnahmen \
         Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Inserate, Drucksachen, Homepage, ...
--   Personalaufwand\
+-   Personalaufwand \
     Löhne
 -   Sonstiges
-    -   Einnahmen\
+    -   Einnahmen \
         Sponsoen, Gönner, Kulturbeiträge, ...
-    -   Ausgaben\
+    -   Ausgaben \
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
 
@@ -407,35 +352,35 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
 ### Statistik
 
 -   Gewinn/Verlust
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Ticketverkauf
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Eintritte
-        -   Anzahl\
+        -   Anzahl \
             Diagramm
         -   Umsatz
-            -   Prognose\
+            -   Prognose \
                 Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Filmabgaben
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Abos
     -   Einnahmen
     -   Eingelöst
     -   Kredit
 -   Kiosk-Gewinn pro Vorführung
-    -   Prognose\
+    -   Prognose \
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Kiosk
     -   Verkaufsartikel
     -   Ladenhüter (keine Verkäufe)
     -   Kiosk Umsatz pro Gast
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Umsatz pro zahlender Gast
-        -   Prognose\
+        -   Prognose \
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ### Daten als Excel-Datei
@@ -454,5 +399,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"  \
 2024 V1.6 Statistik: Wochentaganalyse  \
 2024 V1.7 Statistik ohne Datatable gelöscht  \
+2024 V1.8 Dokumentations update   \
 
 
