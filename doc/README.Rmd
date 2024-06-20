@@ -254,13 +254,14 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 -   Übericht
 -   Filmvorführung
     -   Kino Besucherzahlen und Umsatz
-        -   Filmabgaben\
+        -   Filmabgaben
         -   Verleiherrechnung\
             In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
             wird die Kategorie **Verleiher** berücksichtigt.
         -   Prozentualle Abgaben\
             Der Suisaabzug wird vom Umsatz berechnet. \
             In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert. \
+            
                 1.  Fall: **(\"Netto3\"** x **\"Abzug %\")** > **\"Minimal Abzug\"** \
                     Verleiherabzug: **\"Netto3\"** x **\"Abzug %\"**
                 2.  Fall: **(\"Netto3\"** x **\"Abzug %\")** < **\"Minimal Abzug\"** \
