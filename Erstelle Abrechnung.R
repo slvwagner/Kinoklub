@@ -409,7 +409,7 @@ remove(df_temp, df_Render, df_mapping, Brutto,
 # User Interaktion
 #############################################################################################################################################
 print(clc)
-paste0("\n****************************************\n",
+paste0("****************************************\n",
       "Script Version:  ", c_script_version,
       "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
