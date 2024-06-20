@@ -120,10 +120,10 @@ nach zuschlagen.
 
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
--   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden.   Beide Einträge sind nicht erlaubt.
+-   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
-    Wenn **nein** gewählt wird, dann werden zusätzlich die Platzkategorieen welche in `c_P_kat_verechnen` definiert sind, auch als Umsatz verrechnet.\
+    Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
 #### Einnahmen und Ausgaben
@@ -131,6 +131,44 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
 
+-   Im Tab **Einnahmen** werden die Einnahmen verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
+
+    -   Kategorie Event \ 
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das sind Ausgaben die für eine Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden, z.B. Werbekosten für einen Filmvorführung , Dekomatierial, Spezielle Verkaufsartikel (Gipfeli), Matierialmiete, u.s.w. \
+
+    -   Kategorie Kiosk \
+        Einkauf für den Kiosk
+
+    -   Kategorie Personalaufwand \ 
+        Gehaltszahlung and Mitarbeiter
+        
+    -   Kategorie Sonstiges \    
+        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
+    
+    -   Kategorie Verleiher \
+        Rechnungen vom Filmverleiher and den Kionklub
+    
+    -   Kategorie Vermietung \
+        Ausgaben die für einen Vermietung getätigt werden.
+    
+    -   Kategorie Werbung \
+        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+    
+
+-   Im Tab **Ausgaben** werden alle Ausgaben die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. \
+
+    -   Kategorie Event \ 
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Das können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen die an einer Filmvorführung gemacht werden die nicht mit Advace tichekts System verbucht werden.
+
+    -   Kategorie Sonstiges \    
+        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
+    
+    -   Kategorie Werbung \
+        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können \ 
+
+-   Im Tab **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. \
 
 
 ## Script Konfiguration
