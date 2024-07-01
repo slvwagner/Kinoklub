@@ -138,9 +138,11 @@ Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
   arrange((Datum))|>
+  left_join(df_show, by = "Datum")|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Bezeichnung, Betrag)|>
+  select(Datum,Filmtitel,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
+  
 
 df_temp|>
   knitr::kable()
@@ -161,8 +163,9 @@ Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, ...
 df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
   arrange((Datum))|>
+  left_join(df_show, by = "Datum")|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Bezeichnung, Betrag)|>
+  select(Datum,Filmtitel,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
 df_temp1|>
