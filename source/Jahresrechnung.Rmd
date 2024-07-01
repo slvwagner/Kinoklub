@@ -260,21 +260,21 @@ EinkaufKino|>
 ### Kasse
 **Achtung!** \
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
+
 ```{r}
 df_temp <- df_manko_uerberschuss|>
-  left_join(df_Eintritt |>
-              distinct(Filmtitel, .keep_all = T) |>
-              select(Filmtitel, Datum),
-            by = "Datum"
+  left_join(df_show, by = "Datum"
             ) |>
   arrange(Datum)|>
   select(Datum, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
-  mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) 
+  arrange((Datum))|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 
 df_temp|>
   knitr::kable()
 ```
+
 
 ```{r}
 Kasse <- df_temp|>
