@@ -163,10 +163,12 @@ Alle Ausgaben für den Event, z.B. Werbung, Esswaren, Spesen, ...
 df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
   arrange((Datum))|>
-  left_join(df_show, by = "Datum")|>
+  left_join(df_show, by = c("Spieldatum" = "Datum"))|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum,Filmtitel,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
+
+df_temp1
 
 df_temp1|>
   knitr::kable()
