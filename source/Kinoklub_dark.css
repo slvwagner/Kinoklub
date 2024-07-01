@@ -44,3 +44,7 @@ div.datatables {
     color: #d3bebe;
 }
 
+:root {
+    dt-row-hover: 255, 255, 255;
+
+}
