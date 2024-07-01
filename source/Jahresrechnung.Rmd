@@ -267,6 +267,7 @@ df_temp <- df_manko_uerberschuss|>
               select(Filmtitel, Datum),
             by = "Datum"
             ) |>
+  arrange(Datum)|>
   select(Datum, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
   mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) 
