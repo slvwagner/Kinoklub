@@ -137,7 +137,9 @@ Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 ```{r}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
-  select(Bezeichnung, Betrag)|>
+  arrange((Datum))|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
 df_temp|>
@@ -158,7 +160,9 @@ Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, ...
 ```{r}
 df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
-  select(Bezeichnung, Betrag)|>
+  arrange((Datum))|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
+  select(Datum,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
 df_temp1|>
