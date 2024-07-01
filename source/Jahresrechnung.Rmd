@@ -409,7 +409,7 @@ df_temp2|>
 
 
 
-### Kurzfristiges zinsloses Fremd-Kapital
+### Kurzfristiges zinsloses Fremdkapital
 ```{r}
 df_temp <- bind_cols(tibble(Bezeichnung = c("Verkaufte Abos", "Verkaufte Kinogutscheine","Eingelöste Abos", "Eingelöste Kinogutscheine")),
           bind_rows(df_Abo_Verkauf|>
