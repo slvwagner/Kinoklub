@@ -168,8 +168,6 @@ df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
   select(Datum,Filmtitel,Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 
-df_temp1
-
 df_temp1|>
   knitr::kable()
 ```
