@@ -69,6 +69,9 @@ c_SiteMap <- TRUE
 #############################################################################################################################################
 # Script start
 #############################################################################################################################################
+
+source("source/read_and_convert_wordPress.R")
+
 if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
   # Package names
   packages <- c("magick")
