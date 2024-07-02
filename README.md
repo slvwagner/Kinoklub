@@ -1,4 +1,4 @@
-Script Version: 2024 V1.8
+Script Version: 2024 V1.9
  
 ## Kinoklub 
 
@@ -400,5 +400,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.6 Statistik: Wochentaganalyse  \
 2024 V1.7 Statistik ohne Datatable gelöscht  \
 2024 V1.8 Dokumentations update   \
+2024 V1.9 Filmvorschläge from Wordpress  \
 
 

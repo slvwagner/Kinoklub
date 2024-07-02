@@ -14,12 +14,13 @@
 # 2024 V1.6 Statistik: Wochentaganalyse
 # 2024 V1.7 Statistik ohne Datatable gelöscht
 # 2024 V1.8 Dokumentations update 
+# 2024 V1.9 Filmvorschläge from Wordpress
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.8"
+c_script_version <- "2024 V1.9"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
