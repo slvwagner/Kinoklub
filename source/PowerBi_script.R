@@ -6,6 +6,7 @@ library(readxl)
 
 ## pleas set your working directory 
 setwd("Z:/R Packages/Kinoklub")
+# setwd("D:/Kinoklub")
 
 #######################################################################################
 # spez. Round for Swiss currency "CHF"
@@ -754,7 +755,7 @@ p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 # Detect Überschuss Manko 
 p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
-ii <- 3
+ii <- 1
 
 l_extracted <- list()
 for (ii in 1:length(l_raw)) {
@@ -826,7 +827,8 @@ df_manko_uerberschuss <- l_extracted |>
     x[[2]]
   })|>
   bind_rows(.id = "Datum")|>
-  mutate(Datum = lubridate::dmy(Datum))
+  mutate(Datum = lubridate::dmy(Datum))|>
+  arrange(Datum)
 df_manko_uerberschuss
 
 ########################################################################
@@ -871,8 +873,10 @@ df_Kiosk <- df_Kiosk|>
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
-  select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)
+  select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)|>
+  arrange(Datum)
 
+df_Kiosk
 
 ########################################################################
 # Kiosk Einkaufspreise 
@@ -1246,34 +1250,6 @@ df_Kinogutschein_Eingeloest <- bind_rows(l_Abos,.id = "Datum")|>
   mutate(Datum = as.Date(Datum))|>
   left_join(df_show, by = join_by(Datum))
 
-
-######################################################################## 
-# Kassabestand : Solde
-######################################################################## 
-p <- rebus::or(rebus::optional("-")%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT),
-               rebus::optional("-")%R%one_or_more(DGT)
-)
-x <- l_raw[[1]]
-
-l_Abos <- l_raw|>
-  lapply(function(x){
-    y <- x[str_detect(x,START%R%"Solde")]|>
-      str_split(pattern = "\t", simplify = T)
-    y <- y[,ncol(y)]
-    if(is.vector(y)) return(tibble(Saldo = y))
-  })
-names(l_Abos) <- dmy(c_fileDate)
-
-df_KassaSaldo <- bind_rows(l_Abos,.id = "Datum")|>
-  mutate(Datum = as.Date(Datum),
-         Saldo = as.numeric(Saldo))|>
-  left_join(df_show, by = join_by(Datum))
-
-df_KassaSaldo
-
-
-## User interaction
-writeLines("\nVerkauf von Abos und Gutscheinen")
 
 
 ########################################################################
@@ -1738,6 +1714,10 @@ remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
        c_Verleiher_garantie, c_Verleiherabzug,n_Film,n_kiosk,
        c_verleiherabzug_prozent)
+
+remove(df_Eventeinnahmen, df_temp,
+       Einnahmen_und_Ausgaben, l_Abos, l_raw)
+
 
 
 ########################################################################
