@@ -190,30 +190,30 @@ df_Kinogutschein_Eingeloest <- bind_rows(l_Abos,.id = "Datum")|>
   left_join(df_show, by = join_by(Datum))
 
 
-######################################################################## 
-# Kassabestand : Solde
-######################################################################## 
-p <- rebus::or(rebus::optional("-")%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT),
-               rebus::optional("-")%R%one_or_more(DGT)
-)
-x <- l_raw[[1]]
-  
-l_Abos <- l_raw|>
-  lapply(function(x){
-    y <- x[str_detect(x,START%R%"Solde")]|>
-      str_split(pattern = "\t", simplify = T)
-    y <- y[,ncol(y)]
-    if(is.vector(y)) return(tibble(Saldo = y))
-    })
-names(l_Abos) <- dmy(c_fileDate)
-
-df_KassaSaldo <- bind_rows(l_Abos,.id = "Datum")|>
-  mutate(Datum = as.Date(Datum),
-         Saldo = as.numeric(Saldo))|>
-  left_join(df_show, by = join_by(Datum))
-
-df_KassaSaldo
-
-
-## User interaction
-writeLines("\nVerkauf von Abos und Gutscheinen")
+# ######################################################################## 
+# # Kassabestand : Solde
+# ######################################################################## 
+# p <- rebus::or(rebus::optional("-")%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT),
+#                rebus::optional("-")%R%one_or_more(DGT)
+# )
+# x <- l_raw[[1]]
+#   
+# l_Abos <- l_raw|>
+#   lapply(function(x){
+#     y <- x[str_detect(x,START%R%"Solde")]|>
+#       str_split(pattern = "\t", simplify = T)
+#     y <- y[,ncol(y)]
+#     if(is.vector(y)) return(tibble(Saldo = y))
+#     })
+# names(l_Abos) <- dmy(c_fileDate)
+# 
+# df_KassaSaldo <- bind_rows(l_Abos,.id = "Datum")|>
+#   mutate(Datum = as.Date(Datum),
+#          Saldo = as.numeric(Saldo))|>
+#   left_join(df_show, by = join_by(Datum))
+# 
+# df_KassaSaldo
+# 
+# 
+# ## User interaction
+# writeLines("\nVerkauf von Abos und Gutscheinen")
