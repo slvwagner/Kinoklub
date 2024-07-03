@@ -1715,7 +1715,7 @@ remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l
        c_Verleiher_garantie, c_Verleiherabzug,n_Film,n_kiosk,
        c_verleiherabzug_prozent)
 
-remove(df_Eventeinnahmen, df_temp,
+remove(df_Eventeinnahmen, df_temp, df_keine_Rechnnung, df_Abgaben, df_spez_preis_na, df_s_Eintritt,
        Einnahmen_und_Ausgaben, l_Abos, l_raw)
 
 
