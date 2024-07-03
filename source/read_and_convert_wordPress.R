@@ -1,4 +1,8 @@
 library(readr)
+
+##########################################################################################
+# read in csv export from wordpress homepage 
+
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
     "Input/WordPress/Filmvorschlaege_wordpress_export.csv",
@@ -36,7 +40,12 @@ Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
     )
   )
 
-Filmvorschlaege_wordpress_export$Content[6]
+Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
+  select(-starts_with("Author"),
+         -ends_with("Status"))
+
+##########################################################################################
+# clean up Content column
 
 p <- or("<"%R%one_or_more(WRD)%R%">",
         "</"%R%one_or_more(WRD)%R%">",
@@ -80,6 +89,9 @@ for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
   }
 }
 
+##########################################################################################
+# Write xlsx
+
 library(openxlsx)
 
 # Define the style for text wrapping
@@ -120,6 +132,10 @@ writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 9)
 x <- Filmvorschlaege_wordpress_export$youtubeembed
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 21)
+
+x <- Filmvorschlaege_wordpress_export$Blinkverleih
+class(x) <- "hyperlink"
+writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 25)
 
 # Save the workbook to a file
 saveWorkbook(wb_xlsx, file = "output/Filmvorschläge.xlsx", overwrite = TRUE, )
