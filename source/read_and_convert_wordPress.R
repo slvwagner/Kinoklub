@@ -90,6 +90,23 @@ for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
 }
 
 ##########################################################################################
+# Auswertung 
+
+Filmvorschlaege_wordpress_export|>
+  mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
+  ggplot(aes(Title, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
+  scale_y_continuous(breaks = 0:max(Filmvorschlaege_wordpress_export$rmp_vote_count, na.rm = T))+
+  geom_col()+
+  labs(y = "Anzahl Bewertungen",
+       x = "Filmtitel",
+       color = "Durchschnittlichebewertung")+
+  coord_flip()
+
+c_fileName <- "output/Filmvorschläge (Votes).jpg"
+
+ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
+
+##########################################################################################
 # Write xlsx
 
 library(openxlsx)
@@ -100,7 +117,7 @@ wrap_text <- createStyle(
 )
 
 # Create the workbook and build it with the data
-wb_xlsx <- buildWorkbook(Filmvorschlaege_wordpress_export, asTable = T)
+wb_xlsx <- buildWorkbook(Filmvorschlaege_wordpress_export, asTable = T, tableStyle = "TableStyleMedium2")
 c_sheet_name <- "Filmvorschläge"
 names(wb_xlsx) <- c_sheet_name
 
@@ -137,8 +154,22 @@ x <- Filmvorschlaege_wordpress_export$Blinkverleih
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 25)
 
+
+##########################################################################################
+# insert plots to work book
+addWorksheet(wb_xlsx, "Plot")
+
+insertImage(
+  wb_xlsx,
+  sheet = "Plot",
+  file = c_fileName,
+  startRow = 1,
+  startCol = 1,
+  width = 25,
+  height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35,
+  units = "cm"
+)
+
+##########################################################################################
 # Save the workbook to a file
 saveWorkbook(wb_xlsx, file = "output/Filmvorschläge.xlsx", overwrite = TRUE, )
-
-
-
