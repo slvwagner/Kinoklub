@@ -1051,7 +1051,11 @@ df_show <- df_show|>
   arrange(Datum)
 
 df_show <- df_show|>
-  filter(!is.na(`Suisa Nummer`))
+  filter(!is.na(`Suisa Nummer`))|>
+  mutate(Datum = as.POSIXct(Datum),
+         Anfang = paste(as.character(Datum), as.character(Anfang))|>as.POSIXct(),
+         Ende = paste(as.character(Datum), as.character(Ende))|>as.POSIXct()
+  )
 
 ## error handling 
 df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
@@ -1683,32 +1687,9 @@ for (ii in 1:length(c_Date)) {
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung |>
   bind_rows() 
 
-df_GV_Vorfuehrung
 ########################################################################
-# write to Excel
+# remove 
 ########################################################################
-dir.create("output/") |> suppressWarnings()
-
-df_s_Eintritt <- df_Eintritt|>
-  group_by(Datum, Filmtitel, `Suisa Nummer`)|>
-  reframe(Besucher = sum(Anzahl))
-
-list(Shows = df_show,
-     Eintritte = df_Eintritt,
-     `Abrechnung Werbung` = df_s_Eintritt,
-     `Gewinn Verlust Eintritt` = df_GV_Eintritt,
-     Kiosk = df_Kiosk,
-     `Gewinn Kiosk` = df_GV_Kiosk,
-     `Gewinn Verlust Vorführung` = df_GV_Vorfuehrung,
-     Verleiherabgaben  = df_verleiherabgaben,
-     Einkaufspreise = df_Einkaufspreise,
-     Spezialpreisekiosk = Spezialpreisekiosk,
-     Ticketpreise = df_Kinopreise,
-     Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
-     Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
-)|>
-  write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
-
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,df_P_kat_verechnen, c_lenght, c_Brutto,
        convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
@@ -1717,7 +1698,6 @@ remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l
 
 remove(df_Eventeinnahmen, df_temp, df_keine_Rechnnung, df_Abgaben, df_spez_preis_na, df_s_Eintritt,
        Einnahmen_und_Ausgaben, l_Abos, l_raw)
-
 
 
 ########################################################################
