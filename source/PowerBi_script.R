@@ -4,6 +4,8 @@ library(openxlsx)
 library(lubridate)
 library(readxl)
 
+setwd("Z:/R Packages/Kinoklub")
+
 #######################################################################################
 # spez. Round for Swiss currency "CHF"
 #######################################################################################
