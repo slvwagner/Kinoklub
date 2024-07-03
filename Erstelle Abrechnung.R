@@ -70,7 +70,8 @@ c_SiteMap <- TRUE
 # Script start
 #############################################################################################################################################
 
-source("source/read_and_convert_wordPress.R")
+#########
+# package installation 
 
 if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
   # Package names
@@ -99,7 +100,9 @@ if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch wei
   invisible(lapply(packages, library, character.only = TRUE))
 }
 
+##########
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+
 my_template <-
   theme_bw() +
   theme(
@@ -121,8 +124,9 @@ my_template <-
     title = element_text(color = "#f4cccc", size  = 22)
   )
 
-
+#########
 # Ausgabeformat(e)
+
 df_Render <- switch (
   c_render_option,
   "1" = tibble::tibble(Render  = c("html_document"),
@@ -141,7 +145,7 @@ df_Render <- switch (
                        fileExt = c(".html", ".docx", ".pdf")),
   stop("\nDie verwendete Renderoption is nicht definiert")
 )
-
+#########
 # löschen aller files im output folder
 c_path <- "output"
 
@@ -155,7 +159,14 @@ if(dir.exists(c_path)){
   # }
 }
 
+#############################################################################################################################################
+# Filmvorschläge auswerten
+#############################################################################################################################################
+source("source/read_and_convert_wordPress.R")
+
+#############################################################################################################################################
 # Daten einlesen und konvertieren
+#############################################################################################################################################
 source("source/read and convert.R")
 
 #############################################################################################################################################
