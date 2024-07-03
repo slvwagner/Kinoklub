@@ -96,13 +96,14 @@ Filmvorschlaege_wordpress_export|>
   mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
   ggplot(aes(Title, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
   scale_y_continuous(breaks = 0:max(Filmvorschlaege_wordpress_export$rmp_vote_count, na.rm = T))+
-  geom_col()+
+  geom_col(na.rm = TRUE)+
   labs(y = "Anzahl Bewertungen",
        x = "Filmtitel",
        color = "Durchschnittlichebewertung")+
-  coord_flip()
+  coord_flip()|>
+  suppressMessages()
 
-c_fileName <- "output/Filmvorschläge (Votes).jpg"
+c_fileName <- "output/Filmvorschläge.jpg"
 
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
 
@@ -172,4 +173,4 @@ insertImage(
 
 ##########################################################################################
 # Save the workbook to a file
-saveWorkbook(wb_xlsx, file = "output/Filmvorschläge.xlsx", overwrite = TRUE, )
+saveWorkbook(wb_xlsx, file = "output/Filmvorschläge.xlsx", overwrite = TRUE )
