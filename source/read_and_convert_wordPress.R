@@ -3,9 +3,14 @@ library(readr)
 ##########################################################################################
 # read in csv export from wordpress homepage 
 
+c_path <- "Input/WordPress/"
+c_filePath <- list.files(c_path,full.names = T)
+
+if(length(c_filePath) != 1) warning(paste("Im ordner", c_path, "darf nur eine Datei abgespeichert werden!"))
+
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
-    "Input/WordPress/Filmvorschlaege_wordpress_export.csv",
+    c_filePath,
     col_types = cols(
       ID = col_integer(),
       Excerpt = col_skip(),
