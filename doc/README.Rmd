@@ -398,9 +398,13 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ### Daten als Excel-Datei
-Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespeichert. \
+Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert. \
 ```
-.../Kinoklub/output/Auswertung.xlsx
+.../Kinoklub/output/data/Auswertung.xlsx
+```
+zusätzlich werden alle Fimvorschläge als Excel ausgegeben
+```
+.../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
 ## Versionshistorie
