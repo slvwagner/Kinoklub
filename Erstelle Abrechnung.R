@@ -146,6 +146,13 @@ df_Render <- switch (
                        fileExt = c(".html", ".docx", ".pdf")),
   stop("\nDie verwendete Renderoption is nicht definiert")
 )
+
+#########
+# erstellen von Verzeichnissen
+dir.create("output/") |> suppressWarnings()
+dir.create("output/data/") |> suppressWarnings()
+
+
 #########
 # löschen aller files im output folder
 c_path <- "output"
@@ -158,6 +165,14 @@ if(dir.exists(c_path)){
   #   # Use unlink() to remove the directory
   #   unlink(paste0(c_path,"/pict/"), recursive = TRUE)
   # }
+}
+
+#########
+# löschen aller files im output folder
+if(dir.exists(c_path)){
+  c_files <- paste0(c_path,"/data",list.files(c_path))
+  c_files
+  file.remove(c_files)|>suppressWarnings()
 }
 
 #############################################################################################################################################

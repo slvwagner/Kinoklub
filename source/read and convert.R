@@ -742,7 +742,7 @@ df_GV_Vorfuehrung
 ########################################################################
 # write to Excel
 ########################################################################
-dir.create("output/") |> suppressWarnings()
+
 
 df_s_Eintritt <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
@@ -762,7 +762,7 @@ list(Shows = df_show,
      Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
      Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
      )|>
-  write.xlsx(file="output/Auswertung.xlsx", asTable = TRUE)
+  write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
 
 remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
        c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,df_P_kat_verechnen, c_lenght, c_Brutto,
