@@ -1,6 +1,5 @@
 # MAC
 .DS_Store
-
 #temp excel files
 ~$*
 # History files
@@ -43,3 +42,4 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 Site-Map.html
+Dokumentation.log
