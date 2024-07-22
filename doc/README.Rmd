@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.10
+2024 V1.11
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -416,5 +416,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.8 Dokumentations update   \
 2024 V1.9 Filmvorschläge from Wordpress   \
 2024 V1.10 PowerBi script  \
+2024 V1.11 WordPress Filmvorschläge auswerten  \
 
 

@@ -1,4 +1,4 @@
-Script Version: 2024 V1.10
+Script Version: 2024 V1.11
  
 ## Kinoklub 
 
@@ -402,5 +402,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.8 Dokumentations update   \
 2024 V1.9 Filmvorschläge from Wordpress   \
 2024 V1.10 PowerBi script  \
+2024 V1.11 WordPress Filmvorschläge auswerten  \
 
 
