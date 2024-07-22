@@ -168,6 +168,12 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
     -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
 -   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. 
 
+#### WordPress Filmvorschläge auswerten
+Auf der Kinoklub.ch Hompage können alle erfassten Filmvorschläge exportiert werden und als .csv Datei im Ordner **.../input/WordPress/** abgespeichert werden. Die Daten wird bereinigt und als Excel ausgegeben.
+```
+.../Kinoklub/output/data/Filmvorschläge.xlsx
+```
+
 ## Script Konfiguration
 
 Die Datei **"Erstelle Abrechnung.R"** enthält am Anfang die folgenden Definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
