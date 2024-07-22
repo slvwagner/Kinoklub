@@ -7,9 +7,9 @@ c_path <- "Input/WordPress/"
 c_filePath <- list.files(c_path,full.names = T)
 
 if(length(c_filePath) > 1)   {
-  warning(paste0("Im ordner: \n\".../", c_path, "/\" darf nur eine Datei abgespeichert werden! Es sind aber diese: ", c_filePath))
+  warning(paste0("\nIm ordner: \n\".../", c_path, "\" darf nur eine Datei abgespeichert werden! Es sind aber diese: ", c_filePath))
 } else if (length(c_filePath) < 1)  {
-    warning(paste0("Im ordner: \n\".../", c_path, "/\" darf nur eine Datei abgespeichert werden! Es sind aber diese: ", c_filePath))}
+    stop(paste0("\nIm ordner: \n\".../", c_path, "\" muss eine Datei abgespeichert werden! Bitte auf der kinoklub Homepage herunterladen.", c_filePath))}
 
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
