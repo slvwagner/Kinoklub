@@ -5,7 +5,7 @@ library(lubridate)
 library(readxl)
 
 ## pleas set your working directory 
-setwd("Z:/R Packages/Kinoklub")
+# setwd("Z:/R Packages/Kinoklub")
 # setwd("D:/Kinoklub")
 
 #######################################################################################
