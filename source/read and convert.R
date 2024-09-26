@@ -336,7 +336,7 @@ df_temp
 
 if(nrow(df_temp)>0){ 
   stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
-              "wurde werder kein Abzug definiert.",
+              "wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
               "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
        )
