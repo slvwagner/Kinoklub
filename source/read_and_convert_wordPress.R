@@ -3,9 +3,17 @@ library(readr)
 ##########################################################################################
 # read in csv export from wordpress homepage 
 
+c_path <- "Input/WordPress/"
+c_filePath <- list.files(c_path,full.names = T)
+
+if(length(c_filePath) > 1)   {
+  warning(paste0("\nIm ordner: \n\".../", c_path, "\" darf nur eine Datei abgespeichert werden! Es sind aber diese: ", c_filePath))
+} else if (length(c_filePath) < 1)  {
+    stop(paste0("\nIm ordner: \n\".../", c_path, "\" muss eine Datei abgespeichert werden! Bitte auf der kinoklub Homepage herunterladen.", c_filePath))}
+
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
-    "Input/WordPress/Filmvorschlaege_wordpress_export.csv",
+    c_filePath,
     col_types = cols(
       ID = col_integer(),
       Excerpt = col_skip(),
@@ -103,7 +111,7 @@ Filmvorschlaege_wordpress_export|>
   coord_flip()|>
   suppressMessages()
 
-c_fileName <- "output/Filmvorschläge.jpg"
+c_fileName <- "output/Data/Filmvorschläge.jpg"
 
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
 
@@ -173,4 +181,4 @@ insertImage(
 
 ##########################################################################################
 # Save the workbook to a file
-saveWorkbook(wb_xlsx, file = "output/Filmvorschläge.xlsx", overwrite = TRUE )
+saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE )

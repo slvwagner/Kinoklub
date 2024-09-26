@@ -48,3 +48,7 @@ div.datatables {
     dt-row-hover: 255, 255, 255;
 
 }
+
+pre:not([class]) { /* R output */
+    background-color: #BBEEF6;
+}

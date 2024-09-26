@@ -1,4 +1,4 @@
-Script Version: 2024 V1.10
+Script Version: 2024 V1.11
  
 ## Kinoklub 
 
@@ -167,6 +167,12 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
     -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
 -   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. 
+
+#### WordPress Filmvorschläge auswerten
+Auf der Kinoklub.ch Hompage können alle erfassten Filmvorschläge exportiert werden und als .csv Datei im Ordner **.../input/WordPress/** abgespeichert werden. Die Daten wird bereinigt und als Excel ausgegeben.
+```
+.../Kinoklub/output/data/Filmvorschläge.xlsx
+```
 
 ## Script Konfiguration
 
@@ -384,9 +390,13 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ### Daten als Excel-Datei
-Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespeichert. \
+Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert. \
 ```
-.../Kinoklub/output/Auswertung.xlsx
+.../Kinoklub/output/data/Auswertung.xlsx
+```
+zusätzlich werden alle Fimvorschläge als Excel ausgegeben
+```
+.../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
 ## Versionshistorie
@@ -402,5 +412,6 @@ Die Eingelesenen und verarbeiteten Datensätze werden in einen Excel-Datei gespe
 2024 V1.8 Dokumentations update   \
 2024 V1.9 Filmvorschläge from Wordpress   \
 2024 V1.10 PowerBi script  \
+2024 V1.11 WordPress Filmvorschläge auswerten  \
 
 

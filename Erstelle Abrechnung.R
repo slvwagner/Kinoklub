@@ -16,12 +16,13 @@
 # 2024 V1.8 Dokumentations update 
 # 2024 V1.9 Filmvorschläge from Wordpress 
 # 2024 V1.10 PowerBi script
+# 2024 V1.11 WordPress Filmvorschläge auswerten
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.10"
+c_script_version <- "2024 V1.11"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -146,6 +147,13 @@ df_Render <- switch (
                        fileExt = c(".html", ".docx", ".pdf")),
   stop("\nDie verwendete Renderoption is nicht definiert")
 )
+
+#########
+# erstellen von Verzeichnissen
+dir.create("output/") |> suppressWarnings()
+dir.create("output/data/") |> suppressWarnings()
+
+
 #########
 # löschen aller files im output folder
 c_path <- "output"
@@ -158,6 +166,14 @@ if(dir.exists(c_path)){
   #   # Use unlink() to remove the directory
   #   unlink(paste0(c_path,"/pict/"), recursive = TRUE)
   # }
+}
+
+#########
+# löschen aller files im output folder
+if(dir.exists(c_path)){
+  c_files <- paste0(c_path,"/data",list.files(c_path))
+  c_files
+  file.remove(c_files)|>suppressWarnings()
 }
 
 #############################################################################################################################################
