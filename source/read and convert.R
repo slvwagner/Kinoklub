@@ -177,24 +177,29 @@ convert_data_Film_txt <- function(c_fileName) {
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 l_Eintritt <- convert_data_Film_txt(c_files)
+
 names(l_Eintritt) <- c_files|>
   str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
-l_Eintritt
+# error handling 
+# check file datum vs in file datum found
+df_Eintritt <- l_Eintritt|>
+  bind_rows(.id = "Datum")|>
+  mutate(Datum = lubridate::dmy(Datum),
+         Datum_ = lubridate::dmy(Datum_)
+         )
 
-# Error handling
-# Detect date in file 
-p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-c_test <- names(l_Eintritt)|>dmy()%in%(str_extract(c_files,p1 )|>dmy())
-c_test
+df_temp <- df_Eintritt|>
+  filter(!Datum%in%Datum_)|>
+  distinct(Datum,.keep_all = T)
 
-if(length(c_test)>sum(c_test)){
-  stop(  
-    paste0("Für das file: .../Kinoklub/Input/advance tickets/Eintritt ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
-      paste0(collapse = "\n")|>
-      writeLines()
-  )
+if(nrow(df_temp)>0){
+  stop(paste0("Im file: .../Kinoklub/Input/advance tickets/Eintritt ",day(df_temp$Datum),".",month(df_temp$Datum),".", year(df_temp$Datum), 
+              " wurde ein anderes Datum gefunden: ", day(df_temp$Datum_),".",month(df_temp$Datum_),".", year(df_temp$Datum_))
+       )
 }
+
+df_Eintritt
 
 # create data frame
 df_Eintritt <- l_Eintritt|>
@@ -206,16 +211,7 @@ df_Eintritt <- l_Eintritt|>
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
 
-
-if(length(c_test)>sum(c_test)){
-  stop(  
-    paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
-      paste0(collapse = "\n")|>
-      writeLines()
-  )
-}
-
-
+df_Eintritt
 
 ########################################################################
 # Filmvorführungen
