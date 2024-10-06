@@ -8,7 +8,7 @@ source("source/functions.R")
 
 if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
-  }
+}
 
 ######################################################################## 
 # Read in files
@@ -44,16 +44,18 @@ p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 # Detect Überschuss Manko 
 p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
+
+
 ii <- 3
 
 l_extracted <- list()
 for (ii in 1:length(l_raw)) {
   l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
-                                                        l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
-                                                        )),
-                            tibble(`Überschuss / Manko` = l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>str_extract(p3)|>as.numeric())
-                            )
-  }
+                                                                               l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
+  )),
+  tibble(`Überschuss / Manko` = l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>str_extract(p3)|>as.numeric())
+  )
+}
 names(l_extracted) <- c_fileDate
 l_extracted
 
@@ -77,7 +79,7 @@ for (ii in 1:length(l_Kiosk)) {
     x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
       apply(2, as.numeric)
     colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
-
+    
     x <- x|>
       as_tibble()|>
       mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
@@ -95,7 +97,7 @@ for (ii in 1:length(l_Kiosk)) {
   }else {
     stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
                 "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
-    }
+  }
 }
 
 l_Kiosk
@@ -107,13 +109,40 @@ df_Kiosk <- l_Kiosk|>
          Betrag = if_else(Anzahl == 0, 0, Betrag))
 df_Kiosk
 
+#############################################################################################
+# Error handling
+# Detect date in file 
+p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+
+file_datum <- l_raw|>
+  lapply( function(x){
+    temp <- str_extract(x,p1)  
+    temp[!is.na(temp)]
+  })|>
+  unlist()|>
+  dmy()
+
+file_datum
+
+c_test <- dmy(c_fileDate)%in%file_datum
+c_test
+
+if(length(c_test)>sum(c_test)){
+  stop(  
+    paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
+      paste0(collapse = "\n")|>
+      writeLines()
+  )
+}
+
+
 
 ######################################################################## 
 # Extrakt Überschuss / Manko
 ######################################################################## 
 df_manko_uerberschuss <- l_extracted |>
   lapply(function(x) {
-     x[[2]]
+    x[[2]]
   })|>
   bind_rows(.id = "Datum")|>
   mutate(Datum = lubridate::dmy(Datum))
@@ -159,7 +188,7 @@ ii <- 1
 df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk, 
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
-            )|>
+  )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
   select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)
 
@@ -232,7 +261,7 @@ for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
                 filter(Datum == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
                 select(-Datum), 
               by = c(Verkaufsartikel = "Artikelname Kassensystem")
-              )
+    )
 }
 l_Kiosk
 
@@ -241,11 +270,11 @@ df_Kiosk <- l_Kiosk|>
 
 # V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
 df_Kiosk <- bind_rows(df_Kiosk|>
-            filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
-            mutate(Verkaufsartikel = "Popcorn frisch"),
-          df_Kiosk|>
-            filter(! Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))
-          )
+                        filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
+                        mutate(Verkaufsartikel = "Popcorn frisch"),
+                      df_Kiosk|>
+                        filter(! Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))
+)
 
 
 
@@ -256,7 +285,7 @@ df_Kiosk <- bind_rows(df_Kiosk|>
 df_Kiosk <- df_Kiosk|>
   rename(Einkaufspreis = `Einkaufs- preis`)|>
   mutate(Gewinn = if_else(is.na(Einkaufspreis),Betrag,Betrag-(Anzahl*Einkaufspreis))
-         )|>
+  )|>
   rename(Kassiert = Betrag,
          Verkaufspreis = Einzelpreis)
 
