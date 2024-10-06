@@ -1,4 +1,4 @@
-
+20.9.24
 Erwachsene	16.00		10	-3		112.00
 Kinder	12.00		1			12.00
 Kinofördererkarte	0.00		1	-1		
