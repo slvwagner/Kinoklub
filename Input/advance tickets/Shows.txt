@@ -1,4 +1,5 @@
-AtelierKino, Montag, 01.01.2024 - Montag, 30.12.2024
+
+AtelierKino, Montag, 01.01.2024 - Samstag, 07.12.2024
 Tag	Anfang	Ende	Saal	Titel	Version	Alter
 2024-01-20	19:30	20:58	AtelierKino	BON SCHUUR TICINO	OV	6	
 2024-01-21	14:00	15:57	AtelierKino	WONKA	D	6	
@@ -28,6 +29,7 @@ Tag	Anfang	Ende	Saal	Titel	Version	Alter
 2024-05-26	14:00	15:18	AtelierKino	NEUE GESCHICHTEN VOM PUMUCKL	D	0	
 2024-08-08	19:00	20:43	AtelierKino	WOW! NACHRICHT AUS DEM ALL	OV/d	6	
 2024-08-31	20:00	21:40	AtelierKino	Sommerpause Kino	D		
+2024-09-08	14:00	15:41	AtelierKino	THE GARFIELD MOVIE	schweizerdeutsch	6	
 2024-09-20	20:00	21:56	AtelierKino	ZWEI ZU EINS	D	6	
 2024-09-22	10:00	11:38	AtelierKino	DIE HERRLICHKEIT DES LEBENS	D	12	
 2024-09-27	20:00	21:31	AtelierKino	RESILIENT MAN	OV/df	10	
@@ -36,4 +38,5 @@ Tag	Anfang	Ende	Saal	Titel	Version	Alter
 2024-10-12	20:00	21:30	AtelierKino	TSCHUGGER – DER LÄTSCHT FALL	OV/d	14	
 2024-10-13	14:00	15:30	AtelierKino	DIE SCHULE DER MAGISCHEN TIERE 3	D		
 2024-10-18	20:00	21:47	AtelierKino	THE MONK AND THE GUN	OV/df	12	
-2024-10-25	20:00	21:31	AtelierKino	MARGINI	OV/df	16
+2024-10-25	20:00	21:31	AtelierKino	MARGINI	OV/df	16	
+2024-11-10	10:30	12:03	AtelierKino	THE SCENT OF FEAR	D	14
