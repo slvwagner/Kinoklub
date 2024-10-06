@@ -181,6 +181,22 @@ names(l_Eintritt) <- c_files|>
   str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
 l_Eintritt
+
+# Error handling
+# Detect date in file 
+p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+c_test <- names(l_Eintritt)|>dmy()%in%(str_extract(c_files,p1 )|>dmy())
+c_test
+
+if(length(c_test)>sum(c_test)){
+  stop(  
+    paste0("Für das file: .../Kinoklub/Input/advance tickets/Eintritt ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
+      paste0(collapse = "\n")|>
+      writeLines()
+  )
+}
+
+# create data frame
 df_Eintritt <- l_Eintritt|>
   bind_rows(.id = "Datum")|>
   mutate(Datum = lubridate::dmy(Datum),
@@ -190,8 +206,32 @@ df_Eintritt <- l_Eintritt|>
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
 
-df_Eintritt|>
-  filter()
+#############################################################################################
+# Error handling
+# Detect date in file 
+p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+
+file_datum <- l_raw|>
+  lapply( function(x){
+    temp <- str_extract(x,p1)  
+    temp[!is.na(temp)]
+  })|>
+  unlist()|>
+  dmy()
+
+file_datum
+
+c_test <- dmy(c_fileDate)%in%file_datum
+c_test
+
+if(length(c_test)>sum(c_test)){
+  stop(  
+    paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
+      paste0(collapse = "\n")|>
+      writeLines()
+  )
+}
+
 
 
 ########################################################################

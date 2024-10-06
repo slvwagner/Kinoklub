@@ -44,6 +44,8 @@ p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 # Detect Überschuss Manko 
 p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
+
+
 ii <- 3
 
 l_extracted <- list()
@@ -106,6 +108,33 @@ df_Kiosk <- l_Kiosk|>
          Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
          Betrag = if_else(Anzahl == 0, 0, Betrag))
 df_Kiosk
+
+#############################################################################################
+# Error handling
+# Detect date in file 
+p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+
+file_datum <- l_raw|>
+  lapply( function(x){
+    temp <- str_extract(x,p1)  
+    temp[!is.na(temp)]
+  })|>
+  unlist()|>
+  dmy()
+
+file_datum
+
+c_test <- dmy(c_fileDate)%in%file_datum
+c_test
+
+if(length(c_test)>sum(c_test)){
+  stop(  
+    paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
+    paste0(collapse = "\n")|>
+    writeLines()
+    )
+}
+
 
 
 ######################################################################## 
