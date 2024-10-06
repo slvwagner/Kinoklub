@@ -1,3 +1,13 @@
+
+Day
+
+10.04.2024
+
+reinach
+
+Atelierkino Kasse
+
+…
 Erwachsene	16.00		2			32.00
 Kinder	12.00		6			72.00
 8			104.00
@@ -10,6 +20,8 @@ Zweifel Natur Chips	3.00		2			6.00
 15			67.00
 Gesamt		23			171.00
 TWINT			1			-4.00
+TWINT						0.00
+MasterCard E-Link						0.00
 CC	1			-4.00
 - Abo/Gutsch. gegen Rg./Kreditkarten			0.00
 - CHF an Bank			0.00

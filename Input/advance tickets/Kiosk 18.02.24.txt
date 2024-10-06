@@ -1,6 +1,16 @@
+
+Day
+
+18.02.2024
+
+reinach
+
+Atelierkino Kasse
+
+…
 Eintritt	5.00		13			65.00
-Erwachsene	25.00		13	-5		200.00
 AHV/IV	20.00		11	-2		180.00
+Erwachsene	25.00		13	-5		200.00
 37	-7		445.00
 Kinoförderer	0.00		1			
 Green Card	0.00		1			
@@ -19,15 +29,15 @@ Eistee	5.00		3			15.00
 Gazosa Zitrone	6.00		2			12.00
 Gazosa Grapefruit	6.00		2			12.00
 Gazosa Orange	6.00		1			6.00
-Schoggi	4.00		1			4.00
 Mocca	4.00		2			8.00
+Schokolade	4.00		1			4.00
 M&Ms	3.00		2			6.00
 Maltesers	3.00		4			12.00
 Popcorn Sweet & Salty	5.00		4			20.00
 Popcorn frisch	5.00		8			40.00
+Zweifel Peanuts Salted	3.00		1			3.00
 Zweifel Paprika Chips	3.00		2			6.00
 Zweifel Natur Chips	3.00		2			6.00
-Zweifel Peanuts Salted	3.00		1			3.00
 61			271.00
 Gesamt		133	-9		716.00
 TWINT			8			-148.00
