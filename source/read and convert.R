@@ -206,23 +206,6 @@ df_Eintritt <- l_Eintritt|>
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
 
-#############################################################################################
-# Error handling
-# Detect date in file 
-p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-
-file_datum <- l_raw|>
-  lapply( function(x){
-    temp <- str_extract(x,p1)  
-    temp[!is.na(temp)]
-  })|>
-  unlist()|>
-  dmy()
-
-file_datum
-
-c_test <- dmy(c_fileDate)%in%file_datum
-c_test
 
 if(length(c_test)>sum(c_test)){
   stop(  
