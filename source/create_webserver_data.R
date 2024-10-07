@@ -44,33 +44,29 @@ instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
 # Finde die Suisa-Nummern und den Filmtitel im Html
 # #######################################################
 c_path <- "output/"
-x <- list.files(c_path, "Verleiher")[1]
+x <- list.files(c_path, "Abrechnung")[1]
 x
-
-df_temp1 <-  list.files(c_path, "Verleiher")|>
+df_temp1 <-  list.files(c_path, "Abrechnung")|>
   lapply(function(x){
     doc <- read_html(paste0(c_path,x))
     # Find elements to edit 
     element <- xml_find_first(doc, "body")|>
       xml_find_first("div")
+    element
     
-    # Find all children of the node
-    children <- xml_children(element)
-    children <- children[[5]]|>
-      xml_children()
-    
-    children
-    
+    children <- xml_children(element)[3]
     # Extract data
-    c_raw <- xml_text(children[[2]])[1]|>
-      str_split("\n", simplify = T)
-    
+    c_raw <- xml_text(children)|>
+      str_split("\n")|>
+      unlist()|>
+      str_remove("\r")
     c_raw
     
     # Create data to return
-    tibble(`Suisa-Nummer` = c_raw[,7],
-           Filmtitel = c_raw[,8],
-           Datum = c_raw[,9])
+    tibble(`Suisa-Nummer` = c_raw[17],
+           Filmtitel = c_raw[14],
+           Datum = c_raw[11])
+      
 
   })|>
   bind_rows()|>
