@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.11
+2024 V1.12
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)

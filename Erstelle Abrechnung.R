@@ -17,12 +17,13 @@
 # 2024 V1.9 Filmvorschläge from Wordpress 
 # 2024 V1.10 PowerBi script
 # 2024 V1.11 WordPress Filmvorschläge auswerten
+# 2024 V1.12 Verleigherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.11"
+c_script_version <- "2024 V1.12"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
