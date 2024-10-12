@@ -398,7 +398,7 @@ if(c_run_single){
 
 print(clc)
 
-paste("Bericht: \nAbrechnungen für Filmvorführungen wurden erstellt.")|>
+paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
   writeLines()
 
 #############################################################################################################################################
