@@ -21,7 +21,7 @@ if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet
 remove(c_openfiles)
 
 ########################################################################
-# Einnahmen und Ausgangen einlesen aus Excel 
+# Einnahmen und Ausgaben einlesen aus Excel 
 ########################################################################
 
 c_file <- "Einnahmen und Ausgaben.xlsx"
