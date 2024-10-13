@@ -12,7 +12,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 #######################################################
 # function to edit Site-Map: insert pictures
 #######################################################
-instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
+instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
   # create link to pict and link to file 
   if(length(raw_rmd) == index){
     for (ii in 1:(length(fileNames))) { 
@@ -23,7 +23,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
       }else{ # normales einfügen
         raw_rmd <- c(raw_rmd[1:index],
                      paste0("[","![",fileNames[ii],"](",output_dir,fileNames[ii],".png)","](", url[ii],")",if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                     if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                     if((ii %% 2) == 0) {"\\"}, # if index is even put additional spacing 
                      raw_rmd[(index+1):length(raw_rmd)]
         )
       }
@@ -32,7 +32,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
     for (ii in 1:(length(fileNames))) {
       raw_rmd <- c(raw_rmd[1:index],
                    paste0("[","![",fileNames[ii],"](",output_dir,fileNames[ii],".png)","](", url[ii],")", if((ii %% 2) == 0) {" \\"}),#,"  \\\n\\"),
-                   if((ii %% 2) == 0) {"\\"}, # if index is even put aditional spacing 
+                   if((ii %% 2) == 0) {"\\"}, # if index is even put additional spacing 
                    raw_rmd[(index+1):length(raw_rmd)]
       )
     }
@@ -44,11 +44,9 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
 # Finde die Suisa-Nummern und den Filmtitel im Html
 # #######################################################
 c_path <- "output/"
-x <- list.files(c_path, "html")
 
 df_reports <- tibble(FileName = list.files(c_path, "html"))
 df_reports
-
 
 df_temp1 <-  df_reports|>
   filter(str_detect(FileName, "Abrechnung"))|>
@@ -74,9 +72,9 @@ df_temp1 <-  df_reports|>
            Datum = c_raw[11],
            typ = "Abrechnung Filmvorführungen",
            FileName = x)
-    })|>
+  })|>
   bind_rows()
-  
+
 df_temp1
 
 df_temp2 <-  df_reports|>
@@ -92,11 +90,11 @@ df_temp2 <-  df_reports|>
     children <- xml_children(element)
     children <- children[[5]]|>
       xml_children()
-  
+    
     # Extract data
     c_raw <- xml_text(children[[2]])[1]|>
       str_split("\n", simplify = T)
-  
+    
     # Create data to return
     tibble(`Suisa-Nummer` = c_raw[,7],
            Filmtitel = c_raw[,8],
@@ -108,36 +106,28 @@ df_temp2 <-  df_reports|>
          Filmtitel = str_remove(Filmtitel, "\r"),
          Datum = str_remove(Datum, "\r"),
          typ = "Verleiherabrechnung",
-         )
+  )
 df_temp1
 df_temp2
 
-
-df_reports <- bind_rows(df_temp2, 
-                        df_temp1,
-                        tibble(`Suisa-Nummer`= NA,
-                               Filmtitel = NA,
-                               Datum = NA,
-                               typ = "Statistik",
-                               FileName = "Statistik.html"),
-                        tibble(`Suisa-Nummer`= NA,
-                               Filmtitel = NA,
-                               Datum = NA,
-                               typ = "Jahresrechnung",
-                               FileName = "Jahresrechnung.html")
-                        )
-
-df_reports|>
-  tail()
-
-# Convert filenames to URL
-df_reports$url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", df_reports$FileName)), 
-                sep = "")
-
-df_reports$path <- paste0(c_WD,"/output/pict")
-df_reports
-
-dir.create(c_path)|>suppressWarnings()
+m_Film <- bind_rows(df_temp2, 
+                    df_temp1,
+                    tibble(`Suisa-Nummer`= NA,
+                           Filmtitel = NA,
+                           Datum = NA,
+                           typ = "Statistik",
+                           FileName = "Statistik.html"),
+                    tibble(`Suisa-Nummer`= NA,
+                           Filmtitel = NA,
+                           Datum = NA,
+                           typ = "Jahresrechnung",
+                           FileName = "Jahresrechnung.html")
+)
+m_Film <- m_Film|>
+  mutate(Datum = dmy(Datum))|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".", year(Datum)))
+m_Film
 
 #############################################################################################################################################
 # create site map
@@ -145,9 +135,20 @@ dir.create(c_path)|>suppressWarnings()
 
 if(c_SiteMap){
   # Was für Berichte typen sind vorhanden
-  c_typ_Berichte <- df_reports|>
-    distinct(typ)|>
-    pull()
+  c_typ_Berichte <- m_Film$FileName|>
+    str_extract(START%R%one_or_more(WRD))|>
+    factor()|>
+    levels()
+  c_typ_Berichte
+  
+  # Convert filenames to URL
+  c_url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", m_Film$FileName)), 
+                  sep = "")
+  c_url
+  
+  c_path <- paste0(c_WD,"/output/pict")
+  c_path
+  dir.create(c_path)|>suppressWarnings()
   
   # Vorschaubilder erzeugen wenn noch nicht vorhanden 
   ii <- 1
@@ -155,16 +156,18 @@ if(c_SiteMap){
     library(magick)
     writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
     
-    c_select <- !((df_reports$FileName|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
+    c_select <- !((m_Film$FileName|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png"))
+    )
+    c_select
     
     ii <- 1
-    for (ii in 1:length(df_reports$FileName[c_select])) {
+    for (ii in 1:length(m_Film$FileName[c_select])) {
       # Set the path to the input image
-      input_path <- paste0(c_path, "/",df_reports$FileName[c_select][ii],".png")
+      input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
       input_path
       
       # create a webshot, printed html
-      webshot::webshot(url = df_reports$url[c_select][ii], file = input_path)
+      webshot::webshot(url = c_url[c_select][ii], file = input_path)
       
       # Read the image crop and resize and save
       image_read(input_path)|>
@@ -181,50 +184,41 @@ if(c_SiteMap){
   c_raw
   
   ii <- 1
-  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bild und Link eingefügt werden
+  for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
     c_index
     
-    df_temp <- df_reports|>
-      filter(typ == c_typ_Berichte[ii])
-    df_temp
-    
-    #########################################
-    # Jahresrechnung
-    if(c_typ_Berichte[ii] == "Jahresrechnung"){
-      c_select <- str_detect(df_reports$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
-    }else{
-      c_select <- str_detect(df_reports$FileName, START%R%c_typ_Berichte[ii])
-    }
-    
-    
-    c_raw <- instert_picts(c_raw,"output/pict/",c_index,df_reports$FileName[c_select], df_reports$url[c_select])
     c_raw
+    c_raw[c_index]
     
-    #########################################
-    # Abrechnung
-    if(c_typ_Berichte[ii]=="Abrechnung"){
-      for (jj in 1:length(df_reports$FileName[c_select])) {
+    if(c_typ_Berichte[ii] == "Jahresrechnung"){
+      c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
+      c_raw <- instert_picts(c_raw,"output/pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
+    }else{
+      c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii])
+      c_raw <- instert_picts(c_raw,"output/pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
+    }
+
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      for (jj in 1:length(m_Film$FileName[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",df_reports$FileName[c_select][jj],"](", df_reports$url[c_select][jj],")  ",df_reports$Filmtitel[jj],"  \\"),
+                   paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
-                 paste0("  \\"),
+                 paste0("  \\"), 
                  c_raw[(c_index + jj + 1):length(c_raw)])
     }
+    c_raw
     
-    #########################################
-    # Verleiherabrechnung
-    if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
-      df_temp <- df_reports|>
-        filter(typ == "Verleiherabrechnung")
-      df_temp
-      for (jj in 1:length(df_temp)) {
+    # Linkliste einfügen
+    if(c_typ_Berichte[ii]=="Abrechnung"){
+      for (jj in 1:length(m_Film$FileName[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",df_reports$FileName[c_select][jj],"](", df_reports$url[c_select][jj],")  ",df_reports$Filmtitel[jj],"  \\"),
+                   paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"),
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -232,8 +226,8 @@ if(c_SiteMap){
                  c_raw[(c_index + jj + 1):length(c_raw)])
     }
   }
-  c_typ_Berichte[ii]
   c_raw
+  
   # neues file schreiben
   c_raw|>
     r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
@@ -241,11 +235,11 @@ if(c_SiteMap){
   
   # Render
   rmarkdown::render(input = "Site-Map.Rmd")
-
+  # Remove file
+  file.remove("Site-Map.Rmd")
+  
 }
 
-# # Remove file
-# file.remove("Site-Map.Rmd")
 
 #############################################################################################################################################
 # Data for Webserver
@@ -267,24 +261,24 @@ paste0(getwd(),"/output/pict/",list.files("output/pict/", pattern = "png", inclu
 
 
 if(c_SiteMap){
-  df_reports$FileName <- df_reports$FileName
-  c_fileName
+  m_Film$FileName <- m_Film$FileName
+  
   # Was für Berichte typen sind vorhanden
-  c_typ_Berichte <- df_reports$FileName|>
+  c_typ_Berichte <- m_Film$FileName|>
     str_extract(START%R%one_or_more(WRD))|>
     factor()|>
     levels()
   c_typ_Berichte
   
   # Convert filenames to URL
-  df_reports$url <- paste0("",URLencode(df_reports$FileName))
-  df_reports$url
+  c_url <- paste0("",URLencode(m_Film$FileName))
+  c_url
   
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
   
-  # ii <- 4
+  ii <- 1
   for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
     # Index where to insert  
     c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
@@ -295,28 +289,26 @@ if(c_SiteMap){
     c_raw[c_index]
     
     if(c_typ_Berichte[ii] == "Jahresrechnung"){
-      c_select <- str_detect(df_reports$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
-      c_raw <- instert_picts(c_raw,"pict/",c_index,df_reports$FileName[c_select], df_reports$url[c_select])
+      c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
     }else{
-      c_select <- str_detect(df_reports$FileName, START%R%c_typ_Berichte[ii])
-      c_raw <- instert_picts(c_raw,"pict/",c_index,df_reports$FileName[c_select], df_reports$url[c_select])
+      c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii])
     }
     
     c_raw
-    df_reports$FileName[c_select]
-    df_reports$url[c_select]
-
-    c_raw <- instert_picts(c_raw,"pict/",c_index,df_reports$FileName[c_select], df_reports$url[c_select])
+    m_Film$FileName[c_select]
+    c_url[c_select]
+    
+    c_raw <- instert_picts(c_raw,"pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
     c_raw
-
+    
     c_raw[c_index]
     
     
     # Linkliste einfügen
     if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
-      for (jj in 1:length(df_reports$FileName[c_select])) {
+      for (jj in 1:length(m_Film$FileName[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",df_reports$FileName[c_select][jj],"](", df_reports$url[c_select][jj],")  ",df_reports$Filmtitel[jj],"  \\"), 
+                   paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[c_select][jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
@@ -326,15 +318,16 @@ if(c_SiteMap){
     
     # Linkliste einfügen
     if(c_typ_Berichte[ii]=="Abrechnung"){
-      for (jj in 1:length(df_reports$FileName[c_select])) {
+      for (jj in 1:length(m_Film$FileName[c_select])) {
         c_raw <- c(c_raw[1:(c_index)],
-                   paste0("[",df_reports$FileName[c_select][jj],"](", df_reports$url[c_select][jj],")  ",df_reports$Filmtitel[jj],"  \\"), 
+                   paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[c_select][jj],"  \\"), 
                    c_raw[(c_index+1):length(c_raw)])
       }
       c_raw <- c(c_raw[1:(c_index + jj)],
                  paste0("  \\"), 
                  c_raw[(c_index + jj + 1):length(c_raw)])
     }
+    c_raw
   }
   
   c_typ_Berichte[ii]
@@ -398,5 +391,5 @@ c_files <- paste0("output/webserver/",c_files)
 c_files|>
   lapply(add_SiteMapLink)
 
-
-
+# remove files
+file.remove("Site-Map.html")
