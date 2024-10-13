@@ -433,7 +433,7 @@ df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_keine_Rechnnung)>0) {
-  warning(paste0("\nAchtung für die diesen Film ", df_keine_Rechnnung$Filmtitel," am ",
+  warning(paste0("\nAchtung für die diesen Film \"", df_keine_Rechnnung$Filmtitel,"\" am ",
                  day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum)," gibt es keine Verleiherrechnung.",
                  "\nBitte korrigieren in der Datei:",
                  "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
