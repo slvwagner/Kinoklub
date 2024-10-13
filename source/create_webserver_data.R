@@ -41,8 +41,8 @@ instert_picts <- function(raw_rmd, output_dir, index,fileNames, url) {
 }
 
 #######################################################
-# Finde die Suisa-Nummern und den Filmtitel im Html
-# #######################################################
+# Find reports 
+#######################################################
 c_path <- "output/"
 
 df_reports <- tibble(FileName = list.files(c_path, "html"))
