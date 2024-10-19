@@ -17,19 +17,32 @@ Bericht wurde am `r act_date` erstellt.
 ## Gewinn/Verlust aus Filmvorführung
 
 ### Gewinn/Verlust aus Filmvorführung
+
 ```{r}
-df_temp <- df_GV_Vorfuehrung|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  select(-Ende)
+df_temp <- df_GV_Vorfuehrung |>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                         ),
+         `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
+  ) |>
+  select(Datum, Datum_display, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`, -Ende)
 ```
 
 
 ```{r}
-df_temp|>
-  DT::datatable(df_temp)
-
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 
@@ -93,7 +106,7 @@ df_temp <- m|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(Datum = Datum|>dmy())|>
+  # mutate(Datum = Datum|>dmy())|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Gewinn/Verlust [CHF]`) / n(),
@@ -173,13 +186,41 @@ Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks.
 
 ```{r}
 df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
+  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
   rename(`Umsatz [CHF]` = Brutto)|>
-  arrange(Datum)
+  arrange(desc(Datum))|>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                         ),
+         `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
+  ) 
+df_temp
 
+df_temp <- df_temp|>
+  select(Datum, Datum_display,Anfang, `Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust [CHF]`)
+
+df_temp
+```
+
+
+```{r}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
+```
+
+
+```{r}
 df_temp|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
   DT::datatable(df_temp)
 ```
 
@@ -449,7 +490,7 @@ df_temp|>
 ```{r echo=FALSE}
 df_temp <- df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
-  arrange(Datum)
+  arrange(desc(Datum))
 
 df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
@@ -502,7 +543,7 @@ df_temp|>
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_temp <- df_GV_Kiosk|>
-  arrange((Datum))|> 
+  arrange(desc(Datum))|> 
   rename(`Umsatz [CHF]` = Kassiert,
          `Kiosk Gewinn [CHF]` = Gewinn)|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
@@ -681,7 +722,7 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  arrange((Datum))|>
+  arrange(desc(Datum))|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
 
@@ -715,7 +756,7 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
-  arrange((Datum))
+  arrange(desc(Datum))
 
 ```
 
@@ -789,7 +830,7 @@ df_temp <- df_show |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
   by = join_by(Datum)
   )|>
-  arrange((Datum))|>
+  arrange(desc(Datum))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)
