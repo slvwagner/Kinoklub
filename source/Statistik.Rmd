@@ -172,7 +172,7 @@ df_temp|>
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
-  scale_y_continuous(limits = c(0, s * 365))+
+  # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
@@ -195,12 +195,10 @@ df_temp <- df_GV_Eintritt|>
                          ),
          `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
   ) 
-df_temp
 
 df_temp <- df_temp|>
   select(Datum, Datum_display,Anfang, `Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust [CHF]`)
 
-df_temp
 ```
 
 
@@ -221,26 +219,24 @@ DT::datatable(df_temp,
 
 ```{r}
 df_temp|>
-  DT::datatable(df_temp)
-```
-
-```{r}
-df_temp|>
   reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
   knitr::kable()
 ```
 
 
 ### Wochentaganalyse
+
 ```{r }
 timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
 
 m <- str_split(timeRange, "-")|>
   sapply(function(range){
-    hms(df_temp$Anfang) >= hm(range[1]) & hms(df_temp$Anfang) < hm(range[2])
+    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
 colnames(m) <- timeRange
 ```
+
+
 
 ```{r}
 df_temp <- m|>
@@ -491,13 +487,26 @@ df_temp|>
 df_temp <- df_GV_Eintritt|>
   select(Datum, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
   arrange(desc(Datum))
+```
 
+
+```{r echo=FALSE}
 df_temp|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", 
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
          `SUISA-Abzug [CHF]` = round(`SUISA-Abzug [CHF]`,2),
          `Verleiher-Abzug [CHF]` = round(`Verleiher-Abzug [CHF]`,2))|>
-  DT::datatable(df_temp)
+  select(Datum, Datum_display, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
+  DT::datatable(
+    df_temp,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
 ```
 
 
@@ -546,15 +555,26 @@ df_temp <- df_GV_Kiosk|>
   arrange(desc(Datum))|> 
   rename(`Umsatz [CHF]` = Kassiert,
          `Kiosk Gewinn [CHF]` = Gewinn)|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
          )
+```
 
-df_temp|>
-  DT::datatable(df_temp)
 
+```{r echo=FALSE}
+df_temp|> 
+  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Kiosk Gewinn [CHF]`)|>
+    DT::datatable(
+    df_temp,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
 ```
 
 ```{r echo=FALSE}
@@ -571,9 +591,11 @@ df_GV_Kiosk|>
 ```{r }
 timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
 
+x <- str_split(timeRange, "-")[[1]]
+
 m <- str_split(timeRange, "-")|>
-  sapply(function(range){
-    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+  sapply(function(x){
+    hm(df_temp$Anfang) >= hm(x[1]) & hm(df_temp$Anfang) < hm(x[2])
   })
 colnames(m) <- timeRange
 ```
@@ -585,7 +607,6 @@ df_temp <- m|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(Datum = Datum|>dmy())|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Kiosk Gewinn [CHF]`) / n(),
@@ -627,7 +648,7 @@ df_temp|>
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
   # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
-  scale_y_continuous(limits = c(0, s * 365))+
+  # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn [CHF]")+
   my_template
@@ -723,13 +744,23 @@ df_temp <- df_show |>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]` = Umsatz)|>
   arrange(desc(Datum))|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
-
-df_temp|>
-  DT::datatable()
 ```
 
+```{r echo=FALSE}
+df_temp|> 
+  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
+    DT::datatable(
+    df_temp,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
+```
 
 ```{r }
 df_temp|>
@@ -833,16 +864,29 @@ df_temp <- df_show |>
   arrange(desc(Datum))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]`= Umsatz)
+  rename(`Umsatz [CHF]`= Umsatz)|>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", 
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")
+                         )
+         )
 ```
 
 
-```{r }
-df_temp|>
-  mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))|>
-  DT::datatable()
+```{r echo=FALSE}
+df_temp|> 
+  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
+    DT::datatable(
+    df_temp,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
 ```
+
 
 
 ```{r }
