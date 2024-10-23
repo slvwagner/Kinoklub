@@ -332,7 +332,6 @@ if(nrow(df_temp) != 0) {
 source("source/Verkauf_Abos_Gutscheine.R")
 
 
-
 ########################################################################
 # Verleiherabgaben einlesen
 ########################################################################
@@ -342,10 +341,9 @@ c_sheets <- readxl::excel_sheets(c_file)
 c_sheets
 
 df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
-  mutate(Datum = as.Date(Datum))|>
+  mutate(Datum = as.Date(Datum),
+         `Link Datum` = as.Date(`Link Datum`))|>
   left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
-
-df_verleiherabgaben
 
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
@@ -368,7 +366,7 @@ if(nrow(df_temp)>0){
   )
 }
 
-# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden fall ein Fixerabzug definiert wurde)
+# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde)
 df_temp <- df_Eintritt|>
   filter(is.na(`Minimal Abzug`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
@@ -409,27 +407,62 @@ if(nrow(df_temp)>0){
 }
 
 ########################################################################
+# Einnahmen und Abgaben von mehreren Events verhältnismässig nach Besucherzahlen 
+# auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
+########################################################################
+
+df_Verleiher_Rechnnung <- left_join(
+  df_Eintritt|>
+    group_by(Datum,`Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`)|>
+    reframe(Umsatz = sum(Umsatz)),
+  df_Eintritt|>
+    group_by(`Link Datum`, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`)|>
+    reframe(Umsatz = sum(Umsatz)),
+  by = join_by(`Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`))|>
+  mutate(
+    Verteilprodukt = if_else(!is.na(`Link Datum`),
+                                  Umsatz.x/Umsatz.y,
+                                  1),
+    Umsatz.x = NULL,
+    Umsatz.y = NULL,
+    # `Link Datum` = NULL  
+    )
+
+df_Verleiher_Rechnnung|>
+  filter(Verteilprodukt != 1)
+
+########################################################################
 # Verleiherrechnung 
 ########################################################################
-df_Verleiher_Rechnnung <- df_Eintritt|>
-  distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
-  select(Datum, Filmtitel, `Suisa Nummer`)
+# df_Verleiher_Rechnnung <- df_Eintritt|>
+#   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
+#   select(Datum, Filmtitel, `Suisa Nummer`)
 df_Verleiher_Rechnnung
 
-# # Verleiherabgaben sind im Dropdown zu finden
-Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
-Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5]
+df_test <- Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+  filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|>
+  select(-Datum,-Kategorie)
+df_test
 
+# Verleiherabgaben sind im Dropdown zu findens
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
-  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-              filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|>
+  full_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+              filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # Kategorie: Verleiher
               select(-Datum,-Kategorie),
-            by = c("Datum" = "Spieldatum"))|>
+            by = c("Datum" = "Spieldatum")
+            )|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
+
 df_Verleiher_Rechnnung
 
+df_Verleiher_Rechnnung|>
+  filter(!is.na(`Link Datum`))
+
+# keine Rechnung vorhanden
 df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
   filter(`keine Verleiherrechnung`)
+
+df_keine_Rechnnung
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_keine_Rechnnung)>0) {
@@ -441,7 +474,6 @@ if(nrow(df_keine_Rechnnung)>0) {
   )  
 }
 
-df_Eintritt
 
 ########################################################################
 # Gewinn/Verlust Eintitt
@@ -450,10 +482,6 @@ df_Kinopreise <- df_Eintritt|>
   distinct(Platzkategorie,.keep_all = T)|>
   select(Platzkategorie, Verkaufspreis)
 df_Kinopreise
-
-
-
-c_Date[3]
 
 l_GV <- list()
 l_Abgaben <- list()
