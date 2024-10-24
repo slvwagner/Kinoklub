@@ -424,25 +424,10 @@ df_Verleiher_Rechnnung <- left_join(
                                   Umsatz.x/Umsatz.y,
                                   1),
     Umsatz.x = NULL,
-    Umsatz.y = NULL,
-    # `Link Datum` = NULL  
-    )
-
-df_Verleiher_Rechnnung|>
-  filter(Verteilprodukt != 1)
-
-########################################################################
-# Verleiherrechnung 
-########################################################################
-# df_Verleiher_Rechnnung <- df_Eintritt|>
-#   distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
-#   select(Datum, Filmtitel, `Suisa Nummer`)
-df_Verleiher_Rechnnung
-
-df_test <- Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-  filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|>
-  select(-Datum,-Kategorie)
-df_test
+    # Umsatz.y = NULL,
+    `Link Datum` = factor(`Link Datum`)   
+    )|>
+  rename(`Umsatz total pro Abrechnung` = Umsatz.y)
 
 # Verleiherabgaben sind im Dropdown zu findens
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
@@ -451,13 +436,40 @@ df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
               select(-Datum,-Kategorie),
             by = c("Datum" = "Spieldatum")
             )|>
+  filter(!is.na(`Suisa Nummer`))
+
+# Verleiherabgaben verteilen
+l_verleiherabgaben <- list()
+
+for (ii in 1:length(df_Verleiher_Rechnnung$`Link Datum`|>levels())) {
+  l_verleiherabgaben[[ii]] <- df_Verleiher_Rechnnung|>
+    filter(`Link Datum` == levels(df_Verleiher_Rechnnung$`Link Datum`)[ii])
+  
+  c_Betrag <- l_verleiherabgaben[[ii]]|>
+    filter(!is.na(Betrag))|>
+    select(Betrag)|>
+    pull()
+  c_Betrag
+  
+  l_verleiherabgaben[[ii]] <- bind_rows(
+    l_verleiherabgaben[[ii]]|>
+    filter(!is.na(Betrag)),
+    l_verleiherabgaben[[ii]]|>
+      filter(is.na(Betrag))|>
+      mutate(Betrag = c_Betrag)
+    )|>
+    mutate(Betrag = Betrag * Verteilprodukt)
+}
+
+df_Verleiher_Rechnnung <- bind_rows(l_verleiherabgaben)|>
+  bind_rows(
+    df_Verleiher_Rechnnung|>
+    filter(is.na(`Link Datum`))
+    )|>
   mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
 
-df_Verleiher_Rechnnung
-
-df_Verleiher_Rechnnung|>
-  filter(!is.na(`Link Datum`))
-
+#############################################################
+# error handling
 # keine Rechnung vorhanden
 df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
   filter(`keine Verleiherrechnung`)
@@ -473,6 +485,7 @@ if(nrow(df_keine_Rechnnung)>0) {
   )
   )  
 }
+
 
 
 ########################################################################
@@ -688,28 +701,6 @@ df_GV_Eintritt <- l_GV|>
 
 df_GV_Eintritt
 
-#############################################################
-# error handling 
-# Verleiherrechnung ist kleiner als der Vereinbarte minimale Abgabebetrag
-df_Verleiher_Rechnnung
-
-df_temp <- df_GV_Eintritt|>
-  filter(df_GV_Eintritt$`Sonstige Kosten [CHF]` < 0)|>
-  left_join(df_verleiherabgaben, by = join_by(Datum))|>
-  select(Datum, `Suisa Nummer`, Filmtitel, `Minimal Abzug`)|>
-  filter(!is.na(`Minimal Abzug`))
-df_temp
-
-if(nrow(df_temp) > 0 ) {
-  warning(
-    paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
-                  day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
-    ),
-    "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\nBitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
-    )
-  )
-}
-
 ###
 df_Abgaben <- l_Abgaben|>
   bind_rows()|>
@@ -718,6 +709,32 @@ df_Abgaben <- l_Abgaben|>
   mutate(Verkaufspreis = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer, df_P_kat_verechnen$Verkaufspreis, Verkaufspreis)
   )
 df_Abgaben
+
+#############################################################
+# error handling 
+# Verleiherrechnungsbetrag ist kleiner als der Vereinbarte minimale Abgabebetrag
+
+df_temp <- df_GV_Eintritt|>
+  filter(df_GV_Eintritt$`Sonstige Kosten [CHF]` < 0)|>
+  left_join(df_verleiherabgaben, by = join_by(Datum))|>
+  select(Datum, `Suisa Nummer`, Filmtitel, `Minimal Abzug`)|>
+  filter(!is.na(`Minimal Abzug`))
+
+df_temp$Datum %in% df_keine_Rechnnung$Datum
+
+df_temp|>
+  filter(Datum %in% df_keine_Rechnnung$Datum)
+
+if(nrow(df_temp) > 0 ) {
+  warning(
+    paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ",
+                  day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
+    ),
+    "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\nBitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
+    )
+  )
+}
+
 
 ########################################################################
 # Gewinn Kiosk
