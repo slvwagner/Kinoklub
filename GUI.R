@@ -958,47 +958,47 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-# # UI-Definition fluid page
-# ui <- shiny::fluidPage(
-#   shiny::tags$head(
-#     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-#   ),
-#   paste("Kinoklub GUI", c_script_version) |>
-#     shiny::titlePanel(),
-#   shiny::sidebarLayout(
-#     # Render the side panel
-#     shiny::sidebarPanel(
-#       shiny::uiOutput("dynamicContent_input_panel")
-#     ),
-#     # Render the main panel
-#     shiny::mainPanel(
-#       shiny::uiOutput("dynamicContent_output_panel")
-#     )
-#   )
-# )
-
-
-# UI-Definition bs4Dash
-library(bs4Dash)
-ui <- dashboardPage(
-  help = TRUE,
-  dark = TRUE,  # Force dark mode
-  dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
-  dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
-  dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
-  controlbar = dashboardControlbar(
-    id = "controlbar",
-    skin = "dark",
-    controlbarMenu(
-      id = "controlbarMenu",
-      controlbarItem(
-        title = "Help",
-        icon = icon("question-circle"),
-        p("This is a custom help section.")
-      )
+# UI-Definition fluid page
+ui <- shiny::fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  ),
+  paste("Kinoklub GUI", c_script_version) |>
+    shiny::titlePanel(),
+  shiny::sidebarLayout(
+    # Render the side panel
+    shiny::sidebarPanel(
+      shiny::uiOutput("dynamicContent_input_panel")
+    ),
+    # Render the main panel
+    shiny::mainPanel(
+      shiny::uiOutput("dynamicContent_output_panel")
     )
   )
 )
+
+# 
+# # UI-Definition bs4Dash
+# library(bs4Dash)
+# ui <- dashboardPage(
+#   help = TRUE,
+#   dark = TRUE,  # Force dark mode
+#   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
+#   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
+#   dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
+#   controlbar = dashboardControlbar(
+#     id = "controlbar",
+#     skin = "dark",
+#     controlbarMenu(
+#       id = "controlbarMenu",
+#       controlbarItem(
+#         title = "Help",
+#         icon = icon("question-circle"),
+#         p("This is a custom help section.")
+#       )
+#     )
+#   )
+# )
 
 # Server-Logik
 server <- function(input, output, session) {
@@ -1654,7 +1654,7 @@ server <- function(input, output, session) {
       # Dynamic sheet selector
       
       # Button Daten Einlesen
-      shiny::actionButton("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
+      shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
       
       shiny::tags$hr(),
       # Add tooltips using shinyBS
@@ -1705,7 +1705,7 @@ server <- function(input, output, session) {
       shiny::tags$hr(),
       
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      shiny::actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      shiny::actionButton("wordpress", "Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
       
