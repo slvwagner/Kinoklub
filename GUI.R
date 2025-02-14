@@ -1003,7 +1003,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$open_einkauf, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
+      #ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
       
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Einkauf")]
@@ -1043,7 +1043,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$open_EinAus, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      ausgabe_text("Die Excel-Datei Einnahmen und Ausganben wurde geöffnet.")
+      #ausgabe_text("Die Excel-Datei Einnahmen und Ausganben wurde geöffnet.")
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Einnahmen")]
       file_path <- paste0(getwd(), "/Input/", c_file)
@@ -1074,7 +1074,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$open_Spez, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
+      #ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Spezial")]
       
@@ -1106,7 +1106,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$open_Verleih, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
+      #ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Verleiher")]
       
