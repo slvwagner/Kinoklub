@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 2
+ii <- 1
 ```
 
 ```{r echo=FALSE}
@@ -66,7 +66,6 @@ if(r_is.defined(df_keine_Rechnung)){
   }
 }
 ```
-
 \
 \
 \
@@ -121,8 +120,7 @@ df_temp|>
 
 ### Filmabgaben
 
-Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden. 
-
+Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden.
 
 ```{r echo=FALSE}
 if(r_is.defined(df_keine_Rechnung)){
@@ -156,7 +154,6 @@ if(r_is.defined(df_keine_Rechnung)){
 }
 ```
 
-
 ```{r echo=FALSE}
 if(nrow(df_Abrechnung) == 1){
   df_temp <- df_Abrechnung|>
@@ -169,7 +166,6 @@ if(nrow(df_Abrechnung) == 1){
 }
 
 ```
-
 
 ```{r echo=FALSE}
 Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
@@ -195,7 +191,6 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
 }
 ```
 
-
 ```{r}
 c_Umsatz <- l_abrechnung[[ii]]$Tickets|>
   reframe(Umsatz = sum(Umsatz))|>
@@ -210,7 +205,6 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]`/100
 ```
 
 `r  abgaben_text`
-
 
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
@@ -277,7 +271,6 @@ if(!is.na(df_temp$`Link Datum`)){
 
 ```
 
-
 ```{r}
 df_temp1|>
   knitr::kable(digits = 2)
@@ -298,94 +291,57 @@ df_temp|>
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 
 ```{r}
-Eventeinnahmen <- l_abrechnung[[ii]]$Eventeinnahmen|>
-  select(Datum, Bezeichnung, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)
-```
+df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisanummer` == df_mapping$Suisanummer[ii],
+         Kategorie == "Event")|>
+  rename(`Betrag [CHF]` = Betrag)|>
+  select(Datum, Bezeichnung, `Betrag [CHF]`)|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))
 
-```{r}
-Eventeinnahmen|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))|>
+df_temp|>
   knitr::kable(digits = 2)
+
 ```
 
 ```{r}
-Eventeinnahmen <- Eventeinnahmen|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen()|>round(2)
+Event <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen()
           )
 
-Eventeinnahmen|>
+Event|>
   knitr::kable()
 
 ```
 
 ### Ausgaben
 
-Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ...\
-
-```{r}
-Eventausgaben <- l_abrechnung[[ii]]$Eventausgaben|>
-  select(Datum, Bezeichnung, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)
-
-Eventausgaben|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))|>
-  knitr::kable(digits = 2)
-```
-
-```{r}
-Eventausgaben <- Eventausgaben|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen()|>round(2)
-          )
-
-Eventausgaben|>
-  knitr::kable()
-```
-
-### Differenz
-
-```{r}
-df_temp <- tibble(Bezeichnung = c("Einnahmen","Ausgaben"),
-       `Betrag [CHF]` = c(Eventeinnahmen|>pull()|>round5Rappen(),
-                          -Eventausgaben|>pull()|>round5Rappen()
-                          )
-       )
-
-df_temp|>
-  knitr::kable()
-```
-
-```{r}
-Event <- df_temp|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
-
-Event|>
-  knitr::kable()
-```
+Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ... werden mit den Kioskausgaben verrechnet.\ 
+[Ausgaben (Eventausgaben)](#ausgaben-eventausgaben)\
 
 \
 
 ## Kiosk
 
-### Einnahmen
-
-#### Gewinn pro Artikel
+### Gewinn für Kiosk Artikel
 
 ```{r echo=FALSE}
 
 df_temp <- df_Kiosk|>
   filter(Datum == df_mapping$Datum[ii],
-         `Suisanummer` == df_mapping$Suisanummer[ii] )|>
+         `Suisanummer` == df_mapping$Suisanummer[ii],
+         )|>
   select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
-         `Verkaufspreis [CHF]`=`Verkaufspreis`)
+         `Verkaufspreis [CHF]`=`Verkaufspreis`,
+         `Gewinn [CHF]` = Gewinn
+         )
 ```
 
 ```{r echo=FALSE}
 df_temp1 <-  df_temp|>
   filter(!is.na(Lieferant))|>
-  rename(`Gewinn [CHF]` = Gewinn)|>
   select(Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`, `Einkaufspreis [CHF]`, Lieferant, `Gewinn [CHF]`)
 
 df_temp1|>
@@ -402,16 +358,19 @@ df_temp1|>
   knitr::kable()
 ```
 
-#### Umsatz Spezialverkaufsartikel
+### Umsatz Spezialverkaufsartikel
 
 Verkaufsartikel ohne Lieferant.
 
 ```{r echo=FALSE}
-df_temp3 <- df_spez_preis_na
+df_temp3 <- df_spez_preis_na|>
+    filter(Datum == df_mapping$Datum[ii],
+         `Suisanummer` == df_mapping$Suisanummer[ii])
 
 if(df_temp3|>nrow()){
   paste0(
       "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),
+      " / ", df_temp3$Filmtitel,
       " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
   )|>
@@ -422,29 +381,33 @@ if(df_temp3|>nrow()){
 ```{r echo=FALSE}
 df_temp2 <- df_temp|>
   filter(is.na(Lieferant))|>
-  rename(`Umsatz [CHF]` = Gewinn)
+  rename(`Umsatz [CHF]` = `Kassiert [CHF]`)
 
 df_temp2|>
-  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)|>
   knitr::kable()
 ```
 
 ```{r}
-df_temp2 <- df_temp|>
-  filter(is.na(Lieferant))|>
-  reframe(`Summe [CHF]` = sum(Gewinn, na.rm = T)|>round5Rappen())
+df_temp2 <- df_temp2|>
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)|>round5Rappen())
 
 df_temp2|>
   knitr::kable()
 ```
 
-### Ausgaben
+### Ausgaben (Eventausgaben) {#ausgaben-eventausgaben}
 
-Die Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
+Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 
 ```{r echo=FALSE}
-if(df_temp2$`Summe [CHF]` > 0) {
-  if(abs(Event$`Betrag [CHF]`) <= 0){
+df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(Spieldatum == df_mapping$Datum[ii],
+         `Suisanummer` == df_mapping$Suisanummer[ii] )
+
+
+if(nrow(df_temp) == 0) {
+  if(abs(Event$`Summe [CHF]`) <= 0){
   writeLines("Achtung es gibt keine Eventausgaben obwohl Spezialverkaufsartikel verkauft wurden.
              \nBitte die Einkäufe unter Eventausgaben im File .../Kinoklub/input/Einnahmen und Ausgaben.xlsx nachtragen")
   }
@@ -453,32 +416,15 @@ if(df_temp2$`Summe [CHF]` > 0) {
 ```
 
 ```{r echo=FALSE}
-if(df_temp3|>nrow()){
-  paste0(
-      "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),
-      " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.",
-      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
-  )|>
-    writeLines()
-
-  df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Spieldatum == df_mapping$Datum[ii], 
-         Suisanummer == df_mapping$Suisanummer[ii],
-         Kategorie == Einnahmen_und_Ausgaben$dropdown$dropdown[1])
-  
-  if(nrow(df_temp) == 0) {
-    writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!")
-    }
-
-}
-
+df_temp|>
+  select(Spieldatum, Suisanummer, Bezeichnung, Betrag)|>
+  knitr::kable()
 ```
 
 ### Differenz
 
 Achtung!\
 Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
-
 
 ```{r echo=FALSE}
 Manko <- df_manko_uerberschuss|>
@@ -489,16 +435,26 @@ Manko <- df_manko_uerberschuss|>
 ```
 
 ```{r echo=FALSE}
-df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz Spezialverkaufsartikel", "Manko / Überschuss")), 
-                     bind_rows(df_temp1, df_temp2,Manko)
-                     )|>
+df_temp <- bind_cols(
+  tibble(
+    Bezeichnung = c(
+      "Gewinn pro Artikel",
+      "Umsatz Spezialverkaufsartikel",
+      "Eventausgaben",
+      "Manko / Überschuss"
+      ),
+    ), 
+  bind_rows(df_temp1,
+            df_temp2,
+            df_temp |>
+              reframe(`Summe [CHF]` = -sum(Betrag, na.rm = T)),
+            Manko)
+  )|>
   rename(`Betrag [CHF]` = `Summe [CHF]`)
 
 df_temp|>
   knitr::kable()
 ```
-
-
 
 ```{r echo=FALSE}
 Kiosk <- df_temp|>
@@ -514,7 +470,7 @@ Kiosk|>
 
 ```{r}
 df_temp <- tibble(
-  Bezeichnung = c("Flimvorführung", "Event", "Kiosk"),
+  Bezeichnung = c("Flimvorführung", "Eventeinnahmen", "Kiosk"),
   `Betrag [CHF]` = c(Filmvorführungen,
                      Event|>pull(),
                      Kiosk|>pull()
