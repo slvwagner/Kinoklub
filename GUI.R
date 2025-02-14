@@ -1,4 +1,5 @@
 
+
 # Graphical user interface für den Kinoklub
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
@@ -7,18 +8,40 @@
 rm(list = ls())
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot","xml2")
+packages <- c(
+  "rmarkdown",
+  "rebus",
+  "openxlsx",
+  "tidyverse",
+  "lubridate",
+  "DT",
+  "shiny",
+  "shinyBS",
+  "magick",
+  "webshot",
+  "xml2"
+)
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 # Packages loading
-packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "webshot", "xml2", "tidyverse")
+packages <- c(
+  "rmarkdown",
+  "rebus",
+  "openxlsx",
+  "lubridate",
+  "DT",
+  "magick",
+  "webshot",
+  "xml2",
+  "tidyverse"
+)
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
 
-# load user settings 
+# load user settings
 source("user_settings.R")
 
 # Load excel column definition database
@@ -33,12 +56,9 @@ source("source/functions.R")
 
 # Index pro Suisa-Nummer und Datum erstellen
 mapping <- function(c_Datum, c_suisa) {
-  df_mapping <- tibble(Datum = c_Datum,
-                       Suisanummer = c_suisa) |>
-    mutate(
-      user_Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)),
-      index = row_number()
-    )
+  df_mapping <- tibble(Datum = c_Datum, Suisanummer = c_suisa) |>
+    mutate(user_Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)),
+           index = row_number())
   
   # Soll die Verleiherabrechnung erzeugt werden?
   c_file <- "Input/Verleiherabgaben.xlsx"
@@ -46,7 +66,7 @@ mapping <- function(c_Datum, c_suisa) {
   c_sheets
   
   df_verleiherabgaben <- readxl::read_excel(c_file, c_sheets[1]) |>
-    mutate(Datum = as.Date(Datum))|>
+    mutate(Datum = as.Date(Datum)) |>
     left_join(readxl::read_excel(c_file, c_sheets[2]), by = "Verleiher")
   
   df_mapping <- df_verleiherabgaben |>
@@ -57,7 +77,7 @@ mapping <- function(c_Datum, c_suisa) {
       `Kinoförderer gratis?` = NULL
     ) |>
     arrange(index)
-  df_mapping <- df_mapping|>
+  df_mapping <- df_mapping |>
     distinct(Datum, Suisanummer, .keep_all = T)
   return(df_mapping)
 }
@@ -67,22 +87,25 @@ StatistikErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
   # Inhaltsverzeichnis
-  if(toc|>as.logical()){# neues file schreiben mit toc
-    c_raw|>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+  if (toc |> as.logical()) {
+    # neues file schreiben mit toc
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
-  }else {# neues file schreiben ohne toc
-    c_raw|>
+  } else {
+    # neues file schreiben ohne toc
+    c_raw |>
       writeLines(paste0("source/temp.Rmd"))
   }
   # Render
-  rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format  = df_Render$Render,
-                    output_file = paste0("Statistik",df_Render$fileExt),
-                    output_dir = paste0(getwd(), "/output"),
-                    envir = data_env
+  rmarkdown::render(
+    input = paste0("source/temp.Rmd"),
+    output_format  = df_Render$Render,
+    output_file = paste0("Statistik", df_Render$fileExt),
+    output_dir = paste0(getwd(), "/output"),
+    envir = data_env
   )
-  paste("Bericht: \nStatistik erstellt")|>
+  paste("Bericht: \nStatistik erstellt") |>
     writeLines()
 }
 
@@ -91,22 +114,25 @@ FilmvorschlagErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Archiv.Rmd")
   # Inhaltsverzeichnis
-  if(toc|>as.logical()){# neues file schreiben mit toc
-    c_raw|>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+  if (toc |> as.logical()) {
+    # neues file schreiben mit toc
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
-  }else {# neues file schreiben ohne toc
-    c_raw|>
+  } else {
+    # neues file schreiben ohne toc
+    c_raw |>
       writeLines(paste0("source/temp.Rmd"))
   }
   # Render
-  rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format  = df_Render$Render,
-                    output_file = paste0("Archiv",df_Render$fileExt),
-                    output_dir = paste0(getwd(), "/output"),
-                    envir = WordPress_env
+  rmarkdown::render(
+    input = paste0("source/temp.Rmd"),
+    output_format  = df_Render$Render,
+    output_file = paste0("Archiv", df_Render$fileExt),
+    output_dir = paste0(getwd(), "/output"),
+    envir = WordPress_env
   )
-  paste("Bericht: \nFilmvorschläge erstellt")|>
+  paste("Bericht: \nFilmvorschläge erstellt") |>
     writeLines()
 }
 
@@ -115,22 +141,25 @@ JahresrechnungErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
   # Inhaltsverzeichnis
-  if(toc|>as.logical()){# neues file schreiben mit toc
-    c_raw|>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+  if (toc |> as.logical()) {
+    # neues file schreiben mit toc
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
-  }else {# neues file schreiben ohne toc
-    c_raw|>
+  } else {
+    # neues file schreiben ohne toc
+    c_raw |>
       writeLines(paste0("source/temp.Rmd"))
   }
   # Render
-  rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format = df_Render$Render,
-                    output_file = paste0("Jahresrechnung",df_Render$fileExt),
-                    output_dir = paste0(getwd(), "/output"),
-                    envir = data_env
+  rmarkdown::render(
+    input = paste0("source/temp.Rmd"),
+    output_format = df_Render$Render,
+    output_file = paste0("Jahresrechnung", df_Render$fileExt),
+    output_dir = paste0(getwd(), "/output"),
+    envir = data_env
   )
-  paste("Bericht: \nJahresrechnung erstellt")|>
+  paste("Bericht: \nJahresrechnung erstellt") |>
     writeLines()
 }
 
@@ -139,34 +168,76 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   # create link to pict and link to file
   if (length(raw_rmd) == index) {
     for (ii in 1:(length(fileNames))) {
-      if (ii == 1) { # letzte Zeile von Rmd
+      if (ii == 1) {
+        # letzte Zeile von Rmd
         raw_rmd <- c(
           raw_rmd[1:index],
-          paste0("[", "![", fileNames[ii], "](", output_dir, fileNames[ii], ".png)", "](", url[ii], ")") # ,"  \\\n\\")," "
+          paste0(
+            "[",
+            "![",
+            fileNames[ii],
+            "](",
+            output_dir,
+            fileNames[ii],
+            ".png)",
+            "](",
+            url[ii],
+            ")"
+          ) # ,"  \\\n\\")," "
         )
-      } else { # normales einfügen
+      } else {
+        # normales einfügen
         raw_rmd <- c(
           raw_rmd[1:index],
-          paste0("[", "![", fileNames[ii], "](", output_dir, fileNames[ii], ".png)", "](", url[ii], ")", if ((ii %% 2) == 0) {
-            " \\"
-          }), # ,"  \\\n\\"),
+          paste0(
+            "[",
+            "![",
+            fileNames[ii],
+            "](",
+            output_dir,
+            fileNames[ii],
+            ".png)",
+            "](",
+            url[ii],
+            ")",
+            if ((ii %% 2) == 0) {
+              " \\"
+            }
+          ),
+          # ,"  \\\n\\"),
           if ((ii %% 2) == 0) {
             "\\"
-          }, # if index is even put additional spacing
+          },
+          # if index is even put additional spacing
           raw_rmd[(index + 1):length(raw_rmd)]
         )
       }
     }
-  } else { # normales einfügen
+  } else {
+    # normales einfügen
     for (ii in 1:(length(fileNames))) {
       raw_rmd <- c(
         raw_rmd[1:index],
-        paste0("[", "![", fileNames[ii], "](", output_dir, fileNames[ii], ".png)", "](", url[ii], ")", if ((ii %% 2) == 0) {
-          " \\"
-        }), # ,"  \\\n\\"),
+        paste0(
+          "[",
+          "![",
+          fileNames[ii],
+          "](",
+          output_dir,
+          fileNames[ii],
+          ".png)",
+          "](",
+          url[ii],
+          ")",
+          if ((ii %% 2) == 0) {
+            " \\"
+          }
+        ),
+        # ,"  \\\n\\"),
         if ((ii %% 2) == 0) {
           "\\"
-        }, # if index is even put additional spacing
+        },
+        # if index is even put additional spacing
         raw_rmd[(index + 1):length(raw_rmd)]
       )
     }
@@ -177,17 +248,17 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
 # function to create a site-map
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
-  if(dir.exists("output/pict")){
-    c_pict <- list.files("output/pict")|>str_remove(pattern = ".png")
+  if (dir.exists("output/pict")) {
+    c_pict <- list.files("output/pict") |> str_remove(pattern = ".png")
     c_html <- list.files("output/", pattern = "html")
     
-    list.files("output/pict", full.names = TRUE)[!(c_pict %in% c_html)]|>
+    list.files("output/pict", full.names = TRUE)[!(c_pict %in% c_html)] |>
       file.remove()
   }
   
   # Alle html Dateien löschen
-  if(dir.exists("output/webserver")){
-    list.files("output/webserver", full.names = TRUE)|>
+  if (dir.exists("output/webserver")) {
+    list.files("output/webserver", full.names = TRUE) |>
       file.remove()
   }
   
@@ -197,38 +268,38 @@ webserver <- function() {
   df_reports <- tibble(FileName = list.files(c_path, "html"))
   df_reports
   
-  if(nrow(df_reports) == 0){
+  if (nrow(df_reports) == 0) {
     stop("\nNo Reports can be found in .../output/")
   }
   
   # Abrechnungen suchen
   df_temp1 <- df_reports |>
-    filter(str_detect(FileName, "Abrechnung")) 
+    filter(str_detect(FileName, "Abrechnung"))
   
-  df_temp1 <- df_temp1|>
+  df_temp1 <- df_temp1 |>
     pull() |>
     lapply(function(x) {
       doc <- read_html(paste0(c_path, x))
       # Find elements to edit
       element <- xml_find_first(doc, "body") |>
         xml_find_first("div")
-      c_raw <- xml_children(element)|>
+      c_raw <- xml_children(element) |>
         xml_text()
       
-      if(sum(str_detect(c_raw,"Inhaltsverzeichnis")) > 0){
-        index <- c_raw|>
+      if (sum(str_detect(c_raw, "Inhaltsverzeichnis")) > 0) {
+        index <- c_raw |>
           str_detect("Übersicht")
         element <- xml_children(element)[index]
         element
         
-        index <- element|>
-          xml_text()|>
+        index <- element |>
+          xml_text() |>
           str_detect("Filmtitel")
         element <- xml_children(element)[index]
         element
         
         # Extract data
-        c_raw <- element[3]|>
+        c_raw <- element[3] |>
           xml_text() |>
           str_split("\n") |>
           unlist() |>
@@ -244,23 +315,23 @@ webserver <- function() {
           typ = "Abrechnung Filmvorführungen",
           FileName = x
         )
-      }else{
-        index <- c_raw|>
+      } else{
+        index <- c_raw |>
           str_detect("Übersicht")
         element <- xml_children(element)[index]
         
-        index <- element|>
-          xml_text()|>
+        index <- element |>
+          xml_text() |>
           str_detect("Filmtitel")
         element <- xml_children(element)[index]
         
-        index <- element|>
-          xml_text()|>
+        index <- element |>
+          xml_text() |>
           str_detect("Filmtitel")
         element <- xml_children(element)[index]
         
         # Extract data
-        c_raw <- element[1]|>
+        c_raw <- element[1] |>
           xml_text() |>
           str_split("\n") |>
           unlist() |>
@@ -281,10 +352,10 @@ webserver <- function() {
   
   # Verleiher suchen
   df_temp2 <- df_reports |>
-    filter(str_detect(FileName, "Verleiher")) 
+    filter(str_detect(FileName, "Verleiher"))
   
-  if(nrow(df_temp2) != 0){
-    df_temp2 <- df_temp2|>
+  if (nrow(df_temp2) != 0) {
+    df_temp2 <- df_temp2 |>
       pull() |>
       lapply(function(x) {
         doc <- read_html(paste0(c_path, x))
@@ -320,38 +391,32 @@ webserver <- function() {
   
   df_temp2
   
-  # create 
-  m_Film <- bind_rows(
-    df_temp2,
-    df_temp1,
-    if(file.exists("output/Statistik.html")){
-      tibble(
-        `Suisa-Nummer` = NA,
-        Filmtitel = NA,
-        Datum = NA,
-        typ = "Statistik",
-        FileName = "Statistik.html"
-      )
-    },
-    if(file.exists("output/Jahresrechnung.html")){
-      tibble(
-        `Suisa-Nummer` = NA,
-        Filmtitel = NA,
-        Datum = NA,
-        typ = "Jahresrechnung",
-        FileName = "Jahresrechnung.html"
-      )
-    },
-    if(file.exists("output/Archiv.html")){
-      tibble(
-        `Suisa-Nummer` = NA,
-        Filmtitel = NA,
-        Datum = NA,
-        typ = "Archiv",
-        FileName = "Archiv.html"
-      )
-    },
-  )
+  # create
+  m_Film <- bind_rows(df_temp2, df_temp1, if (file.exists("output/Statistik.html")) {
+    tibble(
+      `Suisa-Nummer` = NA,
+      Filmtitel = NA,
+      Datum = NA,
+      typ = "Statistik",
+      FileName = "Statistik.html"
+    )
+  }, if (file.exists("output/Jahresrechnung.html")) {
+    tibble(
+      `Suisa-Nummer` = NA,
+      Filmtitel = NA,
+      Datum = NA,
+      typ = "Jahresrechnung",
+      FileName = "Jahresrechnung.html"
+    )
+  }, if (file.exists("output/Archiv.html")) {
+    tibble(
+      `Suisa-Nummer` = NA,
+      Filmtitel = NA,
+      Datum = NA,
+      typ = "Archiv",
+      FileName = "Archiv.html"
+    )
+  }, )
   m_Film
   
   m_Film <- m_Film |>
@@ -361,45 +426,45 @@ webserver <- function() {
   m_Film
   
   # create site map
-  if(TRUE){
+  if (TRUE) {
     # Was für Berichte typen sind vorhanden
-    c_typ_Berichte <- m_Film$FileName|>
-      str_extract(START%R%one_or_more(WRD))|>
-      factor()|>
+    c_typ_Berichte <- m_Film$FileName |>
+      str_extract(START %R% one_or_more(WRD)) |>
+      factor() |>
       levels()
     c_typ_Berichte
     
     # Convert filenames to URL
-    c_url <- paste0("file:///",URLencode(paste0(getwd(),"/output/", m_Film$FileName)), 
-                    sep = "")
+    c_url <- paste0("file:///", URLencode(paste0(getwd(), "/output/", m_Film$FileName)), sep = "")
     c_url
     
-    c_path <- paste0(getwd(),"/output/pict")
+    c_path <- paste0(getwd(), "/output/pict")
     c_path
-    dir.create(c_path)|>suppressWarnings()
+    dir.create(c_path) |> suppressWarnings()
     
-    # Vorschaubilder erzeugen wenn noch nicht vorhanden 
+    # Vorschaubilder erzeugen wenn noch nicht vorhanden
     ii <- 1
-    if(!(length(list.files("output/", "html")) == length(list.files("output/pict/")))){
+    if (!(length(list.files("output/", "html")) == length(list.files("output/pict/")))) {
       library(magick)
       writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
       
-      c_select <- !((m_Film$FileName|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
+      c_select <- !((m_Film$FileName |> str_remove(".html")) %in% (list.files("output/pict/") |>
+                                                                     str_remove(".html.png")))
       c_select
       
       ii <- 1
       for (ii in 1:length(m_Film$FileName[c_select])) {
         # Set the path to the input image
-        input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
+        input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
         input_path
         
         # create a webshot, printed html
         webshot::webshot(url = c_url[c_select][ii], file = input_path)
         
         # Read the image crop and resize and save
-        image_read(input_path)|>
-          image_crop(geometry = "992x992+0+0")|>
-          image_resize("200x200")|>
+        image_read(input_path) |>
+          image_crop(geometry = "992x992+0+0") |>
+          image_resize("200x200") |>
           image_write(input_path)
         
         writeLines(".", sep = "")
@@ -411,9 +476,10 @@ webserver <- function() {
     c_raw
     
     ii <- 1
-    for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
-      # Index where to insert  
-      c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
+    for (ii in 1:length(c_typ_Berichte)) {
+      # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+      # Index where to insert
+      c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
       c_index <- c_index[length(c_index)]
       c_index
       
@@ -421,61 +487,92 @@ webserver <- function() {
       c_raw[c_index]
       
       # Linkliste einfügen
-      if(c_typ_Berichte[ii] == "Jahresrechnung"){
-        c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
-        c_raw <- instert_picts(c_raw,"output/pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
-      }else{
-        c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii])
-        c_raw <- instert_picts(c_raw,"output/pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
+      if (c_typ_Berichte[ii] == "Jahresrechnung") {
+        c_select <- str_detect(m_Film$FileName,
+                               START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
+        c_raw <- instert_picts(c_raw,
+                               "output/pict/",
+                               c_index,
+                               m_Film$FileName[c_select],
+                               c_url[c_select])
+      } else{
+        c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
+        c_raw <- instert_picts(c_raw,
+                               "output/pict/",
+                               c_index,
+                               m_Film$FileName[c_select],
+                               c_url[c_select])
       }
       
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
         for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(c_raw[1:(c_index)],
-                     paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"), 
-                     c_raw[(c_index+1):length(c_raw)])
+          c_raw <- c(
+            c_raw[1:(c_index)],
+            paste0(
+              "[",
+              m_Film$FileName[c_select][jj],
+              "](",
+              c_url[c_select][jj],
+              ")  ",
+              m_Film$Filmtitel[jj],
+              "  \\"
+            ),
+            c_raw[(c_index + 1):length(c_raw)]
+          )
         }
-        c_raw <- c(c_raw[1:(c_index + jj)],
-                   paste0("  \\"), 
-                   c_raw[(c_index + jj + 1):length(c_raw)])
+        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
       }
       c_raw
       
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Abrechnung"){
+      if (c_typ_Berichte[ii] == "Abrechnung") {
         for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(c_raw[1:(c_index)],
-                     paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"),
-                     c_raw[(c_index+1):length(c_raw)])
+          c_raw <- c(
+            c_raw[1:(c_index)],
+            paste0(
+              "[",
+              m_Film$FileName[c_select][jj],
+              "](",
+              c_url[c_select][jj],
+              ")  ",
+              m_Film$Filmtitel[jj],
+              "  \\"
+            ),
+            c_raw[(c_index + 1):length(c_raw)]
+          )
         }
-        c_raw <- c(c_raw[1:(c_index + jj)],
-                   paste0("  \\"),
-                   c_raw[(c_index + jj + 1):length(c_raw)])
+        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
       }
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Archiv"){
+      if (c_typ_Berichte[ii] == "Archiv") {
         for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(c_raw[1:(c_index)],
-                     paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"),
-                     c_raw[(c_index+1):length(c_raw)])
+          c_raw <- c(
+            c_raw[1:(c_index)],
+            paste0(
+              "[",
+              m_Film$FileName[c_select][jj],
+              "](",
+              c_url[c_select][jj],
+              ")  ",
+              m_Film$Filmtitel[jj],
+              "  \\"
+            ),
+            c_raw[(c_index + 1):length(c_raw)]
+          )
         }
-        c_raw <- c(c_raw[1:(c_index + jj)],
-                   paste0("  \\"),
-                   c_raw[(c_index + jj + 1):length(c_raw)])
+        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
       }
     }
     c_raw
     
     # neues file schreiben
-    c_raw|>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines("Site-Map.Rmd")
     
     # Render
-    rmarkdown::render(input = "Site-Map.Rmd", 
-                      envir = data_env
-    )
+    rmarkdown::render(input = "Site-Map.Rmd", envir = data_env)
     # Remove file
     file.remove("Site-Map.Rmd")
     
@@ -485,30 +582,39 @@ webserver <- function() {
   #copy data from .../output to .../output/webserver
   c_path <- "output/webserver"
   
-  if(!dir.exists(c_path)){
+  if (!dir.exists(c_path)) {
     dir.create(c_path)
   }
-  if(!dir.exists(paste0(c_path,"/pict"))){
-    dir.create(paste0(c_path,"/pict"))
+  if (!dir.exists(paste0(c_path, "/pict"))) {
+    dir.create(paste0(c_path, "/pict"))
   }
   
   # copy png
-  paste0(getwd(),"/output/pict/",list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE))|>
-    file.copy(paste0(c_path,"/pict"))
+  paste0(
+    getwd(),
+    "/output/pict/",
+    list.files(
+      "output/pict/",
+      pattern = "png",
+      include.dirs = TRUE,
+      recursive = FALSE
+    )
+  ) |>
+    file.copy(paste0(c_path, "/pict"))
   
   
-  if(TRUE){
+  if (TRUE) {
     m_Film$FileName <- m_Film$FileName
     
     # Was für Berichte typen sind vorhanden
-    c_typ_Berichte <- m_Film$FileName|>
-      str_extract(START%R%one_or_more(WRD))|>
-      factor()|>
+    c_typ_Berichte <- m_Film$FileName |>
+      str_extract(START %R% one_or_more(WRD)) |>
+      factor() |>
       levels()
     c_typ_Berichte
     
     # Convert filenames to URL
-    c_url <- paste0("",URLencode(m_Film$FileName))
+    c_url <- paste0("", URLencode(m_Film$FileName))
     c_url
     
     # Einlesen template der Verleiherabrechnung
@@ -516,53 +622,71 @@ webserver <- function() {
     c_raw
     
     ii <- 1
-    for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
-      # Index where to insert  
-      c_index <- (1:length(c_raw))[c_raw|>str_detect(c_typ_Berichte[ii])]
+    for (ii in 1:length(c_typ_Berichte)) {
+      # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+      # Index where to insert
+      c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
       c_index <- c_index[length(c_index)]
       c_index
       
       c_raw
       c_raw[c_index]
       
-      if(c_typ_Berichte[ii] == "Jahresrechnung"){
-        c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii]%R%DOT%R%"html")
-      }else{
-        c_select <- str_detect(m_Film$FileName, START%R%c_typ_Berichte[ii])
+      if (c_typ_Berichte[ii] == "Jahresrechnung") {
+        c_select <- str_detect(m_Film$FileName,
+                               START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
+      } else{
+        c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
       }
       
       c_raw
       m_Film$FileName[c_select]
       c_url[c_select]
       
-      c_raw <- instert_picts(c_raw,"pict/",c_index,m_Film$FileName[c_select], c_url[c_select])
+      c_raw <- instert_picts(c_raw, "pict/", c_index, m_Film$FileName[c_select], c_url[c_select])
       c_raw
       
       c_raw[c_index]
       
       
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Verleiherabrechnung"){
+      if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
         for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(c_raw[1:(c_index)],
-                     paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[c_select][jj],"  \\"), 
-                     c_raw[(c_index+1):length(c_raw)])
+          c_raw <- c(
+            c_raw[1:(c_index)],
+            paste0(
+              "[",
+              m_Film$FileName[c_select][jj],
+              "](",
+              c_url[c_select][jj],
+              ")  ",
+              m_Film$Filmtitel[c_select][jj],
+              "  \\"
+            ),
+            c_raw[(c_index + 1):length(c_raw)]
+          )
         }
-        c_raw <- c(c_raw[1:(c_index + jj)],
-                   paste0("  \\"), 
-                   c_raw[(c_index + jj + 1):length(c_raw)])
+        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
       }
       
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Abrechnung"){
+      if (c_typ_Berichte[ii] == "Abrechnung") {
         for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(c_raw[1:(c_index)],
-                     paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[c_select][jj],"  \\"), 
-                     c_raw[(c_index+1):length(c_raw)])
+          c_raw <- c(
+            c_raw[1:(c_index)],
+            paste0(
+              "[",
+              m_Film$FileName[c_select][jj],
+              "](",
+              c_url[c_select][jj],
+              ")  ",
+              m_Film$Filmtitel[c_select][jj],
+              "  \\"
+            ),
+            c_raw[(c_index + 1):length(c_raw)]
+          )
         }
-        c_raw <- c(c_raw[1:(c_index + jj)],
-                   paste0("  \\"), 
-                   c_raw[(c_index + jj + 1):length(c_raw)])
+        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
       }
       c_raw
     }
@@ -571,18 +695,16 @@ webserver <- function() {
     c_raw
     
     # neues file schreiben
-    c_raw|>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines("output/webserver/index.Rmd")
     
     # Render
-    rmarkdown::render(input = "output/webserver/index.Rmd", 
-                      envir = data_env
-    )
+    rmarkdown::render(input = "output/webserver/index.Rmd", envir = data_env)
     # Remove file
     file.remove("output/webserver/index.Rmd")
     # Remove directory
-    unlink(paste0(c_path,"/pict"), recursive = TRUE)
+    unlink(paste0(c_path, "/pict"), recursive = TRUE)
     
   }
   
@@ -602,30 +724,45 @@ webserver <- function() {
     # load html file
     doc <- read_html(file_path)
     
-    # Find elements to edit 
-    element <- xml_find_first(doc, "body")|>
+    # Find elements to edit
+    element <- xml_find_first(doc, "body") |>
       xml_find_first("div")
     
     # Find all children of the parent node
     children <- xml_children(element)
     
     # Insert Node
-    xml_add_child(children[[1]], paste0("a href=\"",URLencode(paste0("index.html")),"\""), "Site-Map")
+    xml_add_child(children[[1]],
+                  paste0("a href=\"", URLencode(paste0("index.html")), "\""),
+                  "Site-Map")
     write_xml(doc, file_path)
   }
   
   #copy data from .../output to .../output/webserver
   c_path <- "output/webserver"
   
-  # copy html 
-  paste0("output/",list.files("output/",pattern = "html",include.dirs = FALSE, recursive = FALSE))|>
-    file.copy(paste0(c_path,""), overwrite = TRUE)
+  # copy html
+  paste0(
+    "output/",
+    list.files(
+      "output/",
+      pattern = "html",
+      include.dirs = FALSE,
+      recursive = FALSE
+    )
+  ) |>
+    file.copy(paste0(c_path, ""), overwrite = TRUE)
   
-  c_files <- list.files("output/webserver/",pattern = "html"%R%END,include.dirs = FALSE, recursive = FALSE)
-  c_files <- paste0("output/webserver/",c_files)
+  c_files <- list.files(
+    "output/webserver/",
+    pattern = "html" %R% END,
+    include.dirs = FALSE,
+    recursive = FALSE
+  )
+  c_files <- paste0("output/webserver/", c_files)
   
   # apply Site-Map link
-  c_files|>
+  c_files |>
     lapply(add_SiteMapLink)
   
   # remove files
@@ -647,11 +784,18 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung |>
-      filter(Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
-             `Suisa Nummer` == (mapping|> filter(index == ii) |>select(Suisanummer)|>pull())
+      filter(
+        Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
+        `Suisa Nummer` == (
+          mapping |> filter(index == ii) |> select(Suisanummer) |> pull()
+        )
       ) |>
       mutate(
-        Anfang = paste0(lubridate::hour(Anfang), ":", lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
+        Anfang = paste0(
+          lubridate::hour(Anfang),
+          ":",
+          lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")
+        ),
         Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
       ) |>
       rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
@@ -669,27 +813,39 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
     
     # Inhaltsverzeichnis
-    if (toc) { # neues file schreiben mit toc
+    if (toc) {
+      # neues file schreiben mit toc
       c_raw |>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
         writeLines(paste0("source/temp.Rmd"))
-    } else { # neues file schreiben ohne toc
+    } else {
+      # neues file schreiben ohne toc
       c_raw |>
         writeLines(paste0("source/temp.Rmd"))
     }
     
     # Render
-    rmarkdown::render(input = "source/temp.Rmd",
-                      output_format = df_Render$Render,
-                      output_file = paste0("Abrechnung ",mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",
-                                           mapping |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render$fileExt),
-                      output_dir = "output",
-                      envir = data_env
+    rmarkdown::render(
+      input = "source/temp.Rmd",
+      output_format = df_Render$Render,
+      output_file = paste0(
+        "Abrechnung ",
+        mapping |> filter(index == ii) |> select(Suisanummer) |> pull(),
+        " ",
+        mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
+        df_Render$fileExt
+      ),
+      output_dir = "output",
+      envir = data_env
     )
     
     # user interaction
     print(clc)
-    paste("Bericht: \nFilmabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
+    paste(
+      "Bericht: \nFilmabrechnung vom",
+      mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
+      "erstellt"
+    ) |>
       writeLines()
     
     
@@ -710,8 +866,13 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
       # Render
       rmarkdown::render(
         input = "Verleiherabrechnung.Rmd",
-        output_file = paste0("Verleiherabrechnung ",mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",
-                             mapping |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render$fileExt),
+        output_file = paste0(
+          "Verleiherabrechnung ",
+          mapping |> filter(index == ii) |> select(Suisanummer) |> pull(),
+          " ",
+          mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
+          df_Render$fileExt
+        ),
         output_format = df_Render()$Render,
         output_dir = paste0(getwd(), "/output"),
         envir = data_env
@@ -720,7 +881,11 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
       
       # user interaction
       print(clc)
-      paste("Bericht: \nVerleiherabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
+      paste(
+        "Bericht: \nVerleiherabrechnung vom",
+        mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
+        "erstellt"
+      ) |>
         writeLines()
       
       # remove file
@@ -729,26 +894,28 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   }
 }
 
-# Daten einlesen
 # Envirnoment for Data read in
-calculate_warnings <- ""
-ausgabe_text <- "Daten wurden eingelesen."
 data_env <- new.env()
 
+# Daten einlesen
+calculate_warnings <- ""
+ausgabe_text <- "Daten wurden eingelesen."
 tryCatch({
   # Fehler abfangen
   calculate_warnings <- capture.output({
     source("source/calculate.R", local = data_env)
   }, type = "message")
 }, error = function(e) {
-  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)
+  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
+                         e$message)
   ausgabe_text <-
-    paste0("\n\n",
-           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-           "! Es konnten nicht alle Daten einlesen werden. !\n",
-           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
-           ausgabe_text,
-           collapse = "\n"
+    paste0(
+      "\n\n",
+      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+      "! Es konnten nicht alle Daten einlesen werden. !\n",
+      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
+      ausgabe_text,
+      collapse = "\n"
     )
   stop(ausgabe_text)
 })
@@ -761,14 +928,10 @@ toc <- shiny::reactiveVal(TRUE)
 c_render_option <- shiny::reactiveVal("1")
 
 # Vektor mit Datumseinträgen
-if(exists("df_show",envir = data_env))  {
+if (exists("df_show", envir = data_env))  {
   datum_vektor <- data_env$df_show$Datum
 } else {
-  datum_vektor <- seq(
-    as.Date(paste0(Abrechungsjahr,"-01-01")),
-    as.Date(paste0(Abrechungsjahr,"-12-31")),
-    by = "day"
-  )
+  datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
 }
 
 # Variable, um Status zu speichern
@@ -789,7 +952,7 @@ shiny::addResourcePath("custom_styles", "source")
 
 # Map the URL path "custom" to the local directory "output/webserver"
 # Webserver root directory
-if(!dir.exists("output/webserver")) {
+if (!dir.exists("output/webserver")) {
   dir.create("output/webserver", recursive = TRUE)
 }
 shiny::addResourcePath("reports", "output/webserver")
@@ -814,99 +977,164 @@ ui <- shiny::fluidPage(
   )
 )
 
+# 
 # # UI-Definition bs4Dash
 # library(bs4Dash)
 # ui <- dashboardPage(
-#   dashboardHeader(
-#     title = paste("Kinoklub GUI", c_script_version)
-#   ),
-#   dashboardSidebar(
-#     shiny::uiOutput("dynamicContent_input_panel")
-#   ),
-#   dashboardBody(
-#     shiny::uiOutput("dynamicContent_output_panel")
-#   ),
+#   help = TRUE,
+#   dark = TRUE,  # Force dark mode
+#   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
+#   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
+#   dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
+#   controlbar = dashboardControlbar(
+#     id = "controlbar",
+#     skin = "dark",
+#     controlbarMenu(
+#       id = "controlbarMenu",
+#       controlbarItem(
+#         title = "Help",
+#         icon = icon("question-circle"),
+#         p("This is a custom help section.")
+#       )
+#     )
+#   )
 # )
 
 # Server-Logik
 server <- function(input, output, session) {
-  
-  # open Excel Einkauf
+  # Überwachung Button: open Excel Einkauf
   shiny::observeEvent(input$open_einkauf, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Einkauf")]
-    
-    # take the latest date 
-    if(length(c_file) > 1) {
-      df_temp <- tibble(file = c_file,
-                        date = dmy(c_file)
-      )|>
-        arrange(date)
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
       
-      c_file <- df_temp$file[nrow(df_temp)]
-    }
-    
-    file_path <- paste0(getwd(),"/Input/", c_file)  # Update this with your actual file path
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(modalDialog(
-        title = "Error",
-        "File not found! Check the file path.",
-        easyClose = TRUE
-      ))
-    }
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Einkauf")]
+      # take the latest date
+      if (length(c_file) > 1) {
+        df_temp <- tibble(file = c_file, date = dmy(c_file)) |>
+          arrange(date)
+        
+        c_file <- df_temp$file[nrow(df_temp)]
+      }
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)  # Update this with your actual file path
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
+        )
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
-  # open Excel Einnahmen und Ausgaben
+  # Überwachung Button: open Excel Einnahmen und Ausgaben
   shiny::observeEvent(input$open_EinAus, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Einnahmen")]
-    
-    file_path <- paste0(getwd(),"/Input/", c_file)  
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(modalDialog(
-        title = "Error",
-        "File not found! Check the file path.",
-        easyClose = TRUE
-      ))
-    }
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Einnahmen und Ausganben wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Einnahmen")]
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
+        )
+      }
+      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
-  # open Excel Spezialpreise
+  # Überwachung Button: open Excel Spezialpreise
   shiny::observeEvent(input$open_Spez, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Spezial")]
-    
-    file_path <- paste0(getwd(),"/Input/", c_file)  
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(modalDialog(
-        title = "Error",
-        "File not found! Check the file path.",
-        easyClose = TRUE
-      ))
-    }
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Spezial")]
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
+        )
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
-  # open Excel Verleiherabgaben Excel
+  # Überwachung Button: open Excel Verleiherabgaben Excel
   shiny::observeEvent(input$open_Verleih, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Verleiher")]
-    
-    file_path <- paste0(getwd(),"/Input/", c_file)  
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(modalDialog(
-        title = "Error",
-        "File not found! Check the file path.",
-        easyClose = TRUE
-      ))
-    }
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Verleiher")]
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
+        )
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
   # Überwachung Button Daten Einlesen
@@ -914,43 +1142,49 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Running script...", value = 0, {
       ausgabe_text("")
       calculate_warnings("")
-      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
       tryCatch({
         # Warnings abfangen
         capture.output({
           source("source/calculate.R", local =  data_env)
-          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
-        }, type = "message")|>
+          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        }, type = "message") |>
           calculate_warnings()
-      }, error = function(e) { # Fehler abfangen
-        paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
+      }, error = function(e) {
+        # Fehler abfangen
+        paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
+               e$message) |>
           ausgabe_text()
-        paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-               "! Es konnten nicht alle Daten einlesen werden. !\n",
-               "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-               ausgabe_text())|>
+        paste0(
+          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+          "! Es konnten nicht alle Daten einlesen werden. !\n",
+          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+          ausgabe_text()
+        ) |>
           ausgabe_text()
       })
-      if(nchar(ausgabe_text()) == 0){
-        paste0("Daten einlesen mit den folgenden Warnmeldungen, Berichte können dennoch erstellt werden!\n\n",
-               paste0(calculate_warnings(),
-                      collapse = "\n")
-        )|>
+      if (nchar(ausgabe_text()) == 0) {
+        paste0(
+          "Daten einlesen mit den folgenden Warnmeldungen, Berichte können dennoch erstellt werden!\n\n",
+          paste0(calculate_warnings(), collapse = "\n")
+        ) |>
           ausgabe_text()
       }
-      shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
-      End_date_choose(Sys.Date() + ((max(data_env$df_Abrechnung$Datum) - Sys.Date()) |> as.integer()))
-      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+      End_date_choose(Sys.Date() + ((
+        max(data_env$df_Abrechnung$Datum) - Sys.Date()
+      ) |> as.integer()))
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
   
   # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       ausgabe_text("")
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
@@ -958,22 +1192,32 @@ server <- function(input, output, session) {
       # Überprüfen, ob beide Daten gültig sind
       if (start_datum <= end_datum) {
         # Aktion ausführen
-        ausgabe_text(paste0(
-          "Die Filmabrechnungen für den Zeitraum \n",
-          format(start_datum, "%d.%m.%Y"), " bis ",
-          format(end_datum, "%d.%m.%Y"), " wurden erstellt",
-          paste0("\n", getwd(), "/output")
-        ))
-        shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+        ausgabe_text(
+          paste0(
+            "Die Filmabrechnungen für den Zeitraum \n",
+            format(start_datum, "%d.%m.%Y"),
+            " bis ",
+            format(end_datum, "%d.%m.%Y"),
+            " wurden erstellt",
+            paste0("\n", getwd(), "/output")
+          )
+        )
+        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
-          df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer) 
-          df_mapping__ <- df_mapping__|>
+          df_mapping__ <- mapping(data_env$df_mapping$Datum,
+                                  data_env$df_mapping$Suisanummer)
+          df_mapping__ <- df_mapping__ |>
             filter(between(Datum, start_datum, end_datum))
-          AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
-          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          AbrechnungErstellen(
+            df_mapping__,
+            get("df_Abrechnung", envir = data_env),
+            df_Render = df_Render(),
+            toc = toc()
+          )
+          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
-          shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+          shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         }, error = function(e) {
           ausgabe_text(
             paste0(
@@ -986,7 +1230,7 @@ server <- function(input, output, session) {
         ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
       }
       file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
     
   })
@@ -994,7 +1238,7 @@ server <- function(input, output, session) {
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       ausgabe_text(paste0(
         "Bericht: \nStatistik erstellt",
@@ -1002,20 +1246,25 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
           StatistikErstellen(toc(), df_Render())
-          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           
         }, error = function(e) {
-          ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:\n", e$message))
+          ausgabe_text(paste(
+            "Statistik, Fehler beim Bericht erstellen:\n",
+            e$message
+          ))
         })
       } else{
-        ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+        ausgabe_text(
+          "Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
+        )
       }
-      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
     
   })
@@ -1023,35 +1272,38 @@ server <- function(input, output, session) {
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
-      paste0(
-        "Bericht: \nJahresrechnung erstellt",
-        paste0("\n", getwd(), "/output")
-      ) |>
+      paste0("Bericht: \nJahresrechnung erstellt",
+             paste0("\n", getwd(), "/output")) |>
         ausgabe_text()
       if (exists("data_env")) {
         tryCatch({
-          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
           JahresrechnungErstellen(toc(), df_Render())
-          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
         }, error = function(e) {
-          ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:\n", e$message))
+          ausgabe_text(paste(
+            "Jahresrechnung, Fehler beim Bericht erstellen:\n",
+            e$message
+          ))
         })
-      }else{
-        ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+      } else{
+        ausgabe_text(
+          "Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
+        )
       }
-      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
   
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       paste0(
         "Filmumfrage (Wordpress daten) auswertung ausgeführt.",
         "\nDie Exceldatei kann jetzt heruntergeladen werden."
@@ -1059,21 +1311,21 @@ server <- function(input, output, session) {
         ausgabe_text()
       
       # read WordPress and procinema data and create excel file for Kinoprogramm
-      tryCatch(
-        {
-          source("source/procinema.R", local = WordPress_env)
-          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
-          source("source/read_and_convert_wordPress.R", local = WordPress_env)
-          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
-          FilmvorschlagErstellen(toc(),df_Render())
-          shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
-          webserver()
-        },
-        error = function(e) {
-          ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
-        }
-      )
-      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      tryCatch({
+        source("source/procinema.R", local = WordPress_env)
+        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        source("source/read_and_convert_wordPress.R", local = WordPress_env)
+        shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
+        FilmvorschlagErstellen(toc(), df_Render())
+        shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+        webserver()
+      }, error = function(e) {
+        ausgabe_text(paste(
+          "Filmvorschläge, Fehler beim Bericht erstellen:\n",
+          e$message
+        ))
+      })
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
     })
   })
@@ -1081,69 +1333,70 @@ server <- function(input, output, session) {
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1/10, detail = paste("Step", 1, "of 10"))
+      shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
       # User interaction
-      paste0(
-        "Alles wurde neu erstellt",
-        paste0("\n", (paste0(getwd(), "/output/webserver/", "index.html")),
-               sep = ""
-        )
-      ) |>
+      paste0("Alles wurde neu erstellt", paste0("\n", (
+        paste0(getwd(), "/output/webserver/", "index.html")
+      ), sep = "")) |>
         ausgabe_text()
       
-      # Delete all files prior to creating new files 
-      list.files("output/", "html", full.names = TRUE)|>
+      # Delete all files prior to creating new files
+      list.files("output/", "html", full.names = TRUE) |>
         file.remove()
-      list.files("output/pict/", "html", full.names = TRUE)|>
+      list.files("output/pict/", "html", full.names = TRUE) |>
         file.remove()
       
       tryCatch({
         # erstellen von Verzeichnissen
         dir.create("output/") |> suppressWarnings()
         dir.create("output/data/") |> suppressWarnings()
-        shiny::incProgress(1/10, detail = paste("Step", 2, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
         
         # Daten einlesen und konvertieren
         source("source/calculate.R", local =  data_env)
-        shiny::incProgress(1/10, detail = paste("Step", 3, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
         
         # Statistik-Bericht erstellen
         StatistikErstellen(toc(), df_Render())
-        shiny::incProgress(1/10, detail = paste("Step", 5, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
         
         # Jahresrechnung-Bericht erstellen
         JahresrechnungErstellen(toc(), df_Render())
-        shiny::incProgress(1/10, detail = paste("Step", 6, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
         
         # Bericht(e) Abrechnung pro Filmforführung erstellen
-        df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer)
+        df_mapping__ <- mapping(data_env$df_mapping$Datum,
+                                data_env$df_mapping$Suisanummer)
         AbrechnungErstellen(
-          df_mapping__, 
-          get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc()
+          df_mapping__,
+          get("df_Abrechnung", envir = data_env),
+          df_Render = df_Render(),
+          toc = toc()
         )
         source("source/procinema.R", local = WordPress_env)
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
-        shiny::incProgress(1/10, detail = paste("step", 7, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
         
-        FilmvorschlagErstellen(toc(),df_Render())
-        shiny::incProgress(1/10, detail = paste("step", 8, "of 10"))
+        FilmvorschlagErstellen(toc(), df_Render())
+        shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
         
         # Create webserver data
         webserver()
-        shiny::incProgress(1/10, detail = paste("step", 9, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
         
-      },
-      error = function(e) {
-        ausgabe_text(paste("Alles neu erstellen\nFehler beim Bericht erstellen:\n", e$message))
-      }
-      )
+      }, error = function(e) {
+        ausgabe_text(paste(
+          "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
+          e$message
+        ))
+      })
       End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
       file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1/10, detail = paste("Step", 10, "of 10"))
+      shiny::incProgress(1 / 10, detail = paste("Step", 10, "of 10"))
     })
   })
   
-  # Überwachung Inhaltsverzeichniss
+  # Überwachung Input: Inhaltsverzeichniss
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1151,43 +1404,42 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-  # Überwachung Ausgabeformat
+  # Überwachung Input: Ausgabeformat
   shiny::observeEvent(input$render_option, {
     print(clc)
     
-    df_Render(
-      switch(input$render_option,
-             "1" = tibble::tibble(
-               Render = c("html_document"),
-               fileExt = c(".html")
-             ),
-             "2" = tibble::tibble(
-               Render = c("word_document"),
-               fileExt = c(".docx")
-             ),
-             "3" = tibble::tibble(
-               Render = c("pdf_document"),
-               fileExt = c(".pdf")
-             ),
-             "4" = tibble::tibble(
-               Render = c("html_document", "word_document"),
-               fileExt = c(".html", ".docx")
-             ),
-             "5" = tibble::tibble(
-               Render = c("html_document", "pdf_document"),
-               fileExt = c(".html", ".pdf")
-             ),
-             "6" = tibble::tibble(
-               Render = c("word_document", "pdf_document"),
-               fileExt = c(".docx", ".pdf")
-             ),
-             "7" = tibble::tibble(
-               Render = c("html_document", "word_document", "pdf_document"),
-               fileExt = c(".html", ".docx", ".pdf")
-             ),
-             stop("\nDie verwendete Renderoption is nicht definiert")
-      )
-    )
+    df_Render(switch(
+      input$render_option,
+      "1" = tibble::tibble(
+        Render = c("html_document"),
+        fileExt = c(".html")
+      ),
+      "2" = tibble::tibble(
+        Render = c("word_document"),
+        fileExt = c(".docx")
+      ),
+      "3" = tibble::tibble(
+        Render = c("pdf_document"),
+        fileExt = c(".pdf")
+      ),
+      "4" = tibble::tibble(
+        Render = c("html_document", "word_document"),
+        fileExt = c(".html", ".docx")
+      ),
+      "5" = tibble::tibble(
+        Render = c("html_document", "pdf_document"),
+        fileExt = c(".html", ".pdf")
+      ),
+      "6" = tibble::tibble(
+        Render = c("word_document", "pdf_document"),
+        fileExt = c(".docx", ".pdf")
+      ),
+      "7" = tibble::tibble(
+        Render = c("html_document", "word_document", "pdf_document"),
+        fileExt = c(".html", ".docx", ".pdf")
+      ),
+      stop("\nDie verwendete Renderoption is nicht definiert")
+    ))
     file_exists(file.exists("output/webserver/index.html"))
   })
   
@@ -1197,7 +1449,12 @@ server <- function(input, output, session) {
       "Werbung.xlsx"
     },
     content = function(file) {
-      write.xlsx(data_env$df_Besucherzahlen, file = file, asTable = TRUE, overwrite = TRUE)
+      write.xlsx(
+        data_env$df_Besucherzahlen,
+        file = file,
+        asTable = TRUE,
+        overwrite = TRUE
+      )
     }
   )
   
@@ -1210,116 +1467,128 @@ server <- function(input, output, session) {
       source_file <- "output/data/Filmvorschläge.xlsx"
       # Check if the file exists before attempting to copy
       if (file.exists(source_file)) {
-        file.copy(from = source_file, to = file, overwrite = TRUE)
+        file.copy(from = source_file,
+                  to = file,
+                  overwrite = TRUE)
       } else {
         stop("The file does not exist.")
       }
     }
   )
   
-  # Systemrückmeldungen aktualisieren
-  output$ausgabe <- renderText({
-    ausgabe_text()
-  })
-  
-  # Update table with all the dates in the selected range
-  output$dateTable <- shiny::renderTable({
-    if (exists("data_env")){
-      start_datum <- input$dateRange |> min()
-      end_datum <- input$dateRange |> max()
-      
-      get("df_Abrechnung", envir = data_env) |>
-        filter(between(Datum, start_datum, end_datum)) |>
-        arrange(desc(Datum), desc(Anfang))|>
-        mutate(
-          Datum = format(Datum, "%d.%m.%Y"),
-          Zeit = format(Anfang, "%H%M")) |>
-        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
-    }
-  })
-  
-  # file upload handler
+  # Upload handler
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
     
-    if (file_ext == "xlsx") { # save xlsx files 
+    if (file_ext == "xlsx") {
+      # save xlsx files
       # Define save path
       save_path <- paste0("Input/", file_name)
       # Save the file to the specified directory
-      file.copy(from = file_path, to = save_path, overwrite = TRUE)
+      file.copy(from = file_path,
+                to = save_path,
+                overwrite = TRUE)
+      
       # user interaction
-      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-             save_path, " abgespeichert")|>
+      paste0(
+        "Die Datei \"",
+        file_name,
+        "\" wurde eingelesen und im Verzeichniss ",
+        "\n",getwd(),"/Kinoklub",
+        save_path,
+        " abgespeichert"
+      ) |>
         ausgabe_text()
       
       # Read all sheet names
       sheet_names <- openxlsx::getSheetNames(save_path)
-      return(list(type = "xlsx", path = save_path, sheets = sheet_names))
+      return(list(
+        type = "xlsx",
+        path = save_path,
+        sheets = sheet_names
+      ))
       
-    } else if (file_ext == "txt") { # save txt files
-      if(file_name == "Procinema.txt" | file_name == "procinema.txt"){ # save Procinema.txt file
+    } else if (file_ext == "txt") {
+      # save txt files
+      if (file_name == "Procinema.txt" |
+          file_name == "procinema.txt") {
+        # save Procinema.txt file
         # Define save path
         save_path <- paste0("Input/Procinema/")
-        # remove file 
-        list.files(save_path, full.names = TRUE)|>
+        # remove file
+        list.files(save_path, full.names = TRUE) |>
           file.remove()
         # Define save path
         save_path <- paste0("Input/Procinema/", tolower(file_name))
         # Save the file to the specified directory
-        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        file.copy(from = file_path,
+                  to = save_path,
+                  overwrite = TRUE)
         # user interaction
-        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-               save_path, " abgespeichert")|>
+        paste0(
+          "Die Datei \"",
+          file_name,
+          "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+          save_path,
+          " abgespeichert"
+        ) |>
           ausgabe_text()
-        return(list(type = "txt", data = readLines(file_path))) 
-      }else{ # save all other txt files
+        return(list(type = "txt", data = readLines(file_path)))
+      } else{
+        # save all other txt files
         # Define save path
         save_path <- paste0("Input/advance tickets/", file_name)
         # Save the file to the specified directory
-        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        file.copy(from = file_path,
+                  to = save_path,
+                  overwrite = TRUE)
         # user interaction
-        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-               save_path, " abgespeichert")|>
+        paste0(
+          "Die Datei \"",
+          file_name,
+          "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+          save_path,
+          " abgespeichert"
+        ) |>
           ausgabe_text()
-        return(list(type = "txt", data = readLines(file_path))) 
+        return(list(type = "txt", data = readLines(file_path)))
       }
-    } else if (file_ext == "csv"){ # save csv files (WordPress input)
+    } else if (file_ext == "csv") {
+      # save csv files (WordPress input)
       # Define save path
       save_path <- paste0("Input/WordPress/")
-      # remove file 
-      list.files(save_path, full.names = TRUE)|>
+      # remove file
+      list.files(save_path, full.names = TRUE) |>
         file.remove()
       # Define save path
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory
       file.copy(from = file_path, to = save_path)
       # user interaction
-      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-             save_path, " abgespeichert")|>
+      paste0(
+        "Die Datei \"",
+        file_name,
+        "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+        save_path,
+        " abgespeichert"
+      ) |>
         ausgabe_text()
-      return(list(type = "csv", data = readLines(file_path))) 
+      return(list(type = "csv", data = readLines(file_path)))
     } else {
-      paste0("Dateierweiterung: ", file_ext, " ist nicht bekannt und wird von diesem Script nicht verwendet.",
-             "\nDatei wurde \"", file_name, "\" wurde nicht gespeichert.")|>
+      paste0(
+        "Dateierweiterung: ",
+        file_ext,
+        " ist nicht bekannt und wird von diesem Script nicht verwendet.",
+        "\nDatei wurde \"",
+        file_name,
+        "\" wurde nicht gespeichert."
+      ) |>
         ausgabe_text()
       return(NULL)
     }
-  })
-  
-  # txt file rendering
-  output$text_output <- shiny::renderPrint({
-    shiny::req(file_data()$type %in% c("txt", "csv"))
-    file_data()$data|>
-      writeLines()
-  })
-  
-  # Render dynamic sheet selection UI
-  output$sheet_selector <- shiny::renderUI({
-    shiny::req(file_data())
-    shiny::selectInput("selected_sheet", "Excel Blatt auswählen:", choices = file_data()$sheets)
   })
   
   # Read selected sheet data
@@ -1328,26 +1597,64 @@ server <- function(input, output, session) {
     col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
   })
   
-  # Render selected sheet contents
+  # Reder: Update table with all the dates in the selected range
+  output$dateTable <- shiny::renderTable({
+    if (exists("data_env")) {
+      start_datum <- input$dateRange |> min()
+      end_datum <- input$dateRange |> max()
+      
+      get("df_Abrechnung", envir = data_env) |>
+        filter(between(Datum, start_datum, end_datum)) |>
+        arrange(desc(Datum), desc(Anfang)) |>
+        mutate(Datum = format(Datum, "%d.%m.%Y"),
+               Zeit = format(Anfang, "%H%M")) |>
+        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+    }
+  })
+  
+  # Render: txt file rendering
+  output$text_output <- shiny::renderPrint({
+    shiny::req(file_data()$type %in% c("txt", "csv"))
+    file_data()$data |>
+      writeLines()
+  })
+  
+  # Render: dynamic sheet selection UI
+  output$sheet_selector <- shiny::renderUI({
+    shiny::req(file_data())
+    shiny::selectInput("selected_sheet",
+                       "Excel Blatt auswählen:",
+                       choices = file_data()$sheets)
+  })
+  
+  # Render: Systemrückmeldungen aktualisieren
+  output$ausgabe <- renderText({
+    ausgabe_text()
+  })
+  
+  # Render: selected sheet contents
   output$table_output <- shiny::renderTable({
     shiny::req(selected_data())
     selected_data()
   })
   
-  # Dynamically update the input panel content
+  # Render: Dynamically update the input panel content
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
-      
       # File input handler
-      shiny::fileInput("file", "Datei hochladen:", 
-                       accept = c(".xlsx", ".txt"), 
-                       multiple = FALSE, 
-                       placeholder = "Drag & drop or browse a file"),
+      shiny::fileInput(
+        "file",
+        "Datei hochladen:",
+        accept = c(".xlsx", ".txt"),
+        multiple = FALSE,
+        placeholder = "Drag & drop or browse a file"
+      ),
       
-      shiny::uiOutput("sheet_selector"),  # Dynamic sheet selector
+      shiny::uiOutput("sheet_selector"),
+      # Dynamic sheet selector
       
       # Button Daten Einlesen
-      shiny::actionButton("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
+      shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
       
       shiny::tags$hr(),
       # Add tooltips using shinyBS
@@ -1362,11 +1669,16 @@ server <- function(input, output, session) {
       shiny::dateRangeInput(
         inputId = "dateRange",
         label = "Wählen Sie einen Datumsbereich aus:",
-        start = End_date_choose(), # Default start date (one week ago)
-        end = End_date_choose(), # Default end date (last show)
-        min = min(datum_vektor), # Earliest selectable date
-        max = End_date_choose(), # Latest selectable date
-        format = "dd.mm.yyyy", # Set input format to German (DD.MM.YYYY)
+        start = End_date_choose(),
+        # Default start date (one week ago)
+        end = End_date_choose(),
+        # Default end date (last show)
+        min = min(datum_vektor),
+        # Earliest selectable date
+        max = End_date_choose(),
+        # Latest selectable date
+        format = "dd.mm.yyyy",
+        # Set input format to German (DD.MM.YYYY)
         separator = " bis " # Separator for the two dates in German
       ),
       
@@ -1393,7 +1705,7 @@ server <- function(input, output, session) {
       shiny::tags$hr(),
       
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      shiny::actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      shiny::actionButton("wordpress", "Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
       
@@ -1413,10 +1725,7 @@ server <- function(input, output, session) {
       shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
         label = "Inhaltsverzeichnis erstellen?",
-        choices = list(
-          "Ja" = TRUE,
-          "Nein" = FALSE
-        ),
+        choices = list("Ja" = TRUE, "Nein" = FALSE),
         selected = TRUE # Default value
       ),
       
@@ -1445,7 +1754,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Dynamically update the output panel content
+  # Render: Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
@@ -1456,9 +1765,7 @@ server <- function(input, output, session) {
         shiny::tags$h4("Berichte:")
       },
       if (file_exists()) {
-        shiny::tags$a(href = "reports/index.html",
-                      "Site-map",
-                      # target = "_blank",
+        shiny::tags$a(href = "reports/index.html", "Site-map", # target = "_blank",
                       style = "font-size: 24px;")
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
@@ -1466,7 +1773,7 @@ server <- function(input, output, session) {
       shiny::tags$h4("System Rückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
-      shiny::tags$h4("Inhalt der hochgeladen Datei:"),  
+      shiny::tags$h4("Inhalt der hochgeladen Datei:"),
       shiny::tableOutput("table_output"),
       shiny::verbatimTextOutput("text_output")
     )
@@ -1474,10 +1781,18 @@ server <- function(input, output, session) {
   })
 }
 
+# library(plumber)
+# app <- shinyApp(ui, server)
+#
+# # Run Plumber API
+# r <- plumb("GUI.R")
+# r$run(host = "0.0.0.0", port = 8000)
+
 # Run the app
 shiny::runApp(
+  host = "0.0.0.0",
   shiny::shinyApp(ui = ui, server = server),
-  port = 8080, # Replace 8080 with your desired port
+  port = 5000,
+  # Replace 8080 with your desired port
   launch.browser = TRUE # Automatically open in the system's default browser
 )
-
