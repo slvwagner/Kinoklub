@@ -12,12 +12,12 @@
         }
         iframe {
             width: 100%;
-            height: 1150px;
+            height: 905px;
             border: none;
         }
     </style>
 </head>
 <body>
-    <iframe src="http://localhost:5000/"></iframe>
+    <iframe src="http://192.168.0.163:5000/"></iframe>
 </body>
 </html>
