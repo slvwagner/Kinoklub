@@ -1646,13 +1646,10 @@ server <- function(input, output, session) {
         multiple = FALSE,
         placeholder = "Drag & drop or browse a file"
       ),
-      
       shiny::uiOutput("sheet_selector"),
-      # Dynamic sheet selector
       
       # Button Daten Einlesen
       shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
-      
       shiny::tags$hr(),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
@@ -1705,7 +1702,6 @@ server <- function(input, output, session) {
       shiny::actionButton("wordpress", "Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
-      
       
       # Button zum Ausführen von Code Alles erstellen mit Webserver
       shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
@@ -1777,13 +1773,6 @@ server <- function(input, output, session) {
     
   })
 }
-
-# library(plumber)
-# app <- shinyApp(ui, server)
-#
-# # Run Plumber API
-# r <- plumb("GUI.R")
-# r$run(host = "0.0.0.0", port = 8000)
 
 # Run the app
 shiny::runApp(
