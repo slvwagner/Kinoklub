@@ -301,7 +301,7 @@ Einnahmen_und_Ausgaben$Ausgaben$Suisanummer
 Einnahmen_und_Ausgaben$Einnahmen$Suisanummer <- Einnahmen_und_Ausgaben$Einnahmen$Suisanummer|>
   str_squish()|>
   str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
-Einnahmen_und_Ausgaben$Einnahmen$Suisanummer
+Einnahmen_und_Ausgaben
 
 
 # Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
@@ -415,7 +415,7 @@ df_Eintritt <- l_Eintritt|>
          Tax = NULL, 
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
-
+df_Eintritt
 
 # Filmvorführungen
 df_Flimvorfuerungen <- l_Eintritt|>
@@ -425,14 +425,13 @@ df_Flimvorfuerungen <- l_Eintritt|>
   bind_rows()|>
   mutate(Datum = Datum_|>dmy()|>as.Date())
 
-
 # Bericht mapping
 df_mapping <- tibble(Datum = df_Flimvorfuerungen$Datum,
                      Suisanummer = df_Flimvorfuerungen$`Suisa Nummer`)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
 remove(df_Flimvorfuerungen)
-
+df_mapping
 
 # Kioskabrechnungen
 # Einkaufspreise
@@ -477,39 +476,38 @@ Spezialpreisekiosk <-
   paste0("Input/", c_file)|>
   col_env$get_excel_data()
 
-Spezialpreisekiosk <-Spezialpreisekiosk[[1]]|>
-  mutate(Datum = as.Date(Datum))
-
-
-# error handling
-# suisa nummer automatisch korrigieren 
-Spezialpreisekiosk$Suisanummer <-  Spezialpreisekiosk$Suisanummer|>
-  str_squish()|>
-  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
-Spezialpreisekiosk$Suisanummer
+Spezialpreisekiosk <-Spezialpreisekiosk$Spezpreise|>
+  mutate(Datum = as.Date(Datum),
+         # suisa nummer automatisch korrigieren 
+         Suisanummer = Suisanummer|>str_squish()|>str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT)
+         )
+Spezialpreisekiosk
 
 # error handling
 if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern im file:\n .../Kinoklub/input/Spezialpreisekiosk.xlsx definiert")
 
-
 # error handling
-# Sind für alle Spezialpreise pro Datum definiert?  
+# Sind alle Spezialpreise pro Datum und Suisanummer definiert?  
 df_spez_preis_na <- df_Kiosk|>
   filter(str_detect(Verkaufsartikel, "Spez")) |>
-  distinct(Datum, Suisanummer, .keep_all = T) |>
-  left_join(
-    df_Eintritt |>
-      distinct(Datum, `Suisa Nummer`, .keep_all = T) |>
-      select(Datum, Filmtitel, `Suisa Nummer`),
-    by = c("Datum" = "Datum", "Suisanummer" = "Suisa Nummer")
+  left_join( # look up Spezialpreise
+    Spezialpreisekiosk, 
+    by = c(Datum = "Datum", Suisanummer = "Suisanummer", Verkaufsartikel = "Spezialpreis")
   )|>
-  anti_join(Spezialpreisekiosk |>distinct(Datum),
-            by = join_by(Datum))
+  filter(is.na(Artikelname))
+
+df_spez_preis_na <- df_spez_preis_na|>
+  left_join(df_Eintritt|> # look up Filmtitel
+              distinct(Filmtitel,.keep_all = T),
+            by = c(Datum = "Datum", Suisanummer = "Suisa Nummer")
+            )
+df_spez_preis_na
 
 if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum), 
+      "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum),
+      " / ", df_spez_preis_na$Suisanummer,
       "\nwurde der Artikel ", df_spez_preis_na$Verkaufsartikel," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
     )
