@@ -980,9 +980,9 @@ df_keine_Rechnung
 
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
+ii <- 6
 
 for (ii in 1:nrow(df_mapping)) {
-
   # umsatz- und Netto3 Umsatz-Berechnung
   l_abrechnung[[ii]]$Abrechnung <- 
     l_abrechnung[[ii]]$Abrechnung|>
@@ -1049,7 +1049,7 @@ for (ii in 1:nrow(df_mapping)) {
   l_abrechnung[[ii]]$Eventeinnahmen <-
     Einnahmen_und_Ausgaben$Einnahmen|>
     filter(Kategorie == "Event",
-           Datum == df_mapping$Datum[ii],
+           Datum == df_mapping$Datum[ii] & Datum == df_Verteilprodukt$Datum,
            Suisanummer == df_mapping$Suisanummer[ii]
            )|>
     mutate(Betrag = df_Verteilprodukt|>
@@ -1058,21 +1058,35 @@ for (ii in 1:nrow(df_mapping)) {
              pull() * Betrag
            )
   l_abrechnung[[ii]]$Eventeinnahmen
-  
+
   # Eventausgaben (Jede Ausgabe wird verteilt bei gemeinsamer Abrechnung)
-  l_abrechnung[[ii]]$Eventausgaben <-
-    Einnahmen_und_Ausgaben$Ausgaben |>
+  l_abrechnung[[ii]]$Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Kategorie == "Event",
-           Suisanummer == df_mapping$Suisanummer[ii],
-           Spieldatum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
+           Suisanummer == df_mapping$Suisanummer[ii])|>
+    filter(Spieldatum == df_Verteilprodukt$Datum & Spieldatum == df_mapping$Datum[ii])|>
     mutate(Betrag = df_Verteilprodukt|>
              filter(Datum == df_mapping$Datum[ii])|>
              select(Verteilprodukt)|>
              pull() * Betrag
-           )|>
+    )|>
     mutate(Datum = NULL)|>
     rename(Datum = Spieldatum)
   l_abrechnung[[ii]]$Eventausgaben
+    
+  # # Eventausgaben (Jede Ausgabe wird verteilt bei gemeinsamer Abrechnung)
+  # l_abrechnung[[ii]]$Eventausgaben <-
+  #   Einnahmen_und_Ausgaben$Ausgaben |>
+  #   filter(Kategorie == "Event",
+  #          Suisanummer == df_mapping$Suisanummer[ii],
+  #          Spieldatum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
+  #   mutate(Betrag = df_Verteilprodukt|>
+  #            filter(Datum == df_mapping$Datum[ii])|>
+  #            select(Verteilprodukt)|>
+  #            pull() * Betrag
+  #          )|>
+  #   mutate(Datum = NULL)|>
+  #   rename(Datum = Spieldatum)
+  # l_abrechnung[[ii]]$Eventausgaben
   
 
   # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
