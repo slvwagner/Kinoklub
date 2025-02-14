@@ -1,9 +1,6 @@
-
-
 # Graphical user interface für den Kinoklub
 # Diese App kann mit Run App in Rstudio gestartet werden.
-
-
+ 
 # Vorbereiten / Installieren
 rm(list = ls())
 
