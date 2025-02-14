@@ -922,7 +922,7 @@ df_Eintritt
 # Abrechnungsperiode erstellen
 l_keineRechnung <- list()
 l_abrechnung <- list()
-ii <- 8
+ii <- 6
 for (ii in 1:nrow(df_mapping)) {
 
   l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
@@ -949,6 +949,7 @@ for (ii in 1:nrow(df_mapping)) {
     # Error handling: Keine Verleiherrechnung vorhanden
     warning(paste0("\nAchtung für den Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
                    day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum),
+                   " / ", l_abrechnung[[ii]]$Abrechnung$`Suisa Nummer`,
                    "\ngibt es keine Verleiherrechnung. Bitte korrigieren in der Datei:",
                    "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
     )
