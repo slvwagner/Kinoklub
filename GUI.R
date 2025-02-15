@@ -1677,7 +1677,7 @@ server <- function(input, output, session) {
       ),
       
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
-      shiny::actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
+      shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
         id = "Abrechnung",
