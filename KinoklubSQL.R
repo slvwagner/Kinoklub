@@ -41,9 +41,14 @@ db_connect <- function() {
 
 # Serve the custom_styles directory
 shiny::addResourcePath("custom_styles", "source")
+# Reactive value to store the database connection
+con <- reactiveVal(NULL)
 
 ### Define UI for application
 ui <- fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  ),
   titlePanel("Add New Row to Kiosk Table"),
   sidebarLayout(
     sidebarPanel(
@@ -71,9 +76,6 @@ ui <- fluidPage(
     )
   )
 )
-
-# Reactive value to store the database connection
-con <- reactiveVal(NULL)
 
 # Define server logic
 server <- function(input, output, session) {
