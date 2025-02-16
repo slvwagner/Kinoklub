@@ -22,14 +22,14 @@ fetch_kiosk_table <- function(con) {
 }
 
 # Function to establish a database connection
-db_connect <- function(password) {
+db_connect <- function(user, password) {
   tryCatch({
     con <- dbConnect(
       RPostgres::Postgres(),
       dbname = "kinoklub",
       host = "localhost",
       port = 5432,
-      user = "db_admin",
+      user = user,
       password = password
     )
     return(con)
@@ -53,6 +53,7 @@ ui <- fluidPage(
   titlePanel("Kiosk Table Management"),
   sidebarLayout(
     sidebarPanel(
+      textInput("user", "Database user"),
       passwordInput("Passwort", "Passwort"),  # Password input
       actionButton("connect", "Connect to Database"),  # Button to connect
       shiny::tags$hr(),
@@ -85,7 +86,7 @@ server <- function(input, output, session) {
   # Establish the database connection when the "Connect" button is clicked
   observeEvent(input$connect, {
     req(input$Passwort)  # Ensure the password is provided
-    con(db_connect(input$Passwort))
+    con(db_connect(input$user, input$Passwort))
     if (is.null(con())) {
       output$message <- renderText("Failed to connect to the database. Please check your credentials.")
     } else {
