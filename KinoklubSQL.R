@@ -116,10 +116,10 @@ server <- function(input, output, session) {
       collect()
     
     if (nrow(row) == 0) {
-      output$message <- renderText("No row found with the specified ID.")
+      output$message <- renderText(paste("No row found with ID:", input$filter_id))
       filtered_row(NULL)
     } else {
-      output$message <- renderText("Row filtered successfully.")
+      output$message <- renderText(paste("Row with ID", input$filter_id, "filtered successfully."))
       filtered_row(row)
       
       # Populate the form fields with the filtered row's data
@@ -165,6 +165,15 @@ server <- function(input, output, session) {
     tryCatch({
       dbAppendTable(con(), "Kiosk", new_row)
       output$message <- renderText("New row added successfully.")
+      
+      # Clear the form fields
+      updateDateInput(session, "datum", value = Sys.Date())
+      updateTextInput(session, "verkaufsartikel", value = "")
+      updateNumericInput(session, "verkaufspreis", value = 0)
+      updateNumericInput(session, "anzahl", value = 0)
+      updateNumericInput(session, "kassiert", value = 0)
+      updateTextInput(session, "lieferant", value = "")
+      updateNumericInput(session, "gewinn", value = 0)
     }, error = function(e) {
       output$message <- renderText(paste("Failed to append to the database:", e$message))
     })
