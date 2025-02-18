@@ -956,7 +956,7 @@ shiny::addResourcePath("reports", "output/webserver")
 
 
 # UI-Definition fluid page
-ui <- shiny::fluidPage(
+ui <- function(){shiny::fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
   ),
@@ -973,7 +973,7 @@ ui <- shiny::fluidPage(
     )
   )
 )
-
+}
 # 
 # # UI-Definition bs4Dash
 # library(bs4Dash)
