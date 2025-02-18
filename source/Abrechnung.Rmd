@@ -66,9 +66,7 @@ if(r_is.defined(df_keine_Rechnung)){
   }
 }
 ```
-\
-\
-\
+
 
 ## Filmvorführung
 
