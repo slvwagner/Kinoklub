@@ -394,7 +394,7 @@ df_temp2|>
   knitr::kable()
 ```
 
-### Ausgaben (Eventausgaben) {#ausgaben-eventausgaben}
+### Ausgaben (Eventausgaben)
 
 Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 

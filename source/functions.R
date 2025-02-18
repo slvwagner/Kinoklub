@@ -145,6 +145,10 @@ class(clc) <- 'cleanup'                         ##  class cleanup
 ################################################################################
 #
 ################################################################################
+# library(rebus)
+# p <- START%R%one_or_more("#")%R%SPC
+# as.character(p)
+
 create_df <- function(c_Rmd) {
   p <- "^```"
   df_data <- data.frame(
@@ -152,7 +156,7 @@ create_df <- function(c_Rmd) {
     c_Rmd,
     code_sections = lapply(c_Rmd, function(x)
       stringr::str_detect(x, p)) |> unlist(),
-    is.heading = stringr::str_detect(c_Rmd, "^#")
+    is.heading = stringr::str_detect(c_Rmd, "^[#]+\\s")
   )
   
   # search and exclude code sections
@@ -479,6 +483,9 @@ r_toc_for_Rmd <- function(
   
   return(c_Rmd)
 }
+
+# readLines("source/Abrechnung.Rmd")|>
+#   r_toc_for_Rmd()
 
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
