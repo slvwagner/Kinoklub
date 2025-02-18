@@ -912,9 +912,9 @@ tryCatch({
     )
   }, type = "message")
 }, error = function(e) {
-  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
+  ausgabe_text <<- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
                          e$message)
-  ausgabe_text <-
+  ausgabe_text <<-
     paste0(
       "\n\n",
       "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
