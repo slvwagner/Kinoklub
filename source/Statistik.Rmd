@@ -7,7 +7,6 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-library(tidyverse)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
 ```
@@ -903,20 +902,40 @@ if(nrow(df_temp)>1){
 }
 ```
 
-```{r}
-df_temp <- m|>
-  filter(`value` == TRUE)|>
-  bind_cols(df_temp)|>
-  select(-value)|>
-  mutate(Datum = Datum|>lubridate::dmy())|>
-  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
-  group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Umsatz pro Gast [CHF]`) / n(),
-          d_gewinn = round5Rappen(d_gewinn)
-          )|> 
-  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
-         )
 
+```{r}
+
+# Define German weekday names
+german_weekdays <- c("Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag")
+
+# Function to convert English weekday names to German, if necessary
+convert_to_german_weekdays <- function(date) {
+  english_weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+  weekday_name <- weekdays(date, abbreviate = FALSE)
+  if (weekday_name %in% english_weekdays) {
+    german_weekday <- german_weekdays[match(weekday_name, english_weekdays)]
+  } else {
+    german_weekday <- weekday_name
+  }
+  return(german_weekday)
+}
+
+df_temp <- m |>
+  filter(value == TRUE) |>
+  bind_cols(df_temp) |>
+  select(-value) |>
+  mutate(
+    Datum = dmy(Datum),
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
+  group_by(weekday, `Time Range`) |>
+  reframe(
+    d_gewinn = round5Rappen(sum(`Umsatz pro Gast [CHF]`) / n())
+  ) |>
+  mutate(
+    `Time Range` = factor(`Time Range`, levels = rev(timeRange))
+  )
 ```
 
 ```{r fig.width=10}
