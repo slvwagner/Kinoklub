@@ -867,7 +867,6 @@ df_temp|>
 
 #### Wochentaganalyse
 
-
 ```{r }
 df_temp <- df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
@@ -879,20 +878,22 @@ df_temp <- df_temp|>
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  
   m <- str_split(timeRange, "-")|>
     sapply(function(range){
-      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+      lubridate::hm(df_temp$Anfang) >= lubridate::hm(range[1]) & lubridate::hm(df_temp$Anfang) < lubridate::hm(range[2])
     })
   colnames(m) <- timeRange
+  m
+  
   m <- m|>
   as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
-  filter(`value` == TRUE)
+  pivot_longer(cols = everything(), names_to = "Time Range")
 }else{
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
   m <- str_split(timeRange, "-")|>
     sapply(function(range){
-      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+      lubridate::hm(df_temp$Anfang) >= lubridate::hm(range[1]) & lubridate::hm(df_temp$Anfang) < lubridate::hm(range[2])
     })
   
   m <- tibble(
@@ -900,17 +901,14 @@ if(nrow(df_temp)>1){
     value = m
     )
 }
-
 ```
 
 ```{r}
 df_temp <- m|>
-  # as_tibble()|>
-  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(Datum = Datum|>dmy())|>
+  mutate(Datum = Datum|>lubridate::dmy())|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Umsatz pro Gast [CHF]`) / n(),
@@ -918,6 +916,7 @@ df_temp <- m|>
           )|> 
   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
          )
+
 ```
 
 ```{r fig.width=10}
