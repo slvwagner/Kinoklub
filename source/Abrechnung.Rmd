@@ -40,7 +40,7 @@ c_verteilprodukt <- df_Abrechnung|>
 df_temp <- df_show|>
   filter(Datum == df_mapping$Datum[ii] ,
          `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )|>
   select(-Saal)
