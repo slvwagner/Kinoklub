@@ -870,7 +870,7 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
           mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
           df_Render$fileExt
         ),
-        output_format = df_Render()$Render,
+        output_format = df_Render$Render,
         output_dir = paste0(getwd(), "/output"),
         envir = data_env
       )
