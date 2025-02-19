@@ -905,12 +905,11 @@ if(nrow(df_temp)>1){
 
 ```{r}
 
-# Define German weekday names
-german_weekdays <- c("Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag")
+german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
 
 # Function to convert English weekday names to German, if necessary
 convert_to_german_weekdays <- function(date) {
-  english_weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+  english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
   weekday_name <- weekdays(date, abbreviate = FALSE)
   if (weekday_name %in% english_weekdays) {
     german_weekday <- german_weekdays[match(weekday_name, english_weekdays)]
