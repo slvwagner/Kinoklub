@@ -180,6 +180,9 @@ library(parallel)
 # Determine the number of cores to use
 num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
 if(num_cores > 4) num_cores <- 4
+if(nrow(df_mapping) < num_cores) {
+  num_cores <- nrow(df_mapping)
+}
 
 paste0("NB_cores: ", num_cores)|>
   writeLines()
