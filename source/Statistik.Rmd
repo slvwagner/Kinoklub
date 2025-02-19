@@ -133,13 +133,13 @@ if(nrow(df_temp)>1){
 
 ```{r}
 df_temp <- m|>
-  # as_tibble()|>
-  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  # mutate(Datum = Datum|>dmy())|>
-  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Gewinn/Verlust Filmvorführungen [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
@@ -296,14 +296,13 @@ if(nrow(df_temp)>1){
 
 ```{r}
 df_temp <- m|>
-  # as_tibble()|>
-  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(value)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(weekday = weekdays(Datum)|>
-           factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"))
-           )|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Umsatz [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
@@ -693,12 +692,13 @@ if(nrow(df_temp)>1){
 
 ```{r}
 df_temp <- m|>
-  # as_tibble()|>
-  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(value)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Kiosk Gewinn [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
