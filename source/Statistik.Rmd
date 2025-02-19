@@ -9,6 +9,21 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
+
+# Weekdas definition in different languages
+german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
+english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+# Function to convert English weekday names to German, if necessary
+convert_to_german_weekdays <- function(date) {
+  weekday_name <- weekdays(date, abbreviate = FALSE)
+  if (weekday_name %in% english_weekdays) {
+    german_weekday <- german_weekdays[match(weekday_name, english_weekdays)]
+  } else {
+    german_weekday <- weekday_name
+  }
+  return(german_weekday)
+}
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -903,22 +918,10 @@ if(nrow(df_temp)>1){
 ```
 
 
+
+
+
 ```{r}
-
-german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
-
-# Function to convert English weekday names to German, if necessary
-convert_to_german_weekdays <- function(date) {
-  english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-  weekday_name <- weekdays(date, abbreviate = FALSE)
-  if (weekday_name %in% english_weekdays) {
-    german_weekday <- german_weekdays[match(weekday_name, english_weekdays)]
-  } else {
-    german_weekday <- weekday_name
-  }
-  return(german_weekday)
-}
-
 df_temp <- m |>
   filter(value == TRUE) |>
   bind_cols(df_temp) |>
