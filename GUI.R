@@ -929,8 +929,8 @@ tryCatch({
 ausgabe_text <- paste(calculate_warnings, ausgabe_text, collapse = "\n")
 
 # Shiny reactive variables
-calculate_warnings <- reactiveVal(as.character(calculate_warnings))
-ausgabe_text <- reactiveVal(as.character(ausgabe_text))
+calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
+ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
