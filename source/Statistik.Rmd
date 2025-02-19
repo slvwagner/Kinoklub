@@ -155,7 +155,9 @@ df_temp|>
   geom_point(size = 20, color = "grey30" )+
   geom_text(aes(label = d_gewinn), color = "darkorange2")+
   labs(title = "Durchschnittlicher Gewinn / Verlust",
-       subtitle = "[CHF]")+
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
   my_template
 ```
 
@@ -319,7 +321,9 @@ df_temp|>
   geom_point(size = 20, color = "grey30" )+
   geom_text(aes(label = d_gewinn), color = "darkorange2")+
   labs(title = "Durchschnittlicher Gewinn / Verlust",
-       subtitle = "[CHF]")+
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
   my_template
 ```
 
@@ -714,7 +718,9 @@ df_temp|>
   geom_point(size = 20, color = "grey30" )+
   geom_text(aes(label = d_gewinn), color = "darkorange2")+
   labs(title = "Durchschnittlicher Gewinn / Verlust",
-       subtitle = "[CHF]")+
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
   my_template
 ```
 
@@ -918,9 +924,6 @@ if(nrow(df_temp)>1){
 ```
 
 
-
-
-
 ```{r}
 df_temp <- m |>
   filter(value == TRUE) |>
@@ -946,8 +949,10 @@ df_temp|>
   ggplot(aes(weekday, `Time Range`))+
   geom_point(size = 20, color = "grey30" )+
   geom_text(aes(label = d_gewinn), color = "darkorange2")+
-  labs(title = "Durchschnittlicher Umsatz pro Gast",
-       subtitle = "[CHF]")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
   my_template
 ```
 
@@ -1056,8 +1061,11 @@ df_temp <- m|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
-  mutate(Datum = Datum|>dmy())|>
-  mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
+  mutate(
+    Datum = dmy(Datum),
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
   group_by(weekday, `Time Range`)|>
   reframe(d_gewinn = sum(`Umsatz pro Gast [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
