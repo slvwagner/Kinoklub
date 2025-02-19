@@ -1147,6 +1147,8 @@ server <- function(input, output, session) {
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       ausgabe_text("")
       calculate_warnings("")
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
@@ -1184,6 +1186,13 @@ server <- function(input, output, session) {
       End_date_choose(Sys.Date() + ((
         max(data_env$df_Abrechnung$Datum) - Sys.Date()
       ) |> as.integer()))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
@@ -1191,6 +1200,8 @@ server <- function(input, output, session) {
   # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       ausgabe_text("")
       start_datum <- input$dateRange |> min()
@@ -1237,6 +1248,13 @@ server <- function(input, output, session) {
         ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
       }
       file_exists(file.exists("output/webserver/index.html"))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
 
@@ -1245,10 +1263,12 @@ server <- function(input, output, session) {
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       ausgabe_text(paste0(
-        "Bericht: \nStatistik erstellt",
+        "Bericht: Statistik erstellt",
         paste0("\n", getwd(), "/output")
       ))
       if (exists("data_env")) {
@@ -1271,6 +1291,13 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
 
@@ -1279,9 +1306,11 @@ server <- function(input, output, session) {
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
-      paste0("Bericht: \nJahresrechnung erstellt",
+      paste0("Bericht: Jahresrechnung erstellt",
              paste0("\n", getwd(), "/output")) |>
         ausgabe_text()
       if (exists("data_env")) {
@@ -1303,6 +1332,13 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
@@ -1310,9 +1346,11 @@ server <- function(input, output, session) {
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       paste0(
-        "Filmumfrage (Wordpress daten) auswertung ausgeführt.",
+        "Filmumfrage, Wordpress daten auswertung ausgeführt.",
         "\nDie Exceldatei kann jetzt heruntergeladen werden."
       ) |>
         ausgabe_text()
@@ -1332,19 +1370,27 @@ server <- function(input, output, session) {
           e$message
         ))
       })
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+      
       file_exists(file.exists("output/webserver/index.html"))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
 
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      # Execution time 
+      c_time <- Sys.time()
       shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
       # User interaction
-      paste0("Alles wurde neu erstellt", paste0("\n", (
-        paste0(getwd(), "/output/webserver/", "index.html")
-      ), sep = "")) |>
+      "Alles wurde neu erstellt" |>
         ausgabe_text()
 
       # Delete all files prior to creating new files
@@ -1399,6 +1445,13 @@ server <- function(input, output, session) {
       })
       End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
       file_exists(file.exists("output/webserver/index.html"))
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 10, detail = paste("Step", 10, "of 10"))
     })
   })
