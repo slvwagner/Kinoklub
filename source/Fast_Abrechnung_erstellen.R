@@ -42,21 +42,13 @@ tryCatch({
 })
 
 # Index pro Suisa-Nummer und Datum erstellen
-mapping <- function(c_Datum, c_suisa) {
+mapping <- function(c_Datum, c_suisa, data_env) {
   df_mapping <- tibble(Datum = c_Datum, Suisanummer = c_suisa) |>
-    mutate(user_Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)),
+    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
            index = row_number())
   
   # Soll die Verleiherabrechnung erzeugt werden?
-  c_file <- "Input/Verleiherabgaben.xlsx"
-  c_sheets <- readxl::excel_sheets(c_file)
-  c_sheets
-  
-  df_verleiherabgaben <- readxl::read_excel(c_file, c_sheets[1]) |>
-    mutate(Datum = as.Date(Datum)) |>
-    left_join(readxl::read_excel(c_file, c_sheets[2]), by = "Verleiher")
-  
-  df_mapping <- df_verleiherabgaben |>
+  df_mapping <- data_env$df_verleiherabgaben |>
     select(Datum, `Kinoförderer gratis?`, Suisanummer) |>
     right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
     mutate(
@@ -130,7 +122,8 @@ AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
 df_mapping <- 
   mapping(
     data_env$df_mapping$Datum,
-    data_env$df_mapping$Suisanummer
+    data_env$df_mapping$Suisanummer,
+    data_env 
   )|>
   filter(between(Datum, as.Date("2025-01-01"), as.Date("2025-05-01")))|>
   mutate(fileName_RMD = paste0("Abrechnung ", Suisanummer," ", user_Datum ,".Rmd"),
@@ -167,55 +160,83 @@ render_single_file <- function(input, output, envir) {
     quiet = TRUE  # Suppress output for cleaner logs
   )
 }
-
-# Render files 
+# 
+# # Render files
 # lapply(1:nrow(df_mapping), function(ii){
-#     render_single_file(df_mapping__$fileName_RMD[ii], df_mapping__$fileName_html[ii], data_env)
+#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
 #   })
 
 # Load the parallel package
 c_time <- Sys.time()
-library(parallel)
 
-# Determine the number of cores to use
-num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
-if(num_cores > 4) num_cores <- 4
-if(nrow(df_mapping) < num_cores) {
-  num_cores <- nrow(df_mapping)
+# library(parallel)
+# # Determine the number of cores to use
+# num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
+# if(num_cores > 4) num_cores <- 4
+# if(nrow(df_mapping) < num_cores) {
+#   num_cores <- nrow(df_mapping)
+# }
+# 
+# paste0("NB_cores: ", num_cores)|>
+#   writeLines()
+# 
+# # Render files in parallel
+# if (.Platform$OS.type == "unix") {
+#   # Use mclapply for Unix-based systems (Linux/Mac)
+#   mclapply(1:nrow(df_mapping), function(ii) {
+#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
+#   }, mc.cores = num_cores)
+# } else {
+#   # Use parLapply for Windows
+#   cl <- makeCluster(num_cores)
+#   clusterExport(
+#     cl,
+#     c( # Export necessary variables to the cluster
+#       "data_env",
+#       "r_is.defined",
+#       "r_is.library_loaded",
+#       "r_signif",
+#       "render_single_file",
+#       "round5Rappen",
+#       "df_mapping"
+#     )
+#   )  
+#   parLapply(cl, 1:nrow(df_mapping), function(ii){
+#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
+#   }) 
+#   stopCluster(cl)  # Stop the cluster after rendering
+# }
+
+
+library(furrr)
+library(rmarkdown)
+
+# Function needed by the markdown code
+data_env$r_is.defined <- r_is.defined
+data_env$round5Rappen <- round5Rappen
+
+# Set up parallel processing
+plan(multisession, workers = availableCores() - 1)  # Use all but one core
+
+# Function to render a single document
+render_document <- function(ii, df_mapping, data_env) {
+  current_mapping <- df_mapping |> filter(index == ii)
+  rmarkdown::render(
+    input = current_mapping$fileName_RMD,
+    output_file = current_mapping$fileName_html,
+    envir = data_env,
+    quiet = TRUE  # Suppress output for cleaner logs
+  )
 }
 
-paste0("NB_cores: ", num_cores)|>
-  writeLines()
 
-# Render files in parallel
-if (.Platform$OS.type == "unix") {
-  # Use mclapply for Unix-based systems (Linux/Mac)
-  mclapply(1:nrow(df_mapping), function(ii) {
-    render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-  }, mc.cores = num_cores)
-} else {
-  # Use parLapply for Windows
-  cl <- makeCluster(num_cores)
-  clusterExport(
-    cl,
-    c( # Export necessary variables to the cluster
-      "data_env",
-      "r_is.defined",
-      "r_is.library_loaded",
-      "r_signif",
-      "render_single_file",
-      "round5Rappen",
-      "df_mapping"
-    )
-  )  
-  parLapply(cl, 1:nrow(df_mapping), function(ii){
-    render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-  }) 
-  stopCluster(cl)  # Stop the cluster after rendering
-}
+# Apply the function in parallel
+future_map(df_mapping$index, ~render_document(.x, df_mapping, data_env))
+
 
 file.remove(df_mapping$fileName_RMD)
 
 c(c_time, Sys.time())|>
   diff()|>
   print()
+
