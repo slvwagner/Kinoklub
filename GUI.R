@@ -16,7 +16,9 @@ packages <- c(
   "shinyBS",
   "magick",
   "webshot",
-  "xml2"
+  "xml2",
+  "parallel",
+  "parallelly"
 )
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -33,7 +35,9 @@ packages <- c(
   "magick",
   "webshot",
   "xml2",
-  "tidyverse"
+  "tidyverse",
+  "parallel",
+  "parallelly"
 )
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
@@ -67,6 +71,77 @@ mapping <- function(c_Datum, c_suisa, data_env) {
     ) |>
     arrange(index)
   return(df_mapping)
+}
+
+
+
+
+# Function to create icons for the site map
+create_icons <- function(m_Film, c_path, c_url) {
+  library(furrr)
+  library(webshot)  # Ensure webshot is loaded
+  library(magick)   # Ensure magick is loaded
+  library(parallelly)  # Ensure parallelly is loaded
+  c_select <- !((m_Film$FileName |> str_remove(".html")) %in% 
+                  (list.files("output/pict/") |> str_remove(".html.png")))
+  
+  #####################################################################################################
+  # for (ii in 1:length(m_Film$FileName[c_select])) {
+  #   # Set the path to the input image
+  #   input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
+  #   input_path
+  #   
+  #   # create a webshot, printed html
+  #   webshot::webshot(url = c_url[c_select][ii], file = input_path)
+  #   
+  #   # Read the image crop and resize and save
+  #   image_read(input_path)|>
+  #     image_crop(geometry = "992x992+0+0")|>
+  #     image_resize("400x400")|>
+  #     image_write(input_path)
+  #   
+  #   writeLines(".", sep = "")
+  # }
+  
+  # lapply(1:length(m_Film$FileName[c_select]),function(ii){
+  #   # Set the path to the input image
+  #   input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
+  #   # create a webshot, printed html
+  #   webshot::webshot(url = c_url[c_select][ii], file = input_path)
+  #   # Read the image crop and resize and save
+  #   image_read(input_path)|>
+  #     image_crop(geometry = "992x992+0+0")|>
+  #     image_resize("400x400")|>
+  #     image_write(input_path)
+  # })
+  
+  # Determine the number of cores to use
+  num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
+  if(num_cores > 4) num_cores <- 5
+  if(nrow(m_Film) < num_cores) {
+    num_cores <- nrow(m_Film)
+  }
+  paste("Number of cores:", num_cores) |>
+    writeLines()
+  
+  # Set up parallel processing
+  plan(multisession, workers = num_cores)  # Use all but one core
+  
+  # Function to render a single icon
+  render_icons <- function(ii, m_Film, c_path, c_url, c_select) {
+    # Set the path to the input image
+    input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
+    # Create a webshot, printed html
+    webshot::webshot(url = c_url[c_select][ii], file = input_path)
+    # Read the image, crop, resize, and save
+    image_read(input_path) |>
+      image_crop(geometry = "992x992+0+0") |>
+      image_resize("400x400") |>
+      image_write(input_path)
+  }
+  
+  # Apply the function in parallel with a seed for parallel-safe random numbers
+  future_map(1:length(m_Film$FileName[c_select]), ~render_icons(.x, m_Film, c_path, c_url, c_select), seed = TRUE)
 }
 
 # Define a function to render a single RMarkdown file
@@ -139,7 +214,7 @@ Create_Abrechnung <- function(mapping, df_Abrechnung, toc) {
         writeLines(c_fileName)
     }
   }
-
+  
   library(parallel)
   # Determine the number of cores to use
   num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
@@ -234,6 +309,7 @@ StatistikErstellen <- function(toc, df_Render) {
     c_raw |>
       writeLines(paste0("source/temp.Rmd"))
   }
+  
   # Render
   rmarkdown::render(
     input = paste0("source/temp.Rmd"),
@@ -580,32 +656,8 @@ webserver <- function() {
     dir.create(c_path) |> suppressWarnings()
     
     # Vorschaubilder erzeugen wenn noch nicht vorhanden
-    ii <- 1
     if (!(length(list.files("output/", "html")) == length(list.files("output/pict/")))) {
-      library(magick)
-      writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
-      
-      c_select <- !((m_Film$FileName |> str_remove(".html")) %in% (list.files("output/pict/") |>
-                                                                     str_remove(".html.png")))
-      c_select
-      
-      ii <- 1
-      for (ii in 1:length(m_Film$FileName[c_select])) {
-        # Set the path to the input image
-        input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
-        input_path
-        
-        # create a webshot, printed html
-        webshot::webshot(url = c_url[c_select][ii], file = input_path)
-        
-        # Read the image crop and resize and save
-        image_read(input_path) |>
-          image_crop(geometry = "992x992+0+0") |>
-          image_resize("200x200") |>
-          image_write(input_path)
-        
-        writeLines(".", sep = "")
-      }
+      create_icons(m_Film, c_path, c_url) 
     }
     
     # Einlesen template der Verleiherabrechnung
@@ -1371,7 +1423,6 @@ server <- function(input, output, session) {
           Create_Abrechnung(
             df_mapping__,
             data_env$df_Abrechnung,
-            # df_Render = df_Render(),
             toc = toc()
           )
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
@@ -1570,8 +1621,10 @@ server <- function(input, output, session) {
           data_env$df_Abrechnung,
           toc = toc()
         )
-        
+    
+        # Procinema
         source("source/procinema.R", local = WordPress_env)
+        # Wordpress
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
 
