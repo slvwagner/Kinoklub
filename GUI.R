@@ -1363,17 +1363,18 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
+          # Bericht(e) Abrechnung pro Filmforführung erstellen
           df_mapping__ <- 
-            Abrechnung_mapping(
-              data_env,
-              start_datum, end_datum
-              )
-          Create_Abrechnung(
+            mapping(data_env$df_mapping$Datum,
+                    data_env$df_mapping$Suisanummer,
+                    data_env)|>
+            filter(between(Datum, start_datum, end_datum))
+          AbrechnungErstellen(
             df_mapping__,
-            data_env$df_Abrechnung,
-            # df_Render = df_Render(),
+            get("df_Abrechnung", envir = data_env),
+            df_Render = df_Render(),
             toc = toc()
-          )
+            )
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
@@ -1560,14 +1561,13 @@ server <- function(input, output, session) {
 
         # Bericht(e) Abrechnung pro Filmforführung erstellen
         df_mapping__ <- 
-          Abrechnung_mapping(
-            data_env,
-            start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
-            end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
-          )
-        Create_Abrechnung(
+          mapping(data_env$df_mapping$Datum,
+                  data_env$df_mapping$Suisanummer,
+                  data_env)
+        AbrechnungErstellen(
           df_mapping__,
-          data_env$df_Abrechnung,
+          get("df_Abrechnung", envir = data_env),
+          df_Render = df_Render(),
           toc = toc()
         )
         
