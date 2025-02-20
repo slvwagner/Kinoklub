@@ -215,8 +215,16 @@ library(rmarkdown)
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
 
+# Determine the number of cores to use
+num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
+if(num_cores > 4) num_cores <- 5
+if(nrow(df_mapping) < num_cores) {
+  num_cores <- nrow(df_mapping)
+}
+paste("Number of cores:", num_cores)|>
+  writeLines()
 # Set up parallel processing
-plan(multisession, workers = availableCores() - 1)  # Use all but one core
+plan(multisession, workers = num_cores)  # Use all but one core
 
 # Function to render a single document
 render_document <- function(ii, df_mapping, data_env) {
