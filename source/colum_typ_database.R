@@ -68,55 +68,56 @@ c_cols <- c_file|>
     find_col_names_excel(x)
   })
 c_cols
+
 c_cols <- c_cols|>
   unlist()|>
-  unique()
+  unique()|>
+  sort()
 c_cols
 
 df_col_type <- tibble::tibble(
   key = c_cols,
   value = c(
+    "numeric",
+    "numeric",
     "text",
     "text",
-    "numeric",
-    "numeric",
-    "numeric",
+    "text",
     "text",
     
     "numeric",
-    "numeric",
-    "numeric",
-    "text",
-    "text",
-    "date",
-
-    "text",
-    "numeric",    
     "text",
     "text",
     "text",
     "date",
-    
-    "text",
-    "text",
-    "text",
-    "text",
-    "text",
     "text",
     
     "numeric",
+    "text",
+    "numeric",
+    "text",
+    "text",
+    "text",
+    
     "date",
+    "text",
     "numeric",
-    "numeric",
+    "text",
     "numeric",
     "text",
     
     "text",
     "text",
+    "date",
+    "text",
+    "text",
     "numeric",
+    
     "text"
   )
 )
+
+
 df_col_type
 
 library(slvwagner)
