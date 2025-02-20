@@ -52,32 +52,23 @@ WordPress_env <- new.env()
 source("source/functions.R")
 
 # Index pro Suisa-Nummer und Datum erstellen
-mapping <- function(c_Datum, c_suisa) {
+mapping <- function(c_Datum, c_suisa, data_env) {
   df_mapping <- tibble(Datum = c_Datum, Suisanummer = c_suisa) |>
-    mutate(user_Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)),
+    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
            index = row_number())
   
   # Soll die Verleiherabrechnung erzeugt werden?
-  c_file <- "Input/Verleiherabgaben.xlsx"
-  c_sheets <- readxl::excel_sheets(c_file)
-  c_sheets
-  
-  df_verleiherabgaben <- readxl::read_excel(c_file, c_sheets[1]) |>
-    mutate(Datum = as.Date(Datum)) |>
-    left_join(readxl::read_excel(c_file, c_sheets[2]), by = "Verleiher")
-  
-  df_mapping <- df_verleiherabgaben |>
-    select(Datum, `Kinoförderer gratis?`, Suisanummer) |>
+  df_mapping <- data_env$df_verleiherabgaben |>
+    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
     right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
     mutate(
       CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
       `Kinoförderer gratis?` = NULL
     ) |>
     arrange(index)
-  df_mapping <- df_mapping |>
-    distinct(Datum, Suisanummer, .keep_all = T)
   return(df_mapping)
 }
+
 
 # Statistik-Bericht erstellen
 StatistikErstellen <- function(toc, df_Render) {
@@ -1223,8 +1214,11 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
-          df_mapping__ <- mapping(data_env$df_mapping$Datum,
-                                  data_env$df_mapping$Suisanummer)
+          df_mapping__ <- 
+            mapping(data_env$df_mapping$Datum,
+                    data_env$df_mapping$Suisanummer, 
+                    data_env
+                    )
           df_mapping__ <- df_mapping__ |>
             filter(between(Datum, start_datum, end_datum))
           AbrechnungErstellen(
@@ -1418,8 +1412,11 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
 
         # Bericht(e) Abrechnung pro Filmforführung erstellen
-        df_mapping__ <- mapping(data_env$df_mapping$Datum,
-                                data_env$df_mapping$Suisanummer)
+        df_mapping__ <- 
+          mapping(data_env$df_mapping$Datum,
+                  data_env$df_mapping$Suisanummer,
+                  data_env
+                  )
         AbrechnungErstellen(
           df_mapping__,
           get("df_Abrechnung", envir = data_env),
