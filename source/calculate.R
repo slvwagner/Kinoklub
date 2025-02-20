@@ -287,6 +287,7 @@ c_file <- "Einnahmen und Ausgaben.xlsx"
 # error handling
 stopifnot(file.exists(paste0("input/",c_file)))
 
+
 # read in Excel data
 Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
   col_env$get_excel_data()
@@ -521,7 +522,7 @@ df_Kiosk <- df_Kiosk|>
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis", Suisanummer = "Suisanummer")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
-  select(-Artikelname, -Verkaufspreis)
+  select(-Artikelname)
 
 
 # Kiosk Einkaufspreise 
@@ -855,6 +856,9 @@ if(nrow(df_temp)>0){
   )
 }
 
+Einnahmen_und_Ausgaben[["dropdown"]]|>
+  filter(str_detect(dropdown, "Verlei"))|>
+  pull()
 
 # Ticketabrechnung vorbereiten
 df_Abrechnung <- df_Eintritt|>
