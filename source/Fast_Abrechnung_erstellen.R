@@ -49,15 +49,13 @@ mapping <- function(c_Datum, c_suisa, data_env) {
   
   # Soll die Verleiherabrechnung erzeugt werden?
   df_mapping <- data_env$df_verleiherabgaben |>
-    select(Datum, `Kinoförderer gratis?`, Suisanummer) |>
+    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
     right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
     mutate(
       CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
       `Kinoförderer gratis?` = NULL
     ) |>
     arrange(index)
-  df_mapping <- df_mapping |>
-    distinct(Datum, Suisanummer, .keep_all = T)
   return(df_mapping)
 }
 
@@ -114,6 +112,25 @@ AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
       c_raw |>
         writeLines(mapping$fileName_RMD[ii])
     }
+    
+    # Muss eine Verleiherrechnung erstellt werden?
+    if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
+      # Einlesen template der Verleiherabrechnung
+      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+      c_raw
+      
+      # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
+      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+      index
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
+      
+      # neues file schreiben
+      writeLines(c_raw, "Verleiherabrechnung.Rmd")
+
+      
+      # remove file
+      file.remove("Verleiherabrechnung.Rmd")
+    }
   }
   return(mapping)
 }
@@ -160,11 +177,16 @@ render_single_file <- function(input, output, envir) {
     quiet = TRUE  # Suppress output for cleaner logs
   )
 }
-# 
-# # Render files
-# lapply(1:nrow(df_mapping), function(ii){
-#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-#   })
+
+# Copy css to main directory where markdown is rendered
+file.copy("source/Kinoklub_dark_gui.css", "Kinoklub_dark_gui.css")
+
+# Render files
+lapply(1:nrow(df_mapping), function(ii){
+    render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
+  })
+
+
 
 # Load the parallel package
 c_time <- Sys.time()
@@ -244,6 +266,7 @@ future_map(df_mapping$index, ~render_document(.x, df_mapping, data_env))
 
 
 file.remove(df_mapping$fileName_RMD)
+file.remove("Kinoklub_dark_gui.css")
 
 c(c_time, Sys.time())|>
   diff()|>
