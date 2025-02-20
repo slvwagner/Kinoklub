@@ -141,7 +141,10 @@ create_icons <- function(m_Film, c_path, c_url) {
   }
   
   # Apply the function in parallel with a seed for parallel-safe random numbers
-  future_map(1:length(m_Film$FileName[c_select]), ~render_icons(.x, m_Film, c_path, c_url, c_select), seed = TRUE)
+  future_map(1:length(m_Film$FileName[c_select]), 
+             ~render_icons(.x, m_Film, c_path, c_url, c_select), 
+             .options = furrr_options(seed = TRUE)
+             )
 }
 
 # Define a function to render a single RMarkdown file
@@ -316,7 +319,8 @@ StatistikErstellen <- function(toc, df_Render) {
     output_format  = df_Render$Render,
     output_file = paste0("Statistik", df_Render$fileExt),
     output_dir = paste0(getwd(), "/output"),
-    envir = data_env
+    envir = data_env,
+    quiet = TRUE
   )
   paste("Bericht: \nStatistik erstellt") |>
     writeLines()
@@ -343,7 +347,8 @@ FilmvorschlagErstellen <- function(toc, df_Render) {
     output_format  = df_Render$Render,
     output_file = paste0("Archiv", df_Render$fileExt),
     output_dir = paste0(getwd(), "/output"),
-    envir = WordPress_env
+    envir = WordPress_env,
+    quiet = TRUE
   )
   paste("Bericht: \nFilmvorschläge erstellt") |>
     writeLines()
@@ -370,7 +375,8 @@ JahresrechnungErstellen <- function(toc, df_Render) {
     output_format = df_Render$Render,
     output_file = paste0("Jahresrechnung", df_Render$fileExt),
     output_dir = paste0(getwd(), "/output"),
-    envir = data_env
+    envir = data_env,
+    quiet = TRUE
   )
   paste("Bericht: \nJahresrechnung erstellt") |>
     writeLines()
@@ -761,7 +767,10 @@ webserver <- function() {
       writeLines("Site-Map.Rmd")
     
     # Render
-    rmarkdown::render(input = "Site-Map.Rmd", envir = data_env)
+    rmarkdown::render(input = "Site-Map.Rmd", 
+                      envir = data_env,
+                      quiet = TRUE
+                      )
     # Remove file
     file.remove("Site-Map.Rmd")
     
@@ -889,7 +898,7 @@ webserver <- function() {
       writeLines("output/webserver/index.Rmd")
     
     # Render
-    rmarkdown::render(input = "output/webserver/index.Rmd", envir = data_env)
+    rmarkdown::render(input = "output/webserver/index.Rmd", envir = data_env, quiet = TRUE)
     # Remove file
     file.remove("output/webserver/index.Rmd")
     # Remove directory
@@ -1017,15 +1026,13 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
     rmarkdown::render(
       input = "source/temp.Rmd",
       output_format = df_Render$Render,
-      output_file = paste0(
-        "Abrechnung ",
-        mapping |> filter(index == ii) |> select(Suisanummer) |> pull(),
-        " ",
-        mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
-        df_Render$fileExt
-      ),
+      output_file = paste0("Abrechnung ",
+                           mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
+                           df_Render$fileExt
+                           ),
       output_dir = "output",
-      envir = data_env
+      envir = data_env,
+      quiet = TRUE
     )
     
     # user interaction
