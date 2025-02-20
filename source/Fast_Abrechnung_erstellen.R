@@ -223,6 +223,7 @@ if(nrow(df_mapping) < num_cores) {
 }
 paste("Number of cores:", num_cores)|>
   writeLines()
+
 # Set up parallel processing
 plan(multisession, workers = num_cores)  # Use all but one core
 
