@@ -81,7 +81,7 @@ render_single_file <- function(input, output, envir) {
 }
 
 # Erstellen der Abrechnung pro Filmvorführung
-Create_Abrechnung_Rmd <- function(mapping, df_Abrechnung, toc) {
+Create_Abrechnung <- function(mapping, df_Abrechnung, toc) {
   for (ii in mapping$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
@@ -140,8 +140,6 @@ Create_Abrechnung_Rmd <- function(mapping, df_Abrechnung, toc) {
     }
   }
 
-
-  
   library(parallel)
   # Determine the number of cores to use
   num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
@@ -188,7 +186,6 @@ Create_Abrechnung_Rmd <- function(mapping, df_Abrechnung, toc) {
     stopCluster(cl)  # Stop the cluster after rendering
   }
   file.remove(mapping$fileName_RMD)
-  file.remove(mapping$fileName_RMD_Verleiher)
   return(NULL)
 }
 
@@ -1371,7 +1368,7 @@ server <- function(input, output, session) {
               data_env,
               start_datum, end_datum
               )
-          Create_Abrechnung_Rmd(
+          Create_Abrechnung(
             df_mapping__,
             data_env$df_Abrechnung,
             # df_Render = df_Render(),
@@ -1563,16 +1560,17 @@ server <- function(input, output, session) {
 
         # Bericht(e) Abrechnung pro Filmforführung erstellen
         df_mapping__ <- 
-          mapping(data_env$df_mapping$Datum,
-                  data_env$df_mapping$Suisanummer,
-                  data_env
-                  )
-        AbrechnungErstellen(
+          Abrechnung_mapping(
+            data_env,
+            start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
+            end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
+          )
+        Create_Abrechnung(
           df_mapping__,
-          get("df_Abrechnung", envir = data_env),
-          df_Render = df_Render(),
+          data_env$df_Abrechnung,
           toc = toc()
         )
+        
         source("source/procinema.R", local = WordPress_env)
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
