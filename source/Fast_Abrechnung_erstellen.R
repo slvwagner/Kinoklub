@@ -95,22 +95,6 @@ AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
       c_raw |>
         writeLines(mapping$fileName_RMD[ii])
     }
-    
-    # Muss eine Verleiherrechnung erstellt werden?
-    if ((mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull())) {
-      # Einlesen template der Verleiherabrechnung
-      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-      c_raw
-      
-      # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
-      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-      index
-      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
-      
-      # neues file schreiben
-      c_raw |>
-        writeLines(mapping$fileName_RMD_Verleiher[ii])
-    }
   })
   return(NULL)
 }
@@ -157,20 +141,12 @@ df_mapping
 if (!dir.exists("output")) {
   dir.create("output")
 }
-
 # create markdown files
 AbrechnungRmd(
   df_mapping, 
   get("df_Abrechnung", envir = data_env), 
   toc = TRUE
 )
-
-######################################################################################################
-# remove(
-#   col_env, df_P_kat_verechnen, my_template, Abrechungsjahr, ausgabe_text, c_MWST, c_render_option,
-#   calculate_warnings, clc, sommerpause, toc, x, c_script_version,
-#   create_df, print.cleanup, r_toc_for_Rmd
-# )
 
 ######################################################################################################
 # Define a function to render a single RMarkdown file
@@ -218,8 +194,8 @@ if (.Platform$OS.type == "unix") {
   # Use mclapply for Unix-based systems (Linux/Mac)
   mclapply(1:nrow(df_mapping), function(ii) {
     render_single_file(
-      c(df_mapping$fileName_RMD[ii], df_mapping$fileName_RMD_Verleiher[ii]), 
-      c(df_mapping$fileName_html[ii],df_mapping$fileName_html_Verleiher[ii]), 
+      c(df_mapping$fileName_RMD[ii]), 
+      c(df_mapping$fileName_html[ii]), 
       data_env
       )
   }, mc.cores = num_cores)
