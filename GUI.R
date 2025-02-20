@@ -891,10 +891,10 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   }
 }
 
-# Envirnoment for Data read in
+# Envirnoment for Data to create Plots
 data_env <- new.env()
 
-# Daten einlesen
+# read data
 calculate_warnings <- ""
 ausgabe_text <- "Alles eingelesen."
 tryCatch({
@@ -925,7 +925,7 @@ tryCatch({
       collapse = ""
     )
 })
-
+# concatenate feedback
 ausgabe_text <- paste(calculate_warnings, ausgabe_text, collapse = "\n")
 
 # Shiny reactive variables
