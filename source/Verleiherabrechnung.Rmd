@@ -5,31 +5,66 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(lubridate)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
+
 ```
 
 ```{r variablen, include=FALSE}
+ii <- 1
 ```
 
-```{r include=FALSE}
-df_mapping <- tibble(Datum = c_Date)|>
-  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
-         index = row_number())
 
-c_Datum <- c_Date[ii]
+```{r echo=FALSE}
+c_verteilprodukt <- df_Abrechnung|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
+  select(Verteilprodukt)|>
+  pull()
+
+c_Datum <- df_Abrechnung|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
+  select(Datum)|>
+  pull()
 
 c_linkDatum <- df_Abrechnung|>
-  filter(Datum == c_Date[ii])|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
    select(`Link Datum`)|>
    pull()
 
-c_suisa <- df_show|>
-  filter(Datum == c_Date[ii])|>
+c_suisa <- df_Abrechnung|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
   select(`Suisa Nummer`)|>
+  rename(Suisanummer = `Suisa Nummer`)|>
   pull()
+  
 
 ```
+
+
+<!-- ```{r include=FALSE} -->
+<!-- df_mapping <- tibble(Datum = c_Date)|> -->
+<!--   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)), -->
+<!--          index = row_number()) -->
+
+<!-- c_Datum <- c_Date[ii] -->
+
+<!-- c_linkDatum <- df_Abrechnung|> -->
+<!--   filter(Datum == c_Date[ii])|> -->
+<!--    select(`Link Datum`)|> -->
+<!--    pull() -->
+
+<!-- c_suisa <- df_show|> -->
+<!--   filter(Datum == c_Date[ii])|> -->
+<!--   select(`Suisa Nummer`)|> -->
+<!--   pull() -->
+
+<!-- ``` -->
 
 
 \
@@ -40,8 +75,15 @@ Tunaustrasse 5 \
 \
 
 ```{r}
+c_suisa
+```
+
+
+```{r}
 df_temp <- df_verleiherabgaben|>
-  filter(Datum %in% c(c_Datum, c_linkDatum))
+  filter(Datum %in% c(c_Datum, c_linkDatum),
+         Suisanummer == c_suisa
+         )
 ```
 
 `r df_temp$Verleiher[1]` \
@@ -81,7 +123,8 @@ c_suisa_prozent <- df_temp|>
   pull()
 
 df_temp <- df_Abrechnung_tickes|>
-  filter(Datum %in%c(c_Datum, c_linkDatum))
+  filter(Datum %in%c(c_Datum, c_linkDatum),
+         )
 
 ```
 
