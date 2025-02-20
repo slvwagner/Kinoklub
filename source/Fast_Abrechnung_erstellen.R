@@ -41,27 +41,10 @@ tryCatch({
     )
 })
 
-# Index pro Suisa-Nummer und Datum erstellen
-mapping <- function(c_Datum, c_suisa, data_env) {
-  df_mapping <- tibble(Datum = c_Datum, Suisanummer = c_suisa) |>
-    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
-           index = row_number())
-  
-  # Soll die Verleiherabrechnung erzeugt werden?
-  df_mapping <- data_env$df_verleiherabgaben |>
-    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
-    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
-    mutate(
-      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
-      `Kinoförderer gratis?` = NULL
-    ) |>
-    arrange(index)
-  return(df_mapping)
-}
-
+######################################################################################################
 # Erstellen der Abrechnung pro Filmvorführung
 AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
-  for (ii in mapping$index) {
+  lapply(mapping$index, function(ii) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
@@ -114,7 +97,7 @@ AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
     }
     
     # Muss eine Verleiherrechnung erstellt werden?
-    if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
+    if ((mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull())) {
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       c_raw
@@ -125,48 +108,71 @@ AbrechnungRmd <- function(mapping, df_Abrechnung, toc) {
       c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
       
       # neues file schreiben
-      writeLines(c_raw, "Verleiherabrechnung.Rmd")
-
-      
-      # remove file
-      file.remove("Verleiherabrechnung.Rmd")
+      c_raw |>
+        writeLines(mapping$fileName_RMD_Verleiher[ii])
     }
-  }
-  return(mapping)
+  })
+  return(NULL)
+}
+
+######################################################################################################
+# Index pro Suisa-Nummer und Datum erstellen
+Reports_mapping <- function(data_env, start, end) {
+  df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
+    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
+           index = row_number())
+  
+  # Soll die Verleiherabrechnung erzeugt werden?
+  df_mapping <- data_env$df_verleiherabgaben |>
+    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
+    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
+    mutate(
+      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
+      `Kinoförderer gratis?` = NULL
+    ) |>
+    filter(between(Datum, as.Date(start), as.Date(end)))|>
+    mutate(fileName_RMD            = paste0("source/",user_Datum," Abrechnung ", Suisanummer,".Rmd"),
+           fileName_html           = paste0("source/",user_Datum," Abrechnung ", Suisanummer,".html"),
+           fileName_RMD_Verleiher  = paste0("source/",user_Datum," Verleiherabrechnung ", Suisanummer,".Rmd"),
+           fileName_html_Verleiher = paste0("source/",user_Datum," Verleiherabrechnung ", Suisanummer,".html")
+           )|>
+    left_join(data_env$df_show|>
+                distinct(`Suisa Nummer`,.keep_all = T)|>
+                select(`Suisa Nummer`, Filmtitel),
+              by = c(Suisanummer = "Suisa Nummer")
+    )|>
+    arrange(index)
+  return(df_mapping)
 }
 
 # Reports mapping
 df_mapping <- 
-  mapping(
-    data_env$df_mapping$Datum,
-    data_env$df_mapping$Suisanummer,
-    data_env 
+  Reports_mapping(
+    data_env, as.Date("2024-01-01"), as.Date("2025-05-01")
   )|>
-  filter(between(Datum, as.Date("2025-01-01"), as.Date("2025-05-01")))|>
-  mutate(fileName_RMD = paste0("Abrechnung ", Suisanummer," ", user_Datum ,".Rmd"),
-         fileName_html = paste0("output/Abrechnung ", Suisanummer," ", user_Datum,".html"))
-df_mapping 
+  mutate(CreateReportVerleiherabrechnung = T)
+df_mapping
 
 # Ensure the output directory exists
 if (!dir.exists("output")) {
   dir.create("output")
 }
 
-
 # create markdown files
-df_mapping <-  AbrechnungRmd(
+AbrechnungRmd(
   df_mapping, 
   get("df_Abrechnung", envir = data_env), 
   toc = TRUE
 )
 
-remove(
-  col_env, df_P_kat_verechnen, my_template, Abrechungsjahr, ausgabe_text, c_MWST, c_render_option,
-  calculate_warnings, clc, sommerpause, toc, x, c_script_version,
-  create_df, mapping , print.cleanup, r_toc_for_Rmd
-)
+######################################################################################################
+# remove(
+#   col_env, df_P_kat_verechnen, my_template, Abrechungsjahr, ausgabe_text, c_MWST, c_render_option,
+#   calculate_warnings, clc, sommerpause, toc, x, c_script_version,
+#   create_df, print.cleanup, r_toc_for_Rmd
+# )
 
-library(rmarkdown)
+######################################################################################################
 # Define a function to render a single RMarkdown file
 render_single_file <- function(input, output, envir) {
   rmarkdown::render(
@@ -178,97 +184,123 @@ render_single_file <- function(input, output, envir) {
   )
 }
 
-# Copy css to main directory where markdown is rendered
-file.copy("source/Kinoklub_dark_gui.css", "Kinoklub_dark_gui.css")
-
-# Render files
-lapply(1:nrow(df_mapping), function(ii){
-    render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-  })
-
-
+######################################################################################################
+ii <- 1
+# # Render files
+# lapply(1:nrow(df_mapping), function(ii){
+#     render_single_file(c(df_mapping$fileName_RMD[ii] 
+#                          # df_mapping$fileName_RMD_Verleiher[ii]
+#                          ), 
+#                        c(df_mapping$fileName_html[ii] 
+#                          # df_mapping$fileName_html_Verleiher[ii]
+#                          ),
+#                        data_env
+#                        )
+#   })
 
 # Load the parallel package
 c_time <- Sys.time()
 
-# library(parallel)
-# # Determine the number of cores to use
-# num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
-# if(num_cores > 4) num_cores <- 4
-# if(nrow(df_mapping) < num_cores) {
-#   num_cores <- nrow(df_mapping)
-# }
-# 
-# paste0("NB_cores: ", num_cores)|>
-#   writeLines()
-# 
-# # Render files in parallel
-# if (.Platform$OS.type == "unix") {
-#   # Use mclapply for Unix-based systems (Linux/Mac)
-#   mclapply(1:nrow(df_mapping), function(ii) {
-#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-#   }, mc.cores = num_cores)
-# } else {
-#   # Use parLapply for Windows
-#   cl <- makeCluster(num_cores)
-#   clusterExport(
-#     cl,
-#     c( # Export necessary variables to the cluster
-#       "data_env",
-#       "r_is.defined",
-#       "r_is.library_loaded",
-#       "r_signif",
-#       "render_single_file",
-#       "round5Rappen",
-#       "df_mapping"
-#     )
-#   )  
-#   parLapply(cl, 1:nrow(df_mapping), function(ii){
-#     render_single_file(df_mapping$fileName_RMD[ii], df_mapping$fileName_html[ii], data_env)
-#   }) 
-#   stopCluster(cl)  # Stop the cluster after rendering
-# }
-
-
-library(furrr)
-library(rmarkdown)
-
-# Function needed by the markdown code
-data_env$r_is.defined <- r_is.defined
-data_env$round5Rappen <- round5Rappen
-
+######################################################################################################
+library(parallel)
 # Determine the number of cores to use
-num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
+num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
 if(num_cores > 4) num_cores <- 5
 if(nrow(df_mapping) < num_cores) {
   num_cores <- nrow(df_mapping)
 }
-paste("Number of cores:", num_cores)|>
+
+paste0("NB_cores: ", num_cores)|>
   writeLines()
+ii <- 1
+# Render files in parallel
+if (.Platform$OS.type == "unix") {
+  # Use mclapply for Unix-based systems (Linux/Mac)
+  mclapply(1:nrow(df_mapping), function(ii) {
+    render_single_file(
+      c(df_mapping$fileName_RMD[ii], df_mapping$fileName_RMD_Verleiher[ii]), 
+      c(df_mapping$fileName_html[ii],df_mapping$fileName_html_Verleiher[ii]), 
+      data_env
+      )
+  }, mc.cores = num_cores)
+} else {
+  # Use parLapply for Windows
+  cl <- makeCluster(num_cores)
+  clusterExport(
+    cl,
+    c( # Export necessary variables to the cluster
+      "data_env",
+      "r_is.defined",
+      "r_is.library_loaded",
+      "r_signif",
+      "render_single_file",
+      "round5Rappen",
+      "df_mapping"
+    )
+  )
+  parLapply(cl, 1:nrow(df_mapping), function(ii){
+    render_single_file(
+      c(df_mapping$fileName_RMD[ii]),
+      c(df_mapping$fileName_html[ii]), 
+      data_env
+      )
+  })
+  stopCluster(cl)  # Stop the cluster after rendering
+}
 
-# Set up parallel processing
-plan(multisession, workers = num_cores)  # Use all but one core
 
-# Function to render a single document
-render_document <- function(ii, df_mapping, data_env) {
-  current_mapping <- df_mapping |> filter(index == ii)
+
+render_single_file <- function(input, output, envir) {
   rmarkdown::render(
-    input = current_mapping$fileName_RMD,
-    output_file = current_mapping$fileName_html,
-    envir = data_env,
+    input = input,
+    output_file = output,
+    output_dir = "output",
+    envir = envir,
     quiet = TRUE  # Suppress output for cleaner logs
   )
 }
 
+######################################################################################################
+# library(furrr)
+# library(rmarkdown)
+# 
+# # Function needed by the markdown code
+# data_env$r_is.defined <- r_is.defined
+# data_env$round5Rappen <- round5Rappen
+# 
+# # Determine the number of cores to use
+# num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
+# if(num_cores > 4) num_cores <- 4
+# if(nrow(df_mapping) < num_cores) {
+#   num_cores <- nrow(df_mapping)
+# }
+# paste("Number of cores:", num_cores)|>
+#   writeLines()
+# 
+# # Set up parallel processing
+# plan(multisession, workers = num_cores)  # Use all but one core
+# 
+# # Function to render a single document
+# render_document <- function(ii, df_mapping, data_env) {
+#   current_mapping <- df_mapping |> filter(index == ii)
+#   rmarkdown::render(
+#     input = current_mapping$fileName_RMD,
+#     output_file = current_mapping$fileName_html,
+#     envir = data_env,
+#     output_dir = "output",
+#     quiet = TRUE  # Suppress output for cleaner logs
+#   )
+# }
+# # Apply the function in parallel
+# future_map(df_mapping$index, ~render_document(.x, df_mapping, data_env))
 
-# Apply the function in parallel
-future_map(df_mapping$index, ~render_document(.x, df_mapping, data_env))
-
-
+######################################################################################################
+# copy an remove files
 file.remove(df_mapping$fileName_RMD)
-file.remove("Kinoklub_dark_gui.css")
+file.remove(df_mapping$fileName_RMD_Verleiher)
 
 c(c_time, Sys.time())|>
   diff()|>
   print()
+
 
