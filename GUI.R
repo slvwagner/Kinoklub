@@ -1412,45 +1412,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-  # # Überwachung Input: Ausgabeformat
-  # shiny::observeEvent(input$render_option, {
-  #   print(clc)
-  # 
-  #   df_Render(switch(
-  #     input$render_option,
-  #     "1" = tibble::tibble(
-  #       Render = c("html_document"),
-  #       fileExt = c(".html")
-  #     ),
-  #     "2" = tibble::tibble(
-  #       Render = c("word_document"),
-  #       fileExt = c(".docx")
-  #     ),
-  #     "3" = tibble::tibble(
-  #       Render = c("pdf_document"),
-  #       fileExt = c(".pdf")
-  #     ),
-  #     "4" = tibble::tibble(
-  #       Render = c("html_document", "word_document"),
-  #       fileExt = c(".html", ".docx")
-  #     ),
-  #     "5" = tibble::tibble(
-  #       Render = c("html_document", "pdf_document"),
-  #       fileExt = c(".html", ".pdf")
-  #     ),
-  #     "6" = tibble::tibble(
-  #       Render = c("word_document", "pdf_document"),
-  #       fileExt = c(".docx", ".pdf")
-  #     ),
-  #     "7" = tibble::tibble(
-  #       Render = c("html_document", "word_document", "pdf_document"),
-  #       fileExt = c(".html", ".docx", ".pdf")
-  #     ),
-  #     stop("\nDie verwendete Renderoption is nicht definiert")
-  #   ))
-  #   file_exists(file.exists("output/webserver/index.html"))
-  # })
-  
+
   # Download Handler Werbung
   output$downloadExcel <- downloadHandler(
     filename = function() {
