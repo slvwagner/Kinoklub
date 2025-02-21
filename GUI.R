@@ -251,6 +251,77 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   return(NULL)
 }
 
+# Erstellen der Verleiherabrechnung pro Filmvorführung
+VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
+  for (ii in df_mapping$index) {
+    # Create Verleiherabrechnung
+    do_it <- df_mapping|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull()
+    if(do_it){
+      # Template der Abrechnung einlesen
+      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+      
+      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
+      
+      # neues file schreiben ohne toc
+      c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD_Verleiher)|>pull()
+      c_raw |>
+        writeLines(c_fileName)
+    }
+  }
+  
+  # Render in parallel Verleiherabrechnung
+  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung |> sum()
+  
+  if (create_verleiherabrechnung > 0) {
+    # Determine the number of cores to use
+    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+    if (num_cores > 4) num_cores <- 5
+    
+    # Adjust cores based on workload
+    if (create_verleiherabrechnung < num_cores) {
+      num_cores <- create_verleiherabrechnung
+    }
+    
+    # Select files to render
+    c_select <- df_mapping |>
+      filter(CreateReportVerleiherabrechnung == TRUE) |>
+      select(index) |>
+      pull() |>
+      as.integer()
+    
+    # File names to render
+    input  <- df_mapping |> filter(index %in% c_select) |> pull(fileName_RMD_Verleiher)
+    output <- df_mapping |> filter(index %in% c_select) |> pull(fileName_html_Verleiher)
+    
+    # Render in parallel Verleiherabrechnung
+    library(future)
+    plan(multisession, workers = num_cores)
+    
+    # Render files in parallel
+    library(furrr)
+    future_walk(1:length(c_select), function(ii) {
+      tryCatch({
+        render_single_file(
+          input[ii],
+          output[ii],
+          data_env
+        )
+      }, error = function(e) {
+        message("Error rendering file at index ", ii, ": ", e$message)
+      })
+    })
+    
+    # Delete selected files
+    if (all(file.exists(input))) {
+      file.remove(input)
+    } else {
+      warning("Some files to delete do not exist.")
+    }
+  }
+  return(NULL)
+}
 
 # Statistik-Bericht erstellen
 StatistikErstellen <- function(toc) {
@@ -1196,8 +1267,8 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
     if(!is.null(data_env$df_Abrechnung)){
-      shiny::withProgress(message = "Running script...", value = 0, {
-        shiny::incProgress(1 / 4, detail = paste("Step", 1, "of 5"))
+      shiny::withProgress(message = "Script running... ", value = 0, {
+        shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
         ausgabe_text("")
         start_datum <- input$dateRange |> min()
         end_datum <- input$dateRange |> max()
@@ -1215,7 +1286,7 @@ server <- function(input, output, session) {
               paste0("\n", getwd(), "/output")
             )
           )
-          shiny::incProgress(1 / 4, detail = paste("Step", 2, "of 5"))
+          
           # Filmabrechnungen erstellen mit dateRange user input
           tryCatch({
             df_mapping__ <- 
@@ -1228,9 +1299,15 @@ server <- function(input, output, session) {
               data_env$df_Abrechnung,
               toc = toc()
             )
-            shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 5"))
+            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung erstellen: ", 2, "of 4"))
+            VerleiherabrechnungErstellen(
+              df_mapping__,
+              data_env$df_Abrechnung,
+              toc = toc()
+            )
+            shiny::incProgress(1 / 4, detail = paste("Site-map erstellen: ", 3, "of 4"))
             webserver()
-            shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 5"))
+            
           }, error = function(e) {
             ausgabe_text(
               paste0(
@@ -1250,7 +1327,7 @@ server <- function(input, output, session) {
         paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
           ausgabe_text()
         
-        shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+        shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
       })
     }else{
       paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
@@ -1267,9 +1344,9 @@ server <- function(input, output, session) {
   
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
+    # Execution time 
+    c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
-      # Execution time 
-      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       ausgabe_text(paste0(
@@ -1278,11 +1355,11 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-          StatistikErstellen(toc())
-          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-          webserver()
           
+          StatistikErstellen(toc())
+          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+          webserver()
+          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
             "Statistik, Fehler beim Bericht erstellen:\n",
@@ -1428,7 +1505,7 @@ server <- function(input, output, session) {
         
         # Daten einlesen und konvertieren
         source("source/calculate.R", local =  data_env)
-        shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
+        
         
       }, error = function(e) {
         calculate_warnings("error")
@@ -1445,11 +1522,11 @@ server <- function(input, output, session) {
         tryCatch({
           # Statistik-Bericht erstellen
           StatistikErstellen(toc())
-          shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
+          shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
           
           # Jahresrechnung-Bericht erstellen
           JahresrechnungErstellen(toc())
-          shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
+          shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
           
           # Bericht(e) Abrechnung pro Filmforführung erstellen
           df_mapping__ <- 
@@ -1459,6 +1536,12 @@ server <- function(input, output, session) {
               end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
             )
           AbrechnungErstellen(
+            df_mapping__,
+            data_env$df_Abrechnung,
+            toc = toc()
+          )
+          shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
+          VerleiherabrechnungErstellen(
             df_mapping__,
             data_env$df_Abrechnung,
             toc = toc()
