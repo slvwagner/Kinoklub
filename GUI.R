@@ -8,7 +8,7 @@ rm(list = ls())
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
   "lubridate",  "DT",  "shiny",  "shinyBS",  "magick",
-  "webshot",  "xml2",  "furrr"
+  "webshot",  "xml2",  "furrr", "future"
 )
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -19,7 +19,7 @@ if (any(installed_packages == FALSE)) {
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
   "DT",  "magick",  "webshot",  "xml2",  "tidyverse",
-  "furrr"
+  "furrr", "future"
 )
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
@@ -200,39 +200,57 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   file.remove(df_mapping$fileName_RMD)
   
   # Render in parallel Verleiherabrechnung
-  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung|>sum()
-  if(create_verleiherabrechnung > 0){
+  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung |> sum()
+  
+  if (create_verleiherabrechnung > 0) {
     # Determine the number of cores to use
     num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-    if(num_cores > 4) num_cores <- 5
+    if (num_cores > 4) num_cores <- 5
     
-    if(create_verleiherabrechnung < num_cores) {
+    # Adjust cores based on workload
+    if (create_verleiherabrechnung < num_cores) {
       num_cores <- create_verleiherabrechnung
     }
+    
+    # Select files to render
+    c_select <- df_mapping |>
+      filter(CreateReportVerleiherabrechnung == TRUE) |>
+      select(index) |>
+      pull() |>
+      as.integer()
+    
+    # File names to render
+    input  <- df_mapping |> filter(index %in% c_select) |> pull(fileName_RMD_Verleiher)
+    output <- df_mapping |> filter(index %in% c_select) |> pull(fileName_html_Verleiher)
+    
     # Render in parallel Verleiherabrechnung
+    library(future)
     plan(multisession, workers = num_cores)
     
-    # select files to render
-    c_select <- df_mapping|>
-      filter(CreateReportVerleiherabrechnung == TRUE)|>
-      select(index)|>
-      pull()
-    
     # Render files in parallel
-    c_select|>
-      future_walk(function(ii) {
+    library(furrr)
+    future_walk(1:length(c_select), function(ii) {
+      tryCatch({
         render_single_file(
-          df_mapping$fileName_RMD_Verleiher[ii],
-          df_mapping$fileName_html_Verleiher[ii],
+          input[ii],
+          output[ii],
           data_env
         )
+      }, error = function(e) {
+        message("Error rendering file at index ", ii, ": ", e$message)
       })
+    })
+    
     # Delete selected files
-    file.remove(df_mapping$fileName_RMD_Verleiher[c_select])
+    if (all(file.exists(input))) {
+      file.remove(input)
+    } else {
+      warning("Some files to delete do not exist.")
+    }
   }
-  
   return(NULL)
 }
+
 
 # Statistik-Bericht erstellen
 StatistikErstellen <- function(toc) {
@@ -686,9 +704,8 @@ webserver <- function() {
   }
   
   # Data for Webserver
-  #copy data from .../output to .../output/webserver
+  # copy data from .../output to .../output/webserver
   c_path <- "output/webserver"
-  
   if (!dir.exists(c_path)) {
     dir.create(c_path)
   }
@@ -960,25 +977,26 @@ shiny::addResourcePath("reports", "output/webserver")
 
 
 # UI-Definition fluid page
-ui <- function(){shiny::fluidPage(
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-  ),
-  paste("Kinoklub GUI", c_script_version) |>
-    shiny::titlePanel(),
-  shiny::sidebarLayout(
-    # Render the side panel
-    shiny::sidebarPanel(
-      shiny::uiOutput("dynamicContent_input_panel")
+ui <- function(){
+  shiny::fluidPage(
+    shiny::tags$head(
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
     ),
-    # Render the main panel
-    shiny::mainPanel(
-      shiny::uiOutput("dynamicContent_output_panel")
+    paste("Kinoklub GUI", c_script_version) |>
+      shiny::titlePanel(),
+    shiny::sidebarLayout(
+      # Render the side panel
+      shiny::sidebarPanel(
+        shiny::uiOutput("dynamicContent_input_panel")
+      ),
+      # Render the main panel
+      shiny::mainPanel(
+        shiny::uiOutput("dynamicContent_output_panel")
+      )
     )
   )
-)
 }
-#
+
 # # UI-Definition bs4Dash
 # library(bs4Dash)
 # ui <- dashboardPage(
