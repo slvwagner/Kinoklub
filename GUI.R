@@ -1127,65 +1127,76 @@ server <- function(input, output, session) {
   
   # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      # Execution time 
-      c_time <- Sys.time()
-      shiny::incProgress(1 / 4, detail = paste("Step", 1, "of 5"))
-      ausgabe_text("")
-      start_datum <- input$dateRange |> min()
-      end_datum <- input$dateRange |> max()
-      
-      # Überprüfen, ob beide Daten gültig sind
-      if (start_datum <= end_datum) {
-        # Aktion ausführen
-        ausgabe_text(
-          paste0(
-            "Die Filmabrechnungen für den Zeitraum \n",
-            format(start_datum, "%d.%m.%Y"),
-            " bis ",
-            format(end_datum, "%d.%m.%Y"),
-            " wurden erstellt",
-            paste0("\n", getwd(), "/output")
-          )
-        )
-        shiny::incProgress(1 / 4, detail = paste("Step", 2, "of 5"))
-        # Filmabrechnungen erstellen mit dateRange user input
-        tryCatch({
-          df_mapping__ <- 
-            Abrechnung_mapping(
-              data_env,
-              start_datum, end_datum
-            )
-          AbrechnungErstellen(
-            df_mapping__,
-            data_env$df_Abrechnung,
-            toc = toc()
-          )
-          shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 5"))
-          webserver()
-          shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 5"))
-        }, error = function(e) {
+    # Execution time 
+    c_time <- Sys.time()
+    if(!is.null(data_env$df_Abrechnung)){
+      shiny::withProgress(message = "Running script...", value = 0, {
+        shiny::incProgress(1 / 4, detail = paste("Step", 1, "of 5"))
+        ausgabe_text("")
+        start_datum <- input$dateRange |> min()
+        end_datum <- input$dateRange |> max()
+        
+        # Überprüfen, ob beide Daten gültig sind
+        if (start_datum <= end_datum) {
+          # Aktion ausführen
           ausgabe_text(
             paste0(
-              "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
-              e$message
+              "Die Filmabrechnungen für den Zeitraum \n",
+              format(start_datum, "%d.%m.%Y"),
+              " bis ",
+              format(end_datum, "%d.%m.%Y"),
+              " wurden erstellt",
+              paste0("\n", getwd(), "/output")
             )
           )
-        })
-      } else {
-        ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-      }
-      file_exists(file.exists("output/webserver/index.html"))
+          shiny::incProgress(1 / 4, detail = paste("Step", 2, "of 5"))
+          # Filmabrechnungen erstellen mit dateRange user input
+          tryCatch({
+            df_mapping__ <- 
+              Abrechnung_mapping(
+                data_env,
+                start_datum, end_datum
+              )
+            AbrechnungErstellen(
+              df_mapping__,
+              data_env$df_Abrechnung,
+              toc = toc()
+            )
+            shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 5"))
+            webserver()
+            shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 5"))
+          }, error = function(e) {
+            ausgabe_text(
+              paste0(
+                "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+                e$message
+              )
+            )
+          })
+        } else {
+          ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+        }
+        file_exists(file.exists("output/webserver/index.html"))
+        
+        # calculate execution time
+        c_time <- c(c_time,end = Sys.time())|>
+          diff()
+        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+          ausgabe_text()
+        
+        shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+      })
+    }else{
+      paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
+             "Bitte Dateien einlesen und nochmals versuchen.")|>
+        ausgabe_text()
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
         ausgabe_text()
-      
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
-    })
-    
+    }
   })
   
   # Überwachung Button Statistik
@@ -1314,12 +1325,13 @@ server <- function(input, output, session) {
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
       # Execution time 
       c_time <- Sys.time()
-      shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
       # User interaction
       "Alles wurde neu erstellt" |>
         ausgabe_text()
+      calculate_warnings("")
       
       # Delete all files prior to creating new files
       list.files("output/", "html", full.names = TRUE) |>
@@ -1327,57 +1339,70 @@ server <- function(input, output, session) {
       list.files("output/pict/", "html", full.names = TRUE) |>
         file.remove()
       
+      # run script calculate.R to finde error spezifcally happening with only this source
       tryCatch({
         # erstellen von Verzeichnissen
         dir.create("output/") |> suppressWarnings()
         dir.create("output/data/") |> suppressWarnings()
-        shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
         
         # Daten einlesen und konvertieren
         source("source/calculate.R", local =  data_env)
-        shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
-        
-        # Statistik-Bericht erstellen
-        StatistikErstellen(toc())
-        shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
-        
-        # Jahresrechnung-Bericht erstellen
-        JahresrechnungErstellen(toc())
-        shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
-        
-        # Bericht(e) Abrechnung pro Filmforführung erstellen
-        df_mapping__ <- 
-          Abrechnung_mapping(
-            data_env,
-            start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
-            end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
-          )
-        AbrechnungErstellen(
-          df_mapping__,
-          data_env$df_Abrechnung,
-          toc = toc()
-        )
-        
-        # Procinema
-        source("source/procinema.R", local = WordPress_env)
-        # Wordpress
-        source("source/read_and_convert_wordPress.R", local = WordPress_env)
-        shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
-        
-        FilmvorschlagErstellen(toc(), WordPress_env)
-        shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
-        
-        # Create webserver data
-        webserver()
-        shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
+        shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
         
       }, error = function(e) {
-        ausgabe_text(paste(
+        calculate_warnings("error")
+        paste0(
           error_calculate,
-          "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
+          "Alles neu erstellen Fehlermeldung:\n",
+          "Daten konnten nicht eingelesen werden. Fehlermeldung: ",
           e$message
-        ))
+        )|>
+          ausgabe_text()
       })
+      # run the rest of the script
+      if(calculate_warnings()!=""){
+        tryCatch({
+          # Statistik-Bericht erstellen
+          StatistikErstellen(toc())
+          shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
+          
+          # Jahresrechnung-Bericht erstellen
+          JahresrechnungErstellen(toc())
+          shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
+          
+          # Bericht(e) Abrechnung pro Filmforführung erstellen
+          df_mapping__ <- 
+            Abrechnung_mapping(
+              data_env,
+              start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
+              end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
+            )
+          AbrechnungErstellen(
+            df_mapping__,
+            data_env$df_Abrechnung,
+            toc = toc()
+          )
+          
+          # Procinema
+          source("source/procinema.R", local = WordPress_env)
+          # Wordpress
+          source("source/read_and_convert_wordPress.R", local = WordPress_env)
+          shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
+          
+          FilmvorschlagErstellen(toc(), WordPress_env)
+          shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
+          
+          # Create webserver data
+          webserver()
+          shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
+          
+        }, error = function(e) {
+          ausgabe_text(paste(
+            "Alles neu erstellen Fehlermeldung:\n",
+            e$message
+          ))
+        })
+      }
       End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
       file_exists(file.exists("output/webserver/index.html"))
       
