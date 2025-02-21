@@ -1389,6 +1389,7 @@ server <- function(input, output, session) {
         
       }, error = function(e) {
         ausgabe_text(paste(
+          error_calculate,
           "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
           e$message
         ))
