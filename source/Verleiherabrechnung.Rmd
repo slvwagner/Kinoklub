@@ -74,10 +74,6 @@ Tunaustrasse 5 \
 5734 Reinach \
 \
 
-```{r}
-c_suisa
-```
-
 
 ```{r}
 df_temp <- df_verleiherabgaben|>

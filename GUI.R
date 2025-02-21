@@ -147,9 +147,9 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     c_temp <- paste0(c(c_temp, " "), collapse = "")
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-    c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD)|>pull()
     
-    # Inhaltsverzeichnis
+    # Create Abrechnung
+    c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD)|>pull()
     if (toc) {
       # neues file schreiben mit toc
       c_raw |>
@@ -157,6 +157,22 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
         writeLines(c_fileName)
     } else {
       # neues file schreiben ohne toc
+      c_raw |>
+        writeLines(c_fileName)
+    }
+    
+    # Create Verleiherabrechnung
+    do_it <- df_mapping|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull()
+    if(do_it){
+      # Template der Abrechnung einlesen
+      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+      
+      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
+      
+      # neues file schreiben ohne toc
+      c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD_Verleiher)|>pull()
       c_raw |>
         writeLines(c_fileName)
     }
@@ -170,19 +186,51 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     num_cores <- nrow(df_mapping)
   }
   
-  # Plan the parallel strategy
+  # Render in parallel Abrechnung
   plan(multisession, workers = num_cores)
   
   # Render files in parallel
   future_walk(1:nrow(df_mapping), function(ii) {
     render_single_file(
-      df_mapping$fileName_RMD[ii], 
-      df_mapping$fileName_html[ii], 
+      df_mapping$fileName_RMD[ii],
+      df_mapping$fileName_html[ii],
       data_env
     )
   })
-  
   file.remove(df_mapping$fileName_RMD)
+  
+  # Render in parallel Verleiherabrechnung
+  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung|>sum()
+  if(create_verleiherabrechnung > 0){
+    # Determine the number of cores to use
+    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+    if(num_cores > 4) num_cores <- 5
+    
+    if(create_verleiherabrechnung < num_cores) {
+      num_cores <- create_verleiherabrechnung
+    }
+    # Render in parallel Verleiherabrechnung
+    plan(multisession, workers = num_cores)
+    
+    # select files to render
+    c_select <- df_mapping|>
+      filter(CreateReportVerleiherabrechnung == TRUE)|>
+      select(index)|>
+      pull()
+    
+    # Render files in parallel
+    c_select|>
+      future_walk(function(ii) {
+        render_single_file(
+          df_mapping$fileName_RMD_Verleiher[ii],
+          df_mapping$fileName_html_Verleiher[ii],
+          data_env
+        )
+      })
+    # Delete selected files
+    file.remove(df_mapping$fileName_RMD_Verleiher[c_select])
+  }
+  
   return(NULL)
 }
 
@@ -1125,7 +1173,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Überwachung Button Abrechnung erstellen über Datum-Range
+  # Überwachung Button Filmabrechnung(en) erstellen 
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1282,6 +1330,21 @@ server <- function(input, output, session) {
     })
   })
   
+  # Download Handler Werbung
+  output$downloadExcel <- downloadHandler(
+    filename = function() {
+      "Werbung.xlsx"
+    },
+    content = function(file) {
+      write.xlsx(
+        data_env$df_Besucherzahlen,
+        file = file,
+        asTable = TRUE,
+        overwrite = TRUE
+      )
+    }
+  )
+  
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1360,15 +1423,15 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
       # run the rest of the script
-      if(calculate_warnings()!=""){
+      if(calculate_warnings() == ""){
         tryCatch({
           # Statistik-Bericht erstellen
           StatistikErstellen(toc())
-          shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
+          shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
           
           # Jahresrechnung-Bericht erstellen
           JahresrechnungErstellen(toc())
-          shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
+          shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
           
           # Bericht(e) Abrechnung pro Filmforführung erstellen
           df_mapping__ <- 
@@ -1382,9 +1445,11 @@ server <- function(input, output, session) {
             data_env$df_Abrechnung,
             toc = toc()
           )
+          shiny::incProgress(1 / 10, detail = paste("step", 5, "of 10"))
           
           # Procinema
           source("source/procinema.R", local = WordPress_env)
+          shiny::incProgress(1 / 10, detail = paste("step", 6, "of 10"))
           # Wordpress
           source("source/read_and_convert_wordPress.R", local = WordPress_env)
           shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
@@ -1416,29 +1481,6 @@ server <- function(input, output, session) {
     })
   })
   
-  # Überwachung Input: Inhaltsverzeichniss
-  shiny::observeEvent(input$Inhaltsverzeichnis, {
-    print(clc)
-    toc(input$Inhaltsverzeichnis)
-    print(toc())
-    file_exists(file.exists("output/webserver/index.html"))
-  })
-  
-  # Download Handler Werbung
-  output$downloadExcel <- downloadHandler(
-    filename = function() {
-      "Werbung.xlsx"
-    },
-    content = function(file) {
-      write.xlsx(
-        data_env$df_Besucherzahlen,
-        file = file,
-        asTable = TRUE,
-        overwrite = TRUE
-      )
-    }
-  )
-  
   # Download Handler Wordpress
   output$downloadWordPress <- downloadHandler(
     filename = function() {
@@ -1456,6 +1498,14 @@ server <- function(input, output, session) {
       }
     }
   )
+  
+  # Überwachung Input: Inhaltsverzeichniss
+  shiny::observeEvent(input$Inhaltsverzeichnis, {
+    print(clc)
+    toc(input$Inhaltsverzeichnis)
+    print(toc())
+    file_exists(file.exists("output/webserver/index.html"))
+  })
   
   # Upload handler
   file_data <- shiny::reactive({
@@ -1748,7 +1798,7 @@ server <- function(input, output, session) {
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
       if(!startup_error)shiny::tableOutput("dateTable"),
-      shiny::tags$h4("System Rückmeldungen"),
+      shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
       shiny::tags$h4("Inhalt der hochgeladen Datei:"),
