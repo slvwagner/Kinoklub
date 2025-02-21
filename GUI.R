@@ -834,7 +834,7 @@ data_env <- new.env()
 
 # read data
 calculate_warnings <- ""
-ausgabe_text <- "Alles eingelesen."
+ausgabe_text <- ""
 tryCatch({
   # Fehler abfangen
   ausgabe_text <<- capture.output({
@@ -849,22 +849,22 @@ tryCatch({
       }
     )
   }, type = "message")
-}, Startup = function(e) {
-  ausgabe_text <<- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
-                          e$message)
+}, error = function(e) {
   ausgabe_text <<-
     paste0(
-      "\n\n",
       "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
       "! Es konnten nicht alle Daten einlesen werden. !\n",
       "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
-      ausgabe_text,
+      "Fehler beim Ausführen von 'source/calculate.R':\n",
+      e$message,
       calculate_warnings,
       collapse = ""
     )
 })
+
 # concatenate feedback
-ausgabe_text <- paste(calculate_warnings, ausgabe_text, collapse = "\n")
+ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
+ausgabe_text
 
 # include some function into data_env
 data_env$r_is.defined <- r_is.defined
@@ -1102,7 +1102,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, type = "message") |>
           calculate_warnings()
-      }, Daten_einlesen = function(e) {
+      }, error = function(e) {
         # Fehler abfangen
         paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
                e$message) |>
@@ -1178,7 +1178,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-        }, Abrechnung = function(e) {
+        }, error = function(e) {
           ausgabe_text(
             paste0(
               "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
@@ -1220,7 +1220,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           
-        }, Statistik = function(e) {
+        }, error = function(e) {
           ausgabe_text(paste(
             "Statistik, Fehler beim Bericht erstellen:\n",
             e$message
@@ -1261,7 +1261,7 @@ server <- function(input, output, session) {
           JahresrechnungErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
-        }, Jahresrechnung = function(e) {
+        }, error = function(e) {
           ausgabe_text(paste(
             "Jahresrechnung, Fehler beim Bericht erstellen:\n",
             e$message
