@@ -840,6 +840,7 @@ error_calculate <-  paste0(
 # read data
 calculate_warnings <- ""
 ausgabe_text <- ""
+startup_error <- FALSE
 tryCatch({
   # Fehler abfangen
   ausgabe_text <<- capture.output({
@@ -862,6 +863,7 @@ tryCatch({
       calculate_warnings,
       collapse = ""
     )
+  startup_error <<- TRUE
 })
 
 # concatenate feedback
@@ -1091,53 +1093,35 @@ server <- function(input, output, session) {
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
       # Execution time 
       c_time <- Sys.time()
-      ausgabe_text("")
+      ausgabe_text("Dateien wurden eingelesen.\n")
       calculate_warnings("")
-      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
-      # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+
       tryCatch({
-        # Warnings abfangen
-        capture.output({
-          source("source/calculate.R", local =  data_env)
-          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-        }, type = "message") |>
-          calculate_warnings()
+        # erstellen von Verzeichnissen
+        dir.create("output/") |> suppressWarnings()
+        dir.create("output/data/") |> suppressWarnings()
+        
+        # Daten einlesen und konvertieren
+        source("source/calculate.R", local =  data_env)
+        shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
+        
       }, error = function(e) {
-        # Fehler abfangen
-        # paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
-        #        e$message) |>
-        #   ausgabe_text()
         paste0(
           error_calculate,
-          "Fehler beim Ausführen von 'source/calculate.R':\n",
-          e$message,
-          ausgabe_text()
-        ) |>
+          "Daten konnten nicht eingelesen werden:",
+          e$message
+          )|>
           ausgabe_text()
       })
-      if (nchar(ausgabe_text()) == 0) {
-        paste0(
-          "Daten einlesen mit den folgenden Warnmeldungen, Berichte können dennoch erstellt werden!\n\n",
-          paste0(calculate_warnings(), collapse = "\n")
-        ) |>
-          ausgabe_text()
-      }
-      shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-      file_exists(file.exists("output/webserver/index.html"))
-      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-      End_date_choose(Sys.Date() + ((
-        max(data_env$df_Abrechnung$Datum) - Sys.Date()
-      ) |> as.integer()))
-      
+      shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
         ausgabe_text()
-      
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
   
@@ -1146,7 +1130,7 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Running script...", value = 0, {
       # Execution time 
       c_time <- Sys.time()
-      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 4, detail = paste("Step", 1, "of 5"))
       ausgabe_text("")
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
@@ -1164,7 +1148,7 @@ server <- function(input, output, session) {
             paste0("\n", getwd(), "/output")
           )
         )
-        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        shiny::incProgress(1 / 4, detail = paste("Step", 2, "of 5"))
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
           df_mapping__ <- 
@@ -1177,9 +1161,9 @@ server <- function(input, output, session) {
             data_env$df_Abrechnung,
             toc = toc()
           )
-          shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
+          shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 5"))
           webserver()
-          shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+          shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 5"))
         }, error = function(e) {
           ausgabe_text(
             paste0(
@@ -1415,7 +1399,6 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-
   # Download Handler Werbung
   output$downloadExcel <- downloadHandler(
     filename = function() {
@@ -1739,7 +1722,7 @@ server <- function(input, output, session) {
                       style = "font-size: 24px;")
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
-      shiny::tableOutput("dateTable"),
+      if(!startup_error)shiny::tableOutput("dateTable"),
       shiny::tags$h4("System Rückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
