@@ -831,6 +831,11 @@ webserver <- function() {
 
 # Envirnoment for Data to create Plots
 data_env <- new.env()
+error_calculate <-  paste0(
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+  "! Es konnten nicht alle Daten einlesen werden. !\n",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
+  "Fehler beim Ausführen von 'source/calculate.R':\n")
 
 # read data
 calculate_warnings <- ""
@@ -852,10 +857,7 @@ tryCatch({
 }, error = function(e) {
   ausgabe_text <<-
     paste0(
-      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-      "! Es konnten nicht alle Daten einlesen werden. !\n",
-      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
-      "Fehler beim Ausführen von 'source/calculate.R':\n",
+      error_calculate,
       e$message,
       calculate_warnings,
       collapse = ""
@@ -1108,9 +1110,7 @@ server <- function(input, output, session) {
                e$message) |>
           ausgabe_text()
         paste0(
-          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-          "! Es konnten nicht alle Daten einlesen werden. !\n",
-          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+          error_calculate,
           ausgabe_text()
         ) |>
           ausgabe_text()
@@ -1306,7 +1306,7 @@ server <- function(input, output, session) {
         FilmvorschlagErstellen(toc(), WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         webserver()
-      }, wordpress = function(e) {
+      }, error = function(e) {
         ausgabe_text(paste(
           "Filmvorschläge, Fehler beim Bericht erstellen:\n",
           e$message
@@ -1385,7 +1385,7 @@ server <- function(input, output, session) {
         webserver()
         shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
         
-      }, AllesErstellen = function(e) {
+      }, error = function(e) {
         ausgabe_text(paste(
           "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
           e$message
