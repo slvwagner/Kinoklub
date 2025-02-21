@@ -1,4 +1,4 @@
-Script Version: 2025 V2.06
+Script Version: 2025 V2.07
  
 ## Kinoklub 
 
@@ -42,7 +42,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 ```         
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot", "xml2")
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot", "xml2","webshot", "furrr")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -503,5 +503,6 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2025 V2.04 Procinema und Filmvorschläge auswerten  \
 2025 V2.05 Bereits gezeigte Filme im Archiv  \
 2025 V2.06 Script running status bar  \
+2025 V2.07 Speed up  \
 
 
