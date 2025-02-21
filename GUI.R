@@ -1,6 +1,6 @@
 # Graphical user interface für den Kinoklub
 # Diese App kann mit Run App in Rstudio gestartet werden.
- 
+
 # Vorbereiten / Installieren
 rm(list = ls())
 
@@ -74,7 +74,7 @@ create_icons <- function(m_Film, c_path, c_url) {
   future_map(1:length(m_Film$FileName[c_select]), 
              ~render_icons(.x, m_Film, c_path, c_url, c_select), 
              .options = furrr_options(seed = TRUE)
-             )
+  )
 }
 
 # Function to render a single RMarkdown file
@@ -133,10 +133,10 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
       filter(
         Datum == (df_mapping |> filter(index == ii) |> select(Datum) |> pull()),
         `Suisa Nummer` == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
-        ) |>
+      ) |>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":",lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
              Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
-             ) |>
+      ) |>
       rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
       select(Filmtitel) |>
       pull()
@@ -181,7 +181,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
       data_env
     )
   })
-
+  
   file.remove(df_mapping$fileName_RMD)
   return(NULL)
 }
@@ -631,7 +631,7 @@ webserver <- function() {
     rmarkdown::render(input = "Site-Map.Rmd",
                       envir = data_env,
                       quiet = TRUE
-                      )
+    )
     # Remove file
     file.remove("Site-Map.Rmd")
     
@@ -851,7 +851,7 @@ tryCatch({
   }, type = "message")
 }, Startup = function(e) {
   ausgabe_text <<- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
-                         e$message)
+                          e$message)
   ausgabe_text <<-
     paste0(
       "\n\n",
@@ -956,17 +956,17 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
       #ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
-
+      
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Einkauf")]
       # take the latest date
       if (length(c_file) > 1) {
         df_temp <- tibble(file = c_file, date = dmy(c_file)) |>
           arrange(date)
-
+        
         c_file <- df_temp$file[nrow(df_temp)]
       }
-
+      
       file_path <- paste0(getwd(), "/Input/", c_file)  # Update this with your actual file path
       if (file.exists(file_path)) {
         tryCatch({
@@ -990,7 +990,7 @@ server <- function(input, output, session) {
       shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
     })
   })
-
+  
   # Überwachung Button: open Excel Einnahmen und Ausgaben
   shiny::observeEvent(input$open_EinAus, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1021,7 +1021,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
     })
   })
-
+  
   # Überwachung Button: open Excel Spezialpreise
   shiny::observeEvent(input$open_Spez, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1029,7 +1029,7 @@ server <- function(input, output, session) {
       #ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Spezial")]
-
+      
       file_path <- paste0(getwd(), "/Input/", c_file)
       if (file.exists(file_path)) {
         tryCatch({
@@ -1053,7 +1053,7 @@ server <- function(input, output, session) {
       shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
     })
   })
-
+  
   # Überwachung Button: open Excel Verleiherabgaben Excel
   shiny::observeEvent(input$open_Verleih, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1061,7 +1061,7 @@ server <- function(input, output, session) {
       #ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
       c_file <- list.files(path = "Input")
       c_file <- c_file[str_detect(c_file, "Verleiher")]
-
+      
       file_path <- paste0(getwd(), "/Input/", c_file)
       if (file.exists(file_path)) {
         tryCatch({
@@ -1085,7 +1085,7 @@ server <- function(input, output, session) {
       shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
     })
   })
-
+  
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1138,7 +1138,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
-
+  
   # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1148,7 +1148,7 @@ server <- function(input, output, session) {
       ausgabe_text("")
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
-
+      
       # Überprüfen, ob beide Daten gültig sind
       if (start_datum <= end_datum) {
         # Aktion ausführen
@@ -1165,18 +1165,16 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
-          # Bericht(e) Abrechnung pro Filmforführung erstellen
           df_mapping__ <- 
             Abrechnung_mapping(
               data_env,
               start_datum, end_datum
-              )
+            )
           AbrechnungErstellen(
             df_mapping__,
             data_env$df_Abrechnung,
-
             toc = toc()
-            )
+          )
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
@@ -1201,9 +1199,9 @@ server <- function(input, output, session) {
       
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
-
+    
   })
-
+  
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1221,7 +1219,7 @@ server <- function(input, output, session) {
           StatistikErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
-
+          
         }, Statistik = function(e) {
           ausgabe_text(paste(
             "Statistik, Fehler beim Bericht erstellen:\n",
@@ -1244,9 +1242,9 @@ server <- function(input, output, session) {
       
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
-
+    
   })
-
+  
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1286,7 +1284,7 @@ server <- function(input, output, session) {
         ausgabe_text()
     })
   })
-
+  
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1298,7 +1296,7 @@ server <- function(input, output, session) {
         "\nDie Exceldatei kann jetzt heruntergeladen werden."
       ) |>
         ausgabe_text()
-
+      
       # read WordPress and procinema data and create excel file for Kinoprogramm
       tryCatch({
         source("source/procinema.R", local = WordPress_env)
@@ -1326,7 +1324,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
-
+  
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1336,31 +1334,31 @@ server <- function(input, output, session) {
       # User interaction
       "Alles wurde neu erstellt" |>
         ausgabe_text()
-
+      
       # Delete all files prior to creating new files
       list.files("output/", "html", full.names = TRUE) |>
         file.remove()
       list.files("output/pict/", "html", full.names = TRUE) |>
         file.remove()
-
+      
       tryCatch({
         # erstellen von Verzeichnissen
         dir.create("output/") |> suppressWarnings()
         dir.create("output/data/") |> suppressWarnings()
         shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
-
+        
         # Daten einlesen und konvertieren
         source("source/calculate.R", local =  data_env)
         shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
-
+        
         # Statistik-Bericht erstellen
         StatistikErstellen(toc())
         shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
-
+        
         # Jahresrechnung-Bericht erstellen
         JahresrechnungErstellen(toc())
         shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
-
+        
         # Bericht(e) Abrechnung pro Filmforführung erstellen
         df_mapping__ <- 
           Abrechnung_mapping(
@@ -1370,24 +1368,23 @@ server <- function(input, output, session) {
           )
         AbrechnungErstellen(
           df_mapping__,
-          get("df_Abrechnung", envir = data_env),
-          df_Render = df_Render(),
+          data_env$df_Abrechnung,
           toc = toc()
         )
-    
+        
         # Procinema
         source("source/procinema.R", local = WordPress_env)
         # Wordpress
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
-
+        
         FilmvorschlagErstellen(toc(), WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
-
+        
         # Create webserver data
         webserver()
         shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
-
+        
       }, AllesErstellen = function(e) {
         ausgabe_text(paste(
           "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
@@ -1406,7 +1403,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 10, detail = paste("Step", 10, "of 10"))
     })
   })
-
+  
   # Überwachung Input: Inhaltsverzeichniss
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
@@ -1414,7 +1411,7 @@ server <- function(input, output, session) {
     print(toc())
     file_exists(file.exists("output/webserver/index.html"))
   })
-
+  
   # # Überwachung Input: Ausgabeformat
   # shiny::observeEvent(input$render_option, {
   #   print(clc)
@@ -1453,7 +1450,7 @@ server <- function(input, output, session) {
   #   ))
   #   file_exists(file.exists("output/webserver/index.html"))
   # })
-
+  
   # Download Handler Werbung
   output$downloadExcel <- downloadHandler(
     filename = function() {
@@ -1468,7 +1465,7 @@ server <- function(input, output, session) {
       )
     }
   )
-
+  
   # Download Handler Wordpress
   output$downloadWordPress <- downloadHandler(
     filename = function() {
@@ -1486,14 +1483,14 @@ server <- function(input, output, session) {
       }
     }
   )
-
+  
   # Upload handler
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
-
+    
     if (file_ext == "xlsx") {
       # save xlsx files
       # Define save path
@@ -1502,7 +1499,7 @@ server <- function(input, output, session) {
       file.copy(from = file_path,
                 to = save_path,
                 overwrite = TRUE)
-
+      
       # user interaction
       paste0(
         "Die Datei \"",
@@ -1513,7 +1510,7 @@ server <- function(input, output, session) {
         " abgespeichert"
       ) |>
         ausgabe_text()
-
+      
       # Read all sheet names
       sheet_names <- openxlsx::getSheetNames(save_path)
       return(list(
@@ -1521,7 +1518,7 @@ server <- function(input, output, session) {
         path = save_path,
         sheets = sheet_names
       ))
-
+      
     } else if (file_ext == "txt") {
       # save txt files
       if (file_name == "Procinema.txt" |
@@ -1601,19 +1598,19 @@ server <- function(input, output, session) {
       return(NULL)
     }
   })
-
+  
   # Read selected sheet data
   selected_data <- shiny::reactive({
     shiny::req(file_data(), input$selected_sheet)
     col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
   })
-
+  
   # Reder: Update table with all the dates in the selected range
   output$dateTable <- shiny::renderTable({
     if (exists("data_env")) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
-
+      
       get("df_Abrechnung", envir = data_env) |>
         filter(between(Datum, start_datum, end_datum)) |>
         arrange(desc(Datum), desc(Anfang)) |>
@@ -1622,14 +1619,14 @@ server <- function(input, output, session) {
         select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
     }
   })
-
+  
   # Render: txt file rendering
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
-
+  
   # Render: dynamic sheet selection UI
   output$sheet_selector <- shiny::renderUI({
     shiny::req(file_data())
@@ -1637,18 +1634,18 @@ server <- function(input, output, session) {
                        "Excel Blatt auswählen:",
                        choices = file_data()$sheets)
   })
-
+  
   # Render: Systemrückmeldungen aktualisieren
   output$ausgabe <- renderText({
     ausgabe_text()
   })
-
+  
   # Render: selected sheet contents
   output$table_output <- shiny::renderTable({
     shiny::req(selected_data())
     selected_data()
   })
-
+  
   # Render: Dynamically update the input panel content
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
@@ -1661,7 +1658,7 @@ server <- function(input, output, session) {
         placeholder = "Drag & drop or browse a file"
       ),
       shiny::uiOutput("sheet_selector"),
-
+      
       # Button Daten Einlesen
       shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
       shiny::tags$hr(),
@@ -1672,7 +1669,7 @@ server <- function(input, output, session) {
         placement = "right",
         trigger = "hover"
       ),
-
+      
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
       shiny::dateRangeInput(
         inputId = "dateRange",
@@ -1689,7 +1686,7 @@ server <- function(input, output, session) {
         # Set input format to German (DD.MM.YYYY)
         separator = " bis " # Separator for the two dates in German
       ),
-
+      
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
       # Add tooltips using shinyBS
@@ -1700,23 +1697,23 @@ server <- function(input, output, session) {
         trigger = "hover"
       ),
       shiny::tags$hr(),
-
+      
       # Button zum Ausführen von Code Statistik erstellen
       shiny::actionButton("Statistik", "Statistik erstellen"),
-
+      
       # Button zum Ausführen von Code Jahresrechnung erstellen
       shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$hr(),
-
+      
       # Button zum Download der Werbung
       shiny::downloadButton("downloadExcel", "Download Werbung"),
       shiny::tags$hr(),
-
+      
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       shiny::actionButton("wordpress", "Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
-
+      
       # Button zum Ausführen von Code Alles erstellen mit Webserver
       shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
       # Add tooltips using shinyBS
@@ -1727,7 +1724,7 @@ server <- function(input, output, session) {
         trigger = "hover"
       ),
       shiny::tags$hr(),
-
+      
       # Inhaltsverzeichnis
       shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
@@ -1735,7 +1732,7 @@ server <- function(input, output, session) {
         choices = list("Ja" = TRUE, "Nein" = FALSE),
         selected = TRUE # Default value
       ),
-
+      
       # # Ausgabeformat
       # shiny::selectInput(
       #   inputId = "render_option",
@@ -1760,7 +1757,7 @@ server <- function(input, output, session) {
       # ),
     )
   })
-
+  
   # Render: Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
@@ -1785,7 +1782,7 @@ server <- function(input, output, session) {
       shiny::tableOutput("table_output"),
       shiny::verbatimTextOutput("text_output")
     )
-
+    
   })
 }
 
