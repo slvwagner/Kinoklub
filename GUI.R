@@ -122,7 +122,6 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
-    c_raw
     
     # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
     index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
@@ -148,7 +147,6 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     c_temp <- paste0(c(c_temp, " "), collapse = "")
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-    
     c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD)|>pull()
     
     # Inhaltsverzeichnis
