@@ -1,7 +1,8 @@
 ---
 title: "Site-Map"
 output: 
-  html_document
+  html_document:
+    css: source/Kinoklub_dark_gui.css
 ---
 
 ```{r setup, include=FALSE}
