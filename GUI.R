@@ -6,19 +6,9 @@ rm(list = ls())
 
 # Define libraries to be installed
 packages <- c(
-  "rmarkdown",
-  "rebus",
-  "openxlsx",
-  "tidyverse",
-  "lubridate",
-  "DT",
-  "shiny",
-  "shinyBS",
-  "magick",
-  "webshot",
-  "xml2",
-  "parallel",
-  "parallelly"
+  "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
+  "lubridate",  "DT",  "shiny",  "shinyBS",  "magick",
+  "webshot",  "xml2",  "furrr"
 )
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -27,17 +17,9 @@ if (any(installed_packages == FALSE)) {
 }
 # Packages loading
 packages <- c(
-  "rmarkdown",
-  "rebus",
-  "openxlsx",
-  "lubridate",
-  "DT",
-  "magick",
-  "webshot",
-  "xml2",
-  "tidyverse",
-  "parallel",
-  "parallelly"
+  "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
+  "DT",  "magick",  "webshot",  "xml2",  "tidyverse",
+  "furrr"
 )
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
@@ -55,69 +37,17 @@ WordPress_env <- new.env()
 # Functions
 source("source/functions.R")
 
-# Index pro Suisa-Nummer und Datum erstellen
-mapping <- function(c_Datum, c_suisa, data_env) {
-  df_mapping <- tibble(Datum = c_Datum, Suisanummer = c_suisa) |>
-    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
-           index = row_number())
-  
-  # Soll die Verleiherabrechnung erzeugt werden?
-  df_mapping <- data_env$df_verleiherabgaben |>
-    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
-    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
-    mutate(
-      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
-      `Kinoförderer gratis?` = NULL
-    ) |>
-    arrange(index)
-  return(df_mapping)
-}
-
-
-
-
 # Function to create icons for the site map
 create_icons <- function(m_Film, c_path, c_url) {
   library(furrr)
   library(webshot)  # Ensure webshot is loaded
   library(magick)   # Ensure magick is loaded
-  library(parallelly)  # Ensure parallelly is loaded
   c_select <- !((m_Film$FileName |> str_remove(".html")) %in% 
                   (list.files("output/pict/") |> str_remove(".html.png")))
   
-  #####################################################################################################
-  # for (ii in 1:length(m_Film$FileName[c_select])) {
-  #   # Set the path to the input image
-  #   input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
-  #   input_path
-  #   
-  #   # create a webshot, printed html
-  #   webshot::webshot(url = c_url[c_select][ii], file = input_path)
-  #   
-  #   # Read the image crop and resize and save
-  #   image_read(input_path)|>
-  #     image_crop(geometry = "992x992+0+0")|>
-  #     image_resize("400x400")|>
-  #     image_write(input_path)
-  #   
-  #   writeLines(".", sep = "")
-  # }
-  
-  # lapply(1:length(m_Film$FileName[c_select]),function(ii){
-  #   # Set the path to the input image
-  #   input_path <- paste0(c_path, "/",m_Film$FileName[c_select][ii],".png")
-  #   # create a webshot, printed html
-  #   webshot::webshot(url = c_url[c_select][ii], file = input_path)
-  #   # Read the image crop and resize and save
-  #   image_read(input_path)|>
-  #     image_crop(geometry = "992x992+0+0")|>
-  #     image_resize("400x400")|>
-  #     image_write(input_path)
-  # })
-  
   # Determine the number of cores to use
   num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
-  if(num_cores > 4) num_cores <- 5
+  if(num_cores > 5) num_cores <- 5
   if(nrow(m_Film) < num_cores) {
     num_cores <- nrow(m_Film)
   }
@@ -159,8 +89,8 @@ render_single_file <- function(input, output, envir) {
 }
 
 # Erstellen der Abrechnung pro Filmvorführung
-Create_Abrechnung <- function(mapping, df_Abrechnung, toc) {
-  for (ii in mapping$index) {
+Create_Abrechnung <- function(df_mapping, df_Abrechnung, toc) {
+  for (ii in df_mapping$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
@@ -173,37 +103,24 @@ Create_Abrechnung <- function(mapping, df_Abrechnung, toc) {
     index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung |>
       filter(
-        Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
-        `Suisa Nummer` == (
-          mapping |> filter(index == ii) |> select(Suisanummer) |> pull()
-        )
-      ) |>
-      mutate(
-        Anfang = paste0(
-          lubridate::hour(Anfang),
-          ":",
-          lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")
-        ),
-        Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
-      ) |>
+        Datum == (df_mapping |> filter(index == ii) |> select(Datum) |> pull()),
+        `Suisa Nummer` == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
+        ) |>
+      mutate(Anfang = paste0(lubridate::hour(Anfang),":",lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
+             Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
+             ) |>
       rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
       select(Filmtitel) |>
       pull()
     
-    c_temp <- c_raw[(index)] |>
-      str_split("\"", simplify = T) |>
-      as.vector()
-    
+    c_temp <- c_raw[(index)] |> str_split("\"", simplify = T) |> as.vector()
     c_temp <- c_temp[1:2]
     c_temp <- paste0(c(c_temp), collapse = "\"")
     c_temp <- paste0(c(c_temp, " "), collapse = "")
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
     
-    c_fileName <- mapping|>
-      filter(index == ii)|>
-      select(fileName_RMD)|>
-      pull()
+    c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD)|>pull()
     
     # Inhaltsverzeichnis
     if (toc) {
@@ -218,52 +135,77 @@ Create_Abrechnung <- function(mapping, df_Abrechnung, toc) {
     }
   }
   
-  library(parallel)
+  
+  library(furrr)
   # Determine the number of cores to use
-  num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
+  num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
   if(num_cores > 4) num_cores <- 5
-  if(nrow(mapping) < num_cores) {
-    num_cores <- nrow(mapping)
+  if(nrow(df_mapping) < num_cores) {
+    num_cores <- nrow(df_mapping)
   }
   
-  paste0("NB_cores: ", num_cores)|>
+  paste0("NB_cores: ", num_cores) |>
     writeLines()
-  ii <- 1
+  
+  # Plan the parallel strategy
+  plan(multisession, workers = num_cores)
+  
   # Render files in parallel
-  if (.Platform$OS.type == "unix") {
-    # Use mclapply for Unix-based systems (Linux/Mac)
-    mclapply(1:nrow(mapping), function(ii) {
-      render_single_file(
-        c(mapping$fileName_RMD[ii]), 
-        c(mapping$fileName_html[ii]), 
-        data_env
-      )
-    }, mc.cores = num_cores)
-  } else {
-    # Use parLapply for Windows
-    cl <- makeCluster(num_cores)
-    clusterExport(
-      cl,
-      c( # Export necessary variables to the cluster
-        "data_env",
-        "r_is.defined",
-        "r_is.library_loaded",
-        "r_signif",
-        "render_single_file",
-        "round5Rappen",
-        "mapping"
-      )
+  future_walk(1:nrow(df_mapping), function(ii) {
+    render_single_file(
+      df_mapping$fileName_RMD[ii], 
+      df_mapping$fileName_html[ii], 
+      data_env
     )
-    parLapply(cl, 1:nrow(mapping), function(ii){
-      render_single_file(
-        c(mapping$fileName_RMD[ii]),
-        c(mapping$fileName_html[ii]), 
-        data_env
-      )
-    })
-    stopCluster(cl)  # Stop the cluster after rendering
-  }
-  file.remove(mapping$fileName_RMD)
+  })
+  
+  
+  # library(parallel)
+  # # Determine the number of cores to use
+  # num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
+  # if(num_cores > 4) num_cores <- 5
+  # if(nrow(df_mapping) < num_cores) {
+  #   num_cores <- nrow(df_mapping)
+  # }
+  # 
+  # paste0("NB_cores: ", num_cores)|>
+  #   writeLines()
+  # ii <- 1
+  # # Render files in parallel
+  # if (.Platform$OS.type == "unix") {
+  #   # Use mclapply for Unix-based systems (Linux/Mac)
+  #   mclapply(1:nrow(df_mapping), function(ii) {
+  #     render_single_file(
+  #       c(df_mapping$fileName_RMD[ii]), 
+  #       c(df_mapping$fileName_html[ii]), 
+  #       data_env
+  #     )
+  #   }, mc.cores = num_cores)
+  # } else {
+  #   # Use parLapply for Windows
+  #   cl <- makeCluster(num_cores)
+  #   clusterExport(
+  #     cl,
+  #     c( # Export necessary variables to the cluster
+  #       "data_env",
+  #       "r_is.defined",
+  #       "r_is.library_loaded",
+  #       "r_signif",
+  #       "render_single_file",
+  #       "round5Rappen",
+  #       "df_mapping"
+  #     )
+  #   )
+  #   parLapply(cl, 1:nrow(df_mapping), function(ii){
+  #     render_single_file(
+  #       c(df_mapping$fileName_RMD[ii]),
+  #       c(df_mapping$fileName_html[ii]), 
+  #       data_env
+  #     )
+  #   })
+  #   stopCluster(cl)  # Stop the cluster after rendering
+  # }
+  file.remove(df_mapping$fileName_RMD)
   return(NULL)
 }
 
@@ -1110,7 +1052,7 @@ tryCatch({
       }
     )
   }, type = "message")
-}, error = function(e) {
+}, Startup = function(e) {
   ausgabe_text <<- paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
                          e$message)
   ausgabe_text <<-
@@ -1126,6 +1068,10 @@ tryCatch({
 })
 # concatenate feedback
 ausgabe_text <- paste(calculate_warnings, ausgabe_text, collapse = "\n")
+
+# include some function into data_env
+data_env$r_is.defined <- r_is.defined
+data_env$round5Rappen <- round5Rappen
 
 # Shiny reactive variables
 calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
@@ -1359,7 +1305,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, type = "message") |>
           calculate_warnings()
-      }, error = function(e) {
+      }, Daten_einlesen = function(e) {
         # Fehler abfangen
         paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
                e$message) |>
@@ -1435,7 +1381,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
           shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-        }, error = function(e) {
+        }, Abrechnung = function(e) {
           ausgabe_text(
             paste0(
               "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
@@ -1477,7 +1423,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
 
-        }, error = function(e) {
+        }, Statistik = function(e) {
           ausgabe_text(paste(
             "Statistik, Fehler beim Bericht erstellen:\n",
             e$message
@@ -1518,7 +1464,7 @@ server <- function(input, output, session) {
           JahresrechnungErstellen(toc(), df_Render())
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
-        }, error = function(e) {
+        }, Jahresrechnung = function(e) {
           ausgabe_text(paste(
             "Jahresrechnung, Fehler beim Bericht erstellen:\n",
             e$message
@@ -1563,7 +1509,7 @@ server <- function(input, output, session) {
         FilmvorschlagErstellen(toc(), df_Render())
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         webserver()
-      }, error = function(e) {
+      }, wordpress = function(e) {
         ausgabe_text(paste(
           "Filmvorschläge, Fehler beim Bericht erstellen:\n",
           e$message
@@ -1642,7 +1588,7 @@ server <- function(input, output, session) {
         webserver()
         shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
 
-      }, error = function(e) {
+      }, Alles = function(e) {
         ausgabe_text(paste(
           "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
           e$message
