@@ -834,8 +834,8 @@ data_env <- new.env()
 error_calculate <-  paste0(
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
   "! Es konnten nicht alle Daten einlesen werden. !\n",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
-  "Fehler beim Ausführen von 'source/calculate.R':\n")
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+  )
 
 # read data
 calculate_warnings <- ""
@@ -1106,11 +1106,13 @@ server <- function(input, output, session) {
           calculate_warnings()
       }, error = function(e) {
         # Fehler abfangen
-        paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
-               e$message) |>
-          ausgabe_text()
+        # paste0("Fehler beim Ausführen von 'source/calculate.R':\n",
+        #        e$message) |>
+        #   ausgabe_text()
         paste0(
           error_calculate,
+          "Fehler beim Ausführen von 'source/calculate.R':\n",
+          e$message,
           ausgabe_text()
         ) |>
           ausgabe_text()
