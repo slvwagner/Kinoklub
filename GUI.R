@@ -628,7 +628,7 @@ webserver <- function() {
       writeLines("Site-Map.Rmd")
     
     # Render
-    rmarkdown::render(input = "Site-Map.Rmd", 
+    rmarkdown::render(input = "Site-Map.Rmd",
                       envir = data_env,
                       quiet = TRUE
                       )
@@ -877,8 +877,8 @@ ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
-# Ausgabeformate
-c_render_option <- shiny::reactiveVal("1")
+# # Ausgabeformate
+# c_render_option <- shiny::reactiveVal("1")
 
 # Vektor mit Datumseinträgen
 if (exists("df_show", envir = data_env))  {
@@ -1412,44 +1412,44 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  # Überwachung Input: Ausgabeformat
-  shiny::observeEvent(input$render_option, {
-    print(clc)
-
-    df_Render(switch(
-      input$render_option,
-      "1" = tibble::tibble(
-        Render = c("html_document"),
-        fileExt = c(".html")
-      ),
-      "2" = tibble::tibble(
-        Render = c("word_document"),
-        fileExt = c(".docx")
-      ),
-      "3" = tibble::tibble(
-        Render = c("pdf_document"),
-        fileExt = c(".pdf")
-      ),
-      "4" = tibble::tibble(
-        Render = c("html_document", "word_document"),
-        fileExt = c(".html", ".docx")
-      ),
-      "5" = tibble::tibble(
-        Render = c("html_document", "pdf_document"),
-        fileExt = c(".html", ".pdf")
-      ),
-      "6" = tibble::tibble(
-        Render = c("word_document", "pdf_document"),
-        fileExt = c(".docx", ".pdf")
-      ),
-      "7" = tibble::tibble(
-        Render = c("html_document", "word_document", "pdf_document"),
-        fileExt = c(".html", ".docx", ".pdf")
-      ),
-      stop("\nDie verwendete Renderoption is nicht definiert")
-    ))
-    file_exists(file.exists("output/webserver/index.html"))
-  })
+  # # Überwachung Input: Ausgabeformat
+  # shiny::observeEvent(input$render_option, {
+  #   print(clc)
+  # 
+  #   df_Render(switch(
+  #     input$render_option,
+  #     "1" = tibble::tibble(
+  #       Render = c("html_document"),
+  #       fileExt = c(".html")
+  #     ),
+  #     "2" = tibble::tibble(
+  #       Render = c("word_document"),
+  #       fileExt = c(".docx")
+  #     ),
+  #     "3" = tibble::tibble(
+  #       Render = c("pdf_document"),
+  #       fileExt = c(".pdf")
+  #     ),
+  #     "4" = tibble::tibble(
+  #       Render = c("html_document", "word_document"),
+  #       fileExt = c(".html", ".docx")
+  #     ),
+  #     "5" = tibble::tibble(
+  #       Render = c("html_document", "pdf_document"),
+  #       fileExt = c(".html", ".pdf")
+  #     ),
+  #     "6" = tibble::tibble(
+  #       Render = c("word_document", "pdf_document"),
+  #       fileExt = c(".docx", ".pdf")
+  #     ),
+  #     "7" = tibble::tibble(
+  #       Render = c("html_document", "word_document", "pdf_document"),
+  #       fileExt = c(".html", ".docx", ".pdf")
+  #     ),
+  #     stop("\nDie verwendete Renderoption is nicht definiert")
+  #   ))
+  #   file_exists(file.exists("output/webserver/index.html"))
+  # })
 
   # Download Handler Werbung
   output$downloadExcel <- downloadHandler(
@@ -1733,28 +1733,28 @@ server <- function(input, output, session) {
         selected = TRUE # Default value
       ),
 
-      # Ausgabeformat
-      shiny::selectInput(
-        inputId = "render_option",
-        label = "Ausgabeformat wählen:",
-        choices = list(
-          "HTML" = "1",
-          "DOCX" = "2",
-          "PDF" = "3",
-          "HTML and DOCX" = "4",
-          "HTML and PDF" = "5",
-          "DOCX and PDF" = "6",
-          "HTML, DOCX, and PDF" = "7"
-        ),
-        selected = "1" # Default value
-      ),
+      # # Ausgabeformat
+      # shiny::selectInput(
+      #   inputId = "render_option",
+      #   label = "Ausgabeformat wählen:",
+      #   choices = list(
+      #     "HTML" = "1",
+      #     "DOCX" = "2",
+      #     "PDF" = "3",
+      #     "HTML and DOCX" = "4",
+      #     "HTML and PDF" = "5",
+      #     "DOCX and PDF" = "6",
+      #     "HTML, DOCX, and PDF" = "7"
+      #   ),
+      #   selected = "1" # Default value
+      # ),
       # Add tooltips using shinyBS
-      shinyBS::bsTooltip(
-        id = "render_option",
-        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
-        placement = "right",
-        trigger = "hover"
-      ),
+      # shinyBS::bsTooltip(
+      #   id = "render_option",
+      #   title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
+      #   placement = "right",
+      #   trigger = "hover"
+      # ),
     )
   })
 
