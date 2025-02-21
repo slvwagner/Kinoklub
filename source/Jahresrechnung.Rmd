@@ -2,7 +2,7 @@
 title: "Jahresabrechnung Kinoklub"
 output: 
   html_document:
-    css: source/Kinoklub_dark.css
+    css: Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}

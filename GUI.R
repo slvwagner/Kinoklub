@@ -77,10 +77,10 @@ create_icons <- function(m_Film, c_path, c_url) {
              )
 }
 
-# Define a function to render a single RMarkdown file
+# Function to render a single RMarkdown file
 render_single_file <- function(input, output, envir) {
   rmarkdown::render(
-    input = input,        # inptut file name
+    input = input,        # input file name
     output_file = output, # output file name
     output_dir = "output",# where to put the output file (directory) 
     envir = envir, 
@@ -88,8 +88,37 @@ render_single_file <- function(input, output, envir) {
   )
 }
 
+# Index pro Suisa-Nummer und Datum erstellen
+Abrechnung_mapping <- function(data_env, start, end) {
+  df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
+    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
+           index = row_number())
+  
+  # Soll die Verleiherabrechnung erzeugt werden?
+  df_mapping <- data_env$df_verleiherabgaben |>
+    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
+    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
+    mutate(
+      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
+      `Kinoförderer gratis?` = NULL
+    ) |>
+    filter(between(Datum, as.Date(start), as.Date(end)))|>
+    mutate(fileName_RMD            = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".Rmd"),
+           fileName_html           = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".html"),
+           fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".Rmd"),
+           fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".html")
+    )|>
+    left_join(data_env$df_show|>
+                distinct(`Suisa Nummer`,.keep_all = T)|>
+                select(`Suisa Nummer`, Filmtitel),
+              by = c(Suisanummer = "Suisa Nummer")
+    )|>
+    arrange(index)
+  return(df_mapping)
+}
+
 # Erstellen der Abrechnung pro Filmvorführung
-Create_Abrechnung <- function(df_mapping, df_Abrechnung, toc) {
+AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
@@ -135,7 +164,6 @@ Create_Abrechnung <- function(df_mapping, df_Abrechnung, toc) {
     }
   }
   
-  
   library(furrr)
   # Determine the number of cores to use
   num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
@@ -143,9 +171,6 @@ Create_Abrechnung <- function(df_mapping, df_Abrechnung, toc) {
   if(nrow(df_mapping) < num_cores) {
     num_cores <- nrow(df_mapping)
   }
-  
-  paste0("NB_cores: ", num_cores) |>
-    writeLines()
   
   # Plan the parallel strategy
   plan(multisession, workers = num_cores)
@@ -158,89 +183,13 @@ Create_Abrechnung <- function(df_mapping, df_Abrechnung, toc) {
       data_env
     )
   })
-  
-  
-  # library(parallel)
-  # # Determine the number of cores to use
-  # num_cores <- detectCores() - 1  # Use all but one core to avoid overloading the system
-  # if(num_cores > 4) num_cores <- 5
-  # if(nrow(df_mapping) < num_cores) {
-  #   num_cores <- nrow(df_mapping)
-  # }
-  # 
-  # paste0("NB_cores: ", num_cores)|>
-  #   writeLines()
-  # ii <- 1
-  # # Render files in parallel
-  # if (.Platform$OS.type == "unix") {
-  #   # Use mclapply for Unix-based systems (Linux/Mac)
-  #   mclapply(1:nrow(df_mapping), function(ii) {
-  #     render_single_file(
-  #       c(df_mapping$fileName_RMD[ii]), 
-  #       c(df_mapping$fileName_html[ii]), 
-  #       data_env
-  #     )
-  #   }, mc.cores = num_cores)
-  # } else {
-  #   # Use parLapply for Windows
-  #   cl <- makeCluster(num_cores)
-  #   clusterExport(
-  #     cl,
-  #     c( # Export necessary variables to the cluster
-  #       "data_env",
-  #       "r_is.defined",
-  #       "r_is.library_loaded",
-  #       "r_signif",
-  #       "render_single_file",
-  #       "round5Rappen",
-  #       "df_mapping"
-  #     )
-  #   )
-  #   parLapply(cl, 1:nrow(df_mapping), function(ii){
-  #     render_single_file(
-  #       c(df_mapping$fileName_RMD[ii]),
-  #       c(df_mapping$fileName_html[ii]), 
-  #       data_env
-  #     )
-  #   })
-  #   stopCluster(cl)  # Stop the cluster after rendering
-  # }
+
   file.remove(df_mapping$fileName_RMD)
   return(NULL)
 }
 
-# Index pro Suisa-Nummer und Datum erstellen
-Abrechnung_mapping <- function(data_env, start, end) {
-  df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
-    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
-           index = row_number())
-  
-  # Soll die Verleiherabrechnung erzeugt werden?
-  df_mapping <- data_env$df_verleiherabgaben |>
-    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
-    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
-    mutate(
-      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
-      `Kinoförderer gratis?` = NULL
-    ) |>
-    filter(between(Datum, as.Date(start), as.Date(end)))|>
-    mutate(fileName_RMD            = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".Rmd"),
-           fileName_html           = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".html"),
-           fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".Rmd"),
-           fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".html")
-    )|>
-    left_join(data_env$df_show|>
-                distinct(`Suisa Nummer`,.keep_all = T)|>
-                select(`Suisa Nummer`, Filmtitel),
-              by = c(Suisanummer = "Suisa Nummer")
-    )|>
-    arrange(index)
-  return(df_mapping)
-}
-
-
 # Statistik-Bericht erstellen
-StatistikErstellen <- function(toc, df_Render) {
+StatistikErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
   # Inhaltsverzeichnis
@@ -254,22 +203,12 @@ StatistikErstellen <- function(toc, df_Render) {
     c_raw |>
       writeLines(paste0("source/temp.Rmd"))
   }
-  
   # Render
-  rmarkdown::render(
-    input = paste0("source/temp.Rmd"),
-    output_format  = df_Render$Render,
-    output_file = paste0("Statistik", df_Render$fileExt),
-    output_dir = paste0(getwd(), "/output"),
-    envir = data_env,
-    quiet = TRUE
-  )
-  paste("Bericht: \nStatistik erstellt") |>
-    writeLines()
+  render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
 }
 
-# Statistik-Bericht erstellen
-FilmvorschlagErstellen <- function(toc, df_Render) {
+# Filmvorschlag erstellen
+FilmvorschlagErstellen <- function(toc, data_env) {
   # Einlesen
   c_raw <- readLines("source/Archiv.Rmd")
   # Inhaltsverzeichnis
@@ -284,20 +223,11 @@ FilmvorschlagErstellen <- function(toc, df_Render) {
       writeLines(paste0("source/temp.Rmd"))
   }
   # Render
-  rmarkdown::render(
-    input = paste0("source/temp.Rmd"),
-    output_format  = df_Render$Render,
-    output_file = paste0("Archiv", df_Render$fileExt),
-    output_dir = paste0(getwd(), "/output"),
-    envir = WordPress_env,
-    quiet = TRUE
-  )
-  paste("Bericht: \nFilmvorschläge erstellt") |>
-    writeLines()
+  render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
 }
 
 # Jahresrechnung-Bericht erstellen
-JahresrechnungErstellen <- function(toc, df_Render) {
+JahresrechnungErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
   # Inhaltsverzeichnis
@@ -312,16 +242,7 @@ JahresrechnungErstellen <- function(toc, df_Render) {
       writeLines(paste0("source/temp.Rmd"))
   }
   # Render
-  rmarkdown::render(
-    input = paste0("source/temp.Rmd"),
-    output_format = df_Render$Render,
-    output_file = paste0("Jahresrechnung", df_Render$fileExt),
-    output_dir = paste0(getwd(), "/output"),
-    envir = data_env,
-    quiet = TRUE
-  )
-  paste("Bericht: \nJahresrechnung erstellt") |>
-    writeLines()
+  render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
 }
 
 # function to edit Site-Map: insert pictures
@@ -910,128 +831,6 @@ webserver <- function() {
   
 }
 
-# Erstellen der Abrechnung pro Filmvorführung
-AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
-  for (ii in mapping$index) {
-    # Template der Abrechnung einlesen
-    c_raw <- readLines("source/Abrechnung.Rmd")
-    c_raw
-    
-    # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
-    index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-    c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
-    
-    # Ändern des Templates Titel Filmname
-    index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
-    c_temp1 <- df_Abrechnung |>
-      filter(
-        Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
-        `Suisa Nummer` == (
-          mapping |> filter(index == ii) |> select(Suisanummer) |> pull()
-        )
-      ) |>
-      mutate(
-        Anfang = paste0(
-          lubridate::hour(Anfang),
-          ":",
-          lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")
-        ),
-        Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
-      ) |>
-      rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
-      select(Filmtitel) |>
-      pull()
-    
-    c_temp <- c_raw[(index)] |>
-      str_split("\"", simplify = T) |>
-      as.vector()
-    
-    c_temp <- c_temp[1:2]
-    c_temp <- paste0(c(c_temp), collapse = "\"")
-    c_temp <- paste0(c(c_temp, " "), collapse = "")
-    c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
-    c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-    
-    # Inhaltsverzeichnis
-    if (toc) {
-      # neues file schreiben mit toc
-      c_raw |>
-        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-        writeLines(paste0("source/temp.Rmd"))
-    } else {
-      # neues file schreiben ohne toc
-      c_raw |>
-        writeLines(paste0("source/temp.Rmd"))
-    }
-    
-    # Render
-    rmarkdown::render(
-      input = "source/temp.Rmd",
-      output_format = df_Render$Render,
-      output_file = paste0("Abrechnung ",
-                           mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
-                           df_Render$fileExt
-                           ),
-      output_dir = "output",
-      envir = data_env,
-      quiet = TRUE
-    )
-    
-    # user interaction
-    print(clc)
-    paste(
-      "Bericht: \nFilmabrechnung vom",
-      mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
-      "erstellt"
-    ) |>
-      writeLines()
-    
-    
-    # Muss eine Verleiherrechnung erstellt werden?
-    if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
-      # Einlesen template der Verleiherabrechnung
-      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-      c_raw
-      
-      # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
-      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-      index
-      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
-      
-      # neues file schreiben
-      writeLines(c_raw, "Verleiherabrechnung.Rmd")
-      
-      # Render
-      rmarkdown::render(
-        input = "Verleiherabrechnung.Rmd",
-        output_file = paste0(
-          "Verleiherabrechnung ",
-          mapping |> filter(index == ii) |> select(Suisanummer) |> pull(),
-          " ",
-          mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
-          df_Render$fileExt
-        ),
-        output_format = df_Render$Render,
-        output_dir = paste0(getwd(), "/output"),
-        envir = data_env
-      )
-      
-      
-      # user interaction
-      print(clc)
-      paste(
-        "Bericht: \nVerleiherabrechnung vom",
-        mapping |> filter(index == ii) |> select(user_Datum) |> pull(),
-        "erstellt"
-      ) |>
-        writeLines()
-      
-      # remove file
-      file.remove("Verleiherabrechnung.Rmd")
-    }
-  }
-}
-
 # Envirnoment for Data to create Plots
 data_env <- new.env()
 
@@ -1373,7 +1172,7 @@ server <- function(input, output, session) {
               data_env,
               start_datum, end_datum
               )
-          Create_Abrechnung(
+          AbrechnungErstellen(
             df_mapping__,
             data_env$df_Abrechnung,
             toc = toc()
@@ -1419,7 +1218,7 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-          StatistikErstellen(toc(), df_Render())
+          StatistikErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
 
@@ -1461,7 +1260,7 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-          JahresrechnungErstellen(toc(), df_Render())
+          JahresrechnungErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
         }, Jahresrechnung = function(e) {
@@ -1481,10 +1280,10 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+      
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
         ausgabe_text()
-      
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
   })
 
@@ -1506,7 +1305,7 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-        FilmvorschlagErstellen(toc(), df_Render())
+        FilmvorschlagErstellen(toc(), WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         webserver()
       }, wordpress = function(e) {
@@ -1555,11 +1354,11 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
 
         # Statistik-Bericht erstellen
-        StatistikErstellen(toc(), df_Render())
+        StatistikErstellen(toc())
         shiny::incProgress(1 / 10, detail = paste("Step", 5, "of 10"))
 
         # Jahresrechnung-Bericht erstellen
-        JahresrechnungErstellen(toc(), df_Render())
+        JahresrechnungErstellen(toc())
         shiny::incProgress(1 / 10, detail = paste("Step", 6, "of 10"))
 
         # Bericht(e) Abrechnung pro Filmforführung erstellen
@@ -1569,7 +1368,7 @@ server <- function(input, output, session) {
             start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
             end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
           )
-        Create_Abrechnung(
+        AbrechnungErstellen(
           df_mapping__,
           data_env$df_Abrechnung,
           toc = toc()
@@ -1581,14 +1380,14 @@ server <- function(input, output, session) {
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
 
-        FilmvorschlagErstellen(toc(), df_Render())
+        FilmvorschlagErstellen(toc(), WordPress_env)
         shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
 
         # Create webserver data
         webserver()
         shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
 
-      }, Alles = function(e) {
+      }, AllesErstellen = function(e) {
         ausgabe_text(paste(
           "Alles neu erstellen\nFehler beim Bericht erstellen:\n",
           e$message
