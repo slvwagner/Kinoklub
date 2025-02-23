@@ -41,8 +41,7 @@ fetch_kiosk_table <- function(con) {
     select(ID, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert, Lieferant, Gewinn)
 }
 
-# Reactive value to store the database connection
-con <- reactiveVal(NULL)
+
 
 # Define UI for application
 ui <- function(){
@@ -76,11 +75,15 @@ ui <- function(){
   )
 }
 
+# Reactive value to store the database connection
+con <- reactiveVal(NULL)
+
+# Reactive value to store the currently filtered row
+filtered_row <- reactiveVal(NULL)
+
 # Define server logic
 server <- function(input, output, session) {
-  # Reactive value to store the currently filtered row
-  filtered_row <- reactiveVal(NULL)
-  
+
   # Establish the database connection when the "Connect" button is clicked
   observeEvent(input$connect, {
     req(input$Passwort)  # Ensure the password is provided
