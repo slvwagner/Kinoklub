@@ -3,26 +3,16 @@ if (!require("shiny")) install.packages("shiny")
 if (!require("DBI")) install.packages("DBI")
 if (!require("RPostgres")) install.packages("RPostgres")
 if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("DT")) install.packages("DT")  # Install DT package
 
 library(shiny)
 library(DBI)
 library(RPostgres)
 library(tidyverse)
-
-# Function to fetch the Kiosk table
-fetch_kiosk_table <- function(con) {
-  if (!dbIsValid(con)) {
-    stop("Database connection is not valid.")
-  }
-  tbl(con, "Kiosk") |>
-    collect() |>  # Fetch the entire table into memory
-    mutate(ID = as.character(ID) |> as.integer()) |>
-    arrange(desc(ID)) |>
-    select(ID, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert, Lieferant, Gewinn)
-}
+library(DT)  # Load DT package
 
 # Function to establish a database connection
-db_connect <- function(user, password) {
+db_connect <- function(password, user = "db_admin") {
   tryCatch({
     con <- dbConnect(
       RPostgres::Postgres(),
@@ -39,44 +29,52 @@ db_connect <- function(user, password) {
   })
 }
 
-# Serve the custom_styles directory
-shiny::addResourcePath("custom_styles", "source")
+# Function to fetch the Kiosk table
+fetch_kiosk_table <- function(con) {
+  if (!dbIsValid(con)) {
+    stop("Database connection is not valid.")
+  }
+  tbl(con, "Kiosk") |>
+    collect() |>  # Fetch the entire table into memory
+    mutate(ID = as.character(ID) |> as.integer()) |>
+    arrange(desc(ID)) |>
+    select(ID, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert, Lieferant, Gewinn)
+}
 
 # Reactive value to store the database connection
 con <- reactiveVal(NULL)
 
-### Define UI for application
-ui <- fluidPage(
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-  ),
-  titlePanel("Kiosk Table Management"),
-  sidebarLayout(
-    sidebarPanel(
-      textInput("user", "Database user"),
-      passwordInput("Passwort", "Passwort"),  # Password input
-      actionButton("connect", "Connect to Database"),  # Button to connect
-      shiny::tags$hr(),
-      numericInput("filter_id", "Filter by ID", value = NULL),  # Filter by ID
-      actionButton("filter", "Filter Row"),  # Button to filter row
-      shiny::tags$hr(),
-      dateInput("datum", "Datum", value = Sys.Date()),
-      textInput("verkaufsartikel", "Verkaufsartikel"),
-      numericInput("verkaufspreis", "Verkaufspreis", value = 0),
-      numericInput("anzahl", "Anzahl", value = 0),
-      numericInput("kassiert", "Kassiert", value = 0),
-      textInput("lieferant", "Lieferant"),
-      numericInput("gewinn", "Gewinn", value = 0),
-      actionButton("submit", "Add New Row"),  # Button to add a new row
-      actionButton("save", "Save Changes")  # Button to save changes
-    ),
-    mainPanel(
-      textOutput("message"),
-      tableOutput("kiosk_table"),  # Render the Kiosk table here
-      actionButton("refresh", "Refresh Table")  # Button to refresh the table
+# Define UI for application
+ui <- function(){
+  fluidPage(
+    titlePanel("Kiosk Table Management"),
+    sidebarLayout(
+      sidebarPanel(
+        textInput("DB_User","DB User", placeholder = "db_admin"),
+        passwordInput("Passwort", "Passwort"),  # Password input
+        actionButton("connect", "Connect to Database"),  # Button to connect
+        shiny::tags$hr(),
+        numericInput("filter_id", "Filter by ID", value = NULL),  # Filter by ID
+        actionButton("filter", "Filter Row"),  # Button to filter row
+        dateInput("datum", "Datum", value = Sys.Date()),
+        textInput("verkaufsartikel", "Verkaufsartikel"),
+        numericInput("verkaufspreis", "Verkaufspreis", value = 0),
+        numericInput("anzahl", "Anzahl", value = 0),
+        numericInput("kassiert", "Kassiert", value = 0),
+        textInput("lieferant", "Lieferant"),
+        numericInput("gewinn", "Gewinn", value = 0),
+        actionButton("submit", "Add New Row"),  # Button to add a new row
+        actionButton("save", "Save Changes"),  # Button to save changes,
+        actionButton("del_rows", "Delete Selected Rows")  # Button to delete selected rows
+      ),
+      mainPanel(
+        textOutput("message"),
+        DTOutput("kiosk_table"),  # Use DTOutput instead of tableOutput
+        actionButton("refresh", "Refresh Table")  # Button to refresh the table
+      )
     )
   )
-)
+}
 
 # Define server logic
 server <- function(input, output, session) {
@@ -86,7 +84,7 @@ server <- function(input, output, session) {
   # Establish the database connection when the "Connect" button is clicked
   observeEvent(input$connect, {
     req(input$Passwort)  # Ensure the password is provided
-    con(db_connect(input$user, input$Passwort))
+    con(db_connect(input$Passwort))
     if (is.null(con())) {
       output$message <- renderText("Failed to connect to the database. Please check your credentials.")
     } else {
@@ -94,18 +92,53 @@ server <- function(input, output, session) {
     }
   })
   
-  # Render the Kiosk table
-  output$kiosk_table <- renderTable({
+  # Render the Kiosk table using DT with row selection enabled
+  output$kiosk_table <- renderDT({
     req(con())  # Ensure the connection is valid
     fetch_kiosk_table(con())
-  })
+  }, options = list(pageLength = 10), selection = 'multiple')  # Enable multiple row selection
   
   # Refresh the table when the "Refresh" button is clicked
   observeEvent(input$refresh, {
-    output$kiosk_table <- renderTable({
+    output$kiosk_table <- renderDT({
       req(con())
       fetch_kiosk_table(con())
+    }, options = list(pageLength = 10), selection = 'multiple')
+  })
+  
+  # Delete selected rows when the "Delete Selected Rows" button is clicked
+  observeEvent(input$del_rows, {
+    req(con())  # Ensure the connection is valid
+    
+    # Get the selected rows
+    selected_rows <- input$kiosk_table_rows_selected
+    if (is.null(selected_rows)) {
+      output$message <- renderText("No rows selected.")
+      return()
+    }
+    
+    # Fetch the current table data
+    table_data <- fetch_kiosk_table(con())
+    
+    # Get the IDs of the selected rows
+    selected_ids <- table_data[selected_rows, "ID"]
+    
+    # Delete the selected rows from the database
+    tryCatch({
+      pull(selected_ids)|>
+        lapply(function(ID){
+          dbExecute(con(), "DELETE FROM \"Kiosk\" WHERE \"ID\" = $1",
+                    params = list(ID))
+        })
+      output$message <- renderText(paste("Deleted", length(selected_ids), "rows successfully."))
+    }, error = function(e) {
+      output$message <- renderText(paste("Failed to delete rows:", e$message))
     })
+    
+    # Refresh the Kiosk table display
+    output$kiosk_table <- renderDT({
+      fetch_kiosk_table(con())
+    }, options = list(pageLength = 10), selection = 'multiple')
   })
   
   # Filter row by ID
@@ -180,9 +213,9 @@ server <- function(input, output, session) {
     })
     
     # Refresh the Kiosk table display
-    output$kiosk_table <- renderTable({
+    output$kiosk_table <- renderDT({
       fetch_kiosk_table(con())
-    })
+    }, options = list(pageLength = 10), selection = 'multiple')
   })
   
   # Handle saving changes to the filtered row
@@ -218,9 +251,9 @@ server <- function(input, output, session) {
     })
     
     # Refresh the Kiosk table display
-    output$kiosk_table <- renderTable({
+    output$kiosk_table <- renderDT({
       fetch_kiosk_table(con())
-    })
+    }, options = list(pageLength = 10), selection = 'multiple')
   })
 }
 
