@@ -4,12 +4,14 @@ if (!require("DBI")) install.packages("DBI")
 if (!require("RPostgres")) install.packages("RPostgres")
 if (!require("tidyverse")) install.packages("tidyverse")
 if (!require("DT")) install.packages("DT")  # Install DT package
+if (!require("shinysky")) install.packages("shinysky")  # Install DT package
 
 library(shiny)
 library(DBI)
 library(RPostgres)
 library(tidyverse)
 library(DT)  # Load DT package
+# library(shinysky)
 
 # Function to establish a database connection
 db_connect <- function(password, user = "db_admin") {
@@ -41,7 +43,12 @@ fetch_kiosk_table <- function(con) {
     select(ID, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert, Lieferant, Gewinn)
 }
 
-
+# Global variables
+c_pageLength <- 15
+column_definitions <- tibble(
+  Lieferant = c("Schüwo", "Migros", "Nadia Wagner", "Stefan Jablonski")
+  )
+column_definitions
 
 # Define UI for application
 ui <- function(){
@@ -53,6 +60,7 @@ ui <- function(){
         passwordInput("Passwort", "Passwort"),  # Password input
         actionButton("connect", "Connect to Database"),  # Button to connect
         shiny::tags$hr(),
+        shinysky::select2Input("select2_Lieferant","Lieferant",choices = column_definitions$Lieferant),
         numericInput("filter_id", "Filter by ID", value = NULL),  # Filter by ID
         actionButton("filter", "Filter Row"),  # Button to filter row
         dateInput("datum", "Datum", value = Sys.Date()),
@@ -99,33 +107,29 @@ server <- function(input, output, session) {
   output$kiosk_table <- renderDT({
     req(con())  # Ensure the connection is valid
     fetch_kiosk_table(con())
-  }, options = list(pageLength = 10), selection = 'multiple')  # Enable multiple row selection
+  }, options = list(pageLength = c_pageLength), selection = 'multiple')  # Enable multiple row selection
   
   # Refresh the table when the "Refresh" button is clicked
   observeEvent(input$refresh, {
     output$kiosk_table <- renderDT({
       req(con())
       fetch_kiosk_table(con())
-    }, options = list(pageLength = 10), selection = 'multiple')
+    }, options = list(pageLength = c_pageLength), selection = 'multiple')
   })
   
   # Delete selected rows when the "Delete Selected Rows" button is clicked
   observeEvent(input$del_rows, {
     req(con())  # Ensure the connection is valid
-    
     # Get the selected rows
     selected_rows <- input$kiosk_table_rows_selected
     if (is.null(selected_rows)) {
       output$message <- renderText("No rows selected.")
       return()
     }
-    
     # Fetch the current table data
     table_data <- fetch_kiosk_table(con())
-    
     # Get the IDs of the selected rows
     selected_ids <- table_data[selected_rows, "ID"]
-    
     # Delete the selected rows from the database
     tryCatch({
       pull(selected_ids)|>
@@ -137,11 +141,10 @@ server <- function(input, output, session) {
     }, error = function(e) {
       output$message <- renderText(paste("Failed to delete rows:", e$message))
     })
-    
     # Refresh the Kiosk table display
     output$kiosk_table <- renderDT({
       fetch_kiosk_table(con())
-    }, options = list(pageLength = 10), selection = 'multiple')
+    }, options = list(pageLength = c_pageLength), selection = 'multiple')
   })
   
   # Filter row by ID
@@ -218,7 +221,7 @@ server <- function(input, output, session) {
     # Refresh the Kiosk table display
     output$kiosk_table <- renderDT({
       fetch_kiosk_table(con())
-    }, options = list(pageLength = 10), selection = 'multiple')
+    }, options = list(pageLength = c_pageLength), selection = 'multiple')
   })
   
   # Handle saving changes to the filtered row
@@ -244,10 +247,11 @@ server <- function(input, output, session) {
                 \"Kassiert\" = $5, \"Lieferant\" = $6, \"Gewinn\" = $7
                 WHERE \"ID\" = $8",
                 params = list(
-                  updated_row$Datum, updated_row$Verkaufsartikel, updated_row$Verkaufspreis,
-                  updated_row$Anzahl, updated_row$Kassiert, updated_row$Lieferant,
-                  updated_row$Gewinn, updated_row$ID
-                ))
+                  updated_row$Datum, updated_row$Verkaufsartikel, updated_row$Verkaufspreis, updated_row$Anzahl, 
+                  updated_row$Kassiert, updated_row$Lieferant, updated_row$Gewinn, 
+                  updated_row$ID
+                  )
+                )
       output$message <- renderText("Row updated successfully.")
     }, error = function(e) {
       output$message <- renderText(paste("Failed to update the row:", e$message))
@@ -256,7 +260,7 @@ server <- function(input, output, session) {
     # Refresh the Kiosk table display
     output$kiosk_table <- renderDT({
       fetch_kiosk_table(con())
-    }, options = list(pageLength = 10), selection = 'multiple')
+    }, options = list(pageLength = c_pageLength), selection = 'multiple')
   })
 }
 
