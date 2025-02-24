@@ -135,11 +135,13 @@ templateInput$`Einkauf Kiosk` <- readxl::read_excel("Input/Einkauf Kiosk  01.11.
   rename("Artikelname-Kassensystem" = `Artikelname Kassensystem`,
          "Verkaufspreis [CHF]" = `Verkaufs-preis`,
          "Einkaufspreis [CHF]" = `Einkaufs- preis`,
-         )|>
-  mutate("Gewinn [CHF]" = `Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`)
+         )
 
-templateInput$`Einkauf Kiosk`
+templateInput$Lieferanten <- templateInput$`Einkauf Kiosk`|>
+  distinct(Lieferant)|>
+  filter(Lieferant != "MIgros")
 
+templateInput$Lieferanten
 
 # Verleiher
 templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")
@@ -151,7 +153,8 @@ templateInput$Verleiherabgaben <-
          `Minimal Abzug` = as.double(`Minimal Abzug`),
          `Abzug [%]` = as.double(`Abzug [%]`),
          `Abzug fix [CHF]` = as.double(`Abzug fix [CHF]`)
-         )
+         )|>
+  rename(Filmtitel = Titel)
 templateInput$Verleiherabgaben
 
 c_file <- "Input/template.Rds"
