@@ -18,7 +18,7 @@ ui <- fluidPage(
     DTOutput("table"),
     actionButton("add_row", "Add Row"),
     actionButton("delete_row", "Delete Selected Row(s)"),
-    actionButton("duplicate_row", "Duplicate Selected Row(s)"), # New button
+    actionButton("duplicate_row", "Duplicate Selected Row(s)"), 
     actionButton("save", "Save Changes")
   )
 )
@@ -31,11 +31,12 @@ table_select <- reactiveVal(TRUE)
 # Define server logic
 server <- function(input, output, session) {
   # Observe dataset selection and update current_data
-  observe({
+  observeEvent(input$dataset,{
     current_data(l_templates[[input$dataset]])
+    
   })
   
-  # Funktion
+  # Edit values or select rows
   observeEvent(input$table_edit, {
     if (input$table_edit == "Zeilenauswahl") {
       table_edit("multiple")
