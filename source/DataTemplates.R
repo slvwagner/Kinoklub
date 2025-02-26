@@ -39,16 +39,6 @@ c_cols <- c_file|>
 names(c_cols) <- c_file
 
 templateInput <- list(
-  `Einkauf Kiosk` =
-    tibble(
-      "Artikel" = as.character(),
-      "Artikelname-Kassensystem" = as.character(),
-      "Verkaufspreis [CHF]" = as.numeric(),
-      "Menge" = as.character(),
-      "Einkaufspreis [CHF]" = as.numeric(),
-      "Lieferant" = as.character(),
-      "Gewinn [CHF]" = as.numeric()
-    ),
   Einnahmen =
     tibble(
       "Kategorie" = as.character(),
@@ -91,6 +81,16 @@ templateInput <- list(
       "Abzug fix [CHF]" = as.numeric(),
       "Filmtitel" = as.numeric(),
       "Verleiher" = as.character(),
+    ),
+  `Einkauf Kiosk` =
+    tibble(
+      "Artikel" = as.character(),
+      "Artikelname-Kassensystem" = as.character(),
+      "Verkaufspreis [CHF]" = as.numeric(),
+      "Menge" = as.character(),
+      "Einkaufspreis [CHF]" = as.numeric(),
+      "Lieferant" = as.character(),
+      "Gewinn [CHF]" = as.numeric()
     ),
   Verleiher =
     tibble(

@@ -15,7 +15,8 @@ generate_html_inputs <- function(row, row_index) {
     "Kategorie" = l_templates$Kategorie$Auswahl,
     "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
     "Verleiher" = l_templates$Verleiher$Verleihername,
-    "Kinoförderer gratis?" = l_templates$JaNein$Auswahl
+    "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
+    "Spezialpreis" = l_templates$Spezialpreis$Spezialpreis
   )
   l <- list()
   for (ii in names(row)) {
@@ -30,8 +31,6 @@ generate_html_inputs <- function(row, row_index) {
       l[[ii]] <- paste0(
         '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', options_html, '</select>'
       )
-    } else if (inherits(row[[ii]], "Date")) {
-      paste0('<input class="new_input" value="', htmltools::htmlEscape(value), '" type="date" id="new_', ii, '"><br>')
     } else {
       l[[ii]] <- value
     }
@@ -167,7 +166,9 @@ server <- function(input, output, session) {
         )
       )
     } else {
-      if(nrow(current_data()) > 0) create_datatable(current_data(), table_edit(), table_select())
+      if(nrow(current_data()) > 0) {
+        create_datatable(current_data(), table_edit(), table_select())
+      }
       else{
         datatable(
           current_data(),
