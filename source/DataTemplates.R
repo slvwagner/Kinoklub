@@ -94,7 +94,7 @@ templateInput <- list(
     ),
   Verleiher =
     tibble(
-      "Verleiher" = as.character(),
+      "Verleihername" = as.character(),
       "Kinoförderer gratis?" = as.character(),
       "Adresse" = as.character(),
       "PLZ" = as.numeric(),
@@ -139,12 +139,12 @@ templateInput$`Einkauf Kiosk` <- readxl::read_excel("Input/Einkauf Kiosk  01.11.
 
 templateInput$Lieferanten <- templateInput$`Einkauf Kiosk`|>
   distinct(Lieferant)|>
-  filter(Lieferant != "MIgros")
-
-templateInput$Lieferanten
+  filter(Lieferant != "MIgros")|>
+  rename(Lieferantenname = Lieferant)
 
 # Verleiher
-templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")
+templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")|>
+  rename(Verleihername = Verleiher)
 
 templateInput$Verleiherabgaben <- 
   readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Verleiherabgaben")|>
@@ -163,3 +163,4 @@ saveRDS(templateInput, c_file)
 
 readRDS(c_file)
 
+print("DataTemplates erstellt")

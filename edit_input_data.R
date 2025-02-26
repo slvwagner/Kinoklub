@@ -6,14 +6,15 @@ library(shinysky)
 # Load the data
 c_file <- paste0(getwd(), "/Input/template.Rds")
 l_templates <- readRDS(c_file)
+l_templates
 
 # Html input choices
 generate_html_inputs <- function(row, row_index) {
   column_choices <- list(
-    "Lieferant" = l_templates$Lieferanten$Lieferant,
+    "Lieferant" = l_templates$Lieferanten$Lieferantenname,
     "Kategorie" = l_templates$Kategorie$Auswahl,
     "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
-    "Verleiher" = l_templates$Verleiher$Verleiher,
+    "Verleiher" = l_templates$Verleiher$Verleihername,
     "Kinoförderer gratis?" = l_templates$JaNein$Auswahl
   )
   l <- list()
