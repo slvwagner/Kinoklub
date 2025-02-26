@@ -4,7 +4,7 @@ library(tidyverse)
 library(shinysky)
 
 # Load the data
-c_file <- "Input/template.Rds"
+c_file <- paste0(getwd(),"/Input/template.Rds")
 l_templates <- readRDS(c_file)
 
 l_templates$Kategorien
@@ -97,7 +97,7 @@ server <- function(input, output, session) {
     showNotification("Changes saved successfully!", type = "message")
   })
   
-  # Handle cell edits
+  # Handle cell edits in the data
   observeEvent(input$table_cell_edit, {
     info <- input$table_cell_edit
     # Get the column types of the current dataset
@@ -109,7 +109,7 @@ server <- function(input, output, session) {
       "integer" = as.integer(info$value),
       "Date" = as.Date(info$value),
       "character" = as.character(info$value),
-      info$value # Default: keep as-is
+      info$value # Default: keep as it is
     )
     # Handle conversion errors
     if (is.na(updated_value)) {
