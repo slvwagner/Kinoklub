@@ -122,6 +122,9 @@ templateInput <- list(
           "Werbung"
         )
     ),
+  Spezialpreis = tibble(
+    Spezialpreis = paste0("Spez ", 1:4)
+  ),
   JaNein = tibble(
     Auswahl = c("ja", "nein")
     )
@@ -145,6 +148,7 @@ templateInput$Lieferanten <- templateInput$`Einkauf Kiosk`|>
 # Verleiher
 templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")|>
   rename(Verleihername = Verleiher)
+templateInput$Verleiher
 
 templateInput$Verleiherabgaben <- 
   readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Verleiherabgaben")|>
@@ -154,7 +158,8 @@ templateInput$Verleiherabgaben <-
          `Abzug [%]` = as.double(`Abzug [%]`),
          `Abzug fix [CHF]` = as.double(`Abzug fix [CHF]`)
          )|>
-  rename(Filmtitel = Titel)
+  rename(Filmtitel = Titel,
+         `Minimal Abzug [CHF]` = `Minimal Abzug`)
 templateInput$Verleiherabgaben
 
 c_file <- "Input/template.Rds"
