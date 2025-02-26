@@ -30,6 +30,8 @@ generate_html_inputs <- function(row, row_index) {
       l[[ii]] <- paste0(
         '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', options_html, '</select>'
       )
+    } else if (inherits(row[[ii]], "Date")) {
+      paste0('<input class="new_input" value="', htmltools::htmlEscape(value), '" type="date" id="new_', ii, '"><br>')
     } else {
       l[[ii]] <- value
     }
@@ -43,7 +45,22 @@ create_datatable <- function(data, table_edit, table_select) {
     mutate(row_index = row_number()) |>
     apply(1, function(row) generate_html_inputs(row, row["row_index"])) |>
     bind_rows()
+  temp
   
+  # Finde columns containing a Date
+  date_col <- names(temp)|>
+    str_detect(rebus::or("datum", "Datum"))
+  for (ii in 1:length(date_col)) {
+    if(date_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.Date()
+  }
+  
+  # Finde columns containing numeric values 
+  numeric_col <- names(temp)|>
+    str_detect(rebus::OPEN_BRACKET)
+  for (ii in 1:length(numeric_col)) {
+    if(numeric_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.numeric()
+  }
+
   temp |>
     datatable(
       editable = table_select,
@@ -146,7 +163,19 @@ server <- function(input, output, session) {
         )
       )
     } else {
-      create_datatable(current_data(), table_edit(), table_select())
+      if(nrow(current_data()) > 0) create_datatable(current_data(), table_edit(), table_select())
+      else{
+        datatable(
+          current_data(),
+          editable = table_select(),
+          options = list(
+            dom = 't',
+            ordering = FALSE,
+            scrollX = TRUE,
+            pageLength = nrow(current_data())
+          )
+        )
+      }
     }
   })
   
