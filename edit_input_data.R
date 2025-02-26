@@ -49,9 +49,22 @@ server <- function(input, output, session) {
   
   # Render the DT table
   output$table <- renderDT({
-    print(table_edit())
-    print(table_select())
     
+    switch (
+      input$dataset,
+      "Einkauf Kiosk" = print("Einkauf Kiosk"),
+      "Einnahmen" = print("Einnahmen"),
+      "Ausgaben" = print("Ausgaben"),
+      "Spezialpreisekiosk" = print("Spezialpreisekiosk"),
+      "Verleiherabgaben" = print("Verleiherabgaben"),
+      "Verleiher" = print("Verleiher"),
+      "Buchhaltungskonten" = print("Buchhaltungskonten"),
+      "Kategorie" = print("Kategorie"),
+      "JaNein" = print("JaNein"),
+      "Lieferanten" = print("Lieferanten"),
+      paste0("Anything else: ",input$dataset)|>print()
+    )
+
     datatable(
       current_data(),
       editable = table_select(),

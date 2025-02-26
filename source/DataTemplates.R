@@ -110,7 +110,7 @@ templateInput <- list(
           "4407 Unterhalt"
         )
     ),
-  Kategorien =
+  Kategorie =
     tibble(
       Auswahl = 
         c("Event",
