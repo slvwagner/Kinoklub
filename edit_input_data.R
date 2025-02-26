@@ -6,8 +6,56 @@ library(shinysky)
 # Load the data
 c_file <- paste0(getwd(),"/Input/template.Rds")
 l_templates <- readRDS(c_file)
+l_templates
 
-l_templates$Kategorien
+# Html input choices
+generate_html_inputs <- function(row) {
+  # Define selection choices for specific columns
+  column_choices <- list(
+    "Lieferant" = l_templates$Lieferanten$Lieferant,
+    "Kategorie" = l_templates$Kategorie$Auswahl,
+    "Buchungskonto" =  l_templates$Buchhaltungskonten$Buchungskonto,
+    "Verleiher" =  l_templates$Verleiher$Verleiher,
+    "Kinoförderer gratis?" =  l_templates$JaNein$Auswahl
+  )
+  l <- list()
+  for (ii in names(row)) {
+    value <- as.character(row[[ii]])  # Ensure consistent character conversion
+
+    if (ii %in% names(column_choices)) {
+      # Handle Completed and Status columns with regular selectInput
+      choices <- column_choices[[ii]]
+      options_html <- paste0(
+        '\t<option value="', choices, '" ', ifelse(choices == value, 'selected', ''), '>', choices, '</option>',
+        collapse = "\n"
+      )
+      l[[ii]] <- paste0('<select class="new_input" id="new_', ii, '">', options_html, '</select>')
+    } else {
+      l[[ii]] <- value
+    }
+  }
+  return(l)
+}
+
+# Generate html output table
+create_datatable <- function(data, table_edit, table_select) {
+  temp <- data |>
+    apply(1, generate_html_inputs) |>
+    bind_rows() 
+  
+  temp|>
+    datatable(
+      editable = table_select,  # Remove parentheses
+      options = list(
+        dom = 't',
+        ordering = FALSE,
+        scrollX = TRUE,
+        pageLength = nrow(data)
+      ),
+      selection = table_edit,  # Remove parentheses
+      escape = FALSE
+    )
+}
 
 # Define UI
 ui <- fluidPage(
@@ -45,32 +93,27 @@ server <- function(input, output, session) {
       table_edit("none")
       table_select(TRUE)
     }
+    print(table_edit())
+    print(table_select())
   })
-  
-  # Render the DT table
-  output$table <- renderDT({
-    
-    switch (
-      input$dataset,
-      "Einkauf Kiosk" = print("Einkauf Kiosk"),
-      "Einnahmen" = print("Einnahmen"),
-      "Ausgaben" = print("Ausgaben"),
-      "Spezialpreisekiosk" = print("Spezialpreisekiosk"),
-      "Verleiherabgaben" = print("Verleiherabgaben"),
-      "Verleiher" = print("Verleiher"),
-      "Buchhaltungskonten" = print("Buchhaltungskonten"),
-      "Kategorie" = print("Kategorie"),
-      "JaNein" = print("JaNein"),
-      "Lieferanten" = print("Lieferanten"),
-      paste0("Anything else: ",input$dataset)|>print()
-    )
 
-    datatable(
-      current_data(),
-      editable = table_select(),
-      options = list(pageLength = nrow(current_data())),
-      selection = table_edit()
-    )
+  # Render the DT table
+  output$table <- renderDataTable({
+    if (!table_select()) {
+      datatable(
+        current_data(),
+        editable = table_select(),
+        options = list(
+          dom = 't',
+          ordering = FALSE,
+          scrollX = TRUE,
+          pageLength = nrow(current_data())
+        )
+      )
+    }
+    else{
+      create_datatable(current_data(), table_edit(), table_select())
+    }
   })
   
   # Add a new row
