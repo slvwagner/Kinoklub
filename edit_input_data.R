@@ -4,32 +4,31 @@ library(tidyverse)
 library(shinysky)
 
 # Load the data
-c_file <- paste0(getwd(),"/Input/template.Rds")
+c_file <- paste0(getwd(), "/Input/template.Rds")
 l_templates <- readRDS(c_file)
-l_templates
 
 # Html input choices
-generate_html_inputs <- function(row) {
-  # Define selection choices for specific columns
+generate_html_inputs <- function(row, row_index) {
   column_choices <- list(
     "Lieferant" = l_templates$Lieferanten$Lieferant,
     "Kategorie" = l_templates$Kategorie$Auswahl,
-    "Buchungskonto" =  l_templates$Buchhaltungskonten$Buchungskonto,
-    "Verleiher" =  l_templates$Verleiher$Verleiher,
-    "Kinoförderer gratis?" =  l_templates$JaNein$Auswahl
+    "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
+    "Verleiher" = l_templates$Verleiher$Verleiher,
+    "Kinoförderer gratis?" = l_templates$JaNein$Auswahl
   )
   l <- list()
   for (ii in names(row)) {
     value <- as.character(row[[ii]])  # Ensure consistent character conversion
-
+    
     if (ii %in% names(column_choices)) {
-      # Handle Completed and Status columns with regular selectInput
       choices <- column_choices[[ii]]
       options_html <- paste0(
         '\t<option value="', choices, '" ', ifelse(choices == value, 'selected', ''), '>', choices, '</option>',
         collapse = "\n"
       )
-      l[[ii]] <- paste0('<select class="new_input" id="new_', ii, '">', options_html, '</select>')
+      l[[ii]] <- paste0(
+        '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', options_html, '</select>'
+      )
     } else {
       l[[ii]] <- value
     }
@@ -40,19 +39,23 @@ generate_html_inputs <- function(row) {
 # Generate html output table
 create_datatable <- function(data, table_edit, table_select) {
   temp <- data |>
-    apply(1, generate_html_inputs) |>
-    bind_rows() 
+    mutate(row_index = row_number()) |>
+    apply(1, function(row) generate_html_inputs(row, row["row_index"])) |>
+    bind_rows()
   
-  temp|>
+  temp |>
     datatable(
-      editable = table_select,  # Remove parentheses
+      editable = table_select,
       options = list(
+        columnDefs = list(
+          list(targets = ncol(current_data()) + 1, visible = FALSE)  # Hide column
+        ),
         dom = 't',
         ordering = FALSE,
         scrollX = TRUE,
         pageLength = nrow(data)
       ),
-      selection = table_edit,  # Remove parentheses
+      selection = table_edit,
       escape = FALSE
     )
 }
@@ -60,6 +63,16 @@ create_datatable <- function(data, table_edit, table_select) {
 # Define UI
 ui <- fluidPage(
   titlePanel("Edit List Entries"),
+  tags$head(
+    tags$script(HTML("
+      $(document).on('change', '.new_input', function() {
+        var row = $(this).data('row');
+        var col = $(this).data('col');
+        var value = $(this).val();
+        Shiny.setInputValue('select_change', {row: row, col: col, value: value}, {priority: 'event'});
+      });
+    "))
+  ),
   mainPanel(
     selectInput("dataset", "Choose a dataset:", choices = names(l_templates)),
     shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
@@ -76,12 +89,35 @@ current_data <- reactiveVal(tibble())
 table_edit <- reactiveVal("multiple")
 table_select <- reactiveVal(TRUE)
 
+# Helper function to update the table
+update_table <- function(row_index, col_index, value) {
+  updated_data <- current_data()
+  # Get the column types of the current dataset
+  c_class <- sapply(updated_data, class)
+  # Convert the edited value to the appropriate type
+  updated_value <- switch(
+    c_class[col_index],
+    "numeric" = as.numeric(value),
+    "integer" = as.integer(value),
+    "Date" = as.Date(value),
+    "character" = as.character(value),
+    value # Default: keep as it is
+  )
+  # Handle conversion errors
+  if (is.na(updated_value)) {
+    showNotification("Invalid input: Value could not be converted to the required type.", type = "error")
+    return()
+  }
+  # Update the dataset
+  updated_data[row_index, col_index] <- updated_value
+  return(updated_data)
+}
+
 # Define server logic
 server <- function(input, output, session) {
   # Observe dataset selection and update current_data
-  observeEvent(input$dataset,{
+  observeEvent(input$dataset, {
     current_data(l_templates[[input$dataset]])
-    
   })
   
   # Edit values or select rows
@@ -93,10 +129,8 @@ server <- function(input, output, session) {
       table_edit("none")
       table_select(TRUE)
     }
-    print(table_edit())
-    print(table_select())
   })
-
+  
   # Render the DT table
   output$table <- renderDataTable({
     if (!table_select()) {
@@ -110,10 +144,32 @@ server <- function(input, output, session) {
           pageLength = nrow(current_data())
         )
       )
-    }
-    else{
+    } else {
       create_datatable(current_data(), table_edit(), table_select())
     }
+  })
+  
+  # Handle changes to <select> elements
+  observeEvent(input$select_change, {
+    req(input$select_change)
+    
+    # Extract the row and column from the event
+    row_index <- input$select_change$row
+    col_name <- input$select_change$col
+    
+    # Find the column index
+    col_index <- which(names(current_data()) == col_name)
+    
+    # Update the table
+    updated_data <- update_table(row_index, col_index, input$select_change$value)
+    current_data(updated_data)
+  })
+  
+  # Handle cell edits in the data
+  observeEvent(input$table_cell_edit, {
+    info <- input$table_cell_edit
+    updated_data <- update_table(info$row, info$col, info$value)
+    current_data(updated_data)
   })
   
   # Add a new row
@@ -152,32 +208,8 @@ server <- function(input, output, session) {
     saveRDS(l_templates, c_file) # Save the updated list to the file
     showNotification("Changes saved successfully!", type = "message")
   })
-  
-  # Handle cell edits in the data
-  observeEvent(input$table_cell_edit, {
-    info <- input$table_cell_edit
-    # Get the column types of the current dataset
-    c_class <- sapply(current_data(), class)
-    # Convert the edited value to the appropriate type
-    updated_value <- switch(
-      c_class[info$col],
-      "numeric" = as.numeric(info$value),
-      "integer" = as.integer(info$value),
-      "Date" = as.Date(info$value),
-      "character" = as.character(info$value),
-      info$value # Default: keep as it is
-    )
-    # Handle conversion errors
-    if (is.na(updated_value)) {
-      showNotification("Invalid input: Value could not be converted to the required type.", type = "error")
-      return()
-    }
-    # Update the dataset
-    updated_data <- current_data()
-    updated_data[info$row, info$col] <- updated_value 
-    current_data(updated_data)
-  })
 }
+
 
 # Run the app
 shiny::runApp(
