@@ -41,6 +41,7 @@ generate_html_inputs <- function(row, row_index) {
 
 # Generate html output table
 create_datatable <- function(data, table_edit, table_select) {
+  # create a row_index 
   temp <- data |>
     mutate(row_index = row_number()) |>
     apply(1, function(row) generate_html_inputs(row, row["row_index"])) |>
@@ -61,6 +62,7 @@ create_datatable <- function(data, table_edit, table_select) {
     if(numeric_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.numeric()
   }
 
+  # create the datatable 
   temp |>
     datatable(
       editable = table_select,
@@ -79,28 +81,30 @@ create_datatable <- function(data, table_edit, table_select) {
 }
 
 # Define UI
-ui <- fluidPage(
-  titlePanel("Edit List Entries"),
-  tags$head(
-    tags$script(HTML("
-      $(document).on('change', '.new_input', function() {
-        var row = $(this).data('row');
-        var col = $(this).data('col');
-        var value = $(this).val();
-        Shiny.setInputValue('select_change', {row: row, col: col, value: value}, {priority: 'event'});
-      });
-    "))
-  ),
-  mainPanel(
-    selectInput("dataset", "Choose a dataset:", choices = names(l_templates)),
-    shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
-    DTOutput("table"),
-    actionButton("add_row", "Add Row"),
-    actionButton("delete_row", "Delete Selected Row(s)"),
-    actionButton("duplicate_row", "Duplicate Selected Row(s)"), 
-    actionButton("save", "Save Changes")
+ui <- function(){
+  fluidPage(
+    titlePanel("Edit List Entries"),
+    tags$head(
+      tags$script(HTML("
+        $(document).on('change', '.new_input', function() {
+          var row = $(this).data('row');
+          var col = $(this).data('col');
+          var value = $(this).val();
+          Shiny.setInputValue('select_change', {row: row, col: col, value: value}, {priority: 'event'});
+        });
+      "))
+    ),
+    mainPanel(
+      selectInput("dataset", "Choose a dataset:", choices = names(l_templates)),
+      shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
+      DTOutput("table"),
+      actionButton("add_row", "Add Row"),
+      actionButton("delete_row", "Delete Selected Row(s)"),
+      actionButton("duplicate_row", "Duplicate Selected Row(s)"), 
+      actionButton("save", "Save Changes")
+    )
   )
-)
+}
 
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
