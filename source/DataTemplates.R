@@ -123,7 +123,7 @@ templateInput <- list(
         )
     ),
   Spezialpreis = tibble(
-    Spezialpreis = paste0("Spez ", 1:4)
+    Spezialpreisname = paste0("Spez ", 1:4)
   ),
   JaNein = tibble(
     Auswahl = c("ja", "nein")

@@ -16,7 +16,7 @@ generate_html_inputs <- function(row, row_index) {
     "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
     "Verleiher" = l_templates$Verleiher$Verleihername,
     "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
-    "Spezialpreis" = l_templates$Spezialpreis$Spezialpreis
+    "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
   )
   l <- list()
   for (ii in names(row)) {
