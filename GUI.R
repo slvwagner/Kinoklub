@@ -1898,10 +1898,10 @@ server <- function(input, output, session) {
   # Render: Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
-      shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
-      shiny::actionButton("open_Spez", "Spezialpreise"),
       shiny::actionButton("open_Verleih", "Verleiherabgaben"),
+      shiny::actionButton("open_Spez", "Spezialpreise"),
+      shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
+      shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
