@@ -8,7 +8,7 @@ rm(list = ls())
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
   "lubridate",  "DT",  "shiny",  "shinyBS",  "magick",
-  "webshot",  "xml2",  "furrr", "future"
+  "webshot",  "xml2",  "furrr", "future", "processx"
 )
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -1092,140 +1092,6 @@ ui <- function(){
 
 # Server-Logik
 server <- function(input, output, session) {
-  # Überwachung Button: open Excel Einkauf
-  shiny::observeEvent(input$open_einkauf, {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      #ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
-      
-      c_file <- list.files(path = "Input")
-      c_file <- c_file[str_detect(c_file, "Einkauf")]
-      # take the latest date
-      if (length(c_file) > 1) {
-        df_temp <- tibble(file = c_file, date = dmy(c_file)) |>
-          arrange(date)
-        
-        c_file <- df_temp$file[nrow(df_temp)]
-      }
-      
-      file_path <- paste0(getwd(), "/Input/", c_file)  # Update this with your actual file path
-      if (file.exists(file_path)) {
-        tryCatch({
-          # Warnings abfangen
-          capture.output({
-            shell.exec(file_path)  # Opens the file in Excel
-          }, type = "message")
-        }, error = function(e) {
-          # Fehler abfangen
-          ausgabe_text(e$message)
-        })
-      } else {
-        showModal(
-          modalDialog(
-            title = "Error",
-            "File not found! Check the file path.",
-            easyClose = TRUE
-          )
-        )
-      }
-      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
-    })
-  })
-  
-  # Überwachung Button: open Excel Einnahmen und Ausgaben
-  shiny::observeEvent(input$open_EinAus, {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      #ausgabe_text("Die Excel-Datei Einnahmen und Ausganben wurde geöffnet.")
-      c_file <- list.files(path = "Input")
-      c_file <- c_file[str_detect(c_file, "Einnahmen")]
-      file_path <- paste0(getwd(), "/Input/", c_file)
-      if (file.exists(file_path)) {
-        tryCatch({
-          # Warnings abfangen
-          capture.output({
-            shell.exec(file_path)  # Opens the file in Excel
-          }, type = "message")
-        }, error = function(e) {
-          # Fehler abfangen
-          ausgabe_text(e$message)
-        })
-      } else {
-        showModal(
-          modalDialog(
-            title = "Error",
-            "File not found! Check the file path.",
-            easyClose = TRUE
-          )
-        )
-      }
-      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
-    })
-  })
-  
-  # Überwachung Button: open Excel Spezialpreise
-  shiny::observeEvent(input$open_Spez, {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      #ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
-      c_file <- list.files(path = "Input")
-      c_file <- c_file[str_detect(c_file, "Spezial")]
-      
-      file_path <- paste0(getwd(), "/Input/", c_file)
-      if (file.exists(file_path)) {
-        tryCatch({
-          # Warnings abfangen
-          capture.output({
-            shell.exec(file_path)  # Opens the file in Excel
-          }, type = "message")
-        }, error = function(e) {
-          # Fehler abfangen
-          ausgabe_text(e$message)
-        })
-      } else {
-        showModal(
-          modalDialog(
-            title = "Error",
-            "File not found! Check the file path.",
-            easyClose = TRUE
-          )
-        )
-      }
-      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
-    })
-  })
-  
-  # Überwachung Button: open Excel Verleiherabgaben Excel
-  shiny::observeEvent(input$open_Verleih, {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      #ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
-      c_file <- list.files(path = "Input")
-      c_file <- c_file[str_detect(c_file, "Verleiher")]
-      
-      file_path <- paste0(getwd(), "/Input/", c_file)
-      if (file.exists(file_path)) {
-        tryCatch({
-          # Warnings abfangen
-          capture.output({
-            shell.exec(file_path)  # Opens the file in Excel
-          }, type = "message")
-        }, error = function(e) {
-          # Fehler abfangen
-          ausgabe_text(e$message)
-        })
-      } else {
-        showModal(
-          modalDialog(
-            title = "Error",
-            "File not found! Check the file path.",
-            easyClose = TRUE
-          )
-        )
-      }
-      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
-    })
-  })
   
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
@@ -1894,10 +1760,11 @@ server <- function(input, output, session) {
   # Render: Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      shiny::actionButton("open_Verleih", "Verleiherabgaben"),
-      shiny::actionButton("open_Spez", "Spezialpreise"),
-      shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
-      shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
+      # shiny::actionButton("open_Verleih", "Verleiherabgaben"),
+      # shiny::actionButton("open_Spez", "Spezialpreise"),
+      # shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
+      # shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
+      shiny::actionButton("launch_app", "Editieren"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
@@ -1916,6 +1783,20 @@ server <- function(input, output, session) {
       shiny::verbatimTextOutput("text_output")
     )
     
+  })
+  
+  observeEvent(input$launch_app, {
+    # Specify the path to the second app
+    second_app_path <- "edit_input_data.R"
+    
+    # Debug: Print the path to check if it's correct
+    print(paste("Launching:", second_app_path))
+    
+    # Run the second app in a new process
+    processx::process$new("Rscript", 
+                          args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
+                          stdout = "|", stderr = "|"
+    )
   })
 }
 
