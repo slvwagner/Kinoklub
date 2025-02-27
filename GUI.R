@@ -27,10 +27,6 @@ remove(packages, installed_packages)
 # load user settings
 source("user_settings.R")
 
-# Load excel column definition database
-col_env <- new.env()
-load("col_env.RData", envir = col_env)
-
 # create environment to run WordPress scripts
 WordPress_env <- new.env()
 
@@ -1753,7 +1749,7 @@ server <- function(input, output, session) {
         arrange(desc(Datum), desc(Anfang)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Anfang, "%H%M")) |>
-        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+        select(Datum, Zeit, Filmtitel, Suisanummer)
     }
   })
   
