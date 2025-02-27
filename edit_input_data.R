@@ -94,7 +94,7 @@ create_datatable <- function(data, table_edit, table_select) {
 # Define UI
 ui <- function(){
   fluidPage(
-    titlePanel("Edit List Entries"),
+    titlePanel("Dateien editieren"),
     tags$head(
       tags$script(HTML("
         $(document).on('change', '.new_input', function() {
