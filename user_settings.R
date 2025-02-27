@@ -58,26 +58,6 @@ Abrechungsjahr <- str_split(c_script_version,SPC, simplify = T)[,1]|>as.integer(
 # Wiel lange dauer die Sommerpause
 sommerpause = 65 # Tage
 
-# Sollen Inhaltsverzeichnisse erstellt werden
-toc <- TRUE
-
-# Mehrwertsteuersatz
-c_MWST <- 8.1 #%
-
-# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkarte"), 
-                             Verkaufspreis =  c(13,13))
-
-# Ausgabeformate
-# 1 = only html
-# 2 = only docx
-# 3 = only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 4 = html and docx
-# 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "1" 
-
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
   theme_bw() +
@@ -200,12 +180,6 @@ if(c_raw[c_index+1] != c_script_version){
   
   source("doc/create Readme and Docu.R")
 }
-
-#############################################################################################################################################
-# remove temp files 
-#############################################################################################################################################
-list.files(pattern = "temp", recursive = TRUE)|>
-  file.remove()
 
 remove(c_raw, c_index)
 
