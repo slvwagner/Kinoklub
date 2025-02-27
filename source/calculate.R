@@ -6,6 +6,8 @@ library(tidyverse)
 
 writeLines("Daten werden einlesen und berechnet...")
 
+source("source/functions.R")
+
 # Eintritte aus Advanced Tickets files
 convert_data_Film_txt <- function(fileName) {
   l_Eintritt <- fileName|>
@@ -285,14 +287,13 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# Einnahmen und Ausgaben einlesen aus Excel 
-c_file <- "Einnahmen und Ausgaben.xlsx"
+# l_data$MWST <-
+#   tibble(
+#     MWST = 8.1
+#   )
+# saveRDS(l_data, c_file) # Save the updated list to the file
 
-# error handling
-stopifnot(file.exists(paste0("input/",c_file)))
-
-
-# read in Excel data
+# Einnahmen und Ausgaben einlesen
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
                                Ausgaben = l_data$Ausgaben)
 
@@ -1004,8 +1005,8 @@ for (ii in 1:nrow(df_mapping)) {
                                          `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt  # Verleiherrechnung ist vorhanden
                                          ),
         `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                               sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
-                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(c_MWST/100)))) * Verteilprodukt
+                               sum(`Verleiherabzug [CHF]`) * (l_data$MWST$MWST / 100) * Verteilprodukt,
+                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(l_data$MWST$MWST/100)))) * Verteilprodukt
         )
       )
   }else{ 
@@ -1022,8 +1023,8 @@ for (ii in 1:nrow(df_mapping)) {
                                          `Minimal Abzug [CHF]`[1] * Verteilprodukt
         ),
         `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                               sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
-                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(c_MWST/100)))) * Verteilprodukt
+                               sum(`Verleiherabzug [CHF]`) * (l_data$MWST$MWST / 100) * Verteilprodukt,
+                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(l_data$MWST$MWST/100)))) * Verteilprodukt
         )
       )
   }
@@ -1053,7 +1054,7 @@ for (ii in 1:nrow(df_mapping)) {
     mutate(Betrag = df_Verteilprodukt|>
              filter(Datum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
              select(Verteilprodukt)|>
-             pull() * Betrag
+             pull() * `Betrag [CHF]`
            )
   l_abrechnung[[ii]]$Eventeinnahmen
 
@@ -1065,7 +1066,7 @@ for (ii in 1:nrow(df_mapping)) {
     mutate(Betrag = df_Verteilprodukt|>
              filter(Datum == df_mapping$Datum[ii])|>
              select(Verteilprodukt)|>
-             pull() * Betrag
+             pull() * `Betrag [CHF]`
     )|>
     mutate(Datum = NULL)|>
     rename(Datum = Spieldatum)
@@ -1080,7 +1081,7 @@ for (ii in 1:nrow(df_mapping)) {
     mutate(Betrag = df_Verteilprodukt|>
              filter(Datum == df_mapping$Datum[ii])|>
              select(Verteilprodukt)|>
-             pull() * Betrag
+             pull() * `Betrag [CHF]`
            )|>
     mutate(Datum = NULL)|>
     rename(Datum = Spieldatum)
@@ -1132,7 +1133,7 @@ for (ii in 1:nrow(df_mapping)) {
   if(nrow(l_abrechnung[[ii]]$Abrechnung) != 0){
     l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
       filter(Datum == df_mapping$Datum[ii],
-             `Suisa Nummer` == df_mapping$Suisanummer[ii]
+             Suisanummer == df_mapping$Suisanummer[ii]
              )  
   }
 }
@@ -1171,7 +1172,7 @@ df_Abrechnung_tickes <- l_abrechnung|>
          )|>
   left_join(df_show|>
               select(`Suisa Nummer`, Datum, Anfang, Ende),
-            by = join_by(Datum, `Suisa Nummer`)
+            by = c("Datum" = "Datum",  "Suisanummer" = "Suisa Nummer")
             )
 df_Abrechnung_tickes
 
@@ -1214,7 +1215,7 @@ df_Abrechnung_Eventausgaben
 
 # summary Eintritt (für Berichte verwendet)
 df_Besucherzahlen <- df_Eintritt|>
-  group_by(Datum, Filmtitel, `Suisa Nummer`)|>
+  group_by(Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
