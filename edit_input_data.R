@@ -26,7 +26,7 @@ generate_html_inputs <- function(row, row_index) {
     if (ii %in% names(column_choices)) {
       choices <- column_choices[[ii]]
       options_html <- paste0(
-        '\t<option value="', choices, '" ', ifelse(choices == value, 'selected', ''), '>', choices, '</option>',
+        '\t<option value="', choices, '" ', ifelse(choices == ifelse(is.na(value),"", value), 'selected', ''), '>', choices, '</option>',
         collapse = "\n"
       )
       l[[ii]] <- paste0(
