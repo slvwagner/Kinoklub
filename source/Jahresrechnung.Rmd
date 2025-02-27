@@ -287,10 +287,10 @@ KioskEinnahmen|>
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
 EinkaufGetränke <- df_Kiosk|>
-  filter(Lieferant == "Schüwo")|>
-  group_by(Verkaufsartikel,Verkaufspreis, Einkaufspreis)|>
+  filter(Lieferant == l_data$Lieferant$Lieferantenname[2])|>
+  group_by(`Artikel-Kassensystem`,Verkaufspreis, `Einkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Einkaufspreis))|>
+          `Betrag [CHF]` = sum(`Einkaufspreis [CHF]`))|>
   arrange(desc(Anzahl))
 
 EinkaufGetränke|>

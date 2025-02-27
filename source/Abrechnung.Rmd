@@ -331,8 +331,6 @@ df_temp <- df_Kiosk|>
          )|>
   select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
-         `Einkaufspreis [CHF]` =`Einkaufspreis`,
-         `Verkaufspreis [CHF]`=`Verkaufspreis`,
          `Gewinn [CHF]` = Gewinn
          )
 ```

@@ -813,11 +813,11 @@ df_temp|>
 ```{r }
 
 df_temp <- df_Einkaufspreise|>
-  distinct(`Artikelname Kassensystem`)|>
+  distinct(`Artikelname-Kassensystem`)|>
   left_join(df_Kiosk|>
             group_by(Verkaufsartikel)|>
               reframe(Anzahl = sum(Anzahl)),
-            by = c("Artikelname Kassensystem"="Verkaufsartikel")
+            by = c("Artikelname-Kassensystem"="Verkaufsartikel")
             )
   
 df_temp|>

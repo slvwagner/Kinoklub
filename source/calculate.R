@@ -455,20 +455,17 @@ c_files
 
 # Extrakt Verkäufe  und Überschuss / Manko
 l_temp <- convert_data_kiosk_txt(c_files)
+l_temp
+
 df_Kiosk <- l_temp$df_Kiosk
 df_manko_uerberschuss <- l_temp$`Überschuss / Manko`
 remove(l_temp)
 
+df_Kiosk <- df_Kiosk|>
+  rename("Artikel-Kassensystem" = Verkaufsartikel)
+df_Kiosk
 
 # Spez Verkaufsartikel / Spezialpreise einlesen
-
-# errohandling
-c_file <- "Spezialpreisekiosk.xlsx"
-
-paste0("Input/", c_file)|>
-  file.exists()|>
-  stopifnot()
-
 # Spezialpreise einlesen
 Spezialpreisekiosk <- l_data$Spezialpreisekiosk
 Spezialpreisekiosk
@@ -479,10 +476,10 @@ if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht all
 # error handling
 # Sind alle Spezialpreise pro Datum und Suisanummer definiert?  
 df_spez_preis_na <- df_Kiosk|>
-  filter(str_detect(Verkaufsartikel, "Spez")) |>
+  filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
   left_join( # look up Spezialpreise
     Spezialpreisekiosk, 
-    by = c(Datum = "Datum", Suisanummer = "Suisanummer", Verkaufsartikel = "Spezialpreis")
+    by = c(Datum = "Datum", Suisanummer = "Suisanummer", "Artikel-Kassensystem" = "Spezialpreis")
   )|>
   filter(is.na(Artikelname))
 
@@ -498,7 +495,7 @@ if(nrow(df_spez_preis_na) > 0) {
     paste0(
       "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum),
       " / ", df_spez_preis_na$Suisanummer,
-      "\nwurde der Artikel ", df_spez_preis_na$Verkaufsartikel," nicht definiert.",
+      "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
     )
   )
@@ -508,24 +505,16 @@ if(nrow(df_spez_preis_na) > 0) {
 # join Spezpreise mit Verkaufsartikel
 df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk, 
-            by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis", Suisanummer = "Suisanummer")
+            by = c(Datum ="Datum", `Artikel-Kassensystem` = "Spezialpreis", Suisanummer = "Suisanummer")
   )|>
-  mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
+  mutate(Verkaufsartikel = if_else(is.na(Artikelname), `Artikel-Kassensystem`, Artikelname))|>
   select(-Artikelname)
-
+df_Kiosk
 
 # Kiosk Einkaufspreise 
 # read Einkaufspreise 
 c_files <- list.files(pattern = START%R%"Einkauf", recursive = T)
-l_Einkaufspreise <- lapply(c_files, readxl::read_excel)
-l_Einkaufspreise
-
-p <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-names(l_Einkaufspreise) <- c_files|>str_extract(p)
-
-df_Einkaufspreise <- l_Einkaufspreise |>
-  bind_rows(.id = "Datum")|>
-  mutate(Datum = lubridate::dmy(Datum)|>as.Date())
+df_Einkaufspreise <- l_data$`Einkauf Kiosk`
 df_Einkaufspreise
 
 
@@ -540,7 +529,7 @@ c_Date_Kiosk <- c_files|>
   as.Date()
 c_Date_Kiosk
 
-c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
+c_Einkaufslistendatum <- distinct(df_Einkaufspreise, `Gültig ab Datum`)|>pull()
 c_Einkaufslistendatum
 
 df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date_Kiosk)|>as.integer())|>
@@ -583,15 +572,16 @@ for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
   l_Kiosk[[ii]] <- df_Kiosk|>
     filter(Datum == df_Mapping_Einkaufspreise$Datum[ii])|>
     left_join(df_Einkaufspreise|>
-                filter(Datum == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
-                select(-Datum), 
-              by = c(Verkaufsartikel = "Artikelname Kassensystem")
+                filter(`Gültig ab Datum` == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
+                select(-`Gültig ab Datum`), 
+              by = c(Verkaufsartikel = "Artikelname-Kassensystem")
     )
 }
 l_Kiosk
 
 df_Kiosk <- l_Kiosk|>
   bind_rows()
+df_Kiosk
 
 # V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
 df_Kiosk <- bind_rows(df_Kiosk|>
@@ -604,22 +594,20 @@ df_Kiosk <- bind_rows(df_Kiosk|>
 
 # Gewinn
 df_Kiosk <- df_Kiosk|>
-  rename(Einkaufspreis = `Einkaufs- preis`)|>
-  mutate(Gewinn = if_else(is.na(Einkaufspreis),Betrag,Betrag-(Anzahl*Einkaufspreis))
+  mutate(Gewinn = if_else(is.na(`Einkaufspreis [CHF]`),
+                          `Betrag`, 
+                          `Betrag` - (Anzahl * `Einkaufspreis [CHF]`))
   )|>
-  rename(Kassiert = Betrag,
+  rename(Kassiert = `Betrag`,
          Verkaufspreis = Einzelpreis)
 
-# Test
-df_Kiosk|>
-  group_by(Datum)|>
-  reframe(`Gewinn/Verlust` = sum(Kassiert))
+df_Kiosk
+
 
 # remove no more needed variables
-remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
+remove(df_Mapping_Einkaufspreise,l_Kiosk, 
        df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
-       p,
        ii,
        c_path, c_files)
 
@@ -756,12 +744,6 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
 
 
 # Verleiherabgaben einlesen
-c_file <- "Input/Verleiherabgaben.xlsx"
-
-# error handling
-if(!file.exists(c_file)) stop(paste0("\nDie Datei: \".../", c_file, "\" konnte nicht gefunden werden"))
-
-
 df_verleiherabgaben <- l_data$Verleiherabgaben|>
   left_join(l_data$Verleiher,
             by = c("Verleiher" = "Verleihername"))
