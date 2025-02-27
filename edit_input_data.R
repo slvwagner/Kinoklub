@@ -40,11 +40,11 @@ generate_html_inputs <- function(row, row_index) {
       l[[ii]] <- paste0(
         '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', "\n", options_html, '</select>'
       )
-      writeLines(l[[ii]])
+      # writeLines(l[[ii]])
       
     } else {
       l[[ii]] <- value
-      writeLines(value)
+      # writeLines(value)
     }
   }
   return(l)
