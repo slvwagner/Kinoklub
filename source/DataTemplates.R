@@ -152,6 +152,10 @@ templateInput$Lieferanten <- templateInput$`Einkauf Kiosk`|>
   distinct(Lieferant)|>
   filter(Lieferant != "MIgros")|>
   rename(Lieferantenname = Lieferant)
+templateInput$Lieferanten <- bind_rows(tibble(Lieferantenname = "..."),
+          templateInput$Lieferanten
+          )
+templateInput$Lieferanten
 
 # Verleiher
 templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")|>
