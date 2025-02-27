@@ -1785,13 +1785,12 @@ server <- function(input, output, session) {
     
   })
   
+  # launch second app to edit input data 
   observeEvent(input$launch_app, {
     # Specify the path to the second app
     second_app_path <- "edit_input_data.R"
-    
     # Debug: Print the path to check if it's correct
     print(paste("Launching:", second_app_path))
-    
     # Run the second app in a new process
     processx::process$new("Rscript", 
                           args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
