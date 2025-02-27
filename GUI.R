@@ -1764,7 +1764,8 @@ server <- function(input, output, session) {
       # shiny::actionButton("open_Spez", "Spezialpreise"),
       # shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
       # shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
-      shiny::actionButton("launch_app", "Editieren"),
+      shiny::actionButton("launch_app", "Daten Editieren"),
+      actionButton("stop_app", "Daten Editieren stoppen"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
@@ -1785,18 +1786,49 @@ server <- function(input, output, session) {
     
   })
   
-  # launch second app to edit input data 
+  # # launch second app to edit input data 
+  # observeEvent(input$launch_app, {
+  #   # Specify the path to the second app
+  #   second_app_path <- "edit_input_data.R"
+  #   # Debug: Print the path to check if it's correct
+  #   print(paste("Launching:", second_app_path))
+  #   # Run the second app in a new process
+  #   processx::process$new("Rscript", 
+  #                         args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
+  #                         stdout = "|", stderr = "|"
+  #   )
+  # })
+  
+  # Store the process in a reactive value
+  second_app_process <- reactiveVal(NULL)
+  
   observeEvent(input$launch_app, {
-    # Specify the path to the second app
     second_app_path <- "edit_input_data.R"
-    # Debug: Print the path to check if it's correct
-    print(paste("Launching:", second_app_path))
-    # Run the second app in a new process
-    processx::process$new("Rscript", 
-                          args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
-                          stdout = "|", stderr = "|"
+    
+    # If a process already exists, don't start a new one
+    if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
+      print("Second app is already running.")
+      return()
+    }
+    
+    print("Starting second app...")
+    
+    proc <- processx::process$new("Rscript", 
+                                  args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
+                                  stdout = "|", stderr = "|"
     )
+    
+    second_app_process(proc)  # Store the process
   })
+  
+  observeEvent(input$stop_app, {
+    if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
+      print("Stopping second app...")
+      second_app_process()$kill()
+      second_app_process(NULL)  # Clear the reference
+    }
+  }) 
+  
 }
 
 # Run the app
