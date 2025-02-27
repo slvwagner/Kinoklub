@@ -22,13 +22,13 @@ ii <- 1
 ```{r echo=FALSE}
 c_verteilprodukt <- df_Abrechnung|>
   filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
+         Suisanummer == df_mapping$Suisanummer[ii] )|>
   select(Verteilprodukt)|>
   pull()
 
  c_linkDatum <- df_Abrechnung|>
   filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
+         Suisanummer == df_mapping$Suisanummer[ii] )|>
    select(`Link Datum`)|>
    pull()
 
@@ -75,7 +75,7 @@ if(r_is.defined(df_keine_Rechnung)){
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
   filter(Datum == df_mapping$Datum[ii] ,
-         `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
+         Suisanummer == df_mapping$Suisanummer[ii])|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Umsatz [sFR]` = `Umsatz`)
 
@@ -97,7 +97,7 @@ Umsatz|>
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
   filter(Datum == df_mapping$Datum[ii] ,
-         `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
+         Suisanummer == df_mapping$Suisanummer[ii])|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl, na.rm = T))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))
@@ -159,7 +159,7 @@ if(nrow(df_Abrechnung) == 1){
 }else{
   df_temp <- df_Abrechnung|>
     filter(Datum == df_mapping$Datum[ii] ,
-           `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
+           Suisanummer == df_mapping$Suisanummer[ii])|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 }
 
@@ -293,7 +293,7 @@ df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Datum == df_mapping$Datum[ii],
          `Suisanummer` == df_mapping$Suisanummer[ii],
          Kategorie == "Event")|>
-  rename(`Betrag [CHF]` = Betrag)|>
+  # rename(`Betrag [CHF]` = Betrag)|>
   select(Datum, Bezeichnung, `Betrag [CHF]`)|>
   mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))
 
@@ -415,7 +415,7 @@ if(nrow(df_temp) == 0) {
 
 ```{r echo=FALSE}
 df_temp|>
-  select(Spieldatum, Suisanummer, Bezeichnung, Betrag)|>
+  select(Spieldatum, Suisanummer, Bezeichnung, `Betrag [CHF]`)|>
   knitr::kable()
 ```
 
@@ -445,7 +445,7 @@ df_temp <- bind_cols(
   bind_rows(df_temp1,
             df_temp2,
             df_temp |>
-              reframe(`Summe [CHF]` = -sum(Betrag, na.rm = T)),
+              reframe(`Summe [CHF]` = -sum(`Betrag [CHF]`, na.rm = T)),
             Manko)
   )|>
   rename(`Betrag [CHF]` = `Summe [CHF]`)

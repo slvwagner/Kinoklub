@@ -132,7 +132,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     c_temp1 <- df_Abrechnung |>
       filter(
         Datum == (df_mapping |> filter(index == ii) |> select(Datum) |> pull()),
-        `Suisa Nummer` == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
+        Suisanummer == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
       ) |>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":",lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
              Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
