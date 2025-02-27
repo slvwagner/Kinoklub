@@ -41,7 +41,7 @@ df_temp <- df_Abrechnung |>
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                          )
   ) |>
-  select(Datum, Datum_display, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust Filmvorführungen [CHF]`)
+  select(Datum, Datum_display, Anfang, Suisanummer, Filmtitel, `Gewinn/Verlust Filmvorführungen [CHF]`)
 ```
 
 
@@ -239,7 +239,7 @@ df_temp <- df_Abrechnung|>
                          )
          # `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
   )|>
-  select(Datum, Datum_display,Anfang, `Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust Tickets [CHF]`)
+  select(Datum, Datum_display,Anfang, Suisanummer, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust Tickets [CHF]`)
 
 ```
 
@@ -832,20 +832,21 @@ df_temp|>
 df_temp <- df_show |>
   left_join(
     df_Eintritt |>
-      group_by(Datum, `Suisa Nummer`) |>
+      group_by(Datum, `Suisanummer`) |>
       reframe(`Besucher` = sum(Anzahl))|>
       left_join(df_Kiosk |>
                   group_by(Datum, Suisanummer) |>
                   reframe(Umsatz = sum(Kassiert)),
-                by = c("Datum" = "Datum", "Suisa Nummer" = "Suisanummer")
+                by = c("Datum" = "Datum", "Suisanummer" = "Suisanummer")
                 ) |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
-  by = c("Datum", "Suisa Nummer")
+  by = c("Datum","Suisa Nummer" = "Suisanummer")
   )|>
   arrange(desc(Datum))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]`= Umsatz)|>
+  rename(`Umsatz [CHF]`= Umsatz,
+         Suisanummer = `Suisa Nummer`)|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          )
 
@@ -853,7 +854,7 @@ df_temp <- df_show |>
 
 ```{r echo=FALSE}
 df_temp|> 
-  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
+  select(Datum, Datum_display, Anfang,`Suisanummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
     DT::datatable(
     df_temp,
     options = list(columnDefs = list(
@@ -876,7 +877,7 @@ df_temp1|>
 ```{r fig.width=10}
 df_temp|>
   ggplot()+
-  geom_col(aes(x = Datum, y = `Umsatz pro Gast [CHF]`, fill = `Suisa Nummer`),
+  geom_col(aes(x = Datum, y = `Umsatz pro Gast [CHF]`, fill = `Suisanummer`),
            color = "black",
            show.legend =  FALSE)+
   geom_hline(yintercept = mean(df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+
@@ -962,20 +963,21 @@ df_temp <- df_show |>
   left_join(
     df_Eintritt |>
       filter(Zahlend)|>
-      group_by(Datum, `Suisa Nummer`) |>
+      group_by(Datum, `Suisanummer`) |>
       reframe(`Besucher` = sum(Anzahl))|>
       left_join(df_Kiosk |>
                   group_by(Datum, Suisanummer) |>
                   reframe(Umsatz = sum(Kassiert)),
-                by = c("Datum" = "Datum", "Suisa Nummer" = "Suisanummer")
+                by = c("Datum" = "Datum", "Suisanummer" = "Suisanummer")
                 ) |>
       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)),
-  by = c("Datum", "Suisa Nummer")
+  by = c("Datum", "Suisa Nummer" = "Suisanummer")
   )|>
   arrange(desc(Datum))|>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
-  rename(`Umsatz [CHF]`= Umsatz)|>
+  rename(`Umsatz [CHF]`= Umsatz,
+         Suisanummer = `Suisa Nummer`)|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y")
          )
 
@@ -984,7 +986,7 @@ df_temp <- df_show |>
 
 ```{r echo=FALSE}
 df_temp|> 
-  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
+  select(Datum, Datum_display, Anfang,`Suisanummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|>
     DT::datatable(
     df_temp,
     options = list(columnDefs = list(
@@ -1007,7 +1009,7 @@ df_temp1|>
 ```{r fig.width=10}
 df_temp|>
   ggplot()+
-  geom_col(aes(x = Datum, y = `Umsatz pro Gast [CHF]`, fill = `Suisa Nummer`),
+  geom_col(aes(x = Datum, y = `Umsatz pro Gast [CHF]`, fill = `Suisanummer`),
            color = "black",
            show.legend =  FALSE)+
   geom_hline(yintercept = mean(df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+

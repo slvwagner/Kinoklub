@@ -965,14 +965,14 @@ webserver <- function() {
   
 }
 
-# Envirnoment for Data to create Plots
-data_env <- new.env()
+# Error if calculation not executing 
 error_calculate <-  paste0(
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
   "! Es konnten nicht alle Daten einlesen werden. !\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
   )
-
+# Envirnoment for Data to create Plots
+data_env <- new.env()
 # read data
 calculate_warnings <- ""
 ausgabe_text <- ""
