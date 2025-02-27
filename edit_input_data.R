@@ -6,20 +6,23 @@ library(shinysky)
 # Load the data
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
-  l_templates <- readRDS(c_file)
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
 }else{ # or load template date 
   c_file <- "Input/template.Rds"
-  l_templates <- readRDS(c_file)
+  l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
 
 column_choices <- reactiveVal(list(
-  "Lieferant" = l_templates$Lieferanten$Lieferantenname,
-  "Kategorie" = l_templates$Kategorie$Auswahl,
-  "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskontoname,
-  "Verleiher" = l_templates$Verleiher$Verleihername,
-  "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
-  "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
+  "Lieferant" = l_data$Lieferanten$Lieferantenname,
+  "Kategorie" = l_data$Kategorie$Auswahl,
+  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+  "Verleiher" = l_data$Verleiher$Verleihername,
+  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
 ))
 
 # Html input choices
@@ -103,7 +106,7 @@ ui <- function(){
       "))
     ),
     mainPanel(
-      selectInput("dataset", "Choose a dataset:", choices = names(l_templates)),
+      selectInput("dataset", "Choose a dataset:", choices = names(l_data)),
       shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
       DTOutput("table"),
       actionButton("add_row", "Add Row"),
@@ -147,7 +150,7 @@ update_table <- function(row_index, col_index, value) {
 server <- function(input, output, session) {
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
-    current_data(l_templates[[input$dataset]])
+    current_data(l_data[[input$dataset]])
   })
   
   # Edit values or select rows
@@ -169,7 +172,7 @@ server <- function(input, output, session) {
         editable = table_select(),
         filter = "top",
         options = list(
-          dom = 't',
+          # dom = 't',
           # ordering = FALSE,
           # scrollX = TRUE,
           pageLength = nrow(current_data())
@@ -185,7 +188,7 @@ server <- function(input, output, session) {
           editable = table_select(),
           filter = "top",
           options = list(
-            dom = 't',
+            # dom = 't',
             # ordering = FALSE,
             # scrollX = TRUE,
             pageLength = nrow(current_data())
@@ -211,8 +214,13 @@ server <- function(input, output, session) {
   # Handle cell edits in the data
   observeEvent(input$table_cell_edit, {
     info <- input$table_cell_edit
-    updated_data <- update_table(info$row, info$col, info$value)
-    current_data(updated_data)
+    if(info$value == "") {
+      showNotification("Empty cell will not be updated", type = "message")
+    }
+    else{
+      updated_data <- update_table(info$row, info$col, info$value)
+      current_data(updated_data) 
+    }
   })
   
   # Add a new row
@@ -224,9 +232,21 @@ server <- function(input, output, session) {
   
   # Delete selected row(s)
   observeEvent(input$delete_row, {
-    req(input$table_rows_selected) # Ensure a row is selected
+    showModal(modalDialog(
+      title = "Confirm Deletion",
+      "Are you sure you want to delete the selected row(s)?",
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("confirm_delete", "Delete")
+      )
+    ))
+  })
+  
+  observeEvent(input$confirm_delete, {
+    req(input$table_rows_selected)
     updated_data <- current_data()[-input$table_rows_selected, ]
     current_data(updated_data)
+    removeModal()
   })
   
   # Duplicate selected row(s) and update "Gültig ab Datum"
@@ -245,16 +265,16 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
-    l_templates[[input$dataset]] <<- current_data() # Update the list
-    saveRDS(l_templates, c_file) # Save the updated list to the file
-    l_templates <- readRDS(c_file)
+    l_data[[input$dataset]] <<- current_data() # Update the list
+    saveRDS(l_data, c_file) # Save the updated list to the file
+    l_data <- readRDS(c_file)
     list(
-      "Lieferant" = l_templates$Lieferanten$Lieferantenname,
-      "Kategorie" = l_templates$Kategorie$Auswahl,
-      "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_templates$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
-      "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
+      "Lieferant" = l_data$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data$Kategorie$Auswahl,
+      "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+      "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
