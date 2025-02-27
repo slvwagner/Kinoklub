@@ -135,7 +135,12 @@ templateInput <- list(
         "ja", 
         "nein"
         )
-    )
+    ),
+  df_P_kat_verechnen = 
+    tibble(
+      Kinoförderer = c("Kinoförderer","Kinofördererkarte"),
+      Verkaufspreis =  c(13,13)
+      )
 )
 
 # Einkaufspreise Kiosk

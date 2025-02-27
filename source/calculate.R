@@ -1,14 +1,10 @@
 # read and caluclate all input data
-library(tidyverse)
 library(rebus)
 library(openxlsx)
 library(lubridate)
+library(tidyverse)
 
 writeLines("Daten werden einlesen und berechnet...")
-
-# Load excel column definition database
-col_env <- new.env()
-load("col_env.RData", envir = col_env)
 
 # Eintritte aus Advanced Tickets files
 convert_data_Film_txt <- function(fileName) {
@@ -276,10 +272,28 @@ convert_data_kiosk_txt <- function(c_files) {
   return(l_return)
 }
 
-# Errorhandling open excel files
-c_openfiles <- list.files(paste0("Input/"),"~")
-if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
-remove(c_openfiles)
+# Einlesen Input daten
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date 
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+
+l_data$df_P_kat_verechnen <- NULL
+
+l_data$`Platzkategorien zum Verrechnen` <- 
+  tibble(
+    Kinoförderer = c("Kinoförderer","Kinofördererkarte"),
+    Verkaufspreis =  c(13,13)
+  )
+
+saveRDS(l_data, c_file) # Save the updated list to the file
 
 # Einnahmen und Ausgaben einlesen aus Excel 
 c_file <- "Einnahmen und Ausgaben.xlsx"
@@ -289,8 +303,8 @@ stopifnot(file.exists(paste0("input/",c_file)))
 
 
 # read in Excel data
-Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
-  col_env$get_excel_data()
+Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
+                               Ausgaben = l_data$Ausgaben)
 
 # error handling
 # suisa nummer automatisch korrigieren 
@@ -442,11 +456,10 @@ c_file
 # error handling
 if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
 
-df_verkaufsartikel <- paste0(c_file)|>
-  col_env$get_excel_data()
+df_verkaufsartikel <- l_data$`Einkauf Kiosk`
 
-df_verkaufsartikel <- df_verkaufsartikel$`Angebot`
-df_verkaufsartikel
+# df_verkaufsartikel <- df_verkaufsartikel$`Angebot`
+# df_verkaufsartikel
 
 
 # Advace tickets Kiosk
@@ -473,15 +486,7 @@ paste0("Input/", c_file)|>
   stopifnot()
 
 # Spezialpreise einlesen
-Spezialpreisekiosk <-
-  paste0("Input/", c_file)|>
-  col_env$get_excel_data()
-
-Spezialpreisekiosk <-Spezialpreisekiosk$Spezpreise|>
-  mutate(Datum = as.Date(Datum),
-         # suisa nummer automatisch korrigieren 
-         Suisanummer = Suisanummer|>str_squish()|>str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT)
-         )
+Spezialpreisekiosk <- l_data$Spezialpreisekiosk
 Spezialpreisekiosk
 
 # error handling
@@ -772,10 +777,12 @@ c_file <- "Input/Verleiherabgaben.xlsx"
 # error handling
 if(!file.exists(c_file)) stop(paste0("\nDie Datei: \".../", c_file, "\" konnte nicht gefunden werden"))
 
-df_verleiherabgaben <- col_env$get_excel_data(c_file)[["Verleiherabgaben"]]|>
-  mutate(Datum = as.Date(Datum),
-         `Link Datum` = as.Date(`Link Datum`))|>
-  left_join(col_env$get_excel_data(c_file)[["Kinoförderer gratis"]], by = "Verleiher")
+
+df_verleiherabgaben <- l_data$Verleiherabgaben|>
+  left_join(l_data$Verleiher,
+            by = c("Verleiher" = "Verleihername"))
+df_verleiherabgaben
+
 
 # Suisa automatisch korrigieren 
 df_verleiherabgaben$Suisanummer <- df_verleiherabgaben$Suisanummer|>
@@ -794,7 +801,7 @@ if(nrow(df_temp)>0){
 # Eintrite 
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben|>
-              select(-Titel, -Adresse, -PLZ, -Ort),
+              select(-Filmtitel, -Adresse, -PLZ, -Ort),
             by = c(`Suisa Nummer` = "Suisanummer", "Datum"))|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
          Zahlend = if_else(Verkaufspreis>0, T, F))
@@ -818,7 +825,7 @@ if(nrow(df_temp)>0){
 
 # kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde)
 df_temp <- df_Eintritt|>
-  filter(is.na(`Minimal Abzug`) & !is.na(`Abzug [%]`))|>
+  filter(is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
@@ -844,7 +851,7 @@ if(nrow(df_temp)>0){
 
 # minimal und Fixer Abzug definiert
 df_temp <- df_Eintritt|>
-  filter(!is.na(`Minimal Abzug`) & !is.na(`Abzug fix [CHF]`))|>
+  filter(!is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
@@ -856,9 +863,6 @@ if(nrow(df_temp)>0){
   )
 }
 
-Einnahmen_und_Ausgaben[["dropdown"]]|>
-  filter(str_detect(dropdown, "Verlei"))|>
-  pull()
 
 # Ticketabrechnung vorbereiten
 df_Abrechnung <- df_Eintritt|>
@@ -867,17 +871,18 @@ df_Abrechnung <- df_Eintritt|>
   left_join(df_show|>
               select(Datum, `Suisa Nummer`, Anfang, Ende),
             by = join_by(Datum, `Suisa Nummer`))|>
+  rename(Suisanummer = `Suisa Nummer`)|>
   left_join( # Verleiherrechnungen 
     Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-      filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`dropdown`[5])|> # suchen nach den Verleiher Einträgen
-      select(Spieldatum, Suisanummer,Betrag)|>
+      filter(Kategorie == pull(l_data$Kategorie)[6])|> # suchen nach den Verleiher Einträgen
+      select(Spieldatum, Suisanummer,`Betrag [CHF]`)|>
       # select(1:2)|>
-      rename(`Verleiherrechnungsbetrag [CHF]` = Betrag,
+      rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`,
              Datum = Spieldatum),
-    by = join_by(Datum)
+    by = join_by(Datum, Suisanummer)
   )|>
   rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
-         `Minimal Abzug [CHF]` =  `Minimal Abzug`)|>
+         )|>
   mutate(Datum = as.Date(Datum))
 df_Abrechnung
 
