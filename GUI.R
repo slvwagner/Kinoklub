@@ -1782,28 +1782,16 @@ server <- function(input, output, session) {
     
   })
   
-  # # launch second app to edit input data 
-  # observeEvent(input$launch_app, {
-  #   # Specify the path to the second app
-  #   second_app_path <- "edit_input_data.R"
-  #   # Debug: Print the path to check if it's correct
-  #   print(paste("Launching:", second_app_path))
-  #   # Run the second app in a new process
-  #   processx::process$new("Rscript", 
-  #                         args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
-  #                         stdout = "|", stderr = "|"
-  #   )
-  # })
-  
   # Store the process in a reactive value
   second_app_process <- reactiveVal(NULL)
   
+  # launch the Dateien editieren App
   observeEvent(input$launch_app, {
     # Path to edit input data app
     second_app_path <- "edit_input_data.R"
     # If a process already exists, don't start a new one
     if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
-      print("Second app is already running.")
+      showNotification("Dateinen editiern ist bereis geöffnet\n", type = "message")
       return()
     }else{
       print("Starting second app...")
@@ -1815,6 +1803,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # stop Dateien editiern app
   observeEvent(input$stop_app, {
     if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
       print("Stopping second app...")
