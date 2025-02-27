@@ -141,7 +141,7 @@ convert_data_kiosk_txt <- function(c_files) {
   c_fileDate
   
   # detect Verkaufarikel in string
-  p1 <- or1(paste0(df_verkaufsartikel$`Artikelname Kassensystem`))
+  p1 <- or1(paste0(df_verkaufsartikel$`Artikelname-Kassensystem`))
   
   # detect Spez Preise 
   p2 <- or1(paste0("Spez"%R%SPC, 1:4))
@@ -447,9 +447,7 @@ c_file
 if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
 
 df_verkaufsartikel <- l_data$`Einkauf Kiosk`
-
-# df_verkaufsartikel <- df_verkaufsartikel$`Angebot`
-# df_verkaufsartikel
+df_verkaufsartikel
 
 
 # Advace tickets Kiosk
@@ -904,8 +902,8 @@ df_Eintritt <- bind_rows(
   df_Eintritt|>
     filter(!`Kinoförderer gratis?`)|>
     mutate(
-      `Umsatz für Netto3 [CHF]` = if_else(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer,
-                                    Anzahl * df_P_kat_verechnen$Verkaufspreis[1],
+      `Umsatz für Netto3 [CHF]` = if_else(Platzkategorie %in% l_data$`Platzkategorien zum Verrechnen`$Kinoförderer,
+                                    Anzahl * l_data$`Platzkategorien zum Verrechnen`$Verkaufspreis[1],
                                     Umsatz
                                     ),
       `Verkaufspreis Abgerechnet [CHF]` = `Umsatz für Netto3 [CHF]` / Anzahl
@@ -915,8 +913,9 @@ df_Eintritt <- bind_rows(
     mutate(`Umsatz für Netto3 [CHF]` = Umsatz)
 )|>
   arrange(desc(Datum))
+df_Eintritt <- df_Eintritt|>
+  rename(Suisanummer = `Suisa Nummer`)
 df_Eintritt
-
 
 # Abrechnungsperiode erstellen
 l_keineRechnung <- list()
@@ -925,15 +924,15 @@ ii <- 6
 for (ii in 1:nrow(df_mapping)) {
 
   l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                               filter(df_mapping$Suisanummer[ii] == `Suisa Nummer`)|>
+                               filter(df_mapping$Suisanummer[ii] ==  Suisanummer)|>
                                filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
+                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, Suisanummer, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
                                       `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
                              Tickets = df_Eintritt|>
-                               filter(df_mapping$Suisanummer[ii] == `Suisa Nummer`)|>
+                               filter(df_mapping$Suisanummer[ii] == Suisanummer)|>
                                filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
-  )
+                               select(Datum, Filmtitel, Suisanummer, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
+                             )
 
 
   # error handling
@@ -948,14 +947,14 @@ for (ii in 1:nrow(df_mapping)) {
     # Error handling: Keine Verleiherrechnung vorhanden
     warning(paste0("\nAchtung für den Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
                    day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum),
-                   " / ", l_abrechnung[[ii]]$Abrechnung$`Suisa Nummer`,
+                   " / ", l_abrechnung[[ii]]$Abrechnung$Suisanummer,
                    "\ngibt es keine Verleiherrechnung. Bitte korrigieren in der Datei:",
                    "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
     )
     # Rechnungen vorhanden (wird im Bericht verwendet)
     l_keineRechnung[[ii]] <- tibble(Datum = l_abrechnung[[ii]]$Abrechnung$Datum ,
                                     Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel,
-                                    Suisanummmer = l_abrechnung[[ii]]$Abrechnung$`Suisa Nummer`)
+                                    Suisanummmer = l_abrechnung[[ii]]$Abrechnung$Suisanummer)
     
   }
 
@@ -1072,20 +1071,20 @@ for (ii in 1:nrow(df_mapping)) {
     rename(Datum = Spieldatum)
   l_abrechnung[[ii]]$Eventausgaben
     
-  # # Eventausgaben (Jede Ausgabe wird verteilt bei gemeinsamer Abrechnung)
-  # l_abrechnung[[ii]]$Eventausgaben <-
-  #   Einnahmen_und_Ausgaben$Ausgaben |>
-  #   filter(Kategorie == "Event",
-  #          Suisanummer == df_mapping$Suisanummer[ii],
-  #          Spieldatum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
-  #   mutate(Betrag = df_Verteilprodukt|>
-  #            filter(Datum == df_mapping$Datum[ii])|>
-  #            select(Verteilprodukt)|>
-  #            pull() * Betrag
-  #          )|>
-  #   mutate(Datum = NULL)|>
-  #   rename(Datum = Spieldatum)
-  # l_abrechnung[[ii]]$Eventausgaben
+  # Eventausgaben (Jede Ausgabe wird verteilt bei gemeinsamer Abrechnung)
+  l_abrechnung[[ii]]$Eventausgaben <-
+    Einnahmen_und_Ausgaben$Ausgaben |>
+    filter(Kategorie == "Event",
+           Suisanummer == df_mapping$Suisanummer[ii],
+           Spieldatum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
+    mutate(Betrag = df_Verteilprodukt|>
+             filter(Datum == df_mapping$Datum[ii])|>
+             select(Verteilprodukt)|>
+             pull() * Betrag
+           )|>
+    mutate(Datum = NULL)|>
+    rename(Datum = Spieldatum)
+  l_abrechnung[[ii]]$Eventausgaben
   
 
   # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)

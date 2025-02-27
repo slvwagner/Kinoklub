@@ -140,7 +140,11 @@ templateInput <- list(
     tibble(
       Kinoförderer = c("Kinoförderer","Kinofördererkarte"),
       Verkaufspreis =  c(13,13)
-      )
+      ),
+  MWST = 
+    tibble(
+      MWST = 8.1
+    )
 )
 
 # Einkaufspreise Kiosk
