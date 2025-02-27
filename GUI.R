@@ -37,6 +37,10 @@ WordPress_env <- new.env()
 # Functions
 source("source/functions.R")
 
+# Erstellen von Verzeichnissen
+dir.create("output/") |> suppressWarnings()
+dir.create("output/data/") |> suppressWarnings()
+
 # Function to create icons for the site map
 create_icons <- function(m_Film, c_path, c_url) {
   library(furrr)
@@ -1236,28 +1240,37 @@ server <- function(input, output, session) {
       ausgabe_text("Dateien wurden eingelesen.\n")
       calculate_warnings("")
 
+      # read data
       tryCatch({
-        # erstellen von Verzeichnissen
-        dir.create("output/") |> suppressWarnings()
-        dir.create("output/data/") |> suppressWarnings()
-        
-        # Daten einlesen und konvertieren
-        source("source/calculate.R", local =  data_env)
-        shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
-        
+        # Fehler abfangen
+        ausgabe_text(capture.output({
+          withCallingHandlers(
+            {
+              source("source/calculate.R", local = data_env)
+              shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
+            },
+            warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            }
+          )
+        }, type = "message"))
       }, error = function(e) {
-        paste0(
-          error_calculate,
-          "Daten konnten nicht eingelesen werden:",
-          e$message
-          )|>
-          ausgabe_text()
+        ausgabe_text(
+            paste0(
+              error_calculate,
+              e$message,
+              collapse = ""
+            )
+          )
       })
+      
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",calculate_warnings(),ausgabe_text())|>
         ausgabe_text()
     })
   })
