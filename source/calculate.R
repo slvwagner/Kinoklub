@@ -285,16 +285,6 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-l_data$df_P_kat_verechnen <- NULL
-
-l_data$`Platzkategorien zum Verrechnen` <- 
-  tibble(
-    Kinoförderer = c("Kinoförderer","Kinofördererkarte"),
-    Verkaufspreis =  c(13,13)
-  )
-
-saveRDS(l_data, c_file) # Save the updated list to the file
-
 # Einnahmen und Ausgaben einlesen aus Excel 
 c_file <- "Einnahmen und Ausgaben.xlsx"
 
