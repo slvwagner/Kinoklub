@@ -122,12 +122,11 @@ ui <- function(){
           a:hover {
             color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
           }
+          
           /*Data table*/
           table {
             background-color: #169993;
           }
-
-          
           /*Buttons*/
           button, input, optgroup, select, textarea {
             color: #000000;
@@ -146,13 +145,13 @@ ui <- function(){
       "))
     ),
     mainPanel(
-      selectInput("dataset", "Choose a dataset:", choices = names(l_data)),
+      selectInput("dataset", "Wähle ein Datensatz zum Editieren", choices = names(l_data)),
       shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
       DTOutput("table"),
-      actionButton("add_row", "Add Row"),
-      actionButton("delete_row", "Delete Selected Row(s)"),
-      actionButton("duplicate_row", "Duplicate Selected Row(s)"), 
-      actionButton("save", "Save Changes")
+      actionButton("add_row", "Zeile hinzufügen"),
+      actionButton("delete_row", "Löschen der selektierenen Zeile(n)"),
+      actionButton("duplicate_row", "Dublizieren der selektierten Zeile(n)"), 
+      actionButton("save", "Speichern")
     )
   )
 }
