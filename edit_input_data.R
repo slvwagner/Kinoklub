@@ -4,9 +4,13 @@ library(tidyverse)
 library(shinysky)
 
 # Load the data
-c_file <- paste0(getwd(), "/Input/template.Rds")
-l_templates <- readRDS(c_file)
-l_templates
+c_file <- paste0(getwd(), "/Input/Data.Rds")
+if(file.exists(c_file)){
+  l_templates <- readRDS(c_file)
+}else{ # or load template date 
+  c_file <- paste0(getwd(), "/Input/template.Rds")
+  l_templates <- readRDS(c_file)
+}
 
 column_choices <- list(
   "Lieferant" = l_templates$Lieferanten$Lieferantenname,
@@ -165,8 +169,8 @@ server <- function(input, output, session) {
         filter = "top",
         options = list(
           dom = 't',
-          ordering = FALSE,
-          scrollX = TRUE,
+          # ordering = FALSE,
+          # scrollX = TRUE,
           pageLength = nrow(current_data())
         )
       )
@@ -181,8 +185,8 @@ server <- function(input, output, session) {
           filter = "top",
           options = list(
             dom = 't',
-            ordering = FALSE,
-            scrollX = TRUE,
+            # ordering = FALSE,
+            # scrollX = TRUE,
             pageLength = nrow(current_data())
           )
         )
