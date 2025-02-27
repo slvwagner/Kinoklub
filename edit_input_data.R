@@ -4,22 +4,23 @@ library(tidyverse)
 library(shinysky)
 
 # Load the data
-c_file <- paste0(getwd(), "/Input/Data.Rds")
+c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
   l_templates <- readRDS(c_file)
 }else{ # or load template date 
-  c_file <- paste0(getwd(), "/Input/template.Rds")
+  c_file <- "Input/template.Rds"
   l_templates <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
 }
 
-column_choices <- list(
+column_choices <- reactiveVal(list(
   "Lieferant" = l_templates$Lieferanten$Lieferantenname,
   "Kategorie" = l_templates$Kategorie$Auswahl,
-  "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
+  "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskontoname,
   "Verleiher" = l_templates$Verleiher$Verleihername,
   "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
   "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
-)
+))
 
 # Html input choices
 generate_html_inputs <- function(row, row_index) {
@@ -27,8 +28,8 @@ generate_html_inputs <- function(row, row_index) {
   for (ii in names(row)) {
     value <- as.character(row[[ii]])  # Ensure consistent character conversion
     
-    if (ii %in% names(column_choices)) {
-      choices <- column_choices[[ii]]
+    if (ii %in% names(column_choices())) {
+      choices <- column_choices()[[ii]]
       options_html <- paste0(
         '\t<option value="', choices, '" ', ifelse(choices == ifelse(is.na(value),"", value), 'selected', ''), '>', choices, '</option>',
         collapse = "\n"
@@ -242,10 +243,20 @@ server <- function(input, output, session) {
     current_data(updated_data)
   })
   
-  # Save changes back to the list
+  # Save changes and update 
   observeEvent(input$save, {
     l_templates[[input$dataset]] <<- current_data() # Update the list
     saveRDS(l_templates, c_file) # Save the updated list to the file
+    l_templates <- readRDS(c_file)
+    list(
+      "Lieferant" = l_templates$Lieferanten$Lieferantenname,
+      "Kategorie" = l_templates$Kategorie$Auswahl,
+      "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_templates$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
+      "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
+    )|>
+      column_choices()
     showNotification("Changes saved successfully!", type = "message")
   })
 }

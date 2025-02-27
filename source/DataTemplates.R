@@ -102,10 +102,10 @@ templateInput <- list(
     ),
   Buchhaltungskonten =
     tibble(
-      Buchungskonto =
-        c(
-          "4405 Einkauf Kioskwaren Kino",
+      Buchungskontoname =
+        c("...",
           "4404 Filmmiete Kino",
+          "4405 Einkauf Kioskwaren Kino",
           "4406 Werbung Kino",
           "4407 Unterhalt"
         )
@@ -113,7 +113,8 @@ templateInput <- list(
   Kategorie =
     tibble(
       Auswahl = 
-        c("Event",
+        c("...",
+          "Event",
           "Kiosk",
           "Personalaufwand",
           "Sonstiges",
@@ -123,10 +124,17 @@ templateInput <- list(
         )
     ),
   Spezialpreis = tibble(
-    Spezialpreisname = paste0("Spez ", 1:4)
+    Spezialpreisname = 
+      c("...",
+        paste0("Spez ", 1:4)
+        )
   ),
   JaNein = tibble(
-    Auswahl = c("ja", "nein")
+    Auswahl = 
+      c("...",
+        "ja", 
+        "nein"
+        )
     )
 )
 
