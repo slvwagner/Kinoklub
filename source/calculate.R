@@ -288,12 +288,6 @@ convert_data_kiosk_txt <- function(c_files) {
   return(l_return)
 }
 
-# l_data$MWST <-
-#   tibble(
-#     MWST = 8.1
-#   )
-# saveRDS(l_data, c_file) # Save the updated list to the file
-
 # Einnahmen und Ausgaben einlesen
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
                                Ausgaben = l_data$Ausgaben)
