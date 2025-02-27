@@ -8,16 +8,17 @@ c_file <- paste0(getwd(), "/Input/template.Rds")
 l_templates <- readRDS(c_file)
 l_templates
 
+column_choices <- list(
+  "Lieferant" = l_templates$Lieferanten$Lieferantenname,
+  "Kategorie" = l_templates$Kategorie$Auswahl,
+  "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
+  "Verleiher" = l_templates$Verleiher$Verleihername,
+  "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
+  "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
+)
+
 # Html input choices
 generate_html_inputs <- function(row, row_index) {
-  column_choices <- list(
-    "Lieferant" = l_templates$Lieferanten$Lieferantenname,
-    "Kategorie" = l_templates$Kategorie$Auswahl,
-    "Buchungskonto" = l_templates$Buchhaltungskonten$Buchungskonto,
-    "Verleiher" = l_templates$Verleiher$Verleihername,
-    "Kinoförderer gratis?" = l_templates$JaNein$Auswahl,
-    "Spezialpreis" = l_templates$Spezialpreis$Spezialpreisname
-  )
   l <- list()
   for (ii in names(row)) {
     value <- as.character(row[[ii]])  # Ensure consistent character conversion
@@ -29,10 +30,13 @@ generate_html_inputs <- function(row, row_index) {
         collapse = "\n"
       )
       l[[ii]] <- paste0(
-        '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', options_html, '</select>'
+        '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', "\n", options_html, '</select>'
       )
+      writeLines(l[[ii]])
+      
     } else {
       l[[ii]] <- value
+      writeLines(value)
     }
   }
   return(l)
@@ -158,6 +162,7 @@ server <- function(input, output, session) {
       datatable(
         current_data(),
         editable = table_select(),
+        filter = "top",
         options = list(
           dom = 't',
           ordering = FALSE,
@@ -173,6 +178,7 @@ server <- function(input, output, session) {
         datatable(
           current_data(),
           editable = table_select(),
+          filter = "top",
           options = list(
             dom = 't',
             ordering = FALSE,
@@ -187,14 +193,11 @@ server <- function(input, output, session) {
   # Handle changes to <select> elements
   observeEvent(input$select_change, {
     req(input$select_change)
-    
     # Extract the row and column from the event
     row_index <- input$select_change$row
     col_name <- input$select_change$col
-    
     # Find the column index
     col_index <- which(names(current_data()) == col_name)
-    
     # Update the table
     updated_data <- update_table(row_index, col_index, input$select_change$value)
     current_data(updated_data)
@@ -225,13 +228,11 @@ server <- function(input, output, session) {
   observeEvent(input$duplicate_row, {
     req(input$table_rows_selected) # Ensure a row is selected
     selected_rows <- current_data()[input$table_rows_selected, ]
-    
     # Update "Gültig ab Datum" to the current system date
     if ("Gültig ab Datum" %in% colnames(selected_rows)) {
       selected_rows <- selected_rows |>
         mutate(`Gültig ab Datum` = Sys.Date())
     }
-    
     # Append the duplicated rows to the dataset
     updated_data <- bind_rows(current_data(), selected_rows)
     current_data(updated_data)
