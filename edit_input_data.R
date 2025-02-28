@@ -95,6 +95,8 @@ create_datatable <- function(data, table_edit, table_select) {
     )
 }
 
+
+
 c_offset <- 350
 # Define UI
 ui <- 
@@ -160,14 +162,8 @@ ui <-
     mainPanel(
       br(),
       DTOutput("table"),
-      # actionButton("add_row", "Zeile hinzufügen"),
-      # actionButton("duplicate_row", "Dublizieren der selektierten Zeile(n)"),
-      # actionButton("save", "Speichern",class = "btn-success"),
-      # actionButton("delete_row", "Löschen der selektierenen Zeile(n)", class = "btn-danger")
     )
-
   )
-
 
 
 # Helper function to update a table
@@ -194,22 +190,62 @@ update_table <- function(data,row_index, col_index, value) {
   return(updated_data)
 }
 
-
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
 # app behaivior
 table_edit <- reactiveVal("multiple")
 table_select <- reactiveVal(TRUE)
 # Edited data 
-temp_data <-reactiveVal(NULL)
 startup <- reactiveVal(TRUE)
+lastEdited_data_set <- reactiveVal(NULL)
+lastEdited_data_set_name <- reactiveVal("")
 
+# server logic
 server <- function(input, output, session) {
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
+    if(startup()){ # only run on app start up
       current_data(l_data[[input$dataset]])
+      lastEdited_data_set(l_data[[input$dataset]])
+      lastEdited_data_set_name(input$dataset)
+      startup(FALSE)
+    }else{ # run on changing the data set
+      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ # only ask to save if there is something to save  
+        current_data(l_data[[input$dataset]])
+      } else { # If a change has been made ask the user to save 
+        showModal(modalDialog(
+          title = "Achtung ungespeicherte Änderungen",
+          footer = tagList(
+            modalButton("Abrechen"),
+            actionButton("save_edit","Speichern")
+            )
+        ))
+      }
+    }
   })
   
+  # Save changes and update 
+  observeEvent(input$save_edit, {
+    l_data[[lastEdited_data_set_name()]] <<- current_data() # Update the list
+    saveRDS(l_data, c_file) # Save the updated list to the file
+    l_data <- readRDS(c_file) # update data
+    # update choices
+    list(
+      "Lieferant" = l_data$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data$Kategorie$Auswahl,
+      "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+      "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
+    )|>
+      column_choices()
+    showNotification("Changes saved successfully!", type = "message")
+    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
+    current_data(l_data[[input$dataset]])
+    removeModal()
+  })
+
   # Edit cell values or select rows
   observeEvent(input$table_edit, {
     if (input$table_edit == "Zeilenauswahl") {
@@ -219,7 +255,6 @@ server <- function(input, output, session) {
       table_edit("none")
       table_select(TRUE)
     }
-    temp_data(current_data()) # load current data to temp
   })
   
   # Render the DT table
@@ -267,6 +302,7 @@ server <- function(input, output, session) {
     # Update the table
     updated_data <- update_table(temp_data(),row_index, col_index, input$select_change$value)
     temp_data(updated_data)
+    
   })
   
   # Handle any other cell edits 
@@ -322,7 +358,6 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
-    current_data(temp_data())
     l_data[[input$dataset]] <<- current_data() # Update the list
     saveRDS(l_data, c_file) # Save the updated list to the file
     l_data <- readRDS(c_file) # update data
@@ -337,6 +372,9 @@ server <- function(input, output, session) {
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
+    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
+    current_data(l_data[[input$dataset]])
   })
 }
 
