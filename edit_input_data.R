@@ -95,45 +95,6 @@ ui <- function(){
   fluidPage(
     titlePanel("Dateien editieren"),
     tags$head(
-      tags$head(
-        tags$style(
-          HTML(
-            "
-          header {
-            background-color: #322f3b;
-            color: #f4cccc;
-          }
-          body {
-            background-color: #322f3b;
-            color: #f4cccc;
-          }
-          h1, h2, h3, h4, h5, h6 {
-            color: #f4eacc;
-          }
-          footer {
-            background-color: #322f3b;
-            color: #f4cccc;
-          }
-          a {
-            color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
-            text-decoration: none; /* Optional: Remove the default underline */
-          }
-          a:hover {
-            color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
-          }
-          
-          /*Data table*/
-          table {
-            background-color: #169993;
-          }
-          /*Buttons*/
-          button, input, optgroup, select, textarea {
-            color: #000000;
-          }
-          ")
-        )
-      )
-      ,
       tags$script(HTML("
         $(document).on('change', '.new_input', function() {
           var row = $(this).data('row');
@@ -152,17 +113,21 @@ ui <- function(){
       actionButton("duplicate_row", "Dublizieren der selektierten Zeile(n)"), 
       actionButton("save", "Speichern")
     )
+    
   )
 }
 
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
+# app behaivior
 table_edit <- reactiveVal("multiple")
 table_select <- reactiveVal(TRUE)
+# Edited data 
+l_temp <-reactiveVal(list())
 
-# Helper function to update the table
-update_table <- function(row_index, col_index, value) {
-  updated_data <- current_data()
+# Helper function to update a table
+update_table <- function(data,row_index, col_index, value) {
+  updated_data <- data
   # Get the column types of the current dataset
   c_class <- sapply(updated_data, class)
   # Convert the edited value to the appropriate type
@@ -191,7 +156,7 @@ server <- function(input, output, session) {
     current_data(l_data[[input$dataset]])
   })
   
-  # Edit values or select rows
+  # Edit cell values or select rows
   observeEvent(input$table_edit, {
     if (input$table_edit == "Zeilenauswahl") {
       table_edit("multiple")
@@ -199,6 +164,7 @@ server <- function(input, output, session) {
     } else {
       table_edit("none")
       table_select(TRUE)
+      l_temp(current_data())
     }
   })
   
@@ -236,7 +202,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Handle changes to <select> elements
+  # Handle cell edits with choices to <select> elements
   observeEvent(input$select_change, {
     req(input$select_change)
     # Extract the row and column from the event
@@ -245,19 +211,19 @@ server <- function(input, output, session) {
     # Find the column index
     col_index <- which(names(current_data()) == col_name)
     # Update the table
-    updated_data <- update_table(row_index, col_index, input$select_change$value)
-    current_data(updated_data)
+    updated_data <- update_table(l_temp(),row_index, col_index, input$select_change$value)
+    l_temp(updated_data)
   })
   
-  # Handle cell edits in the data
+  # Handle any other cell edits 
   observeEvent(input$table_cell_edit, {
     info <- input$table_cell_edit
     if(info$value == "") {
       showNotification("Empty cell will not be updated", type = "message")
     }
     else{
-      updated_data <- update_table(info$row, info$col, info$value)
-      current_data(updated_data) 
+      updated_data <- update_table(l_temp(),info$row, info$col, info$value)
+      l_temp(updated_data) 
     }
   })
   
@@ -279,7 +245,7 @@ server <- function(input, output, session) {
       )
     ))
   })
-  
+  # Confirm delete
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
     updated_data <- current_data()[-input$table_rows_selected, ]
@@ -303,9 +269,11 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
+    current_data(l_temp())
     l_data[[input$dataset]] <<- current_data() # Update the list
     saveRDS(l_data, c_file) # Save the updated list to the file
-    l_data <- readRDS(c_file)
+    l_data <- readRDS(c_file) # update data
+    # update choices
     list(
       "Lieferant" = l_data$Lieferanten$Lieferantenname,
       "Kategorie" = l_data$Kategorie$Auswahl,
