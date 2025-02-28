@@ -1,7 +1,6 @@
 library(shiny)
 library(DT)
 library(tidyverse)
-library(shinysky)
 
 # Load the data
 c_file <- "Input/Data.Rds"
@@ -72,7 +71,7 @@ create_datatable <- function(data, table_edit, table_select) {
   for (ii in 1:length(numeric_col)) {
     if(numeric_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.numeric()
   }
-
+  
   # create the datatable 
   temp |>
     datatable(
@@ -99,7 +98,7 @@ ui <- function(){
       tags$head(
         tags$style(
           HTML(
-          "
+            "
           header {
             background-color: #322f3b;
             color: #f4cccc;
