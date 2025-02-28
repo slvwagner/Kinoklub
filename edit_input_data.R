@@ -14,6 +14,11 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
+# 
+# temp <- readRDS("Input/template.Rds")
+# temp$Einnahmen
+# 
+# l_data$Einnahmen
 
 column_choices <- reactiveVal(list(
   "Lieferant" = l_data$Lieferanten$Lieferantenname,
@@ -90,10 +95,13 @@ create_datatable <- function(data, table_edit, table_select) {
     )
 }
 
+c_offset <- 350
 # Define UI
-ui <- function(){
+ui <- 
   fluidPage(
-    titlePanel("Dateien editieren"),
+    shiny::headerPanel("Input Kinoklub"),
+    # Ensure jQuery UI is available
+    includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$head(
       tags$script(HTML("
         $(document).on('change', '.new_input', function() {
@@ -102,20 +110,63 @@ ui <- function(){
           var value = $(this).val();
           Shiny.setInputValue('select_change', {row: row, col: col, value: value}, {priority: 'event'});
         });
-      "))
-    ),
-    mainPanel(
-      selectInput("dataset", "Wähle ein Datensatz zum Editieren", choices = names(l_data)),
+      ")),
+      tags$style(HTML("
+        #floating-panel {
+          position: fixed;
+          top: 50px;
+          right: 20px;
+          width: 250px;
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 10px;
+          box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+          z-index: 1000;
+        }
+        #floating-panel-header {
+          background: #f7f7f7;
+          padding: 5px;
+          cursor: grab;
+          border-bottom: 1px solid #ddd;
+          text-align: center;
+          font-weight: bold;
+        }
+      ")),
+          # Floating panel
+    tags$div(
+      id = "floating-panel",
+      tags$div(id = "floating-panel-header", "Werkzeuge"),
+      selectInput("dataset", "\nWähle ein Datensatz zum Editieren", choices = names(l_data)),
+      shiny::tags$hr(),
       shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
-      DTOutput("table"),
+      shiny::tags$hr(),
       actionButton("add_row", "Zeile hinzufügen"),
-      actionButton("delete_row", "Löschen der selektierenen Zeile(n)"),
-      actionButton("duplicate_row", "Dublizieren der selektierten Zeile(n)"), 
-      actionButton("save", "Speichern")
-    )
+      actionButton("duplicate_row", "Dublizieren"),
+      shiny::tags$hr(),
+      actionButton("save", "Speichern",class = "btn-success"),
+      actionButton("delete_row", "Löschen", class = "btn-danger")
+    ),
     
+    # JavaScript to make the floating panel draggable
+    tags$script(HTML("
+      $(function() {
+        $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+      });
+    ")),
+      
+    ),
+
+    mainPanel(
+      br(),
+      DTOutput("table"),
+      # actionButton("add_row", "Zeile hinzufügen"),
+      # actionButton("duplicate_row", "Dublizieren der selektierten Zeile(n)"),
+      # actionButton("save", "Speichern",class = "btn-success"),
+      # actionButton("delete_row", "Löschen der selektierenen Zeile(n)", class = "btn-danger")
+    )
+
   )
-}
 
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
@@ -234,18 +285,17 @@ server <- function(input, output, session) {
     current_data(updated_data)
   })
   
-  # Delete selected row(s)
+  # User interaction Delete selected row(s) 
   observeEvent(input$delete_row, {
     showModal(modalDialog(
-      title = "Confirm Deletion",
-      "Are you sure you want to delete the selected row(s)?",
+      title = "Möchten sie die selektierten Zeile(n) löschen?",
       footer = tagList(
-        modalButton("Cancel"),
-        actionButton("confirm_delete", "Delete")
+        modalButton("Abbrechen"),
+        actionButton("confirm_delete", "Löschen")
       )
     ))
   })
-  # Confirm delete
+  # Delete selected rows 
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
     updated_data <- current_data()[-input$table_rows_selected, ]
@@ -286,7 +336,6 @@ server <- function(input, output, session) {
     showNotification("Changes saved successfully!", type = "message")
   })
 }
-
 
 # Run the app
 shiny::runApp(
