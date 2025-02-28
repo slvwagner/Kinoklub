@@ -125,7 +125,7 @@ ui <-
           z-index: 1000;
         }
         #floating-panel-header {
-          background: #f7f7f7;
+          background: #88e3a0;
           padding: 5px;
           cursor: grab;
           border-bottom: 1px solid #ddd;
@@ -137,12 +137,12 @@ ui <-
     tags$div(
       id = "floating-panel",
       tags$div(id = "floating-panel-header", "Werkzeuge"),
-      selectInput("dataset", "\nWähle ein Datensatz zum Editieren", choices = names(l_data)),
+      selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data)),
       shiny::tags$hr(),
       shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
       shiny::tags$hr(),
-      actionButton("add_row", "Zeile hinzufügen"),
-      actionButton("duplicate_row", "Dublizieren"),
+      actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
+      actionButton("duplicate_row", "Dublizieren", class = "btn-info"),
       shiny::tags$hr(),
       actionButton("save", "Speichern",class = "btn-success"),
       actionButton("delete_row", "Löschen", class = "btn-danger")
@@ -168,13 +168,7 @@ ui <-
 
   )
 
-# Reactive value to store the current dataset
-current_data <- reactiveVal(tibble())
-# app behaivior
-table_edit <- reactiveVal("multiple")
-table_select <- reactiveVal(TRUE)
-# Edited data 
-l_temp <-reactiveVal(list())
+
 
 # Helper function to update a table
 update_table <- function(data,row_index, col_index, value) {
@@ -200,11 +194,20 @@ update_table <- function(data,row_index, col_index, value) {
   return(updated_data)
 }
 
-# Define server logic
+
+# Reactive value to store the current dataset
+current_data <- reactiveVal(tibble())
+# app behaivior
+table_edit <- reactiveVal("multiple")
+table_select <- reactiveVal(TRUE)
+# Edited data 
+temp_data <-reactiveVal(NULL)
+startup <- reactiveVal(TRUE)
+
 server <- function(input, output, session) {
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
-    current_data(l_data[[input$dataset]])
+      current_data(l_data[[input$dataset]])
   })
   
   # Edit cell values or select rows
@@ -215,8 +218,8 @@ server <- function(input, output, session) {
     } else {
       table_edit("none")
       table_select(TRUE)
-      l_temp(current_data())
     }
+    temp_data(current_data()) # load current data to temp
   })
   
   # Render the DT table
@@ -262,8 +265,8 @@ server <- function(input, output, session) {
     # Find the column index
     col_index <- which(names(current_data()) == col_name)
     # Update the table
-    updated_data <- update_table(l_temp(),row_index, col_index, input$select_change$value)
-    l_temp(updated_data)
+    updated_data <- update_table(temp_data(),row_index, col_index, input$select_change$value)
+    temp_data(updated_data)
   })
   
   # Handle any other cell edits 
@@ -273,8 +276,8 @@ server <- function(input, output, session) {
       showNotification("Empty cell will not be updated", type = "message")
     }
     else{
-      updated_data <- update_table(l_temp(),info$row, info$col, info$value)
-      l_temp(updated_data) 
+      updated_data <- update_table(temp_data(),info$row, info$col, info$value)
+      temp_data(updated_data) 
     }
   })
   
@@ -319,7 +322,7 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
-    current_data(l_temp())
+    current_data(temp_data())
     l_data[[input$dataset]] <<- current_data() # Update the list
     saveRDS(l_data, c_file) # Save the updated list to the file
     l_data <- readRDS(c_file) # update data
