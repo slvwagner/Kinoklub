@@ -95,8 +95,29 @@ create_datatable <- function(data, table_edit, table_select) {
     )
 }
 
-
-
+# Helper function to update a table
+update_table <- function(data,row_index, col_index, value) {
+  updated_data <- data
+  # Get the column types of the current dataset
+  c_class <- sapply(updated_data, class)
+  # Convert the edited value to the appropriate type
+  updated_value <- switch(
+    c_class[col_index],
+    "numeric" = as.numeric(value),
+    "integer" = as.integer(value),
+    "Date" = as.Date(value),
+    "character" = as.character(value),
+    value # Default: keep as it is
+  )
+  # Handle conversion errors
+  if (is.na(updated_value)) {
+    showNotification("Invalid input: Value could not be converted to the required type.", type = "error")
+    return()
+  }
+  # Update the dataset
+  updated_data[row_index, col_index] <- updated_value
+  return(updated_data)
+}
 
 # Define UI
 ui <- 
@@ -164,31 +185,6 @@ ui <-
       DTOutput("table"),
     )
   )
-
-
-# Helper function to update a table
-update_table <- function(data,row_index, col_index, value) {
-  updated_data <- data
-  # Get the column types of the current dataset
-  c_class <- sapply(updated_data, class)
-  # Convert the edited value to the appropriate type
-  updated_value <- switch(
-    c_class[col_index],
-    "numeric" = as.numeric(value),
-    "integer" = as.integer(value),
-    "Date" = as.Date(value),
-    "character" = as.character(value),
-    value # Default: keep as it is
-  )
-  # Handle conversion errors
-  if (is.na(updated_value)) {
-    showNotification("Invalid input: Value could not be converted to the required type.", type = "error")
-    return()
-  }
-  # Update the dataset
-  updated_data[row_index, col_index] <- updated_value
-  return(updated_data)
-}
 
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
