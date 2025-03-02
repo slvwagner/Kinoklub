@@ -168,7 +168,7 @@ Die Input Datei **Verleiherabgaben** wird genutzt um die Abgaben an den Verleihe
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
-#### Ausgaben
+#### Einnahmen
 
 Alle Ausgaben müssen in der Datei **Ausgaben** definiert werden. Ja nach **Ausgabentyp** muss eine **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
