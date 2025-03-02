@@ -1095,10 +1095,10 @@ server <- function(input, output, session) {
   
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
+    # Execution time 
+    c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
-      # Execution time 
-      c_time <- Sys.time()
       ausgabe_text("Dateien wurden eingelesen.\n")
       calculate_warnings("")
 
@@ -1262,9 +1262,9 @@ server <- function(input, output, session) {
   
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
+    # Execution time 
+    c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
-      # Execution time 
-      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       paste0("Bericht: Jahresrechnung erstellt",
@@ -1317,9 +1317,9 @@ server <- function(input, output, session) {
   
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
+    # Execution time 
+    c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
-      # Execution time 
-      c_time <- Sys.time()
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       paste0(
         "Filmumfrage, Wordpress daten auswertung ausgeführt.",
@@ -1357,10 +1357,10 @@ server <- function(input, output, session) {
   
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
+    # Execution time 
+    c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
-      # Execution time 
-      c_time <- Sys.time()
       # User interaction
       "Alles wurde neu erstellt" |>
         ausgabe_text()
@@ -1761,7 +1761,7 @@ server <- function(input, output, session) {
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       shiny::actionButton("launch_app", "Input Daten editieren"),
-      shiny::actionButton("stop_app", "Daten Editieren stoppen"),
+      shiny::actionButton("stop_app", "Input Daten editieren stoppen"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
@@ -1787,29 +1787,56 @@ server <- function(input, output, session) {
   
   # launch the Dateien editieren App
   observeEvent(input$launch_app, {
-    # Path to edit input data app
-    second_app_path <- "edit_input_data.R"
-    # If a process already exists, don't start a new one
-    if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
-      showNotification("Dateinen editiern ist bereis geöffnet\n", type = "message")
-      return()
-    }else{
-      print("Starting second app...")
-      proc <- processx::process$new("Rscript", 
-                                    args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
-                                    stdout = "|", stderr = "|"
-      )
-      second_app_process(proc)  # Store the process
-    }
+    # Execution time 
+    c_time <- Sys.time()
+    ausgabe_text("Input Dateien editieren gestartet.")
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      # Path to edit input data app
+      second_app_path <- "edit_input_data.R"
+      # If a process already exists, don't start a new one
+      if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
+        showNotification("Dateinen editiern ist bereis geöffnet\n", type = "message")
+        return()
+      }else{
+        print("Starting second app...")
+        proc <- processx::process$new("Rscript", 
+                                      args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
+                                      stdout = "|", stderr = "|"
+        )
+        shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+        second_app_process(proc)  # Store the process
+        # calculate execution time
+        c_time <- c(c_time,end = Sys.time())|>
+          diff()
+        shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+        
+        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+          ausgabe_text()
+      }
+    })
   })
   
-  # stop Dateien editiern app
+  # stop input data edit app
   observeEvent(input$stop_app, {
-    if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
-      print("Stopping second app...")
-      second_app_process()$kill()
-      second_app_process(NULL)  # Clear the reference
-    }
+    # Execution time 
+    c_time <- Sys.time()
+    ausgabe_text("Input Dateien editieren stoppen")
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
+        print("Stopping second app...")
+        second_app_process()$kill()
+        second_app_process(NULL)  # Clear the reference
+      }
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+      
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+    })
   }) 
 }
 
