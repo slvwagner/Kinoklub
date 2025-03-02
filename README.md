@@ -130,57 +130,91 @@ Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Inpu
 
 ### Input Dateien
 
-Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
+Alle Input Dateien können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung muss gespeichert und die Daten im Gui "Daten einlesen" neu eingelesen werden. 
 
 #### Einkaufspreise
-
-Die Einkaufspreise die ab einem bestimmten Datum gültig sind. "Einkauf Kiosk xx.xx.xx.xlsx"\
-Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein neues File mit neuerem gültigkeis Datum erstellt werden.\
+In der Datei **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
+Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
 
 -   Achtung!\
     Die alten Dateien dürfen nicht gelöscht werden.
 
 #### Spezialpreise Kiosk
 
-In der Datei **Spezialpreisekiosk.xlsx** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
+In der Datei **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
--   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
-
-Diese Datei wird benötigt um die Spezialpreise
+-   Für jeden gezeigten Film muss eine Suisanummer definiert sein.
+\
+Datum und Suisanummer sind nötig um die Zuweisung der "Spezialartikel"
 
 -   Spez 1
 -   Spez 2
 -   Spez 3
 -   Spez 4
 
-nach zuschlagen.
+vorzunehmen.
 
 #### Verleiherabgaben
 
-Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
+Die Input Datei **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu berechnen.\
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
--   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Die Verteilung wird prozentual auf den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt .
+-   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf beiden Daten zu verteilen. Die Verteilung wird prozentual zu den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt .
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
-#### Einnahmen und Ausgaben
+#### Ausgaben
 
-Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
-Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.
+Alle Ausgaben müssen in der Datei **Ausgaben** definiert werden. Ja nach **Ausgabentyp** muss eine **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
--   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
--   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.\
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
 -   Kurze Erklärung der **Spaltennamen**
     -   **Kategorie**\
         Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
         -   Event\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. 
+        -   Kiosk\
+            Ausgaben für den Einkauf des Kino-Kiosks
+        -   Personalaufwand\
+            Ausgaben für Gehaltszahlung and Mitarbeiter
+        -   Sonstiges\
+            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
+        -   Verleiher\
+            Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
+        -   Vermietung\
+            Einnahmen 
+        -   Werbung\
+            Werbeeinnahmen z.B. Kinoweischer
+    -   **Bezeichnung**\
+        Umschreibung der Buchung
+    -   **Datum**\
+        Für die Event und Verleiher wird das Datum und die Suisanummer verwendet um die zuweisung auf die betreffende Filmvorführung vorzunehmen benötigt.
+    -   **Suisanummer** \
+        Für die Event und Verleiher wird das Datum und die Suisanummer verwendet um die zuweisung auf die betreffende Filmvorführung vorzunehmen benötigt.
+    -   **Betrag**\
+        Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
+    -   **Firmenname**\
+        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss.
+    -   **Adresse** Rechnungsteller
+    -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
+    -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung 
+-   In der Datei **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+
+
+#### Ausgaben
+
+Alle Ausgaben müssen in der Datei **Ausgaben** definiert werden.\
+Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. In der Datei **Ausgaben** werden alle Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
+    
+-   Kurze Erklärung der **Spaltennamen**
+    -   **Kategorie**\
+        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+        -   Event\
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden. 
         -   Kiosk\
             Ausgaben für den Einkauf des Kino-Kiosks
         -   Personalaufwand\
@@ -192,24 +226,26 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
         -   Vermietung\
             Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
         -   Werbung\
-            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können
+            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
     -   **Spieldatum**\
-        Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben/Einnahmen die sich nicht auf ein spezifisches Datum beziehen, kann dieses Feld leer gelassen werden. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
-    -   **Suisanummer**   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+        Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben die sich nicht auf ein spezifisches Datum respektive Suisanummer beziehen, kann dieses Feld leer gelassen werden. 
+    -   **Suisanummer** \
+        Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
     -   **Bezeichnung**\
         Umschreibung der Buchung
     -   **Datum**\
-        Datum der Rechnung/Buchung. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
+        Datum der Rechnung/Buchung. 
     -   **Betrag**\
         Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
     -   **Firmenname**\
-        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss.
+        Name der rechnugsstellenden Firma oder bei Spesen der Name an welchen die Spesen ausbezahlt werden müssen.
     -   **Adresse** Rechnungsteller
     -   **Referenz** Referenznummer der Rechnung
     -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
-    -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
--   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+    -   **Buchungskonto** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
+-   In der Datei **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+
 
 #### WordPress Filmvorschläge auswerten
 
