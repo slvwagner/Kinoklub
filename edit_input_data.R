@@ -97,7 +97,7 @@ create_datatable <- function(data, table_edit, table_select) {
 
 
 
-c_offset <- 350
+
 # Define UI
 ui <- 
   fluidPage(
@@ -210,9 +210,13 @@ server <- function(input, output, session) {
       lastEdited_data_set_name(input$dataset)
       startup(FALSE)
     }else{ # run on changing the data set
-      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ # only ask to save if there is something to save  
+      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
+        # only ask to save if there is something to save  
         current_data(l_data[[input$dataset]])
-      } else { # If a change has been made ask the user to save 
+        lastEdited_data_set(l_data[[input$dataset]])
+        return()
+      } else { 
+        # If a change has been made ask the user to save 
         showModal(modalDialog(
           title = "Achtung ungespeicherte Änderungen",
           footer = tagList(
