@@ -109,11 +109,6 @@ update_table <- function(data,row_index, col_index, value) {
     "character" = as.character(value),
     value # Default: keep as it is
   )
-  # Handle conversion errors
-  if (is.na(updated_value)) {
-    showNotification("Invalid input: Value could not be converted to the required type.", type = "error")
-    return()
-  }
   # Update the dataset
   updated_data[row_index, col_index] <- updated_value
   return(updated_data)
@@ -317,7 +312,9 @@ server <- function(input, output, session) {
   observeEvent(input$table_cell_edit, {
     info <- input$table_cell_edit
     if(info$value == "") {
-      showNotification("Empty cell will not be updated", type = "message")
+      # showNotification("Empty cell will not be updated", type = "message")
+      updated_data <- update_table(current_data(),info$row, info$col, NA)
+      current_data(updated_data)
     }
     else{
       updated_data <- update_table(current_data(),info$row, info$col, info$value)
