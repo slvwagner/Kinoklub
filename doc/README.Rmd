@@ -235,7 +235,7 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 
 #### Archiv
 
-Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. Die Datei ist muss so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
+Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. Die Datei muss so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
 
 ## Benutzereinstellungen
 
