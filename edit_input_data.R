@@ -210,6 +210,9 @@ server <- function(input, output, session) {
       lastEdited_data_set_name(input$dataset)
       startup(FALSE)
     }else{ # run on changing the data set
+      lastEdited_data_set()|>print()
+      current_data()|>print()
+      lastEdited_data_set_name()|>print()
       if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
         # only ask to save if there is something to save  
         current_data(l_data[[input$dataset]])
@@ -218,16 +221,24 @@ server <- function(input, output, session) {
       } else { 
         # If a change has been made ask the user to save 
         showModal(modalDialog(
-          title = "Achtung ungespeicherte Änderungen",
+          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
           footer = tagList(
-            modalButton("Abrechen"),
+            actionButton("abort_save","Abrechen"),
             actionButton("save_edit","Speichern")
             )
         ))
       }
     }
   })
-  
+
+  # Abort changes and update 
+  observeEvent(input$abort_save, {
+    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
+    current_data(l_data[[input$dataset]])
+    removeModal()
+  })
+    
   # Save changes and update 
   observeEvent(input$save_edit, {
     l_data[[lastEdited_data_set_name()]] <<- current_data() # Update the list
@@ -304,9 +315,8 @@ server <- function(input, output, session) {
     # Find the column index
     col_index <- which(names(current_data()) == col_name)
     # Update the table
-    updated_data <- update_table(temp_data(),row_index, col_index, input$select_change$value)
-    temp_data(updated_data)
-    
+    updated_data <- update_table(current_data(),row_index, col_index, input$select_change$value)
+    current_data(updated_data)
   })
   
   # Handle any other cell edits 
@@ -316,8 +326,8 @@ server <- function(input, output, session) {
       showNotification("Empty cell will not be updated", type = "message")
     }
     else{
-      updated_data <- update_table(temp_data(),info$row, info$col, info$value)
-      temp_data(updated_data) 
+      updated_data <- update_table(current_data(),info$row, info$col, info$value)
+      current_data(updated_data) 
     }
   })
   
