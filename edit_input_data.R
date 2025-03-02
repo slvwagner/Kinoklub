@@ -206,13 +206,11 @@ server <- function(input, output, session) {
       lastEdited_data_set_name(input$dataset)
       startup(FALSE)
     }else{ # run on changing the data set
-      lastEdited_data_set()|>print()
-      current_data()|>print()
-      lastEdited_data_set_name()|>print()
       if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
         # only ask to save if there is something to save  
         current_data(l_data[[input$dataset]])
         lastEdited_data_set(l_data[[input$dataset]])
+        lastEdited_data_set_name(input$dataset)
         return()
       } else { 
         # If a change has been made ask the user to save 
