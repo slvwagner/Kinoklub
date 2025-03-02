@@ -14,7 +14,7 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 
 Dokumentation wurde am `r act_date` erstellt.
 
-## Kinoklub 
+## Kinoklub
 
 Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
@@ -24,9 +24,8 @@ source("GUI.R")
 ```
 
 \
-Bei Fehlern kann ein "Issue" in Github erfasst werden. \
-<https://github.com/slvwagner/Kinoklub/issues>
-\
+Bei Fehlern kann ein "Issue" in Github erfasst werden.\
+<https://github.com/slvwagner/Kinoklub/issues>\
 Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
 
 ```         
@@ -35,16 +34,13 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-
-
 ## Installation
 
 1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
 2.  Download and install Rstudio\
     <https://posit.co/download/rstudio-desktop/>
-3.  Download git:\
-    <https://git-scm.com/downloads>
+3.  Download [git:\\](git:\){.uri} <https://git-scm.com/downloads>
 4.  Kionklub Scripts download: Navigate to folder you would like to install the Scripts
 
 ```         
@@ -72,73 +68,81 @@ if (any(installed_packages == FALSE)) {
 ```
 
 ## Run the Appliction
-Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:8080/>  
+
+Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:8080/>
 
 ```         
     source("GUI.R")
 ```
 
 ## Git Passwort / Personal Access Token (PAT)
-Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen. \
+
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
 ## Datensätze
+
 ### Upload von neuen Dateine
-Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden. \
-Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert. 
+
+Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
+Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert.
 
 -   "xlsx" Dateien werden im Verzeichniss ".../Kinoklub/Input/" gespeichert.
 -   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
-### Advance-Tickets 
+### Input Advance-Tickets
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** abzuspeichern.
 
 #### Eintritte
-**Eintritte Suisanummer Datum.txt**  \
-Copy paste von html für jede Vorführung und Suisanummer:  Bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
-![Eintritt](doc/picts/eintritt.png) \
+
+**Eintritte Suisanummer Datum.txt**\
+Copy paste von html für jede Vorführung und Suisanummer: Bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
 #### Kiosk
-**Kiosk Suisanummer Datum.txt**  \
+
+**Kiosk Suisanummer Datum.txt**\
 Copy paste von html für jede Vorführung und Suisanummer: Bitte speichern unter "input/advance tickets/Kiosk xxxx.xxx xx.xx.xx.txt". oder über GUI hochladen\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
-![Kiosk](doc/picts/Kiosk.png) \
+![Kiosk](doc/picts/Kiosk.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt") oder über GUI hochladen.
 
 #### Shows
-**Shows.txt**  \
+
+**Shows.txt**\
 Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "Input/advance tickets/Shows.txt"\
 Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
 Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
 ![Shows](doc/picts/shows.png)
 
 #### Gutscheine und Abos
+
 ##### Abos
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt** \
+Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt**\
 ![Shows](doc/picts/atelierkino_abo.png)
 
 ##### Förderer
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt** \
+Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt**\
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
 ##### Gutschein
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt** \
+Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
-### Filmvorschläge aus WordPress
-Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. 
-
-### Excel Dateien
+### Input Dateien
 
 Im Verzeichniss **.../Kinoklub/input/** kann mit Hilfe von Excelfiles folgendes definiert werden:
 
@@ -172,7 +176,7 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
--   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Die Verteilung wird prozentual auf den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt . 
+-   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Die Verteilung wird prozentual auf den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt .
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
@@ -181,63 +185,67 @@ Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.
 #### Einnahmen und Ausgaben
 
 Alle Einnahmen und Ausgaben müssen in der Datei **.../Kinoklub/input/Einnahmen und Ausgaben.xlsx** definiert werden.\
-Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den  **Berichten** auszuwerten. 
+Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.
 
--   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
--   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.  \
-    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden. 
+-   Im Excel-Arbeitsblatt **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
+-   Im Excel-Arbeitsblatt **Ausgaben** werden die Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können.\
+    Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
 -   Kurze Erklärung der **Spaltennamen**
-    -   **Kategorie** \
+    -   **Kategorie**\
         Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   Event \
+        -   Event\
             Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. Als **Einnahmen** Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen oder Ausgaben müssen sich auf eine spezifische Filmvorführung beziehen. WICHTIG: Die Einnahmen dürfen nicht gleichzeitg auch mit dem Advace Tichekt System verbucht werden.
-        -   Kiosk \
+        -   Kiosk\
             Ausgaben für den Einkauf des Kino-Kiosks
-        -   Personalaufwand \
+        -   Personalaufwand\
             Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Sonstiges \
-            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können. 
-        -   Verleiher \
+        -   Sonstiges\
+            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
+        -   Verleiher\
             Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
-        -   Vermietung \
+        -   Vermietung\
             Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
-        -   Werbung \
-            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können 
-    -   **Spieldatum** \
+        -   Werbung\
+            Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können
+    -   **Spieldatum**\
         Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben/Einnahmen die sich nicht auf ein spezifisches Datum beziehen, kann dieses Feld leer gelassen werden. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
-    -   **Suisanummer** \ 
-        Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
-    -   **Bezeichnung** \
+    -   **Suisanummer**   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+    -   **Bezeichnung**\
         Umschreibung der Buchung
-    -   **Datum** \
+    -   **Datum**\
         Datum der Rechnung/Buchung. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
-    -   **Betrag** \
+    -   **Betrag**\
         Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
-    -  **Firmenname** \
-        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss. 
+    -   **Firmenname**\
+        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss.
     -   **Adresse** Rechnungsteller
     -   **Referenz** Referenznummer der Rechnung
     -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
     -   **Buchungskonto Name** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
--   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert. 
+-   Im Excel-Arbeitsblatt **dropdown** sind die möglichen Kategorien (Buchhaltungskonten) definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 #### WordPress Filmvorschläge auswerten
-Auf der Kinoklub.ch Hompage können alle erfassten Filmvorschläge exportiert werden und als .csv Datei im Ordner **.../input/WordPress/** abgespeichert werden. Die Daten wird bereinigt und als Excel ausgegeben.
-```
+
+Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
+
+```         
 .../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
+#### Archiv
+
+Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. Die Datei ist muss so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
+
 ## Benutzereinstellungen
 
-Die Datei **"user_settings.R"** enthält die Benutzereinstellungen. 
+Die Datei **"user_settings.R"** enthält die Benutzereinstellungen.
 
 ### Sommerpause
-Wiel lange dauer die Sommerpause? \
 
-sommerpause \<- 65 # Tage
+Wiel lange dauer die Sommerpause?\
 
+sommerpause \<- 65 \# Tage
 
 ### Inhaltsverzeichnisse
 
@@ -256,8 +264,7 @@ c_MWST \<- 8.1 #%
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".\
 Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
-`df_P_kat_verechnen` \<- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkarte"), 
-                             Verkaufspreis =  c(13,13)).
+`df_P_kat_verechnen` \<- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkarte"), Verkaufspreis = c(13,13)).
 
 ### Ausgabeformate
 
@@ -268,8 +275,6 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 -   `c_render_option` \<- "5" html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 -   `c_render_option` \<- "6" docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 -   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-
-
 
 ## Berichte
 
@@ -288,29 +293,33 @@ Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
 -   Filmvorführung
     -   Kino Besucherzahlen und Umsatz
         -   Filmabgaben
+
         -   Verleiherrechnung\
             In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
             wird die Kategorie **Verleiher** berücksichtigt.
+
         -   Prozentualle Abgaben\
-            Der Suisaabzug wird vom Umsatz berechnet. \
-            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert. \
-            
-              -   Fall 1: \
-                      $(N_{etto3} \cdot \frac {A_{bzug}}{100}) > M_{inimalAbzug}$ \
-                      Verleiherabzug:  $N_{etto3}\cdot \frac{A_{bzug}}{100}$
-              -   Fall 2: \
-                      $(N_{etto3} \cdot \frac {A_{bzug}}{100}) < M_{inimalAbzug}$ \
-                      Verleiherabzug: $M_{inimalAbzug}$
-              -   Fall 3: \
-                      "Abzug fix [CHF]" \
-                      Verleiherabzug: $A_{bzugFix}$
-                      
-        -   Reklamematerial und Porto \
+            Der Suisaabzug wird vom Umsatz berechnet.\
+            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert.\
+
+            -   Fall 1:\
+                $(N_{etto3} \cdot \frac {A_{bzug}}{100}) > M_{inimalAbzug}$\
+                Verleiherabzug: $N_{etto3}\cdot \frac{A_{bzug}}{100}$
+            -   Fall 2:\
+                $(N_{etto3} \cdot \frac {A_{bzug}}{100}) < M_{inimalAbzug}$\
+                Verleiherabzug: $M_{inimalAbzug}$
+            -   Fall 3:\
+                "Abzug fix [CHF]"\
+                Verleiherabzug: $A_{bzugFix}$
+
+        -   Reklamematerial und Porto\
             Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
-        -   MWST auf Verleiherrechnung \
-            -   Fall 1: \
+
+        -   MWST auf Verleiherrechnung\
+
+            -   Fall 1:\
                 Vereiherrechnung vorhanden: MWST wird mit der Verleiherrechnung berechnet.
-            -   Fall 2: \
+            -   Fall 2:\
                 Vereiherrechnung nicht vorhanden: MWST wird aus dem Umsatz berechnet.
     -   Gewinn / Verlust aus Tickerverkauf\
         Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
@@ -338,57 +347,55 @@ Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
 -   Gewinn / Verlust\
     Summe aus Einnahmen und Ausgaben
 
-#### Berechnung der prozentuallen Abgaben 
+#### Berechnung der prozentuallen Abgaben
 
-- Verleiherrechnung noch nicht vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Netto3: \
-    $U_{msatz}-S_{uisa-Vorabzug}$
-    -   Verleiherabgaben: \
-    $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$ \
-    $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
-    -   Mehrwertsteuer: \
-    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
-    
-- Verleiherrechnung vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Verleiherrechnung: \
-    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
-    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
+-   Verleiherrechnung noch nicht vorhanden
+    -   Umsatz:\
+        Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug:\
+        $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Netto3:\
+        $U_{msatz}-S_{uisa-Vorabzug}$
+    -   Verleiherabgaben:\
+        $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$\
+        $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
+    -   Mehrwertsteuer:\
+        $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust:\
+        $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$
+-   Verleiherrechnung vorhanden
+    -   Umsatz:\
+        Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug:\
+        $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung:\
+        Verleiherrechnungsbetrag inklusive Mehrwertsteuer\
+        $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust:\
+        $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
 #### Berechnung der Fixen Abgaben
 
-- Verleiherrechnung noch nicht vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Verleiherabgaben \
-    -   Mehrwertsteuer: \
-    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
-    
-- Verleiherrechnung vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Verleiherrechnung: \
-    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
-    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
+-   Verleiherrechnung noch nicht vorhanden
+    -   Umsatz:\
+        Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug:\
+        $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherabgaben\
+    -   Mehrwertsteuer:\
+        $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust:\
+        $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$
+-   Verleiherrechnung vorhanden
+    -   Umsatz:\
+        Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug:\
+        $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung:\
+        Verleiherrechnungsbetrag inklusive Mehrwertsteuer\
+        $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust:\
+        $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
 ### Jahresabrechnungen
 
@@ -403,12 +410,12 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             -   Nebenkosten
             -   MWST auf Verleiherleistungen
 -   Event
-    -   Eventeinnahmen \
+    -   Eventeinnahmen\
         Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
     -   Eventausgaben\
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk
-    -   Einnahmen \
+    -   Einnahmen\
         Die Einnahmen werden mit $A_{nzahl} \cdot V_{erkaufspeis für Verkaufsartikel}$ berechnet.
     -   Ausgaben
         -   Einkauf Getränke\
@@ -418,105 +425,105 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Einkauf Kino\
             Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei ".../Kinoklub/input/**Einnahmen und Ausgaben.xlsx**" mit Kategorie **Kiosk** definiert.
 -   Abos / Kinogutscheine
-    - Einnahmen
-        - Abos
-        - Kinogutscheine
-        - Summe
-    - Eingelöst
-        - Abos
-        - Kinogutscheine
-    - Kurzfristiges zinsloses Fremd-Kapital
+    -   Einnahmen
+        -   Abos
+        -   Kinogutscheine
+        -   Summe
+    -   Eingelöst
+        -   Abos
+        -   Kinogutscheine
+    -   Kurzfristiges zinsloses Fremd-Kapital
 -   Vermietung
-    -   Einnahmen \
+    -   Einnahmen\
         Vermietung Kinosaal, Beiträge von mit Veranstallter, ...
-    -   Ausgaben \
+    -   Ausgaben\
         Mietkosten für Filme und Material, ...
 -   Werbung
-    -   Einnahmen \
+    -   Einnahmen\
         Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für Sponsoren, ...
-    -   Ausgaben \
+    -   Ausgaben\
         Inserate, Drucksachen, Homepage, ...
--   Personalaufwand \
+-   Personalaufwand\
     Löhne
 -   Sonstiges
-    -   Einnahmen \
+    -   Einnahmen\
         Sponsoen, Gönner, Kulturbeiträge, ...
-    -   Ausgaben \
+    -   Ausgaben\
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
-
-
 
 ### Statistik
 
 -   Gewinn/Verlust
-    -   Prognose \
+    -   Prognose\
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Ticketverkauf
-    -   Prognose \
+    -   Prognose\
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Eintritte
-        -   Anzahl \
+        -   Anzahl\
             Diagramm
         -   Umsatz
-            -   Prognose \
+            -   Prognose\
                 Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Filmabgaben
-        -   Prognose \
+        -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Abos
     -   Einnahmen
     -   Eingelöst
     -   Kredit
 -   Kiosk-Gewinn pro Vorführung
-    -   Prognose \
+    -   Prognose\
         Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 -   Kiosk
     -   Verkaufsartikel
     -   Ladenhüter (keine Verkäufe)
     -   Kiosk Umsatz pro Gast
-        -   Prognose \
+        -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
     -   Umsatz pro zahlender Gast
-        -   Prognose \
+        -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ### Daten als Excel-Datei
-Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert. \
-```
+
+Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
+
+```         
 .../Kinoklub/output/data/Auswertung.xlsx
 ```
+
 zusätzlich werden alle Fimvorschläge als Excel ausgegeben
-```
+
+```         
 .../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
 ## Versionshistorie
 
-2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner  \
-2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt    \
-2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet  \
-2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen   \
-2024 V1.4 Jahresbarechnung detailed entfernt  \
-2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"  \
-2024 V1.6 Statistik: Wochentaganalyse  \
-2024 V1.7 Statistik ohne Datatable gelöscht  \
-2024 V1.8 Dokumentations update   \
-2024 V1.9 Filmvorschläge from Wordpress   \
-2024 V1.10 PowerBi script  \
-2024 V1.11 WordPress Filmvorschläge auswerten  \
-2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)  \
-2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"  \
-2024 V1.14 GUI Graphical user interface   \
-2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden   \
-2024 V1.16 Introduction of envirnonments to run GUI  \
-2025 V1.17 Data type for excel files are definded by column type database   \
-2025 V2.00 Fist fully tested Version  \
-2025 V2.01 New Feature: More than one Film per day can be handled  \
-2025 V2.02 New Feature: Files can be uploade via GUI  \
-2025 V2.03 Code clean up  \
-2025 V2.04 Procinema und Filmvorschläge auswerten  \
-2025 V2.05 Bereits gezeigte Filme im Archiv  \
-2025 V2.06 Script running status bar  \
-2025 V2.07 Speed up  \
-
-
+2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
+2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
+2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
+2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen\
+2024 V1.4 Jahresbarechnung detailed entfernt\
+2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"\
+2024 V1.6 Statistik: Wochentaganalyse\
+2024 V1.7 Statistik ohne Datatable gelöscht\
+2024 V1.8 Dokumentations update\
+2024 V1.9 Filmvorschläge from Wordpress\
+2024 V1.10 PowerBi script\
+2024 V1.11 WordPress Filmvorschläge auswerten\
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis =\> nein, in Verleiherabgaben.xlsx)\
+2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"\
+2024 V1.14 GUI Graphical user interface\
+2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden\
+2024 V1.16 Introduction of envirnonments to run GUI\
+2025 V1.17 Data type for excel files are definded by column type database\
+2025 V2.00 Fist fully tested Version\
+2025 V2.01 New Feature: More than one Film per day can be handled\
+2025 V2.02 New Feature: Files can be uploade via GUI\
+2025 V2.03 Code clean up\
+2025 V2.04 Procinema und Filmvorschläge auswerten\
+2025 V2.05 Bereits gezeigte Filme im Archiv\
+2025 V2.06 Script running status bar\
+2025 V2.07 Speed up\
