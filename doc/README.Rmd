@@ -146,14 +146,6 @@ Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Inpu
 
 Alle Input Dateien können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung muss gespeichert und die Daten im Gui "Daten einlesen" neu eingelesen werden. 
 
-#### Einkaufspreise
-In der Datei **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
-Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
-Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
-
--   Achtung!\
-    Die alten Dateien dürfen nicht gelöscht werden.
-
 #### Spezialpreise Kiosk
 
 In der Datei **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
@@ -260,6 +252,18 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
     -   **Buchungskonto** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
 -   In der Datei **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
+#### Einkauf Kiosk
+In der Datei **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
+Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
+
+-   Achtung!\
+    Die alten Dateien dürfen nicht gelöscht werden.
+
+#### Mehrwertsteuersatz
+
+In der Datei **Einkauf Kiosk** 
+c_MWST \<- 8.1 #%
 
 #### WordPress Filmvorschläge auswerten
 
@@ -283,18 +287,7 @@ Wiel lange dauer die Sommerpause?\
 
 sommerpause \<- 65 \# Tage
 
-### Inhaltsverzeichnisse
 
-Sollen die erstellten Berichte mit Inhaltsverzeichniss erstellt werden?
-
--   Ja\
-    `toc` \<- TRUE
--   Nein\
-    `toc` \<- FALSE
-
-### Mehrwertsteuersatz
-
-c_MWST \<- 8.1 #%
 
 ### Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
 
