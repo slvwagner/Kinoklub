@@ -15,121 +15,43 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+# Split data to input and dropdown
+c_select_input_data <- 1:5
+c_select_dropdown_data <- 6:length(l_data)
 
-# l_data$Verleiher <- bind_rows(
-#   tibble(Verleihername = "...",
-#          `Kinoförderer gratis?` = NA,
-#          Adresse = NA,
-#          PLZ = NA,
-#          Ort = NA
-#          ),
-#   l_data$Verleiher
-#   )
-# l_data$Verleiher
-# 
-# saveRDS(l_data,c_file)
+l_data_input <- l_data[c_select_input_data]
+l_data_choices <- l_data[c_select_dropdown_data]
 
 
-# Html input choices
-generate_html_inputs <- function(row, row_index) {
-  l <- list()
-  for (ii in names(row)) {
-    value <- as.character(row[[ii]])  # Ensure consistent character conversion
-    
-    if (ii %in% names(column_choices())) {
-      choices <- column_choices()[[ii]]
-      options_html <- paste0(
-        '\t<option value="', choices, '" ', ifelse(choices == ifelse(is.na(value),"", value), 'selected', ''), '>', choices, '</option>',
-        collapse = "\n"
-      )
-      l[[ii]] <- paste0(
-        '<select class="new_input" data-row="', row_index, '" data-col="', ii, '">', "\n", options_html, '</select>'
-      )
-      # writeLines(l[[ii]])
-      
-    } else {
-      l[[ii]] <- value
-      # writeLines(value)
-    }
-  }
-  return(l)
-}
-
-# Generate html output table
-create_datatable <- function(data, table_edit, table_select) {
-  # create a row_index 
-  temp <- data |>
-    mutate(row_index = row_number()) |>
-    apply(1, function(row) generate_html_inputs(row, row["row_index"])) |>
-    bind_rows()
-  temp
-  
-  # Finde columns containing a Date
-  date_col <- names(temp)|>
-    str_detect(rebus::or("datum", "Datum"))
-  for (ii in 1:length(date_col)) {
-    if(date_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.Date()
-  }
-  
-  # Finde columns containing numeric values 
-  numeric_col <- names(temp)|>
-    str_detect(rebus::OPEN_BRACKET)
-  for (ii in 1:length(numeric_col)) {
-    if(numeric_col[ii]) temp[,ii] <- temp[,ii]|>pull()|>as.numeric()
-  }
-  
-  # create the datatable 
-  temp |>
-    datatable(
-      editable = table_select,
-      options = list(
-        columnDefs = list(
-          list(targets = ncol(current_data()) + 1, visible = FALSE)  # Hide column
-        ),
-        dom = 't',
-        ordering = FALSE,
-        scrollX = TRUE,
-        pageLength = nrow(data)
-      ),
-      selection = table_edit,
-      escape = FALSE
-    )
-}
-
-# Helper function to update a table
-update_table <- function(data,row_index, col_index, value) {
-  updated_data <- data
-  # Get the column types of the current dataset
-  c_class <- sapply(updated_data, class)
-  # Convert the edited value to the appropriate type
-  updated_value <- switch(
-    c_class[col_index],
-    "numeric" = as.numeric(value),
-    "integer" = as.integer(value),
-    "Date" = as.Date(value),
-    "character" = as.character(value),
-    value # Default: keep as it is
+# Floating tool box function 
+tool_box_floating <- function(l_data_input) {
+  tags$div(
+    id = "floating-panel",
+    tags$div(id = "floating-panel-header", "Werkzeuge"),
+    selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input)),
+    shiny::tags$hr(),
+    actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+    actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
+    actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+    shiny::tags$hr(),
+    actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+    shiny::tags$hr(),
+    actionButton("save", "Speichern",class = "btn-success")
   )
-  # Update the dataset
-  updated_data[row_index, col_index] <- updated_value
-  return(updated_data)
 }
+
 
 # Define UI
 ui <- 
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
-    # Ensure jQuery UI is available
+    # Function selection 
+    shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                        choices = c("Inputdaten", "Dropdowns")
+                        ),
+    # Ensure jQuery UI is available for dragable tool box
     includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$head(
-      tags$script(HTML("
-        $(document).on('change', '.new_input', function() {
-          var row = $(this).data('row');
-          var col = $(this).data('col');
-          var value = $(this).val();
-          Shiny.setInputValue('select_change', {row: row, col: col, value: value}, {priority: 'event'});
-        });
-      ")),
       tags$style(HTML("
         #floating-panel {
           position: fixed;
@@ -152,32 +74,10 @@ ui <-
           font-weight: bold;
         }
       ")),
-    # Floating tool box
-    tags$div(
-      id = "floating-panel",
-      tags$div(id = "floating-panel-header", "Werkzeuge"),
-      selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data)),
-      shiny::tags$hr(),
-      actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-      actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
-      actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
-      shiny::tags$hr(),
-      actionButton("save", "Speichern",class = "btn-success"),
-      actionButton("delete_row", "Löschen", class = "btn-danger")
     ),
-    
-    # JavaScript to make the floating panel draggable
-    tags$script(HTML("
-      $(function() {
-        $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-      });
-    ")),
-      
-    ),
-
-    mainPanel(
-      br(),
-      DTOutput("table"),
+    # Render the main panel
+    shiny::mainPanel(
+      shiny::uiOutput("dynamicContent_output_panel"),
     )
   )
 
@@ -209,6 +109,28 @@ lastEdited_data_set_name <- reactiveVal("")
 
 # server logic
 server <- function(input, output, session) {
+  
+  # Render: Dynamically update the floating tool box
+  output$dynamicContent_output_panel <- shiny::renderUI({
+    shiny::tagList(
+      hr(),
+      DTOutput("table"),
+      if(input$data_selection == "Inputdaten"){
+        # Floating tool box to edit input data 
+        tool_box_floating(l_data_input)
+      } else {
+        # Floating tool box for editing choices
+        tool_box_floating(l_data_choices)
+      },
+
+      # JavaScript to make the floating panel draggable
+      tags$script(HTML("
+        $(function() {
+          $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+        });
+      "))
+    )
+  })
   
   # Modal to edit selected row  
   observeEvent(input$edit_row, {
@@ -288,7 +210,7 @@ server <- function(input, output, session) {
 
   })
   
-  # Observe  edit row button
+  # Observe edit row button
   observeEvent(input$edit_row_new, {
     # filter for selected data by user
     df_temp <- l_data[[input$dataset]][input$table_rows_selected,]
@@ -306,9 +228,12 @@ server <- function(input, output, session) {
         l_input[[ii]] <- as.character(c_input[ii])
         }
       else if (c_input_class == "Date") {
-        l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        if(is.na(c_input[ii])){
+          l_input[[ii]] <- as.Date(NA)
+        }else{
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
         }
-      else if (c_input_class %in% c("double", "numeric")) {
+      } else if (c_input_class %in% c("double", "numeric")) {
         l_input[[ii]] <- as.numeric(c_input[ii])
         }
       else if (c_input_class == "integer") {
@@ -320,7 +245,6 @@ server <- function(input, output, session) {
    names(l_input) <- names(df_temp)
    df_updated <- l_input|>
      as_tibble()
-   
    if(is.logical(all.equal(df_temp, df_updated))){
      print(l_data)
    }else{
@@ -392,6 +316,7 @@ server <- function(input, output, session) {
     datatable(
       current_data(),
       editable = table_select(),
+      selection = "single",
       filter = "top",
       options = list(
         pageLength = nrow(current_data())
