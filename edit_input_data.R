@@ -158,11 +158,9 @@ ui <-
       tags$div(id = "floating-panel-header", "Werkzeuge"),
       selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data)),
       shiny::tags$hr(),
-      shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
-      shiny::tags$hr(),
+      actionButton("edit_row", "Zeile editieren", class = "btn-info"),
       actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
-      actionButton("duplicate_row", "Duplizieren", class = "btn-info"),
-      actionButton("edit_row", "Zeile(n) editiere", class = "btn-info"),
+      actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
       shiny::tags$hr(),
       actionButton("save", "Speichern",class = "btn-success"),
       actionButton("delete_row", "Löschen", class = "btn-danger")
@@ -201,7 +199,7 @@ column_choices <- reactiveVal(column_choices)
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
 # app behaivior
-table_edit <- reactiveVal("multiple")
+table_edit <- reactiveVal("single")
 table_select <- reactiveVal(TRUE)
 # Edited data 
 startup <- reactiveVal(TRUE)
@@ -388,45 +386,17 @@ server <- function(input, output, session) {
     current_data(l_data[[input$dataset]])
     removeModal()
   })
-
-  # Edit cell values or select rows
-  observeEvent(input$table_edit, {
-    if (input$table_edit == "Zeilenauswahl") {
-      table_edit("multiple")
-      table_select(FALSE)
-    } else {
-      table_edit("none")
-      table_select(TRUE)
-    }
-  })
   
   # Render the DT table
   output$table <- renderDataTable({
-    if (!table_select()) {
-      datatable(
-        current_data(),
-        editable = table_select(),
-        filter = "top",
-        options = list(
-          # dom = 't',
-          # ordering = FALSE,
-          # scrollX = TRUE,
-          pageLength = nrow(current_data())
-        )
+    datatable(
+      current_data(),
+      editable = table_select(),
+      filter = "top",
+      options = list(
+        pageLength = nrow(current_data())
       )
-    } else {
-      datatable(
-        current_data(),
-        editable = table_select(),
-        filter = "top",
-        options = list(
-          # dom = 't',
-          # ordering = FALSE,
-          # scrollX = TRUE,
-          pageLength = nrow(current_data())
-        )
-      )
-    }
+    )
   })
   
   # Handle cell edits with choices to <select> elements
