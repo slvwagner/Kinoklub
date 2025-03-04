@@ -14,20 +14,21 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-# 
-# temp <- readRDS("Input/template.Rds")
-# temp$Einnahmen
-# 
-# l_data$Einnahmen
 
-column_choices <- reactiveVal(list(
-  "Lieferant" = l_data$Lieferanten$Lieferantenname,
-  "Kategorie" = l_data$Kategorie$Auswahl,
-  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-  "Verleiher" = l_data$Verleiher$Verleihername,
-  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
-))
+
+# l_data$Verleiher <- bind_rows(
+#   tibble(Verleihername = "...",
+#          `Kinoförderer gratis?` = NA,
+#          Adresse = NA,
+#          PLZ = NA,
+#          Ort = NA
+#          ),
+#   l_data$Verleiher
+#   )
+# l_data$Verleiher
+# 
+# saveRDS(l_data,c_file)
+
 
 # Html input choices
 generate_html_inputs <- function(row, row_index) {
@@ -151,7 +152,7 @@ ui <-
           font-weight: bold;
         }
       ")),
-          # Floating panel
+    # Floating tool box
     tags$div(
       id = "floating-panel",
       tags$div(id = "floating-panel-header", "Werkzeuge"),
@@ -160,7 +161,8 @@ ui <-
       shiny::radioButtons("table_edit", "Funktion", choices = c("Zeilenauswahl", "Werte editieren")),
       shiny::tags$hr(),
       actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
-      actionButton("duplicate_row", "Dublizieren", class = "btn-info"),
+      actionButton("duplicate_row", "Duplizieren", class = "btn-info"),
+      actionButton("edit_row", "Zeile(n) editiere", class = "btn-info"),
       shiny::tags$hr(),
       actionButton("save", "Speichern",class = "btn-success"),
       actionButton("delete_row", "Löschen", class = "btn-danger")
@@ -181,6 +183,21 @@ ui <-
     )
   )
 
+# choices list
+column_choices <- list(
+  "Lieferant" = l_data$Lieferanten$Lieferantenname,
+  "Kategorie" = l_data$Kategorie$Auswahl,
+  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+  "Verleiher" = l_data$Verleiher$Verleihername,
+  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
+)
+
+# names(l_data) %in% c(names(column_choices),"MWST")
+# names(l_data)[!(names(l_data) %in% c(names(column_choices),"MWST"))]
+
+# Reactive choices list
+column_choices <- reactiveVal(column_choices)
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
 # app behaivior
@@ -191,8 +208,130 @@ startup <- reactiveVal(TRUE)
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
+
 # server logic
 server <- function(input, output, session) {
+  
+  # Modal to edit selected row  
+  observeEvent(input$edit_row, {
+    if(!is.null(input$table_rows_selected)){
+      df_row <- l_data[[input$dataset]][input$table_rows_selected,]
+      df_row
+      
+      l_temp <- list()
+      for (ii in 1:ncol(df_row)) {
+        col_name <- names(df_row[,ii])
+        col_data_type <- df_row[,ii]|>
+          pull()|>
+          class()
+        col_value <- df_row[,ii]|>pull()
+        
+        if(col_data_type == "Date"){
+          print(col_data_type)
+          l_temp[[ii]] <- 
+            dateInput(inputId =  as.character(ii), 
+                      label = col_name, 
+                      value = ifelse(is.na(col_value), NA, col_value), 
+                      format = "dd.mm.yyyy", 
+                      language = "de", 
+                      weekstart = 1
+            )
+        }else if(col_data_type == "numeric"){
+          print(col_data_type)
+          l_temp[[ii]] <- 
+            numericInput(inputId =  as.character(ii), 
+                         label = col_name, 
+                         value =  ifelse(is.na(col_value), 0, col_value),
+                         step = 0.01
+            )
+        }else if (col_data_type == "character"){
+          print(col_data_type)
+          column_choices()[names(column_choices()) == col_name]
+          c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
+          names(c_choices) <- NULL
+          c_choices
+          
+          if(col_name %in% names(column_choices())){
+            l_temp[[ii]] <- 
+              shiny::selectInput(
+                inputId = as.character(ii),
+                label = col_name,
+                choices = c_choices,
+                selected = ifelse(is.na(col_value), NA, col_value)
+              )
+          }else{
+            l_temp[[ii]] <- 
+              shiny::textInput(
+                inputId = as.character(ii),
+                label = col_name,
+                value = ifelse(is.na(col_value), NA, col_value)
+              )
+          }
+        }
+      }
+      # User interaction to save 
+      showModal(
+        modalDialog(title = "Zeile editieren",
+                    l_temp,
+                    actionButton("edit_row_new", "Speichern"),
+                    actionButton("do_nothing", "Abrechen"),
+                    easyClose = TRUE, footer = NULL
+        )
+      )
+    } else {
+      # User interaction 
+      showModal(
+        modalDialog(title = "Bitte eine Zeile markieren",
+                    easyClose = TRUE, footer = modalButton("Abbrechen")
+        )
+      )
+    }
+
+
+  })
+  
+  # Observe  edit row button
+  observeEvent(input$edit_row_new, {
+    # filter for selected data by user
+    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]
+
+    # get the user input
+    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
+    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+    names(c_input) <- NULL
+    
+    # Coerce user input to correct data type 
+    l_input <- list()
+    for (ii in 1:ncol(df_temp)) {
+      c_input_class <- df_temp[,ii]|>pull()|>class()
+      if(c_input_class == "character") {
+        l_input[[ii]] <- as.character(c_input[ii])
+        }
+      else if (c_input_class == "Date") {
+        l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        }
+      else if (c_input_class %in% c("double", "numeric")) {
+        l_input[[ii]] <- as.numeric(c_input[ii])
+        }
+      else if (c_input_class == "integer") {
+        l_input[[ii]] <- as.integer(c_input[ii])
+      }else {
+        stop("should not end here")
+      }
+    }
+   names(l_input) <- names(df_temp)
+   df_updated <- l_input|>
+     as_tibble()
+   
+   if(is.logical(all.equal(df_temp, df_updated))){
+     print(l_data)
+   }else{
+     l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
+     current_data(l_data[[input$dataset]])
+   }
+   removeModal()
+  })
+  
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
     if(startup()){ # only run on app start up
@@ -276,22 +415,17 @@ server <- function(input, output, session) {
         )
       )
     } else {
-      if(nrow(current_data()) > 0) {
-        create_datatable(current_data(), table_edit(), table_select())
-      }
-      else{
-        datatable(
-          current_data(),
-          editable = table_select(),
-          filter = "top",
-          options = list(
-            # dom = 't',
-            # ordering = FALSE,
-            # scrollX = TRUE,
-            pageLength = nrow(current_data())
-          )
+      datatable(
+        current_data(),
+        editable = table_select(),
+        filter = "top",
+        options = list(
+          # dom = 't',
+          # ordering = FALSE,
+          # scrollX = TRUE,
+          pageLength = nrow(current_data())
         )
-      }
+      )
     }
   })
   
