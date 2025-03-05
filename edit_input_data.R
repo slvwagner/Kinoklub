@@ -40,6 +40,14 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
   )
 }
 
+# Regex validation function for Suisanummer
+validate_suisanummer <- function(input) {
+  # library(rebus)
+  # pattern <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
+  p <- "\\d\\d\\d\\d\\.\\d\\d\\d"
+  grepl(p, input)
+}
+validate_suisanummer(c("1234.562","123.25"))
 
 # Define UI
 ui <- 
