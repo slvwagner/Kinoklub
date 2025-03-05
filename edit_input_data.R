@@ -210,8 +210,6 @@ server <- function(input, output, session) {
         )
       )
     }
-
-
   })
   
   # Observe edit row button
