@@ -28,7 +28,7 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
-    radioButtons("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input), selected = names(l_data_input)[c_select]),
+    selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input)),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
