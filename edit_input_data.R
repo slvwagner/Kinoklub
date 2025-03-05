@@ -24,11 +24,11 @@ l_data_choices <- l_data[c_select_dropdown_data]
 
 
 # Floating tool box function 
-tool_box_floating <- function(l_data_input) {
+tool_box_floating <- function(l_data_input, c_select = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
-    selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input)),
+    radioButtons("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input), selected = names(l_data_input)[c_select]),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
@@ -58,7 +58,7 @@ ui <-
           top: 50px;
           right: 20px;
           width: 250px;
-          background: white;
+          background: #c7dbed;
           border: 1px solid #ddd;
           border-radius: 5px;
           padding: 10px;
@@ -100,7 +100,8 @@ column_choices <- reactiveVal(column_choices)
 current_data <- reactiveVal(tibble())
 # app behaivior
 table_edit <- reactiveVal("single")
-table_select <- reactiveVal(TRUE)
+# table_select <- reactiveVal(TRUE)
+
 # Edited data 
 startup <- reactiveVal(TRUE)
 lastEdited_data_set <- reactiveVal(NULL)
@@ -117,7 +118,7 @@ server <- function(input, output, session) {
       DTOutput("table"),
       if(input$data_selection == "Inputdaten"){
         # Floating tool box to edit input data 
-        tool_box_floating(l_data_input)
+        tool_box_floating(l_data_input,2)
       } else {
         # Floating tool box for editing choices
         tool_box_floating(l_data_choices)
@@ -318,7 +319,7 @@ server <- function(input, output, session) {
   output$table <- renderDataTable({
     datatable(
       current_data(),
-      editable = table_select(),
+      editable = FALSE,
       selection = "single",
       filter = "top",
       options = list(
