@@ -161,7 +161,7 @@ server <- function(input, output, session) {
           l_temp[[ii]] <- 
             numericInput(inputId =  as.character(ii), 
                          label = col_name, 
-                         value =  ifelse(is.na(col_value), 0, col_value),
+                         value =  ifelse(is.na(col_value), NA, col_value),
                          step = 0.01
             )
         }else if (col_data_type == "character"){
