@@ -153,11 +153,12 @@ server <- function(input, output, session) {
           l_temp[[ii]] <- 
             dateInput(inputId =  as.character(ii), 
                       label = col_name, 
-                      value = ifelse(is.na(col_value), NA, col_value), 
+                      value = ifelse(is.na(col_value), Sys.Date(), col_value), 
                       format = "dd.mm.yyyy", 
                       language = "de", 
                       weekstart = 1
             )
+          l_temp[[ii]]
         } # handle numeric inputs
         else if(col_data_type == "numeric"){ 
           print(col_data_type)
@@ -175,7 +176,7 @@ server <- function(input, output, session) {
           names(c_choices) <- NULL
           c_choices
           
-          if(col_name %in% names(column_choices())){ # handle numeric inputs
+          if(col_name %in% names(column_choices())){ # look up choices
             l_temp[[ii]] <- 
               shiny::selectInput(
                 inputId = as.character(ii),
