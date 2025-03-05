@@ -28,7 +28,7 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
-    selectInput("dataset", "\nDatensatz zum Editieren", choices = names(l_data_input)),
+    selectInput("dataset", "\nDatensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
@@ -98,9 +98,6 @@ column_choices <- list(
   "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
   "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
 )
-
-# names(l_data) %in% c(names(column_choices),"MWST")
-# names(l_data)[!(names(l_data) %in% c(names(column_choices),"MWST"))]
 
 # Reactive choices list
 column_choices <- reactiveVal(column_choices)
