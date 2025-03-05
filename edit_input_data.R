@@ -146,6 +146,7 @@ server <- function(input, output, session) {
           class()
         col_value <- df_row[,ii]|>pull()
         
+        # handel Date inputs
         if(col_data_type == "Date"){
           print(col_data_type)
           l_temp[[ii]] <- 
@@ -156,7 +157,8 @@ server <- function(input, output, session) {
                       language = "de", 
                       weekstart = 1
             )
-        }else if(col_data_type == "numeric"){
+        } # handle numeric inputs
+        else if(col_data_type == "numeric"){ 
           print(col_data_type)
           l_temp[[ii]] <- 
             numericInput(inputId =  as.character(ii), 
@@ -164,14 +166,15 @@ server <- function(input, output, session) {
                          value =  ifelse(is.na(col_value), NA, col_value),
                          step = 0.01
             )
-        }else if (col_data_type == "character"){
+        }  # handle character inputs
+        else if (col_data_type == "character"){
           print(col_data_type)
           column_choices()[names(column_choices()) == col_name]
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
           names(c_choices) <- NULL
           c_choices
           
-          if(col_name %in% names(column_choices())){
+          if(col_name %in% names(column_choices())){ # handle numeric inputs
             l_temp[[ii]] <- 
               shiny::selectInput(
                 inputId = as.character(ii),
