@@ -15,9 +15,8 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# l_data$Programm <-
-#   l_data$Programm|>
-#   select(-Verantwortlich)
+# l_data$Programm <- l_data$Programm|>
+#   select(-`Email Adresse Verleiher`)
 # 
 # saveRDS(l_data, c_file)
 
@@ -289,7 +288,7 @@ server <- function(input, output, session) {
     # Coerce user input to correct data type 
     l_input <- list()
     for (ii in 1:ncol(df_temp)) {
-      c_input_class <- l_data()[[input$dataset]][,ii]|>class()
+      c_input_class <- l_data()[[input$dataset]][,ii]|>pull()|>class()
       if(c_input_class == "character") {
         if (c_input[ii] == ""){
           l_input[[ii]] <- as.character(NA)
