@@ -487,8 +487,9 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
-    l_data()[[input$dataset]] <<- current_data() # Update the list
-    saveRDS(l_data(), c_file) # Save the updated list to the file
+    l_temp <- l_data()
+    l_temp[[input$dataset]] <- current_data() # Update the list
+    saveRDS(l_temp, c_file) # Save the updated list to the file
     l_data(readRDS(c_file)) # update data
     # update choices
     list(
