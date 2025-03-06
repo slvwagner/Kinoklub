@@ -437,11 +437,11 @@ server <- function(input, output, session) {
   # Add a new row bottom of selected
   observeEvent(input$add_row_bottom, {
     new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
-    if(input$table_rows_selected == ncol(current_data())){
+    if(input$table_rows_selected != ncol(current_data())){
       updated_data <- 
         bind_rows(current_data()[1:(input$table_rows_selected),],
                   new_row,
-                  current_data()[input$table_rows_selected:nrow(current_data()),]
+                  current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
         )
     }else{
       updated_data <- 
