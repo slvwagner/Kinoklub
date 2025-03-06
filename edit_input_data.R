@@ -14,22 +14,17 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-# 
-# l_data$Kinoklubmitglieder <- list(l_data$Einsatzplan|>
-#        distinct(`Kasse/Bar 1`),
-#      l_data$Einsatzplan|>
-#        distinct(`Kasse/Bar 2`),
-#      l_data$Einsatzplan|>
-#        distinct(`Operateur*in`)
-#      )|>
-#   lapply(pull)|>
-#   unlist()|>
-#   unique()|>
-#   tibble()|>
-#   rename(Kinoklubmitglied = `unique(...)`)
-# saveRDS(l_data, c_file)
 
-l_data
+# l_data$Kinoklubmitglieder <-
+#   readxl::read_excel("C:/Users/slvwa/Downloads/Kopie von Kinoklub Mitglieder.xlsx")|>
+#   mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
+#   mutate(`Helferfest 2024` = NULL) |>
+#   mutate("Weiss nicht" = NULL)
+# 
+# l_data$Kinoklubmitglieder
+# 
+# saveRDS(l_data,c_file)
+
 
 ###################################################
 # Split data to input and dropdown
@@ -126,7 +121,15 @@ column_choices <- list(
   "Operateur*in" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
   "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
   "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied
+  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
+  "Kasse / Bar" = l_data$JaNein$Auswahl,
+  "Programm" = l_data$JaNein$Auswahl,
+  "Sonderevents" = l_data$JaNein$Auswahl,
+  "Marketing" = l_data$JaNein$Auswahl,
+  "Finanzen" = l_data$JaNein$Auswahl,
+  "Sponsoring" = l_data$JaNein$Auswahl,
+  "Koordination" = l_data$JaNein$Auswahl
 )
 
 
@@ -264,13 +267,20 @@ server <- function(input, output, session) {
               generated_code
               l_temp[[ii]] <- eval(parse(text = generated_code))
               
-            } else {
+            } else if (col_data_type == class(T)){
               l_temp[[ii]] <- 
                 shiny::textInput(
                   inputId = as.character(ii),
                   label = col_name,
                   value = ifelse(is.na(col_value), NA, col_value)
                   )
+            } else {
+              l_temp[[ii]] <- 
+                shiny::textInput(
+                  inputId = as.character(ii),
+                  label = col_name,
+                  value = ifelse(is.na(col_value), NA, col_value)
+                )
             }
           }
         }
