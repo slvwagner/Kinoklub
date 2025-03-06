@@ -82,7 +82,9 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-    actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
+    shiny::tags$hr(),
+    actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+    actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
     actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
@@ -311,9 +313,7 @@ server <- function(input, output, session) {
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- df_temp[,ii]|>pull()|>class()
       if(c_input_class == "character") {
-        if(c_input[ii] == "...") {
-          l_input[[ii]] <- as.character(NA)
-        } else if (c_input[ii] == ""){
+        if (c_input[ii] == ""){
           l_input[[ii]] <- as.character(NA)
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
@@ -396,10 +396,39 @@ server <- function(input, output, session) {
     )
   })
   
-  # Add a new row
-  observeEvent(input$add_row, {
+  # Add a new row top of selected
+  observeEvent(input$add_row_top, {
     new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
-    updated_data <- bind_rows(current_data(), new_row)
+    if(input$table_rows_selected != 1){
+      updated_data <- 
+        bind_rows(current_data()[1:(input$table_rows_selected-1),],
+                  new_row,
+                  current_data()[input$table_rows_selected:nrow(current_data()),]
+        )
+    }else{
+      updated_data <- 
+        bind_rows(new_row,
+                  current_data()[input$table_rows_selected:nrow(current_data()),]
+                  )
+    }
+    current_data(updated_data)
+  })
+  
+  # Add a new row bottom of selected
+  observeEvent(input$add_row_bottom, {
+    new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
+    if(input$table_rows_selected == ncol(current_data())){
+      updated_data <- 
+        bind_rows(current_data()[1:(input$table_rows_selected),],
+                  new_row,
+                  current_data()[input$table_rows_selected:nrow(current_data()),]
+        )
+    }else{
+      updated_data <- 
+        bind_rows(current_data()[1:input$table_rows_selected,],
+                  new_row
+                  )
+    }
     current_data(updated_data)
   })
   
