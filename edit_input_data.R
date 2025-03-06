@@ -214,77 +214,12 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  # Observe edit row button
-  observeEvent(input$edit_row_new, {
-    # filter for selected data by user
-    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]
-    
-    # get the user input
-    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
-    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-    names(c_input) <- NULL
-    
-    # Coerce user input to correct data type 
-    l_input <- list()
-    for (ii in 1:ncol(df_temp)) {
-      c_input_class <- df_temp[,ii]|>pull()|>class()
-      if(c_input_class == "character") {
-        if(c_input[ii] == "...") {
-          l_input[[ii]] <- as.character(NA)
-        } else if (c_input[ii] == ""){
-          l_input[[ii]] <- as.character(NA)
-        } else {
-          l_input[[ii]] <- as.character(c_input[ii])
-        }
-      }
-      else if (c_input_class == "Date") {
-        if(is.na(c_input[ii])){
-          l_input[[ii]] <- as.Date(NA)
-        }else{
-          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
-        }
-      } else if (c_input_class %in% c("double", "numeric")) {
-        l_input[[ii]] <- as.numeric(c_input[ii])
-      }
-      else if (c_input_class == "integer") {
-        l_input[[ii]] <- as.integer(c_input[ii])
-      }else {
-        stop("should not end here")
-      }
-    }
-    names(l_input) <- names(df_temp)
-    df_updated <- l_input|>
-      as_tibble()
-    # check for changed data 
-    if(is.logical(all.equal(df_temp, df_updated))){
-      # User interaction 
-      showModal(
-        modalDialog(title = "Speichern nicht möglich, es wurde nichts geändert!",
-                    easyClose = TRUE, 
-                    footer = modalButton("Abbrechen")
-        )
-      )
-    }else{
-      # # Generate user feedback 
-      # showModal(
-      #   modalDialog(shiny::actionButton("save_edit","Speichern", class = "btn-success"),
-      #               title = "Änderungen Speichern",
-      #               easyClose = FALSE, 
-      #               footer = modalButton("Abbrechen")
-      #   )
-      # )
-      l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
-      current_data(l_data[[input$dataset]])
-    }
-    shiny::removeModal()
-  })
-  
-  # Edit selected row  
+
+  # Create Modal form to Edit selected row  
   observeEvent(input$edit_row, {
     if(!is.null(input$table_rows_selected)){
-      df_row <- l_data[[input$dataset]][input$table_rows_selected,]
-      df_row
+      df_row <- l_data[[input$dataset]][input$table_rows_selected,]|>
+        as_tibble()
       
       l_temp <- list()
       for (ii in 1:ncol(df_row)) {
@@ -345,7 +280,7 @@ server <- function(input, output, session) {
       showModal(
         modalDialog(title = "Zeile editieren",
                     l_temp,
-                    actionButton("edit_row_new", "Werte übernehmen", class = "btn-info"),
+                    actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
                     actionButton("abort_save", "Abrechen"),
                     easyClose = TRUE, footer = NULL
         )
@@ -358,6 +293,64 @@ server <- function(input, output, session) {
         )
       )
     }
+  })
+  
+  # Observe edit row button
+  observeEvent(input$edit_row_value, {
+    # filter for selected data by user
+    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]|>
+      as_tibble()
+    
+    # get the user input
+    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
+    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+    names(c_input) <- NULL
+    
+    # Coerce user input to correct data type 
+    l_input <- list()
+    for (ii in 1:ncol(df_temp)) {
+      c_input_class <- df_temp[,ii]|>pull()|>class()
+      if(c_input_class == "character") {
+        if(c_input[ii] == "...") {
+          l_input[[ii]] <- as.character(NA)
+        } else if (c_input[ii] == ""){
+          l_input[[ii]] <- as.character(NA)
+        } else {
+          l_input[[ii]] <- as.character(c_input[ii])
+        }
+      }
+      else if (c_input_class == "Date") {
+        if(is.na(c_input[ii])){
+          l_input[[ii]] <- as.Date(NA)
+        }else{
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        }
+      } else if (c_input_class %in% c("double", "numeric")) {
+        l_input[[ii]] <- as.numeric(c_input[ii])
+      }
+      else if (c_input_class == "integer") {
+        l_input[[ii]] <- as.integer(c_input[ii])
+      }else {
+        stop("should not end here")
+      }
+    }
+    names(l_input) <- names(df_temp)
+    df_updated <- l_input|>
+      as_tibble()
+    # check for changed data 
+    if(is.logical(all.equal(df_temp, df_updated))){
+      # User interaction 
+      showModal(
+        modalDialog(title = "Speichern nicht möglich, es wurde nichts geändert!",
+                    easyClose = TRUE, 
+                    footer = modalButton("Abbrechen")
+        )
+      )
+    }else{
+      l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
+      current_data(l_data[[input$dataset]])
+    }
+    shiny::removeModal()
   })
 
   # Abort changes and update 
