@@ -15,55 +15,6 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-##########################################
-# l_data$Programm <- read_excel(
-#   "Input/Programm.xlsx",
-#   sheet = "Verleiherübersicht",
-#   col_types = c("text",
-#                 "text", "date", "date", "numeric",
-#                 "text", "text", "text", "text", "text",
-#                 "text", "text", "text", "text", "text",
-#                 "text", "text", "text", "numeric"
-#   ))|>
-#   mutate(
-#     Datum = as.Date(Datum),
-#     Uhrzeit = paste0(lubridate::hour(Uhrzeit),":", lubridate::minute(Uhrzeit)),
-#   )|>
-#   rename(Zeit = Uhrzeit,
-#          Suisanummer  = `Suisa Nummer`)
-# 
-# l_data$Einsatzplan <- read_excel("Input/Programm.xlsx",
-#                        col_types = c("text", "date", "date",
-#                                      "text", "text", "text", "text", "text",
-#                                      "text", "text", "text"))|>
-#   rename(Zeit = `Start Zeit`,
-#          Suisanummer = `Suisa Nummer`)|>
-#   mutate(Datum = as.Date(Datum),
-#          Zeit = paste0(lubridate::hour(Zeit),":", lubridate::minute(Zeit))
-#          )
-# 
-# l_data$`Status Filmliste` <-
-#   tibble(
-#     `Status Filmliste` = c("...",
-#                            "Vorschlag",
-#                            "Verleiher anfragen",
-#                            "Anfrage läuft",
-#                            "Vorvisionierung",
-#                            "Bestätigt",
-#                            "Wird nicht gespielt"
-#                            )
-#   )
-
-# l_data$Verleiher <- l_data$Verleiher|>
-#   select(Verleihername, Kontakt, `Kinoförderer gratis?`, Adresse, PLZ, Ort)|>
-#   as.data.frame()
-# 
-# 
-# 
-# saveRDS(l_data, c_file) # Save the updated list to the file
-# length(l_data)
-# l_data
-
 ###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
@@ -90,7 +41,7 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
-    actionButton("save", "Speichern",class = "btn-success")
+    actionButton("save", "Speichern", class = "btn-success")
   )
 }
 
