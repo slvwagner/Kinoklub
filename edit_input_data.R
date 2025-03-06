@@ -14,17 +14,27 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-
-# l_data$Programm <- l_data$Programm|>
-#   select(-`Email Adresse Verleiher`)
 # 
+# l_data$Kinoklubmitglieder <- list(l_data$Einsatzplan|>
+#        distinct(`Kasse/Bar 1`),
+#      l_data$Einsatzplan|>
+#        distinct(`Kasse/Bar 2`),
+#      l_data$Einsatzplan|>
+#        distinct(`Operateur*in`)
+#      )|>
+#   lapply(pull)|>
+#   unlist()|>
+#   unique()|>
+#   tibble()|>
+#   rename(Kinoklubmitglied = `unique(...)`)
 # saveRDS(l_data, c_file)
 
+l_data
 
 ###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
-c_select_dropdown_data <- c(6:13, 15)
+c_select_dropdown_data <- c(6:13, 15, 17)
 
 l_data_input <- l_data[c_select_input_data]
 l_data_choices <- l_data[c_select_dropdown_data]
@@ -107,7 +117,16 @@ column_choices <- list(
   "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
   "Verleiher" = l_data$Verleiher$Verleihername,
   "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
+  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
+  "KDM ja oder nein" = l_data$JaNein$Auswahl,
+  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
+  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
+  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
+  "Verantwortlich" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Operateur*in" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied
 )
 
 
