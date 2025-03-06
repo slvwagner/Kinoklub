@@ -158,7 +158,7 @@ server <- function(input, output, session) {
           l_temp[[ii]] <- 
             dateInput(inputId =  as.character(ii), 
                       label = col_name, 
-                      value = ifelse(is.na(col_value), Sys.Date(), col_value), 
+                      value = ifelse(is.na(col_value), as.Date(NA), col_value), 
                       format = "dd.mm.yyyy", 
                       language = "de", 
                       weekstart = 1
