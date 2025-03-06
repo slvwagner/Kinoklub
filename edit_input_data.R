@@ -25,6 +25,33 @@ if(file.exists(c_file)){
 # 
 # saveRDS(l_data,c_file)
 
+###################################################
+# choices list
+column_choices <- list(
+  "Lieferant" = l_data$Lieferanten$Lieferantenname,
+  "Kategorie" = l_data$Kategorie$Auswahl,
+  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+  "Verleiher" = l_data$Verleiher$Verleihername,
+  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
+  "KDM ja oder nein" = l_data$JaNein$Auswahl,
+  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
+  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
+  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
+  "Verantwortlich" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Operateur*in" = l_data$JaNein$Auswahl,
+  "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
+  "Kasse / Bar" = l_data$JaNein$Auswahl,
+  "Programm" = l_data$JaNein$Auswahl,
+  "Sonderevents" = l_data$JaNein$Auswahl,
+  "Marketing" = l_data$JaNein$Auswahl,
+  "Finanzen" = l_data$JaNein$Auswahl,
+  "Sponsoring" = l_data$JaNein$Auswahl,
+  "Koordination" = l_data$JaNein$Auswahl
+)
 
 ###################################################
 # Split data to input and dropdown
@@ -104,34 +131,6 @@ ui <-
       shiny::uiOutput("dynamicContent_output_panel"),
     )
   )
-
-# choices list
-column_choices <- list(
-  "Lieferant" = l_data$Lieferanten$Lieferantenname,
-  "Kategorie" = l_data$Kategorie$Auswahl,
-  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-  "Verleiher" = l_data$Verleiher$Verleihername,
-  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
-  "KDM ja oder nein" = l_data$JaNein$Auswahl,
-  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
-  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
-  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Operateur*in" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
-  "Kasse / Bar" = l_data$JaNein$Auswahl,
-  "Programm" = l_data$JaNein$Auswahl,
-  "Sonderevents" = l_data$JaNein$Auswahl,
-  "Marketing" = l_data$JaNein$Auswahl,
-  "Finanzen" = l_data$JaNein$Auswahl,
-  "Sponsoring" = l_data$JaNein$Auswahl,
-  "Koordination" = l_data$JaNein$Auswahl
-)
-
 
 # Reactive choices list
 l_data <- reactiveVal(l_data)
