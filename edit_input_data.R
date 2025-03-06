@@ -443,7 +443,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # Delete selected rows 
+  # Delete selected row 
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
     updated_data <- current_data()[-input$table_rows_selected, ]
