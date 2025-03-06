@@ -54,7 +54,11 @@ if(file.exists(c_file)){
 #   )
 
 # l_data$Verleiher <- l_data$Verleiher|>
-#   mutate(Kontakt = row_number()|>as.character())
+#   select(Verleihername, Kontakt, `Kinoförderer gratis?`, Adresse, PLZ, Ort)|>
+#   as.data.frame()
+# 
+# 
+# 
 # saveRDS(l_data, c_file) # Save the updated list to the file
 # length(l_data)
 # l_data
