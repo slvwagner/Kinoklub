@@ -28,7 +28,7 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
-    selectInput("dataset", "\nDatensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     actionButton("add_row", "Zeile hinzufügen", class = "btn-info"),
@@ -332,33 +332,6 @@ server <- function(input, output, session) {
     )
   })
   
-  # Handle cell edits with choices to <select> elements
-  observeEvent(input$select_change, {
-    req(input$select_change)
-    # Extract the row and column from the event
-    row_index <- input$select_change$row
-    col_name <- input$select_change$col
-    # Find the column index
-    col_index <- which(names(current_data()) == col_name)
-    # Update the table
-    updated_data <- update_table(current_data(),row_index, col_index, input$select_change$value)
-    current_data(updated_data)
-  })
-  
-  # Handle any other cell edits 
-  observeEvent(input$table_cell_edit, {
-    info <- input$table_cell_edit
-    if(info$value == "") {
-      # showNotification("Empty cell will not be updated", type = "message")
-      updated_data <- update_table(current_data(),info$row, info$col, NA)
-      current_data(updated_data)
-    }
-    else{
-      updated_data <- update_table(current_data(),info$row, info$col, info$value)
-      current_data(updated_data) 
-    }
-  })
-  
   # Add a new row
   observeEvent(input$add_row, {
     new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
@@ -376,6 +349,7 @@ server <- function(input, output, session) {
       )
     ))
   })
+  
   # Delete selected rows 
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
