@@ -15,6 +15,13 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+# l_data$Programm <-
+#   l_data$Programm|>
+#   select(-Verantwortlich)
+# 
+# saveRDS(l_data, c_file)
+
+
 ###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
@@ -282,7 +289,7 @@ server <- function(input, output, session) {
     # Coerce user input to correct data type 
     l_input <- list()
     for (ii in 1:ncol(df_temp)) {
-      c_input_class <- df_temp[,ii]|>pull()|>class()
+      c_input_class <- l_data()[[input$dataset]][,ii]|>class()
       if(c_input_class == "character") {
         if (c_input[ii] == ""){
           l_input[[ii]] <- as.character(NA)
