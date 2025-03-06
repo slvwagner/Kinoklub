@@ -15,13 +15,60 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+# l_data$Programm <- read_excel(
+#   "Input/Programm.xlsx",
+#   sheet = "Verleiherübersicht",
+#   col_types = c("text",
+#                 "text", "date", "date", "numeric",
+#                 "text", "text", "text", "text", "text",
+#                 "text", "text", "text", "text", "text",
+#                 "text", "text", "text", "numeric"
+#   ))|>
+#   mutate(
+#     Datum = as.Date(Datum),
+#     Uhrzeit = paste0(lubridate::hour(Uhrzeit),":", lubridate::minute(Uhrzeit)),
+#   )|>
+#   rename(Zeit = Uhrzeit,
+#          Suisanummer  = `Suisa Nummer`)
+# 
+# l_data$Einsatzplan <- read_excel("Input/Programm.xlsx",
+#                        col_types = c("text", "date", "date",
+#                                      "text", "text", "text", "text", "text",
+#                                      "text", "text", "text"))|>
+#   rename(Zeit = `Start Zeit`,
+#          Suisanummer = `Suisa Nummer`)|>
+#   mutate(Datum = as.Date(Datum),
+#          Zeit = paste0(lubridate::hour(Zeit),":", lubridate::minute(Zeit))
+#          )
+# 
+# l_data$`Status Filmliste` <-
+#   tibble(
+#     `Status Filmliste` = c("...",
+#                            "Vorschlag",
+#                            "Verleiher anfragen",
+#                            "Anfrage läuft",
+#                            "Vorvisionierung",
+#                            "Bestätigt",
+#                            "Wird nicht gespielt"
+#                            )
+#   )
+
+# l_data$Verleiher <- l_data$Verleiher|>
+#   mutate(Kontakt = row_number()|>as.character())
+# saveRDS(l_data, c_file) # Save the updated list to the file
+# length(l_data)
+# l_data
+
+
 # Split data to input and dropdown
-c_select_input_data <- 1:5
-c_select_dropdown_data <- 6:length(l_data)
+c_select_input_data <- c(1:5,16,14)
+c_select_dropdown_data <- c(6:13, 15)
 
 l_data_input <- l_data[c_select_input_data]
 l_data_choices <- l_data[c_select_dropdown_data]
 
+l_data_input
+l_data_choices
 
 # Floating tool box function 
 tool_box_floating <- function(l_data_input, c_select = 1) {
