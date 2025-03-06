@@ -15,6 +15,7 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+##########################################
 # l_data$Programm <- read_excel(
 #   "Input/Programm.xlsx",
 #   sheet = "Verleiherübersicht",
@@ -63,7 +64,7 @@ if(file.exists(c_file)){
 # length(l_data)
 # l_data
 
-
+###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
 c_select_dropdown_data <- c(6:13, 15)
@@ -152,7 +153,9 @@ column_choices <- list(
   "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
 )
 
+
 # Reactive choices list
+l_data <- reactiveVal(l_data)
 column_choices <- reactiveVal(column_choices)
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
@@ -193,15 +196,15 @@ server <- function(input, output, session) {
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
     if(startup()){ # only run on app start up
-      current_data(l_data[[input$dataset]])
-      lastEdited_data_set(l_data[[input$dataset]])
+      current_data(l_data()[[input$dataset]])
+      lastEdited_data_set(l_data()[[input$dataset]])
       lastEdited_data_set_name(input$dataset)
       startup(FALSE)
     }else{ # run on changing the data set
       if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
         # only ask to save if there is something to save  
-        current_data(l_data[[input$dataset]])
-        lastEdited_data_set(l_data[[input$dataset]])
+        current_data(l_data()[[input$dataset]])
+        lastEdited_data_set(l_data()[[input$dataset]])
         lastEdited_data_set_name(input$dataset)
         return()
       } else { 
@@ -220,7 +223,7 @@ server <- function(input, output, session) {
   # Create Modal form to Edit selected row  
   observeEvent(input$edit_row, {
     if(!is.null(input$table_rows_selected)){
-      df_row <- l_data[[input$dataset]][input$table_rows_selected,]|>
+      df_row <- l_data()[[input$dataset]][input$table_rows_selected,]|>
         as_tibble()
       
       l_temp <- list()
@@ -259,7 +262,6 @@ server <- function(input, output, session) {
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
           names(c_choices) <- NULL
           c_choices
-          
           if(col_name %in% names(column_choices())){ # look up choices
             l_temp[[ii]] <- 
               shiny::selectInput(
@@ -269,12 +271,31 @@ server <- function(input, output, session) {
                 selected = ifelse(is.na(col_value), NA, col_value)
               )
           }else{
-            l_temp[[ii]] <- 
-              shiny::textInput(
-                inputId = as.character(ii),
-                label = col_name,
-                value = ifelse(is.na(col_value), NA, col_value)
-              )
+            if(col_name == "Suisanummer"){
+              # create text input for Suisanummer
+              generated_code <- 
+                paste0(
+                  "textInput(inputId = \"", as.character(ii),"\", ", label = "\"",col_name,"\",", 
+                  "value = ", ifelse(is.na(col_value),
+                                    paste0("\"", "", "\"", collapse = ""), 
+                                    paste0("\"",col_value, "\"", collapse = "")
+                                   ),
+                  ifelse(!is.na(col_value), 
+                         "", 
+                         ", placeholder = \"xxxx.xxx\""),
+                  ")"
+                  )
+              generated_code
+              l_temp[[ii]] <- eval(parse(text = generated_code))
+              
+            } else {
+              l_temp[[ii]] <- 
+                shiny::textInput(
+                  inputId = as.character(ii),
+                  label = col_name,
+                  value = ifelse(is.na(col_value), NA, col_value)
+                  )
+            }
           }
         }
       }
@@ -300,8 +321,7 @@ server <- function(input, output, session) {
   # Observe edit row button
   observeEvent(input$edit_row_value, {
     # filter for selected data by user
-    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]|>
-      as_tibble()
+    df_temp <- current_data()
     
     # get the user input
     generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
@@ -347,39 +367,39 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
-      current_data(l_data[[input$dataset]])
+      df_temp[input$table_rows_selected,] <- df_updated
+      current_data(df_temp)
     }
     shiny::removeModal()
   })
 
   # Abort changes and update 
   observeEvent(input$abort_save, {
-    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
-    current_data(l_data[[input$dataset]])
+    current_data(l_data()[[input$dataset]])
     removeModal()
   })
     
   # Save changes and update 
   observeEvent(input$save_edit, {
-    l_data[[lastEdited_data_set_name()]] <<- current_data() # Update the list
-    saveRDS(l_data, c_file) # Save the updated list to the file
-    l_data <- readRDS(c_file) # update data
+    l_data()[[lastEdited_data_set_name()]] <<- current_data() # Update the list
+    saveRDS(l_data(), c_file) # Save the updated list to the file
+    l_data(readRDS(c_file)) # update data
     # update choices
     list(
-      "Lieferant" = l_data$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data$Kategorie$Auswahl,
-      "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-      "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
-    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
-    current_data(l_data[[input$dataset]])
+    current_data(l_data()[[input$dataset]])
     removeModal()
   })
   
@@ -467,23 +487,23 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save, {
-    l_data[[input$dataset]] <<- current_data() # Update the list
-    saveRDS(l_data, c_file) # Save the updated list to the file
-    l_data <- readRDS(c_file) # update data
+    l_data()[[input$dataset]] <<- current_data() # Update the list
+    saveRDS(l_data(), c_file) # Save the updated list to the file
+    l_data(readRDS(c_file)) # update data
     # update choices
     list(
-      "Lieferant" = l_data$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data$Kategorie$Auswahl,
-      "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-      "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
-    lastEdited_data_set(l_data[[input$dataset]])
+    lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
-    current_data(l_data[[input$dataset]])
+    current_data(l_data()[[input$dataset]])
   })
 }
 
