@@ -103,7 +103,7 @@ column_choices <- list(
 column_choices <- reactiveVal(column_choices)
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
-# app behaivior
+# app behavior
 table_edit <- reactiveVal("single")
 # table_select <- reactiveVal(TRUE)
 
@@ -111,7 +111,6 @@ table_edit <- reactiveVal("single")
 startup <- reactiveVal(TRUE)
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
-
 
 # server logic
 server <- function(input, output, session) {
@@ -138,7 +137,99 @@ server <- function(input, output, session) {
     )
   })
   
-  # Modal to edit selected row  
+  # Observe dataset selection and update current_data
+  observeEvent(input$dataset, {
+    if(startup()){ # only run on app start up
+      current_data(l_data[[input$dataset]])
+      lastEdited_data_set(l_data[[input$dataset]])
+      lastEdited_data_set_name(input$dataset)
+      startup(FALSE)
+    }else{ # run on changing the data set
+      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
+        # only ask to save if there is something to save  
+        current_data(l_data[[input$dataset]])
+        lastEdited_data_set(l_data[[input$dataset]])
+        lastEdited_data_set_name(input$dataset)
+        return()
+      } else { 
+        # If a change has been made ask the user to save 
+        showModal(modalDialog(
+          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
+          footer = tagList(
+            actionButton("abort_save","Abrechen"),
+            actionButton("save_edit","Speichern")
+            )
+        ))
+      }
+    }
+  })
+  
+  # Observe edit row button
+  observeEvent(input$edit_row_new, {
+    # filter for selected data by user
+    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]
+    
+    # get the user input
+    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
+    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+    names(c_input) <- NULL
+    
+    # Coerce user input to correct data type 
+    l_input <- list()
+    for (ii in 1:ncol(df_temp)) {
+      c_input_class <- df_temp[,ii]|>pull()|>class()
+      if(c_input_class == "character") {
+        if(c_input[ii] == "...") {
+          l_input[[ii]] <- as.character(NA)
+        } else if (c_input[ii] == ""){
+          l_input[[ii]] <- as.character(NA)
+        } else {
+          l_input[[ii]] <- as.character(c_input[ii])
+        }
+      }
+      else if (c_input_class == "Date") {
+        if(is.na(c_input[ii])){
+          l_input[[ii]] <- as.Date(NA)
+        }else{
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        }
+      } else if (c_input_class %in% c("double", "numeric")) {
+        l_input[[ii]] <- as.numeric(c_input[ii])
+      }
+      else if (c_input_class == "integer") {
+        l_input[[ii]] <- as.integer(c_input[ii])
+      }else {
+        stop("should not end here")
+      }
+    }
+    names(l_input) <- names(df_temp)
+    df_updated <- l_input|>
+      as_tibble()
+    # check for changed data 
+    if(is.logical(all.equal(df_temp, df_updated))){
+      # User interaction 
+      showModal(
+        modalDialog(title = "Speichern nicht möglich, es wurde nichts geändert!",
+                    easyClose = TRUE, 
+                    footer = modalButton("Abbrechen")
+        )
+      )
+    }else{
+      # # Generate user feedback 
+      # showModal(
+      #   modalDialog(shiny::actionButton("save_edit","Speichern", class = "btn-success"),
+      #               title = "Änderungen Speichern",
+      #               easyClose = FALSE, 
+      #               footer = modalButton("Abbrechen")
+      #   )
+      # )
+      l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
+      current_data(l_data[[input$dataset]])
+    }
+    shiny::removeModal()
+  })
+  
+  # Edit selected row  
   observeEvent(input$edit_row, {
     if(!is.null(input$table_rows_selected)){
       df_row <- l_data[[input$dataset]][input$table_rows_selected,]
@@ -203,8 +294,8 @@ server <- function(input, output, session) {
       showModal(
         modalDialog(title = "Zeile editieren",
                     l_temp,
-                    actionButton("edit_row_new", "Speichern"),
-                    actionButton("do_nothing", "Abrechen"),
+                    actionButton("edit_row_new", "Werte übernehmen", class = "btn-info"),
+                    actionButton("abort_save", "Abrechen"),
                     easyClose = TRUE, footer = NULL
         )
       )
@@ -215,77 +306,6 @@ server <- function(input, output, session) {
                     easyClose = TRUE, footer = modalButton("Abbrechen")
         )
       )
-    }
-  })
-  
-  # Observe edit row button
-  observeEvent(input$edit_row_new, {
-    # filter for selected data by user
-    df_temp <- l_data[[input$dataset]][input$table_rows_selected,]
-
-    # get the user input
-    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
-    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-    names(c_input) <- NULL
-    
-    # Coerce user input to correct data type 
-    l_input <- list()
-    for (ii in 1:ncol(df_temp)) {
-      c_input_class <- df_temp[,ii]|>pull()|>class()
-      if(c_input_class == "character") {
-        l_input[[ii]] <- as.character(c_input[ii])
-        }
-      else if (c_input_class == "Date") {
-        if(is.na(c_input[ii])){
-          l_input[[ii]] <- as.Date(NA)
-        }else{
-          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
-        }
-      } else if (c_input_class %in% c("double", "numeric")) {
-        l_input[[ii]] <- as.numeric(c_input[ii])
-        }
-      else if (c_input_class == "integer") {
-        l_input[[ii]] <- as.integer(c_input[ii])
-      }else {
-        stop("should not end here")
-      }
-    }
-   names(l_input) <- names(df_temp)
-   df_updated <- l_input|>
-     as_tibble()
-   if(is.logical(all.equal(df_temp, df_updated))){
-     print(l_data)
-   }else{
-     l_data[[input$dataset]][input$table_rows_selected,] <- df_updated
-     current_data(l_data[[input$dataset]])
-   }
-   removeModal()
-  })
-  
-  # Observe dataset selection and update current_data
-  observeEvent(input$dataset, {
-    if(startup()){ # only run on app start up
-      current_data(l_data[[input$dataset]])
-      lastEdited_data_set(l_data[[input$dataset]])
-      lastEdited_data_set_name(input$dataset)
-      startup(FALSE)
-    }else{ # run on changing the data set
-      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
-        # only ask to save if there is something to save  
-        current_data(l_data[[input$dataset]])
-        lastEdited_data_set(l_data[[input$dataset]])
-        lastEdited_data_set_name(input$dataset)
-        return()
-      } else { 
-        # If a change has been made ask the user to save 
-        showModal(modalDialog(
-          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
-          footer = tagList(
-            actionButton("abort_save","Abrechen"),
-            actionButton("save_edit","Speichern")
-            )
-        ))
-      }
     }
   })
 
