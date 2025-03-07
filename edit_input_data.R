@@ -383,7 +383,7 @@ server <- function(input, output, session) {
       } else {
         # get actuall data 
         new_row <- current_data()[1, ]|>mutate(across(everything(), ~ NA)) # Create an empty row
-        if(input$table_rows_selected == 1){
+        if(input$table_rows_selected == 1){ # add row on top
           updated_data <- 
             bind_rows(new_row,
                       current_data()[(input$table_rows_selected):nrow(current_data()),]
@@ -408,7 +408,7 @@ server <- function(input, output, session) {
       updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
       current_data(updated_data)
     } else { # Add row to data  
-      if(is.null(input$table_rows_selected)){
+      if(is.null(input$table_rows_selected)){ # add row on bottom 
         # User interaction 
         showModal(
           modalDialog(title = "Bitte eine Zeile markieren",
