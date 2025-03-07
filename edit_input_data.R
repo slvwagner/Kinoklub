@@ -79,7 +79,7 @@ tool_box_floating <- function(l_data_input, c_select = 1) {
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
-    actionButton("save", "Speichern", class = "btn-success")
+    actionButton("save_edit", "Speichern", class = "btn-success")
   )
 }
 
@@ -148,30 +148,8 @@ lastEdited_data_set_name <- reactiveVal("")
 
 # server logic
 server <- function(input, output, session) {
-  
-  # Render: Dynamically update the floating tool box
-  output$dynamicContent_output_panel <- shiny::renderUI({
-    shiny::tagList(
-      hr(),
-      DTOutput("table"),
-      if(input$data_selection == "Inputdaten"){
-        # Floating tool box to edit input data 
-        tool_box_floating(l_data_input,2)
-      } else {
-        # Floating tool box for editing choices
-        tool_box_floating(l_data_choices)
-      },
 
-      # JavaScript to make the floating panel draggable
-      tags$script(HTML("
-        $(function() {
-          $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-        });
-      "))
-    )
-  })
-  
-  # Observe dataset selection and update current_data
+    # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
     if(startup()){ # only run on app start up
       current_data(l_data()[[input$dataset]])
@@ -196,6 +174,34 @@ server <- function(input, output, session) {
         ))
       }
     }
+  })
+  
+  # Abort changes and update 
+  observeEvent(input$abort_save, {
+    removeModal()
+  })
+  
+  # Save changes and update 
+  observeEvent(input$save_edit, {
+    l_temp <- l_data()
+    l_temp[[input$dataset]] <- current_data() # Update the list
+    saveRDS(l_temp, c_file) # Save the updated list into file
+    l_data(readRDS(c_file)) # update data
+    # update choices
+    list(
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
+    )|>
+      column_choices()
+    showNotification("Changes saved successfully!", type = "message")
+    lastEdited_data_set(l_data()[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
+    current_data(l_data()[[input$dataset]])
+    removeModal()
   })
 
   # Create Modal form to Edit selected row  
@@ -358,49 +364,6 @@ server <- function(input, output, session) {
     shiny::removeModal()
   })
 
-  # Abort changes and update 
-  observeEvent(input$abort_save, {
-    lastEdited_data_set(l_data()[[input$dataset]])
-    lastEdited_data_set_name(input$dataset)
-    current_data(l_data()[[input$dataset]])
-    removeModal()
-  })
-    
-  # Save changes and update 
-  observeEvent(input$save_edit, {
-    l_data()[[lastEdited_data_set_name()]] <<- current_data() # Update the list
-    saveRDS(l_data(), c_file) # Save the updated list to the file
-    l_data(readRDS(c_file)) # update data
-    # update choices
-    list(
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
-    )|>
-      column_choices()
-    showNotification("Changes saved successfully!", type = "message")
-    lastEdited_data_set(l_data()[[input$dataset]])
-    lastEdited_data_set_name(input$dataset)
-    current_data(l_data()[[input$dataset]])
-    removeModal()
-  })
-  
-  # Render the DT table
-  output$table <- renderDataTable({
-    datatable(
-      current_data(),
-      editable = FALSE,
-      selection = "single",
-      filter = "top",
-      options = list(
-        pageLength = nrow(current_data())
-      )
-    )
-  })
-  
   # Add a new row top of selected
   observeEvent(input$add_row_top, {
     new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
@@ -470,26 +433,39 @@ server <- function(input, output, session) {
     current_data(updated_data)
   })
   
-  # Save changes and update 
-  observeEvent(input$save, {
-    l_temp <- l_data()
-    l_temp[[input$dataset]] <- current_data() # Update the list
-    saveRDS(l_temp, c_file) # Save the updated list to the file
-    l_data(readRDS(c_file)) # update data
-    # update choices
-    list(
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
-    )|>
-      column_choices()
-    showNotification("Changes saved successfully!", type = "message")
-    lastEdited_data_set(l_data()[[input$dataset]])
-    lastEdited_data_set_name(input$dataset)
-    current_data(l_data()[[input$dataset]])
+  # Render: Dynamically update the floating tool box
+  output$dynamicContent_output_panel <- shiny::renderUI({
+    shiny::tagList(
+      hr(),
+      DTOutput("table"),
+      if(input$data_selection == "Inputdaten"){
+        # Floating tool box to edit input data 
+        tool_box_floating(l_data_input,2)
+      } else {
+        # Floating tool box for editing choices
+        tool_box_floating(l_data_choices)
+      },
+      
+      # JavaScript to make the floating panel draggable
+      tags$script(HTML("
+        $(function() {
+          $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+        });
+      "))
+    )
+  })
+  
+  # Render the DT table
+  output$table <- renderDataTable({
+    datatable(
+      current_data(),
+      editable = FALSE,
+      selection = "single",
+      filter = "top",
+      options = list(
+        pageLength = nrow(current_data())
+      )
+    )
   })
 }
 
