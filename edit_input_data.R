@@ -15,13 +15,8 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# l_data$Kinoklubmitglieder <-
-#   readxl::read_excel("C:/Users/slvwa/Downloads/Kopie von Kinoklub Mitglieder.xlsx")|>
-#   mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
-#   mutate(`Helferfest 2024` = NULL) |>
-#   mutate("Weiss nicht" = NULL)
-# 
-# l_data$Kinoklubmitglieder
+# l_data$Programm <- l_data$Programm|>
+#   mutate(Kommentar = NULL)
 # 
 # saveRDS(l_data,c_file)
 
@@ -61,9 +56,27 @@ c_select_dropdown_data <- c(6:13, 15, 17)
 l_data_input <- l_data[c_select_input_data]
 l_data_choices <- l_data[c_select_dropdown_data]
 
-l_data_input
-l_data_choices
 
+###################################################
+# Kombinierte Dateinen
+
+update_combinde_tables <- function(l_data){
+  l_data$Einsatzplan <- l_data$Programm|>
+    filter(`Verleiher Angefragt?` == pull(l_data$`Status Filmliste`[3,]))|>
+    select(1:6)|>
+    left_join(l_data$Einsatzplan)
+  # Create Kinoklubmitglied
+  l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+    mutate(Kinoklubmitglied = if_else(is.na(Kinoklubmitglied), NA, paste(Nachname, Vorname))
+    )
+  return(l_data)
+}
+l_data <- update_combinde_tables(l_data)
+saveRDS(l_data,c_file)
+
+
+
+###################################################
 # Floating tool box function 
 tool_box_floating <- function(l_data_input, c_select = 1) {
   tags$div(
@@ -92,8 +105,9 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
+###################################################
 # Define UI
-ui <- 
+ui <- function()
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
     # Function selection 
@@ -186,12 +200,11 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save_edit, {
-    l_temp <- l_data()
-    l_temp[[input$dataset]] <- current_data() # Update the list
+    l_temp <- update_combinde_tables(l_data()) # update combinded tables
+    l_temp[[input$dataset]] <- current_data() # Update the list with current edits
     saveRDS(l_temp, c_file) # Save the updated list into file
     l_data(readRDS(c_file)) # update data
-    # update choices
-    list(
+    list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
       "Kategorie" = l_data()$Kategorie$Auswahl,
       "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
@@ -205,6 +218,8 @@ server <- function(input, output, session) {
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
+    
+
   })
 
   # Create Modal form to Edit selected row  
