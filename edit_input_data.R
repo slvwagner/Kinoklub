@@ -178,6 +178,9 @@ server <- function(input, output, session) {
   
   # Abort changes and update 
   observeEvent(input$abort_save, {
+    current_data(l_data()[[input$dataset]])
+    lastEdited_data_set(l_data()[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
     removeModal()
   })
   
@@ -216,7 +219,7 @@ server <- function(input, output, session) {
         col_data_type <- df_row[,ii]|>
           pull()|>
           class()
-        col_value <- df_row[,ii]|>pull()
+        col_value <- current_data()[input$table_rows_selected,ii]|>pull()
         
         # handel Date inputs
         if(col_data_type == "Date"){
@@ -257,19 +260,19 @@ server <- function(input, output, session) {
           }else{
             if(col_name == "Suisanummer"){
               # create text input for Suisanummer
-              generated_code <- 
-                paste0(
-                  "textInput(inputId = \"", as.character(ii),"\", ", label = "\"",col_name,"\",", 
-                  "value = ", ifelse(is.na(col_value),
-                                    paste0("\"", "", "\"", collapse = ""), 
-                                    paste0("\"",col_value, "\"", collapse = "")
-                                   ),
-                  ifelse(!is.na(col_value), 
-                         "", 
-                         ", placeholder = \"xxxx.xxx\""),
-                  ")"
-                  )
-              generated_code
+              if(is.na(col_value[ii])){
+                generated_code <-paste0(
+                  "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
+                  " placeholder = \"xxxx.xxx\")"
+                )
+              }else{
+                generated_code <-paste0(
+                  "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
+                  " value = \"",col_value,"\")"
+                )
+              }
+              writeLines(generated_code)
+              eval(parse(text = generated_code))
               l_temp[[ii]] <- eval(parse(text = generated_code))
               
             } else if (col_data_type == class(T)){
