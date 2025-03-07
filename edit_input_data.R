@@ -370,45 +370,70 @@ server <- function(input, output, session) {
   # Add a new row top of selected
   observeEvent(input$add_row_top, {
     if(nrow(current_data()) == 0){ # get template data if no current data is available
-      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ] |> mutate(across(everything(), ~ NA))
-    } else { # get actuall data 
-      new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
-      if(input$table_rows_selected != 1){
-        updated_data <- 
-          bind_rows(current_data()[1:(input$table_rows_selected-1),],
-                    new_row,
-                    current_data()[input$table_rows_selected:nrow(current_data()),]
+      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
+      current_data(updated_data)
+    } else { 
+      if(is.null(input$table_rows_selected)){
+        # User interaction 
+        showModal(
+          modalDialog(title = "Bitte eine Zeile markieren",
+                      easyClose = TRUE, footer = modalButton("Abbrechen")
           )
-      }else{
-        updated_data <- 
-          bind_rows(new_row,
-                    current_data()[input$table_rows_selected:nrow(current_data()),]
-          )
+        )
+      } else {
+        # get actuall data 
+        new_row <- current_data()[1, ]|>mutate(across(everything(), ~ NA)) # Create an empty row
+        if(input$table_rows_selected == 1){
+          updated_data <- 
+            bind_rows(new_row,
+                      current_data()[(input$table_rows_selected):nrow(current_data()),]
+            )
+          current_data(updated_data)
+        }else{
+          updated_data <- 
+            bind_rows(current_data()[1:(input$table_rows_selected - 1),],
+                      new_row,
+                      current_data()[(input$table_rows_selected):nrow(current_data()),]
+            )
+          current_data(updated_data)
+        }
       }
     }
-    current_data(updated_data)
   })
   
   # Add a new row bottom of selected
   observeEvent(input$add_row_bottom, {
-    if(nrow(current_data()) == 0){ # get template data if no current data is available
-      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ] |> mutate(across(everything(), ~ NA))
-    } else { # get actuall data 
-      new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA)) # Create an empty row
-      if(input$table_rows_selected != ncol(current_data())){
-        updated_data <- 
-          bind_rows(current_data()[1:(input$table_rows_selected),],
-                    new_row,
-                    current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+    if(nrow(current_data()) == 0){ 
+      # create new empty row with correct data type
+      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
+      current_data(updated_data)
+    } else { # Add row to data  
+      if(is.null(input$table_rows_selected)){
+        # User interaction 
+        showModal(
+          modalDialog(title = "Bitte eine Zeile markieren",
+                      easyClose = TRUE, footer = modalButton("Abbrechen")
           )
-      }else{
-        updated_data <- 
-          bind_rows(current_data()[1:input$table_rows_selected,],
-                    new_row
-          )
+        )
+      } else {
+        # create new empty row with correct data type 
+        new_row <- current_data()[1, ]|>mutate(across(everything(), ~ NA)) # Create an empty row
+        if(input$table_rows_selected == nrow(current_data())){
+          updated_data <- 
+            bind_rows(current_data()[1:input$table_rows_selected,],
+                      new_row
+            )
+          current_data(updated_data)
+        }else {
+          updated_data <- 
+            bind_rows(current_data()[1:(input$table_rows_selected),],
+                      new_row,
+                      current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+            )
+          current_data(updated_data)
+        }
       }
     }
-    current_data(updated_data)
   })
   
   # User interaction Delete selected row(s) 
