@@ -34,7 +34,7 @@ column_choices <- list(
   "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
   "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
   "Verantwortlich" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Operateur*in" = l_data$JaNein$Auswahl,
+  "Operateur*in" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
   "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
   "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
   "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
@@ -64,10 +64,11 @@ update_combinde_tables <- function(l_data){
   l_data$Einsatzplan <- l_data$Programm|>
     filter(`Verleiher Angefragt?` == pull(l_data$`Status Filmliste`[3,]))|>
     select(1:4,6)|>
-    left_join(l_data$Einsatzplan)
+    left_join(l_data$Einsatzplan)|>
+    select(-`Verleiher Angefragt?`)
   # Create Kinoklubmitglied
   l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-    mutate(Kinoklubmitglied = if_else(is.na(Kinoklubmitglied), NA, paste(Nachname, Vorname))
+    mutate(Kinoklubmitglied = if_else(is.na(Kinoklubmitglied), "...", paste(Nachname, Vorname))
     )
   return(l_data)
 }
@@ -200,8 +201,9 @@ server <- function(input, output, session) {
   
   # Save changes and update 
   observeEvent(input$save_edit, {
-    l_temp <- update_combinde_tables(l_data()) # update combinded tables
-    l_temp[[input$dataset]] <- current_data() # Update the list with current edits
+    l_temp <- l_data() # get data list
+    l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+    l_temp <- update_combinde_tables(l_temp) # update joined tables
     saveRDS(l_temp, c_file) # Save the updated list into file
     l_data(readRDS(c_file)) # update data
     list(  # update choices
@@ -216,7 +218,7 @@ server <- function(input, output, session) {
       "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
       "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
       "Verantwortlich" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
-      "Operateur*in" = l_data()$JaNein$Auswahl,
+      "Operateur*in" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
       "Kasse/Bar 1" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
       "Kasse/Bar 2" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
       "Back-up" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
