@@ -15,8 +15,8 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# l_data$Programm <- l_data$Programm|>
-#   mutate(Kommentar = NULL)
+# l_data$Einsatzplan <- l_data$Einsatzplan|>
+#   mutate(Verleiher = NULL)
 # 
 # saveRDS(l_data,c_file)
 
@@ -63,7 +63,7 @@ l_data_choices <- l_data[c_select_dropdown_data]
 update_combinde_tables <- function(l_data){
   l_data$Einsatzplan <- l_data$Programm|>
     filter(`Verleiher Angefragt?` == pull(l_data$`Status Filmliste`[3,]))|>
-    select(1:6)|>
+    select(1:4,6)|>
     left_join(l_data$Einsatzplan)
   # Create Kinoklubmitglied
   l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
@@ -210,7 +210,24 @@ server <- function(input, output, session) {
       "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
       "Verleiher" = l_data()$Verleiher$Verleihername,
       "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
+      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
+      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
+      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
+      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
+      "Verantwortlich" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
+      "Operateur*in" = l_data()$JaNein$Auswahl,
+      "Kasse/Bar 1" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
+      "Kasse/Bar 2" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
+      "Back-up" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
+      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
+      "Kasse / Bar" = l_data()$JaNein$Auswahl,
+      "Programm" = l_data()$JaNein$Auswahl,
+      "Sonderevents" = l_data()$JaNein$Auswahl,
+      "Marketing" = l_data()$JaNein$Auswahl,
+      "Finanzen" = l_data()$JaNein$Auswahl,
+      "Sponsoring" = l_data()$JaNein$Auswahl,
+      "Koordination" = l_data()$JaNein$Auswahl
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
@@ -218,8 +235,6 @@ server <- function(input, output, session) {
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
-    
-
   })
 
   # Create Modal form to Edit selected row  
