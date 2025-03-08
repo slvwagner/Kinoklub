@@ -1,6 +1,8 @@
 library(shiny)
 library(DT)
 library(tidyverse)
+library(viridis)
+library(colorspace)
 
 # Load the data
 c_file <- "Input/Data.Rds"
@@ -756,6 +758,61 @@ server <- function(input, output, session) {
             values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
           )
         )
+    } else if (!is.null(input$dataset) && input$dataset == "Einsatzplan"){
+      print("here")
+      names(l_data()[["Kinoklubmitglieder"]])
+      c_Kinoklubmitglied <- 
+        l_data()[["Kinoklubmitglieder"]]|>
+        mutate(Kinoklubmitglied = paste(Nachname, Vorname))|>
+        select(Kinoklubmitglied)|>
+        pull()
+      
+      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+      
+      # Generate the magma color palette s
+      magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
+      
+      # Lighten the colors to create a pastel effect
+      pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
+      
+      # Apply conditional formatting to both columns
+      dt <- dt |>
+        formatStyle(
+          "Verantwortlich",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c_Kinoklubmitglied,  # Exact values from your column
+            values = pastel_magma  # Corresponding colors
+          )
+        ) |>
+        formatStyle(
+          "Kasse/Bar 1",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c_Kinoklubmitglied,  # Exact values from your column
+            values = pastel_magma  # Corresponding colors
+          )
+        )|>
+        formatStyle(
+          "Kasse/Bar 2",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c_Kinoklubmitglied,  # Exact values from your column
+            values = pastel_magma  # Corresponding colors
+          )
+        )|>
+        formatStyle(
+          "Operateur*in",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c_Kinoklubmitglied,  # Exact values from your column
+            values = pastel_magma  # Corresponding colors
+          )
+        )|>
+        formatStyle(
+          "Back-up",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c_Kinoklubmitglied,  # Exact values from your column
+            values = pastel_magma  # Corresponding colors
+          )
+        )
+        
     }
 
     return(dt)
