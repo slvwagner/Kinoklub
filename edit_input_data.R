@@ -75,8 +75,6 @@ update_combinde_tables <- function(l_data){
 l_data <- update_combinde_tables(l_data)
 saveRDS(l_data,c_file)
 
-
-
 ###################################################
 # Floating tool box function 
 tool_box_floating <- function(l_data_input, c_select = 1) {
@@ -108,7 +106,7 @@ validate_suisanummer(c("1234.562","123.25"))
 
 ###################################################
 # Define UI
-ui <- function()
+ui <- function(){
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
     # Function selection 
@@ -145,8 +143,9 @@ ui <- function()
     shiny::mainPanel(
       shiny::uiOutput("dynamicContent_output_panel"),
     )
-  )
+  )}
 
+###################################################
 # Reactive choices list
 l_data <- reactiveVal(l_data)
 column_choices <- reactiveVal(column_choices)
@@ -161,6 +160,10 @@ startup <- reactiveVal(TRUE)
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
+last_selected_row <- reactiveVal(1)
+
+
+###################################################
 # server logic
 server <- function(input, output, session) {
 
@@ -359,7 +362,7 @@ server <- function(input, output, session) {
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- l_data()[[input$dataset]][,ii]|>pull()|>class()
       if(c_input_class == "character") {
-        if (c_input[ii] == ""){
+        if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- as.character(NA)
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
@@ -384,10 +387,10 @@ server <- function(input, output, session) {
     df_updated <- l_input|>
       as_tibble()
     # check for changed data 
-    if(is.logical(all.equal(df_temp, df_updated))){
+    if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_updated))){
       # User interaction 
       showModal(
-        modalDialog(title = "Speichern nicht möglich, es wurde nichts geändert!",
+        modalDialog(title = "Es wurde nichts geändert!",
                     easyClose = TRUE, 
                     footer = modalButton("Abbrechen")
         )
@@ -397,6 +400,8 @@ server <- function(input, output, session) {
       current_data(df_temp)
     }
     shiny::removeModal()
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())
   })
 
   # Add a new row top of selected
@@ -431,6 +436,8 @@ server <- function(input, output, session) {
         }
       }
     }
+    dataTableProxy("table")|>
+      selectRows(last_selected_row() + 1)
   })
   
   # Add a new row bottom of selected
@@ -466,6 +473,52 @@ server <- function(input, output, session) {
         }
       }
     }
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())
+  })
+  
+  # Duplicate selected row(s) and update "Gültig ab Datum"
+  observeEvent(input$duplicate_row, {
+    req(input$table_rows_selected) # Ensure a row is selected
+    new_row <- current_data()[input$table_rows_selected, ]
+    # Update "Gültig ab Datum" to the current system date
+    if ("Gültig ab Datum" %in% colnames(new_row)) {
+      new_row <- new_row |>
+        mutate(`Gültig ab Datum` = Sys.Date())
+    }
+
+    if(nrow(current_data()) == 0){ 
+      # create new empty row with correct data type
+      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
+      current_data(updated_data)
+    } else { # Add row to data  
+      if(is.null(input$table_rows_selected)){ # add row on bottom 
+        # User interaction 
+        showModal(
+          modalDialog(title = "Bitte eine Zeile markieren",
+                      easyClose = TRUE, footer = modalButton("Abbrechen")
+          )
+        )
+      } else {
+        if(input$table_rows_selected == nrow(current_data())){
+          updated_data <- 
+            bind_rows(current_data()[1:input$table_rows_selected,],
+                      new_row
+            )
+          current_data(updated_data)
+        }else {
+          updated_data <- 
+            bind_rows(current_data()[1:(input$table_rows_selected),],
+                      new_row,
+                      current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+            )
+          current_data(updated_data)
+        }
+      }
+    }
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())
+    
   })
   
   # User interaction Delete selected row(s) 
@@ -487,18 +540,9 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  # Duplicate selected row(s) and update "Gültig ab Datum"
-  observeEvent(input$duplicate_row, {
-    req(input$table_rows_selected) # Ensure a row is selected
-    selected_rows <- current_data()[input$table_rows_selected, ]
-    # Update "Gültig ab Datum" to the current system date
-    if ("Gültig ab Datum" %in% colnames(selected_rows)) {
-      selected_rows <- selected_rows |>
-        mutate(`Gültig ab Datum` = Sys.Date())
-    }
-    # Append the duplicated rows to the dataset
-    updated_data <- bind_rows(current_data(), selected_rows)
-    current_data(updated_data)
+  # update last selected row
+  observeEvent(input$table_rows_selected,{
+    last_selected_row(input$table_rows_selected)
   })
   
   # Render: Dynamically update the floating tool box
