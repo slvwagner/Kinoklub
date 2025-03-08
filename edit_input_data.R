@@ -33,11 +33,11 @@ column_choices <- list(
   "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
   "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
   "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Operateur*in" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Kasse/Bar 1" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Kasse/Bar 2" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
-  "Back-up" = l_data$Kinoklubmitglieder$Kinoklubmitglied,
+  "Verantwortlich" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
+  "Operateur*in" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
+  "Kasse/Bar 1" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
+  "Kasse/Bar 2" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
+  "Back-up" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
   "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
   "Kasse / Bar" = l_data$JaNein$Auswahl,
   "Programm" = l_data$JaNein$Auswahl,
@@ -78,7 +78,7 @@ saveRDS(l_data,c_file)
 
 ###################################################
 # Floating tool box function 
-tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_var = NA) {
+tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
@@ -171,7 +171,8 @@ lastEdited_data_set_name <- reactiveVal("")
 
 last_selected_row <- reactiveVal(1)
 last_selected_page <- reactiveVal(1)
-pageLenght_var <- reactiveVal(5)
+page_length_var <- reactiveVal(6)
+
 
 ###################################################
 # server logic
@@ -258,11 +259,11 @@ server <- function(input, output, session) {
       "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
       "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
       "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
-      "Operateur*in" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
-      "Kasse/Bar 1" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
-      "Kasse/Bar 2" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
-      "Back-up" = l_data()$Kinoklubmitglieder$Kinoklubmitglied,
+      "Verantwortlich" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
+      "Operateur*in" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
+      "Kasse/Bar 1" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
+      "Kasse/Bar 2" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
+      "Back-up" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
       "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
       "Kasse / Bar" = l_data()$JaNein$Auswahl,
       "Programm" = l_data()$JaNein$Auswahl,
@@ -599,13 +600,13 @@ server <- function(input, output, session) {
   
   # Change number or rows to be displayed by datatable
   observeEvent(input$page_lenght,{
-    pageLenght_var(input$page_lenght)
+    page_length_var(input$page_lenght)
     last_selected_row(input$table_rows_selected)
     row_num <- last_selected_row()
     if(!is.null(row_num)){ # only update if row is selected
       if (row_num > 0 && row_num <= nrow(current_data())) {
         # Calculate the page number where the row is located
-        page_length <- pageLenght_var()  # Same as pageLength in datatable options
+        page_length <- page_length_var()  # Same as pageLength in datatable options
         page_num <- ceiling(row_num / page_length)
         last_selected_page(page_num)
       }
@@ -621,7 +622,7 @@ server <- function(input, output, session) {
     row_num <- last_selected_row()
     if (row_num > 0 && row_num <= nrow(current_data())) {
       # Calculate the page number where the row is located
-      page_length <- pageLenght_var()  # Same as pageLength in datatable options
+      page_length <- page_length_var()  # Same as pageLength in datatable options
       page_num <- ceiling(row_num / page_length)
       last_selected_page(page_num)
     }
@@ -637,10 +638,10 @@ server <- function(input, output, session) {
       DTOutput("table"),
       if(input$data_selection == "Inputdaten"){
         # Floating tool box to edit input data 
-        tool_box_floating(l_data_input,2, pageLenght_var = pageLenght_var())
+        tool_box_floating(l_data_input,2, page_length_var = page_length_var())
       } else {
         # Floating tool box for editing choices
-        tool_box_floating(l_data_choices, pageLenght_var = pageLenght_var())
+        tool_box_floating(l_data_choices, page_length_var = page_length_var())
       },
       
       # JavaScript to make the floating panel draggable
@@ -652,20 +653,102 @@ server <- function(input, output, session) {
     )
   })
   
-
-  # Render the DT table
+  # Render data table output
   output$table <- renderDataTable({
-    df_temp <- datatable(
-      current_data(),
-      editable = FALSE,
-      selection = "single",
-      filter = "top",
-      options = list(
-        pageLength = pageLenght_var()
+    
+    if(input$data_selection == "Inputdaten") {
+      print("render table")
+      # get crrent data
+      df_temp <- current_data()
+      # find all column names containing "Datum"
+      df_Date <- current_data()|>
+        select(contains("datum"))
+      # create user readable Datum
+      df_Date_user <-
+        df_Date|>
+        as.matrix()|>
+        apply(2, function(x){
+          x <- as.Date(x)
+          x <- paste0(lubridate::day(x), ".", lubridate::month(x), ".", lubridate::year(x))
+          return(x)
+        })|>
+        as_tibble()
+      names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
+      
+      # Insert user readable Datum
+      run <- TRUE
+      ii <- 1
+      while(run){
+        if(names(df_temp)[ii] %in% names(df_Date)){
+          for (jj in 1:ncol(df_Date)) {
+            if(names(df_temp)[ii] == names(df_Date)[jj]){
+              if(ncol(df_temp) == ii){
+                df_temp <-
+                  bind_cols(
+                    df_temp[,1:ii],
+                    df_Date_user[, jj]
+                  )
+              }else{
+                df_temp <-
+                  bind_cols(
+                    df_temp[,1:ii],
+                    df_Date_user[, jj],
+                    df_temp[,(ii+1):ncol(df_temp)]
+                  )
+              }
+              ii <- ii + 1
+            }
+          }
+        }
+        if(ncol(df_temp) <= ii) run <- FALSE
+        ii <- ii + 1
+      }
+      # Select user readable datum columns
+      c_select <- names(df_temp)|>as.integer()|>
+        suppressWarnings()
+      c_select
+      
+      # create option list for datatable function
+      l_columnDefs <- list()
+      cnt <- 1
+      for (ii in 1:length(c_select)) {
+        if(!is.na(c_select)[ii]){
+          l_columnDefs <- append(l_columnDefs, list(
+            list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
+            list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
+          ))
+          names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
+          cnt <- cnt + 2
+        }
+      }
+      
+      # Create the DataTable
+      dt <- datatable(
+        df_temp,
+        editable = FALSE,
+        selection = "single",
+        filter = "top",
+        options = list(
+          columnDefs = l_columnDefs,
+          pageLength = page_length_var()
+        )
       )
-    )
+    } else {
+      # Create the DataTable
+      dt <- datatable(
+        current_data(),
+        editable = FALSE,
+        selection = "single",
+        filter = "top",
+        options = list(
+          pageLength = page_length_var()
+        )
+      )
+    }
+    
+    # Apply conditional formatting for "Programm" dataset
     if (!is.null(input$dataset) && input$dataset == "Programm") {
-      df_temp <- df_temp |> 
+      dt <- dt |>
         formatStyle(
           "Verleiher Angefragt?",  # Ensure this column name matches exactly
           backgroundColor = styleEqual(
@@ -674,10 +757,10 @@ server <- function(input, output, session) {
           )
         )
     }
-    
-    return(df_temp)
+
+    return(dt)
   })
-  
+
 }
 
   
