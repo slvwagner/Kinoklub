@@ -83,7 +83,7 @@ tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_var = NA) {
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = pageLenght_var),
+    
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -108,13 +108,14 @@ validate_suisanummer(c("1234.562","123.25"))
 
 ###################################################
 # Define UI
-ui <- function(){
+ui <- 
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
     # Function selection 
     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                         choices = c("Inputdaten", "Dropdowns")
                         ),
+    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = 5),
     # Ensure jQuery UI is available for dragable tool box
     includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$head(
@@ -145,7 +146,7 @@ ui <- function(){
     shiny::mainPanel(
       shiny::uiOutput("dynamicContent_output_panel"),
     )
-  )}
+  )
 
 ###################################################
 # Reactive choices list
@@ -183,8 +184,8 @@ server <- function(input, output, session) {
         current_data(l_data()[[input$dataset]])
         lastEdited_data_set(l_data()[[input$dataset]])
         lastEdited_data_set_name(input$dataset)
-        last_selected_page(NA)
-        last_selected_row(NA)
+        # last_selected_page(NA)
+        # last_selected_row(NA)
         # dataTableProxy("table")|>
         #   selectPage(last_selected_page())|>
         #   selectRows(last_selected_row())
@@ -248,6 +249,15 @@ server <- function(input, output, session) {
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
+    if(lastEdited_data_set_name() != input$dataset){
+        dataTableProxy("table")|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+    }else{
+      last_selected_page(NA)
+      last_selected_row(NA)
+    }
+
   })
 
   # Create Modal form to Edit selected row  
@@ -558,11 +568,22 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  # Change number or rows to be displayed by datatable
   observeEvent(input$page_lenght,{
     pageLenght_var(input$page_lenght)
-    # dataTableProxy("table")|>
-    #   selectPage(last_selected_page())|>
-    #   selectRows(last_selected_row())
+    last_selected_row(input$table_rows_selected)
+    row_num <- last_selected_row()
+    if(!is.null(row_num)){ # only update if row is selected
+      if (row_num > 0 && row_num <= nrow(current_data())) {
+        # Calculate the page number where the row is located
+        page_length <- pageLenght_var()  # Same as pageLength in datatable options
+        page_num <- ceiling(row_num / page_length)
+        last_selected_page(page_num)
+      }
+      dataTableProxy("table")|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+    }
   })
   
   # update last selected row and page in current datatable
