@@ -152,7 +152,7 @@ ui <-
 
 ###################################################
 # Konstanten
-Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Operateur*in")
+Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm")
 
 ###################################################
 # Reactive choices list
@@ -179,7 +179,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$get_email,{
     showModal(modalDialog(
-      shiny::selectInput("Verteiler", "Verteiler", 
+      shiny::radioButtons("Verteiler", "Verteiler", 
                          choices = Email_col_names
                          ),
       title = "Email-Verteiler wählen",
