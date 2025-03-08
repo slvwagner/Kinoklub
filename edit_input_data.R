@@ -177,6 +177,7 @@ pageLenght_var <- reactiveVal(5)
 # server logic
 server <- function(input, output, session) {
   
+  # observe event get email list 
   observeEvent(input$get_email,{
     showModal(modalDialog(
       shiny::radioButtons("Verteiler", "Verteiler", 
@@ -189,6 +190,7 @@ server <- function(input, output, session) {
     ))
   })
   
+  # select email verteiler and copy emails to clipboard 
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
