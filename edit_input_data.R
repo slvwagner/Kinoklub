@@ -78,12 +78,12 @@ saveRDS(l_data,c_file)
 
 ###################################################
 # Floating tool box function 
-tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_constant = 1) {
+tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_var = NA) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = pageLenght_constant),
+    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = pageLenght_var),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -164,13 +164,13 @@ lastEdited_data_set_name <- reactiveVal("")
 
 last_selected_row <- reactiveVal(1)
 last_selected_page <- reactiveVal(1)
-pageLenght_constant <- reactiveVal(5)
+pageLenght_var <- reactiveVal(5)
 
 ###################################################
 # server logic
 server <- function(input, output, session) {
 
-    # Observe dataset selection and update current_data
+  # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
     if(startup()){ # only run on app start up
       current_data(l_data()[[input$dataset]])
@@ -183,6 +183,11 @@ server <- function(input, output, session) {
         current_data(l_data()[[input$dataset]])
         lastEdited_data_set(l_data()[[input$dataset]])
         lastEdited_data_set_name(input$dataset)
+        last_selected_page(NA)
+        last_selected_row(NA)
+        # dataTableProxy("table")|>
+        #   selectPage(last_selected_page())|>
+        #   selectRows(last_selected_row())
         return()
       } else { 
         # If a change has been made ask the user to save 
@@ -554,10 +559,10 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$page_lenght,{
-    pageLenght_constant(input$page_lenght)
-    dataTableProxy("table")|>
-      selectPage(last_selected_page())|>
-      selectRows(last_selected_row())
+    pageLenght_var(input$page_lenght)
+    # dataTableProxy("table")|>
+    #   selectPage(last_selected_page())|>
+    #   selectRows(last_selected_row())
   })
   
   # update last selected row and page in current datatable
@@ -566,7 +571,7 @@ server <- function(input, output, session) {
     row_num <- last_selected_row()
     if (row_num > 0 && row_num <= nrow(current_data())) {
       # Calculate the page number where the row is located
-      page_length <- pageLenght_constant()  # Same as pageLength in datatable options
+      page_length <- pageLenght_var()  # Same as pageLength in datatable options
       page_num <- ceiling(row_num / page_length)
       last_selected_page(page_num)
     }
@@ -582,10 +587,10 @@ server <- function(input, output, session) {
       DTOutput("table"),
       if(input$data_selection == "Inputdaten"){
         # Floating tool box to edit input data 
-        tool_box_floating(l_data_input,2, pageLenght_constant = pageLenght_constant())
+        tool_box_floating(l_data_input,2, pageLenght_var = pageLenght_var())
       } else {
         # Floating tool box for editing choices
-        tool_box_floating(l_data_choices, pageLenght_constant = pageLenght_constant())
+        tool_box_floating(l_data_choices, pageLenght_var = pageLenght_var())
       },
       
       # JavaScript to make the floating panel draggable
@@ -605,7 +610,7 @@ server <- function(input, output, session) {
       selection = "single",
       filter = "top",
       options = list(
-        pageLength = pageLenght_constant()
+        pageLength = pageLenght_var()
       )
     )
   })
