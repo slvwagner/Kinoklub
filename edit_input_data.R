@@ -57,6 +57,7 @@ l_data_input <- l_data[c_select_input_data]
 l_data_choices <- l_data[c_select_dropdown_data]
 
 
+
 ###################################################
 # Kombinierte Dateinen
 
@@ -77,11 +78,12 @@ saveRDS(l_data,c_file)
 
 ###################################################
 # Floating tool box function 
-tool_box_floating <- function(l_data_input, c_select = 1) {
+tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_constant = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = pageLenght_constant),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -161,7 +163,8 @@ lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
 last_selected_row <- reactiveVal(1)
-
+last_selected_page <- reactiveVal(1)
+pageLenght_constant <- reactiveVal(5)
 
 ###################################################
 # server logic
@@ -295,7 +298,7 @@ server <- function(input, output, session) {
           }else{
             if(col_name == "Suisanummer"){
               # create text input for Suisanummer
-              if(is.na(col_value[ii])){
+              if(is.na(col_value)){
                 generated_code <-paste0(
                   "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
                   " placeholder = \"xxxx.xxx\")"
@@ -347,7 +350,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Observe edit row button
+  # Observe edit row value button
   observeEvent(input$edit_row_value, {
     # filter for selected data by user
     df_temp <- current_data()
@@ -392,18 +395,24 @@ server <- function(input, output, session) {
       showModal(
         modalDialog(title = "Es wurde nichts geändert!",
                     easyClose = TRUE, 
-                    footer = modalButton("Abbrechen")
+                    footer = actionButton("abort","Abbrechen")
         )
       )
     }else{
       df_temp[input$table_rows_selected,] <- df_updated
       current_data(df_temp)
+      removeModal()
     }
-    shiny::removeModal()
     dataTableProxy("table")|>
-      selectRows(last_selected_row())
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
   })
-
+  
+  # abort: Es wurde nichts geändert! 
+  observeEvent(input$abort,{
+    removeModal()
+  })
+  
   # Add a new row top of selected
   observeEvent(input$add_row_top, {
     if(nrow(current_data()) == 0){ # get template data if no current data is available
@@ -437,7 +446,8 @@ server <- function(input, output, session) {
       }
     }
     dataTableProxy("table")|>
-      selectRows(last_selected_row() + 1)
+      selectRows(last_selected_row() + 1)|>
+      selectPage(last_selected_page())
   })
   
   # Add a new row bottom of selected
@@ -474,7 +484,9 @@ server <- function(input, output, session) {
       }
     }
     dataTableProxy("table")|>
+      selectPage(last_selected_page())|>
       selectRows(last_selected_row())
+      
   })
   
   # Duplicate selected row(s) and update "Gültig ab Datum"
@@ -517,7 +529,8 @@ server <- function(input, output, session) {
       }
     }
     dataTableProxy("table")|>
-      selectRows(last_selected_row())
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
     
   })
   
@@ -540,9 +553,26 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  # update last selected row
+  observeEvent(input$page_lenght,{
+    pageLenght_constant(input$page_lenght)
+    dataTableProxy("table")|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
+  })
+  
+  # update last selected row and page in current datatable
   observeEvent(input$table_rows_selected,{
     last_selected_row(input$table_rows_selected)
+    row_num <- last_selected_row()
+    if (row_num > 0 && row_num <= nrow(current_data())) {
+      # Calculate the page number where the row is located
+      page_length <- pageLenght_constant()  # Same as pageLength in datatable options
+      page_num <- ceiling(row_num / page_length)
+      last_selected_page(page_num)
+    }
+    dataTableProxy("table")|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   # Render: Dynamically update the floating tool box
@@ -552,10 +582,10 @@ server <- function(input, output, session) {
       DTOutput("table"),
       if(input$data_selection == "Inputdaten"){
         # Floating tool box to edit input data 
-        tool_box_floating(l_data_input,2)
+        tool_box_floating(l_data_input,2, pageLenght_constant = pageLenght_constant())
       } else {
         # Floating tool box for editing choices
-        tool_box_floating(l_data_choices)
+        tool_box_floating(l_data_choices, pageLenght_constant = pageLenght_constant())
       },
       
       # JavaScript to make the floating panel draggable
@@ -575,7 +605,7 @@ server <- function(input, output, session) {
       selection = "single",
       filter = "top",
       options = list(
-        pageLength = nrow(current_data())
+        pageLength = pageLenght_constant()
       )
     )
   })
