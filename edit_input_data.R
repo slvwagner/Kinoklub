@@ -83,7 +83,7 @@ tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_var = NA) {
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    
+    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = 5),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -115,7 +115,7 @@ ui <-
     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                         choices = c("Inputdaten", "Dropdowns")
                         ),
-    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = 5),
+
     # Ensure jQuery UI is available for dragable tool box
     includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$head(
