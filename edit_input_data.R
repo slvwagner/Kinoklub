@@ -93,7 +93,9 @@ tool_box_floating <- function(l_data_input, c_select = 1, pageLenght_var = NA) {
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
-    actionButton("save_edit", "Speichern", class = "btn-success")
+    actionButton("save_edit", "Speichern", class = "btn-success"),
+    shiny::tags$hr(),
+    actionButton("get_email", "Email-Verteiler", class = "btn-info"),
   )
 }
 
@@ -149,6 +151,10 @@ ui <-
   )
 
 ###################################################
+# Konstanten
+Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Operateur*in")
+
+###################################################
 # Reactive choices list
 l_data <- reactiveVal(l_data)
 column_choices <- reactiveVal(column_choices)
@@ -170,6 +176,32 @@ pageLenght_var <- reactiveVal(5)
 ###################################################
 # server logic
 server <- function(input, output, session) {
+  
+  observeEvent(input$get_email,{
+    showModal(modalDialog(
+      shiny::selectInput("Verteiler", "Verteiler", 
+                         choices = Email_col_names
+                         ),
+      title = "Email-Verteiler wählen",
+      footer = tagList(
+        actionButton("get_email_verteiler","Email im Verteiler kopieren")
+      )
+    ))
+  })
+  
+  observeEvent(input$get_email_verteiler,{
+    print("yes")
+    generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
+        filter(\`",input$Verteiler,"\` == \"ja\")|>
+        distinct(Email)|>
+        pull()", collapse =  "")
+    
+    C_verteiler <- sapply(generated_code, function(x) eval(parse(text = x)))|>
+      paste0(collapse = ";")
+    C_verteiler|>
+      writeClipboard()
+    removeModal()
+  })
 
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
@@ -184,11 +216,6 @@ server <- function(input, output, session) {
         current_data(l_data()[[input$dataset]])
         lastEdited_data_set(l_data()[[input$dataset]])
         lastEdited_data_set_name(input$dataset)
-        # last_selected_page(NA)
-        # last_selected_row(NA)
-        # dataTableProxy("table")|>
-        #   selectPage(last_selected_page())|>
-        #   selectRows(last_selected_row())
         return()
       } else { 
         # If a change has been made ask the user to save 
