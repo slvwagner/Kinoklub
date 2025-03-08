@@ -670,7 +670,7 @@ server <- function(input, output, session) {
           "Verleiher Angefragt?",  # Ensure this column name matches exactly
           backgroundColor = styleEqual(
             levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
-            values = c('lightgreen', 'orange', 'red')  # Corresponding colors
+            values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
           )
         )
     }
