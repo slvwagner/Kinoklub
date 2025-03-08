@@ -652,9 +652,10 @@ server <- function(input, output, session) {
     )
   })
   
+
   # Render the DT table
   output$table <- renderDataTable({
-    datatable(
+    df_temp <- datatable(
       current_data(),
       editable = FALSE,
       selection = "single",
@@ -663,9 +664,24 @@ server <- function(input, output, session) {
         pageLength = pageLenght_var()
       )
     )
+    if (!is.null(input$dataset) && input$dataset == "Programm") {
+      df_temp <- df_temp |> 
+        formatStyle(
+          "Verleiher Angefragt?",  # Ensure this column name matches exactly
+          backgroundColor = styleEqual(
+            levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
+            values = c('lightgreen', 'orange', 'red')  # Corresponding colors
+          )
+        )
+    }
+    
+    return(df_temp)
   })
+  
 }
 
+  
+  
 # Run the app
 shiny::runApp(
   host = "0.0.0.0",
