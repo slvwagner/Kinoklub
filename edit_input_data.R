@@ -637,8 +637,8 @@ server <- function(input, output, session) {
       last_selected_row()
     
     # update page lenght
-    req(input$table_state$length)
-    page_length_var(input$table_state$length)
+    req(input$page_length)
+    page_length_var(input$page_length)
     
     # update page
     page <-  ceiling(row / page_length_var())
@@ -650,7 +650,7 @@ server <- function(input, output, session) {
         "Debug =", c_debug(),
         "\nObserve Event select a row:",
         "\nrow = ", row,
-        "\npage = ", page, 
+        "\npage = ", page,
         "\nlenght = ", page_length_var(),
         "\n**************************\n",
         sep = ""
