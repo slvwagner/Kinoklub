@@ -7,8 +7,8 @@ rm(list = ls())
 # Define libraries to be installed
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT",  "shiny",  "shinyBS",  "magick",
-  "webshot",  "xml2",  "furrr", "future", "processx"
+  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
+  "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
 )
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
