@@ -176,6 +176,9 @@ last_selected_row <- reactiveVal(1)
 last_selected_page <- reactiveVal(1)
 page_length_var <- reactiveVal(6)
 
+# Debug 
+c_debug <- reactiveVal(0)
+
 
 ###################################################
 # server logic
@@ -625,12 +628,7 @@ server <- function(input, output, session) {
   
   # observe Event select a row 
   observeEvent(input$table_rows_selected, {
-    # update page
-    req(input$table_rows_selected)
-    page <- ceiling(input$table_rows_selected / input$table_state$length)
-    page|>
-      last_selected_page()
-    
+    c_debug(c_debug()+1)
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
@@ -639,21 +637,31 @@ server <- function(input, output, session) {
     
     # update page lenght
     req(input$table_state$length)
-    page_lenght <- input$table_state$length
-    page_lenght|>
-      page_length_var()
+    page_length_var(input$table_state$length)
+    
+    # update page
+    page <-  ceiling(row / page_length_var())
+    page|>
+      last_selected_page()
     
     # Debug
-    paste("observe Event select a row:",
-          "\nrow = ", last_selected_row(),
-          "\npage =", last_selected_page(),
-          "\npage jlkjsdflkjlkdsjlength =" = page_length_var()
-          )|>
-      writeLines()
+    cat("\n**************************\n",
+        "Debug =", c_debug(),
+        "\nObserve Event select a row:",
+        "\nrow = ", row,
+        "\npage = ", page, 
+        "\nlenght = ", page_length_var(),
+        "\n**************************\n",
+        sep = ""
+          )
     
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
+  })
+  
+  observeEvent(page_length_var,{
+    print("Here")
   })
   
   # Render data table output
@@ -734,20 +742,37 @@ server <- function(input, output, session) {
         filter = "top",
         options = list(
           columnDefs = l_columnDefs,
-          pageLength = page_length_var(), # Initial page length
-          lengthMenu = c_lengthMenu # Dropdown options
+          pageLength = page_length_var(),
+          lengthMenu = c_lengthMenu,
+          language = list(
+            paginate = list(
+              first = "Erste Seite",
+              last = "Letzte Seite",
+              `next` = "Nächste Seite",
+              previous = "Vorherige Seite"
+            )
+          )
         )
       )
     } else {
       # Create the DataTable for all other data sets
       dt <- datatable(
-        current_data(),
+        df_temp,
         editable = FALSE,
         selection = "single",
         filter = "top",
         options = list(
-          pageLength = page_length_var(), # Initial page length
-          lengthMenu = c_lengthMenu # Dropdown options
+          # columnDefs = l_columnDefs,
+          pageLength = page_length_var(),
+          lengthMenu = c_lengthMenu,
+          language = list(
+            paginate = list(
+              first = "Erste Seite",
+              last = "Letzte Seite",
+              `next` = "Nächste Seite",
+              previous = "Vorherige Seite"
+            )
+          )
         )
       )
     }
