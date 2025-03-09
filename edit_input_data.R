@@ -85,7 +85,7 @@ tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) 
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = 5),
+    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = page_length_var),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -671,7 +671,7 @@ server <- function(input, output, session) {
         as.matrix()|>
         apply(2, function(x){
           x <- as.Date(x)
-          x <- paste0(lubridate::day(x), ".", lubridate::month(x), ".", lubridate::year(x))
+          x <- format(x, "%d.%m.%Y")
           return(x)
         })|>
         as_tibble()
