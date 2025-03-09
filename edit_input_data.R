@@ -748,7 +748,7 @@ server <- function(input, output, session) {
       )
     }
     
-    # Apply conditional formatting for "Programm" dataset
+    # Apply conditional formatting
     if (!is.null(input$dataset) && input$dataset == "Programm") {
       dt <- dt |>
         formatStyle(
