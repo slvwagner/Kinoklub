@@ -625,11 +625,31 @@ server <- function(input, output, session) {
   
   # observe Event select a row 
   observeEvent(input$table_rows_selected, {
-    
-    # update data table page 
-    ceiling(input$table_rows_selected / input$table_state$length) |>
+    # update page
+    req(input$table_rows_selected)
+    page <- ceiling(input$table_rows_selected / input$table_state$length)
+    page|>
       last_selected_page()
-    last_selected_row(input$table_rows_selected)
+    
+    # update last selected row  
+    req(input$table_rows_selected)
+    row <- input$table_rows_selected
+    row |>
+      last_selected_row()
+    
+    # update page lenght
+    req(input$table_state$length)
+    page_lenght <- input$table_state$length
+    page_lenght|>
+      page_length_var()
+    
+    # Debug
+    paste("observe Event select a row:",
+          "\nrow = ", last_selected_row(),
+          "\npage =", last_selected_page(),
+          "\npage jlkjsdflkjlkdsjlength =" = page_length_var()
+          )|>
+      writeLines()
     
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
@@ -641,7 +661,7 @@ server <- function(input, output, session) {
     # rendering the datatable depens on the input data 
     # for certain input data sets other renderings may be needed
     if(input$data_selection == "Inputdaten") { # for all Input date change to user readable "Datum"
-      print("render table")
+      print("Render data table output")
       # get crrent data
       df_temp <- current_data()
       # find all column names containing "Datum"
@@ -714,7 +734,7 @@ server <- function(input, output, session) {
         filter = "top",
         options = list(
           columnDefs = l_columnDefs,
-          pageLength = c_pageLength, # Initial page length
+          pageLength = page_length_var(), # Initial page length
           lengthMenu = c_lengthMenu # Dropdown options
         )
       )
@@ -726,7 +746,7 @@ server <- function(input, output, session) {
         selection = "single",
         filter = "top",
         options = list(
-          pageLength = c_pageLength, # Initial page length
+          pageLength = page_length_var(), # Initial page length
           lengthMenu = c_lengthMenu # Dropdown options
         )
       )
