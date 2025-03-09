@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(DT)
 library(tidyverse)
 library(viridis)
@@ -660,8 +661,38 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  observeEvent(page_length_var,{
-    print("Here")
+  # Observe the change in page length
+  observeEvent(input$page_length, {
+    c_debug(c_debug()+1)
+    # update last selected row  
+    req(input$table_rows_selected)
+    row <- input$table_rows_selected
+    row |>
+      last_selected_row()
+    
+    # update page length
+    req(input$page_length)
+    page_length_var(input$page_length)
+    
+    # update page
+    page <-  ceiling(row / page_length_var())
+    page|>
+      last_selected_page()
+    
+    # Debug
+    cat("\n**************************\n",
+        "Debug =", c_debug(),
+        "\nChange page length:",
+        "\nrow = ", row,
+        "\npage = ", page, 
+        "\nlenght = ", page_length_var(),
+        "\n**************************\n",
+        sep = ""
+    )
+    
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
   })
   
   # Render data table output
@@ -735,16 +766,24 @@ server <- function(input, output, session) {
       }
       
       # Create the DataTable
-      # Erstelle die DataTable
       dt <- datatable(
         df_temp,
         editable = FALSE, # Nicht bearbeitbar
-        selection = "single", # Einzelauswahl
+        selection = "single", # only select sinle row
         filter = "top", # Filter oben
         options = list(
           columnDefs = l_columnDefs, # Spaltendefinitionen
           pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
           lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+          # observe the page lenght
+          initComplete = JS(
+            "function(settings, json) {",
+            "  var table = settings.oInstance.api();",
+            "  table.on('length.dt', function(e, settings, len) {",
+            "    Shiny.setInputValue('page_length', len);",
+            "  });",
+            "}"
+          ),
           language = list(
             lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
             search = "Suchen:", # Text für das Suchfeld
@@ -764,16 +803,24 @@ server <- function(input, output, session) {
       )
     } else {
       # Create the DataTable for all other data sets
-      # Erstelle die DataTable
       dt <- datatable(
         df_temp,
         editable = FALSE, # Nicht bearbeitbar
-        selection = "single", # Einzelauswahl
+        selection = "single", # only select sinle row
         filter = "top", # Filter oben
         options = list(
           # columnDefs = l_columnDefs, # Spaltendefinitionen
           pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl,
+          # observe the page lenght
+          initComplete = JS( 
+            "function(settings, json) {",
+            "  var table = settings.oInstance.api();",
+            "  table.on('length.dt', function(e, settings, len) {",
+            "    Shiny.setInputValue('page_length', len);",
+            "  });",
+            "}"
+          ),
           language = list(
             lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
             search = "Suchen:", # Text für das Suchfeld
@@ -861,7 +908,7 @@ server <- function(input, output, session) {
 
     return(dt)
   })
-
+  
 }
 
 # Run the app
