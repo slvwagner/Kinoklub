@@ -735,42 +735,58 @@ server <- function(input, output, session) {
       }
       
       # Create the DataTable
+      # Erstelle die DataTable
       dt <- datatable(
         df_temp,
-        editable = FALSE,
-        selection = "single",
-        filter = "top",
+        editable = FALSE, # Nicht bearbeitbar
+        selection = "single", # Einzelauswahl
+        filter = "top", # Filter oben
         options = list(
-          columnDefs = l_columnDefs,
-          pageLength = page_length_var(),
-          lengthMenu = c_lengthMenu,
+          columnDefs = l_columnDefs, # Spaltendefinitionen
+          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
           language = list(
+            lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+            search = "Suchen:", # Text für das Suchfeld
+            searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+            zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+            info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+            infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+            infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
             paginate = list(
-              first = "Erste Seite",
-              last = "Letzte Seite",
-              `next` = "Nächste Seite",
-              previous = "Vorherige Seite"
+              first = "Erste Seite", # Text für die erste Seite
+              last = "Letzte Seite", # Text für die letzte Seite
+              `next` = "Nächste Seite", # Text für die nächste Seite
+              previous = "Vorherige Seite" # Text für die vorherige Seite
             )
           )
         )
       )
     } else {
       # Create the DataTable for all other data sets
+      # Erstelle die DataTable
       dt <- datatable(
         df_temp,
-        editable = FALSE,
-        selection = "single",
-        filter = "top",
+        editable = FALSE, # Nicht bearbeitbar
+        selection = "single", # Einzelauswahl
+        filter = "top", # Filter oben
         options = list(
-          # columnDefs = l_columnDefs,
-          pageLength = page_length_var(),
-          lengthMenu = c_lengthMenu,
+          # columnDefs = l_columnDefs, # Spaltendefinitionen
+          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
           language = list(
+            lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+            search = "Suchen:", # Text für das Suchfeld
+            searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+            zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+            info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+            infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+            infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
             paginate = list(
-              first = "Erste Seite",
-              last = "Letzte Seite",
-              `next` = "Nächste Seite",
-              previous = "Vorherige Seite"
+              first = "Erste Seite", # Text für die erste Seite
+              last = "Letzte Seite", # Text für die letzte Seite
+              `next` = "Nächste Seite", # Text für die nächste Seite
+              previous = "Vorherige Seite" # Text für die vorherige Seite
             )
           )
         )
