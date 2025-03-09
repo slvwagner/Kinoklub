@@ -51,16 +51,6 @@ column_choices <- list(
 )
 
 ###################################################
-# Split data to input and dropdown
-c_select_input_data <- c(1:5,16,14)
-c_select_dropdown_data <- c(6:13, 15, 17)
-
-l_data_input <- l_data[c_select_input_data]
-l_data_choices <- l_data[c_select_dropdown_data]
-
-
-
-###################################################
 # Kombinierte Dateinen
 
 update_combinde_tables <- function(l_data){
@@ -85,7 +75,7 @@ tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) 
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = page_length_var),
+    # shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = page_length_var),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -119,7 +109,6 @@ ui <-
     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                         choices = c("Inputdaten", "Dropdowns")
                         ),
-
     # Ensure jQuery UI is available for dragable tool box
     includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$head(
@@ -154,17 +143,29 @@ ui <-
 
 ###################################################
 # Konstanten
-Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm")
+Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
+c_pageLength = 5 # Initial page length
+c_lengthMenu = c(5:10, 20, 50, 100) # page length Dropdown options
 
 ###################################################
-# Reactive choices list
+# Split data to input and dropdown
+c_select_input_data <- c(1:5,16,14)
+c_select_dropdown_data <- c(6:13, 15, 17)
+
+
+###################################################
+# Reactive lists
+l_data_input <- reactiveVal(l_data[c_select_input_data])
+l_data_choices <- reactiveVal(l_data[c_select_dropdown_data])
 l_data <- reactiveVal(l_data)
+
+# drop down choises list
 column_choices <- reactiveVal(column_choices)
+
 # Reactive value to store the current dataset
 current_data <- reactiveVal(tibble())
 # app behavior
 table_edit <- reactiveVal("single")
-# table_select <- reactiveVal(TRUE)
 
 # Edited data 
 startup <- reactiveVal(TRUE)
@@ -600,39 +601,6 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  # Change number or rows to be displayed by datatable
-  observeEvent(input$page_lenght,{
-    page_length_var(input$page_lenght)
-    last_selected_row(input$table_rows_selected)
-    row_num <- last_selected_row()
-    if(!is.null(row_num)){ # only update if row is selected
-      if (row_num > 0 && row_num <= nrow(current_data())) {
-        # Calculate the page number where the row is located
-        page_length <- page_length_var()  # Same as pageLength in datatable options
-        page_num <- ceiling(row_num / page_length)
-        last_selected_page(page_num)
-      }
-      dataTableProxy("table")|>
-        selectPage(last_selected_page())|>
-        selectRows(last_selected_row())
-    }
-  })
-  
-  # update last selected row and page in current datatable
-  observeEvent(input$table_rows_selected,{
-    last_selected_row(input$table_rows_selected)
-    row_num <- last_selected_row()
-    if (row_num > 0 && row_num <= nrow(current_data())) {
-      # Calculate the page number where the row is located
-      page_length <- page_length_var()  # Same as pageLength in datatable options
-      page_num <- ceiling(row_num / page_length)
-      last_selected_page(page_num)
-    }
-    dataTableProxy("table")|>
-      selectPage(last_selected_page())|>
-      selectRows(last_selected_row())
-  })
-  
   # Render: Dynamically update the floating tool box
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
@@ -640,10 +608,10 @@ server <- function(input, output, session) {
       DTOutput("table"),
       if(input$data_selection == "Inputdaten"){
         # Floating tool box to edit input data 
-        tool_box_floating(l_data_input,2, page_length_var = page_length_var())
+        tool_box_floating(l_data_input(),2, page_length_var = page_length_var())
       } else {
         # Floating tool box for editing choices
-        tool_box_floating(l_data_choices, page_length_var = page_length_var())
+        tool_box_floating(l_data_choices(), page_length_var = page_length_var())
       },
       
       # JavaScript to make the floating panel draggable
@@ -655,10 +623,24 @@ server <- function(input, output, session) {
     )
   })
   
+  # observe Event select a row 
+  observeEvent(input$table_rows_selected, {
+    
+    # update data table page 
+    ceiling(input$table_rows_selected / input$table_state$length) |>
+      last_selected_page()
+    last_selected_row(input$table_rows_selected)
+    
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
+  })
+  
   # Render data table output
   output$table <- renderDataTable({
-    
-    if(input$data_selection == "Inputdaten") {
+    # rendering the datatable depens on the input data 
+    # for certain input data sets other renderings may be needed
+    if(input$data_selection == "Inputdaten") { # for all Input date change to user readable "Datum"
       print("render table")
       # get crrent data
       df_temp <- current_data()
@@ -677,7 +659,7 @@ server <- function(input, output, session) {
         as_tibble()
       names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
       
-      # Insert user readable Datum
+      # Insert user readable Datum 
       run <- TRUE
       ii <- 1
       while(run){
@@ -732,23 +714,25 @@ server <- function(input, output, session) {
         filter = "top",
         options = list(
           columnDefs = l_columnDefs,
-          pageLength = page_length_var()
+          pageLength = c_pageLength, # Initial page length
+          lengthMenu = c_lengthMenu # Dropdown options
         )
       )
     } else {
-      # Create the DataTable
+      # Create the DataTable for all other data sets
       dt <- datatable(
         current_data(),
         editable = FALSE,
         selection = "single",
         filter = "top",
         options = list(
-          pageLength = page_length_var()
+          pageLength = c_pageLength, # Initial page length
+          lengthMenu = c_lengthMenu # Dropdown options
         )
       )
     }
     
-    # Apply conditional formatting
+    # Apply conditional formatting for different data sets
     if (!is.null(input$dataset) && input$dataset == "Programm") {
       dt <- dt |>
         formatStyle(
@@ -759,7 +743,6 @@ server <- function(input, output, session) {
           )
         )
     } else if (!is.null(input$dataset) && input$dataset == "Einsatzplan"){
-      print("here")
       names(l_data()[["Kinoklubmitglieder"]])
       c_Kinoklubmitglied <- 
         l_data()[["Kinoklubmitglieder"]]|>
@@ -820,8 +803,6 @@ server <- function(input, output, session) {
 
 }
 
-  
-  
 # Run the app
 shiny::runApp(
   host = "0.0.0.0",
