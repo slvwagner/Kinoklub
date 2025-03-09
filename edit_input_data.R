@@ -295,8 +295,8 @@ server <- function(input, output, session) {
   # Create Modal form to Edit selected row  
   observeEvent(input$edit_row, {
     if(!is.null(input$table_rows_selected)){
-      df_row <- l_data()[[input$dataset]][input$table_rows_selected,]|>
-        as_tibble()
+      # get actual data
+      df_row <- current_data()
       
       l_temp <- list()
       for (ii in 1:ncol(df_row)) {
@@ -763,7 +763,7 @@ server <- function(input, output, session) {
       names(l_data()[["Kinoklubmitglieder"]])
       c_Kinoklubmitglied <- 
         l_data()[["Kinoklubmitglieder"]]|>
-        mutate(Kinoklubmitglied = paste(Nachname, Vorname))|>
+        mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
         select(Kinoklubmitglied)|>
         pull()
       
