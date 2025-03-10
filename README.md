@@ -38,7 +38,11 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 ```         
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot", "xml2","webshot", "furrr", "future")
+packages <- c(
+  "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
+  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
+  "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
+)
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
