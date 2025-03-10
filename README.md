@@ -38,6 +38,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 ```         
 # Define libraries to be installed
+# Define libraries to be installed
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
   "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
@@ -59,7 +60,7 @@ if (any(installed_packages == FALSE)) {
 
 ## Run the Appliction
 
-Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:8080/>
+Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5000/>
 
 ```         
     source("GUI.R")
