@@ -18,9 +18,35 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# l_data$Einsatzplan <- l_data$Einsatzplan|>
-#   mutate(Verleiher = NULL)
-# 
+# Format choices as factors
+l_data$Einnahmen <- l_data$Einnahmen|>
+  mutate(Kategorie = factor(Kategorie))
+
+l_data$Ausgaben <- l_data$Ausgaben|>
+  mutate(Kategorie = factor(Kategorie))
+
+l_data$Verleiherabgaben  <- l_data$Verleiherabgaben|>
+  mutate(Verleiher = factor(Verleiher))
+
+l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
+  mutate(Spezialpreis = factor(Spezialpreis) )
+
+l_data$`Einkauf Kiosk` <- l_data$`Einkauf Kiosk`|>
+  mutate(Lieferant = factor(Lieferant))
+
+l_data$Einsatzplan <- l_data$Einsatzplan|>
+   mutate(Verantwortlich = factor(Verantwortlich),
+          `Operateur*in` = factor(`Operateur*in`),
+          `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
+          `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
+          `Back-up` = factor(`Back-up`)
+          )
+
+l_data$Programm <- l_data$Programm|>
+  mutate(Verleiher = factor(Verleiher),
+         `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
+         )
+
 # saveRDS(l_data,c_file)
 
 ###################################################
