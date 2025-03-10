@@ -845,14 +845,25 @@ server <- function(input, output, session) {
     
     # Apply conditional formatting for different data sets
     if (!is.null(input$dataset) && input$dataset == "Programm") {
-      dt <- dt |>
-        formatStyle(
-          "Verleiher Angefragt?",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
-            values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+      
+      # Apply conditional formatting to columns
+      tryCatch({
+        dt <- dt |>
+          formatStyle(
+            "Verleiher Angefragt?",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
+              values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+            )
           )
-        )
+        
+      }, error = function(e) {
+        paste0(
+          "Conditionall formating error:\n",
+          e$message
+        )|>sys_msg()
+        
+      })
     } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
       names(l_data()[["Kinoklubmitglieder"]])
       c_Kinoklubmitglied <- 
@@ -869,7 +880,7 @@ server <- function(input, output, session) {
       # Lighten the colors to create a pastel effect
       pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
       
-      # Apply conditional formatting to both columns
+      # Apply conditional formatting to columns
       tryCatch({
         dt <- dt |>
           formatStyle(
