@@ -1,9 +1,9 @@
 library(shiny)
 library(shinyjs)
 library(DT)
-library(tidyverse)
 library(viridis)
 library(colorspace)
+library(tidyverse)
 
 # Load the data
 c_file <- "Input/Data.Rds"
@@ -36,11 +36,11 @@ column_choices <- list(
   "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
   "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
   "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
-  "Operateur*in" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
-  "Kasse/Bar 1" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
-  "Kasse/Bar 2" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
-  "Back-up" = paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname),
+  "Verantwortlich" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
+  "Operateur*in" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
+  "Kasse/Bar 1" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
+  "Kasse/Bar 2" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
+  "Back-up" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
   "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
   "Kasse / Bar" = l_data$JaNein$Auswahl,
   "Programm" = l_data$JaNein$Auswahl,
@@ -266,11 +266,11 @@ server <- function(input, output, session) {
       "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
       "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
       "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
-      "Operateur*in" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
-      "Kasse/Bar 1" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
-      "Kasse/Bar 2" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
-      "Back-up" = paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname),
+      "Verantwortlich" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
+      "Operateur*in" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
+      "Kasse/Bar 1" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
+      "Kasse/Bar 2" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
+      "Back-up" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
       "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
       "Kasse / Bar" = l_data()$JaNein$Auswahl,
       "Programm" = l_data()$JaNein$Auswahl,
@@ -389,7 +389,7 @@ server <- function(input, output, session) {
                     l_temp,
                     actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
                     actionButton("abort_save", "Abrechen"),
-                    easyClose = TRUE, footer = NULL
+                    easyClose = FALSE, footer = NULL
         )
       )
     } else {
@@ -775,7 +775,7 @@ server <- function(input, output, session) {
           columnDefs = l_columnDefs, # Spaltendefinitionen
           pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
           lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-          # observe the page lenght
+          # observe the page lenght from data table
           initComplete = JS(
             "function(settings, json) {",
             "  var table = settings.oInstance.api();",
