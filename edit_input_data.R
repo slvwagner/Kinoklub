@@ -96,14 +96,14 @@ tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) 
 validate_suisanummer <- function(input) {
   # library(rebus)
   # pattern <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
-  p <- "\\d\\d\\d\\d\\.\\d\\d\\d"
+  p <- "^\\d{4}\\.\\d{3}$"
   grepl(p, input)
 }
 validate_suisanummer(c("1234.562","123.25"))
 
 ###################################################
 # Define UI
-ui <- 
+ui <- function(){
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
     # Function selection 
@@ -141,7 +141,7 @@ ui <-
       shiny::uiOutput("dynamicContent_output_panel"),
     )
   )
-
+}
 ###################################################
 # Konstanten
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
