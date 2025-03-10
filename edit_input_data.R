@@ -52,13 +52,14 @@ column_choices <- list(
 )
 
 ###################################################
-# Kombinierte Dateinen
-
+# Joined data 
 update_combinde_tables <- function(l_data){
   l_data$Einsatzplan <- l_data$Programm|>
     filter(`Verleiher Angefragt?` == pull(l_data$`Status Filmliste`[3,]))|>
     select(1:4,6)|>
-    left_join(l_data$Einsatzplan)|>
+    left_join(l_data$Einsatzplan,
+              by = join_by(Suisanummer, Filmtitel, Datum, Zeit)
+              )|>
     select(-`Verleiher Angefragt?`)
   # Create Kinoklubmitglied
   l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
@@ -101,7 +102,6 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-###################################################
 # Define UI
 ui <- function(){
   fluidPage(
@@ -142,6 +142,7 @@ ui <- function(){
     )
   )
 }
+
 ###################################################
 # Konstanten
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
@@ -153,17 +154,16 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length Dropdown options
 c_select_input_data <- c(1:5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
 
-
 ###################################################
 # Reactive lists
 l_data_input <- reactiveVal(l_data[c_select_input_data])
 l_data_choices <- reactiveVal(l_data[c_select_dropdown_data])
 l_data <- reactiveVal(l_data)
 
-# drop down choises list
+# drop down choices list
 column_choices <- reactiveVal(column_choices)
 
-# Reactive value to store the current dataset
+# Reactive value to store the current data set
 current_data <- reactiveVal(tibble())
 # app behavior
 table_edit <- reactiveVal("single")
@@ -173,6 +173,7 @@ startup <- reactiveVal(TRUE)
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
+# last edit 
 last_selected_row <- reactiveVal(1)
 last_selected_page <- reactiveVal(1)
 page_length_var <- reactiveVal(6)
@@ -180,6 +181,8 @@ page_length_var <- reactiveVal(6)
 # Debug 
 c_debug <- reactiveVal(0)
 
+# System messages 
+sys_msg <- reactiveVal("")
 
 ###################################################
 # server logic
@@ -850,7 +853,7 @@ server <- function(input, output, session) {
             values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
           )
         )
-    } else if (!is.null(input$dataset) && input$dataset == "Einsatzplan"){
+    } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
       names(l_data()[["Kinoklubmitglieder"]])
       c_Kinoklubmitglied <- 
         l_data()[["Kinoklubmitglieder"]]|>
@@ -867,45 +870,54 @@ server <- function(input, output, session) {
       pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
       
       # Apply conditional formatting to both columns
-      dt <- dt |>
-        formatStyle(
-          "Verantwortlich",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c_Kinoklubmitglied,  # Exact values from your column
-            values = pastel_magma  # Corresponding colors
+      tryCatch({
+        dt <- dt |>
+          formatStyle(
+            "Verantwortlich",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c_Kinoklubmitglied,  # Exact values from your column
+              values = pastel_magma  # Corresponding colors
+            )
+          )|>
+          formatStyle(
+            "Kasse/Bar 1",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c_Kinoklubmitglied,  # Exact values from your column
+              values = pastel_magma  # Corresponding colors
+            )
+          )|>
+          formatStyle(
+            "Kasse/Bar 2",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c_Kinoklubmitglied,  # Exact values from your column
+              values = pastel_magma  # Corresponding colors
+            )
+          )|>
+          formatStyle(
+            "Operateur*in",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c_Kinoklubmitglied,  # Exact values from your column
+              values = pastel_magma  # Corresponding colors
+            )
+          )|>
+          formatStyle(
+            "Back-up",  # Ensure this column name matches exactly
+            backgroundColor = styleEqual(
+              levels = c_Kinoklubmitglied,  # Exact values from your column
+              values = pastel_magma  # Corresponding colors
+            )
           )
-        ) |>
-        formatStyle(
-          "Kasse/Bar 1",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c_Kinoklubmitglied,  # Exact values from your column
-            values = pastel_magma  # Corresponding colors
-          )
-        )|>
-        formatStyle(
-          "Kasse/Bar 2",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c_Kinoklubmitglied,  # Exact values from your column
-            values = pastel_magma  # Corresponding colors
-          )
-        )|>
-        formatStyle(
-          "Operateur*in",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c_Kinoklubmitglied,  # Exact values from your column
-            values = pastel_magma  # Corresponding colors
-          )
-        )|>
-        formatStyle(
-          "Back-up",  # Ensure this column name matches exactly
-          backgroundColor = styleEqual(
-            levels = c_Kinoklubmitglied,  # Exact values from your column
-            values = pastel_magma  # Corresponding colors
-          )
-        )
         
+      }, error = function(e) {
+          paste0(
+            "Conditionall formating error:\n",
+            e$message
+          )|>sys_msg()
+        
+      })
     }
-
+    sys_msg()|>
+      writeLines()
     return(dt)
   })
   
