@@ -137,7 +137,8 @@ ui <- function(){
                         choices = c("Inputdaten", "Dropdowns")
                         ),
     # Ensure jQuery UI is available for dragable tool box
-    includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
+    # includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
+    includeScript("source/1.12.1_jquery-ui.js"),
     tags$head(
       tags$style(HTML("
         #floating-panel {
