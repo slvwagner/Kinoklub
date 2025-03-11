@@ -361,7 +361,9 @@ server <- function(input, output, session) {
                          value =  ifelse(is.na(col_value), NA, col_value),
                          step = 0.01
             )
-        } else if (col_data_type == "factor"){
+        } # handle factor inputs
+        else if (col_data_type == "factor"){
+          col_value <- as.character(col_value)
           print(col_data_type)
           column_choices()[names(column_choices()) == col_name]
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
@@ -375,6 +377,8 @@ server <- function(input, output, session) {
                 choices = c_choices,
                 selected = ifelse(is.na(col_value), NA, col_value)
               )
+          }else {
+            stop("you shoud not end here: factor else")
           }
         } else if (col_data_type == "character"){ # handle character inputs
           print(col_data_type)
@@ -382,47 +386,37 @@ server <- function(input, output, session) {
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
           names(c_choices) <- NULL
           c_choices
-          if(col_name %in% names(column_choices())){ # look up choices
+          if(col_name == "Suisanummer"){
+            # create text input for Suisanummer
+            if(is.na(col_value)){
+              generated_code <-paste0(
+                "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
+                " placeholder = \"xxxx.xxx\")"
+              )
+            }else{
+              generated_code <-paste0(
+                "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
+                " value = \"",col_value,"\")"
+              )
+            }
+            writeLines(generated_code)
+            eval(parse(text = generated_code))
+            l_temp[[ii]] <- eval(parse(text = generated_code))
+            
+          } else if (col_data_type == class(T)){
             l_temp[[ii]] <- 
-              shiny::selectInput(
+              shiny::textInput(
                 inputId = as.character(ii),
                 label = col_name,
-                choices = c_choices,
-                selected = ifelse(is.na(col_value), NA, col_value)
+                value = ifelse(is.na(col_value), NA, col_value)
+                )
+          } else {
+            l_temp[[ii]] <- 
+              shiny::textInput(
+                inputId = as.character(ii),
+                label = col_name,
+                value = ifelse(is.na(col_value), NA, col_value)
               )
-          }else{
-            if(col_name == "Suisanummer"){
-              # create text input for Suisanummer
-              if(is.na(col_value)){
-                generated_code <-paste0(
-                  "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
-                  " placeholder = \"xxxx.xxx\")"
-                )
-              }else{
-                generated_code <-paste0(
-                  "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
-                  " value = \"",col_value,"\")"
-                )
-              }
-              writeLines(generated_code)
-              eval(parse(text = generated_code))
-              l_temp[[ii]] <- eval(parse(text = generated_code))
-              
-            } else if (col_data_type == class(T)){
-              l_temp[[ii]] <- 
-                shiny::textInput(
-                  inputId = as.character(ii),
-                  label = col_name,
-                  value = ifelse(is.na(col_value), NA, col_value)
-                  )
-            } else {
-              l_temp[[ii]] <- 
-                shiny::textInput(
-                  inputId = as.character(ii),
-                  label = col_name,
-                  value = ifelse(is.na(col_value), NA, col_value)
-                )
-            }
           }
         }
       }
@@ -477,7 +471,14 @@ server <- function(input, output, session) {
       }
       else if (c_input_class == "integer") {
         l_input[[ii]] <- as.integer(c_input[ii])
-      }else {
+      } else if (c_input_class == "factor"){
+        c_input[ii] <- as.character(c_input[ii])
+        if (c_input[ii] == "" | c_input[ii] == "..."){
+          l_input[[ii]] <- as.character(NA)
+        } else {
+          l_input[[ii]] <- as.character(c_input[ii])
+        }
+      } else {
         stop("should not end here")
       }
     }
