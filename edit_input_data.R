@@ -361,8 +361,22 @@ server <- function(input, output, session) {
                          value =  ifelse(is.na(col_value), NA, col_value),
                          step = 0.01
             )
-        }  # handle character inputs
-        else if (col_data_type == "character"){
+        } else if (col_data_type == "factor"){
+          print(col_data_type)
+          column_choices()[names(column_choices()) == col_name]
+          c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
+          names(c_choices) <- NULL
+          c_choices
+          if(col_name %in% names(column_choices())){ # look up choices
+            l_temp[[ii]] <- 
+              shiny::selectInput(
+                inputId = as.character(ii),
+                label = col_name,
+                choices = c_choices,
+                selected = ifelse(is.na(col_value), NA, col_value)
+              )
+          }
+        } else if (col_data_type == "character"){ # handle character inputs
           print(col_data_type)
           column_choices()[names(column_choices()) == col_name]
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
