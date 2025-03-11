@@ -17,7 +17,22 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
+# ###################################################
+# # Data manipulation for Program and Einsatzplan
+# ###################################################
+# # Program
+# l_data$Programm <- bind_cols(tibble(ID = 1:nrow(l_data$Programm)),l_data$Programm)
+# l_data$Programm
+# 
+# # Einsatzplan
+# df_temp <- l_data$Einsatzplan|>
+#   select(-Suisanummer, -Filmtitel, -Datum, -Zeit)
+# df_temp <- bind_cols(tibble(ID = 1:nrow(df_temp)),df_temp)
+# l_data$Einsatzplan <- df_temp
+# l_data$Einsatzplan
+# saveRDS(l_data,c_file)
 
+###################################################
 # Format choices as factors
 l_data$Einnahmen <- l_data$Einnahmen|>
   mutate(Kategorie = factor(Kategorie))
@@ -81,20 +96,14 @@ column_choices <- list(
 # Joined data 
 update_combinde_tables <- function(l_data){
   l_data$Einsatzplan <- l_data$Programm|>
-    filter(`Verleiher Angefragt?` == pull(l_data$`Status Filmliste`[3,]))|>
-    select(1:4,6)|>
+    select(1:7)|>
     left_join(l_data$Einsatzplan,
-              by = join_by(Suisanummer, Filmtitel, Datum, Zeit)
-              )|>
-    select(-`Verleiher Angefragt?`)
-  # Create Kinoklubmitglied
-  l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-    mutate(Kinoklubmitglied = if_else(is.na(Kinoklubmitglied), "...", paste(Nachname, Vorname))
+              by = join_by(ID)
     )
   return(l_data)
 }
 l_data <- update_combinde_tables(l_data)
-saveRDS(l_data,c_file)
+
 
 ###################################################
 # Floating tool box function 
