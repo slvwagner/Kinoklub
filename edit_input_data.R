@@ -121,8 +121,6 @@ tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) 
 
 # Regex validation function for Suisanummer
 validate_suisanummer <- function(input) {
-  # library(rebus)
-  # pattern <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
   p <- "^\\d{4}\\.\\d{3}$"
   grepl(p, input)
 }
@@ -174,7 +172,7 @@ ui <- function(){
 # Konstanten
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
-c_lengthMenu = c(5:10, 20, 50, 100) # page length Dropdown options
+c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 ###################################################
 # Split data to input and dropdown
