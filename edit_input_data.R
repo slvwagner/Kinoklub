@@ -106,7 +106,6 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-
 # handel joined tables  
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(nrow(df_temp) == 1 & convert_to == "char"){
