@@ -17,22 +17,7 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-# ###################################################
-# # Data manipulation for Program and Einsatzplan
-# ###################################################
-# # Program
-# l_data$Programm <- bind_cols(tibble(ID = 1:nrow(l_data$Programm)),l_data$Programm)
-# l_data$Programm
-# 
-# # Einsatzplan
-# df_temp <- l_data$Einsatzplan|>
-#   select(-Suisanummer, -Filmtitel, -Datum, -Zeit)
-# df_temp <- bind_cols(tibble(ID = 1:nrow(df_temp)),df_temp)
-# l_data$Einsatzplan <- df_temp
-# l_data$Einsatzplan
-# saveRDS(l_data,c_file)
 
-###################################################
 # Format choices as factors
 l_data$Einnahmen <- l_data$Einnahmen|>
   mutate(Kategorie = factor(Kategorie))
@@ -50,21 +35,21 @@ l_data$`Einkauf Kiosk` <- l_data$`Einkauf Kiosk`|>
   mutate(Lieferant = factor(Lieferant))
 
 l_data$Einsatzplan <- l_data$Einsatzplan|>
-   mutate(Verantwortlich = factor(Verantwortlich),
-          `Operateur*in` = factor(`Operateur*in`),
-          `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
-          `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
-          `Back-up` = factor(`Back-up`)
-          )
+  mutate(Verantwortlich = factor(Verantwortlich),
+         `Operateur*in` = factor(`Operateur*in`),
+         `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
+         `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
+         `Back-up` = factor(`Back-up`)
+  )
 
 l_data$Programm <- l_data$Programm|>
   mutate(Verleiher = factor(Verleiher),
          `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
-         )
+  )
 
-# saveRDS(l_data,c_file)
+l_data$Einsatzplan
+l_data$Programm
 
-###################################################
 # choices list
 column_choices <- list(
   "Lieferant" = l_data$Lieferanten$Lieferantenname,
@@ -92,20 +77,6 @@ column_choices <- list(
   "Koordination" = l_data$JaNein$Auswahl
 )
 
-###################################################
-# Joined data 
-update_combinde_tables <- function(l_data){
-  l_data$Einsatzplan <- l_data$Programm|>
-    select(1:7)|>
-    left_join(l_data$Einsatzplan,
-              by = join_by(ID)
-    )
-  return(l_data)
-}
-l_data <- update_combinde_tables(l_data)
-
-
-###################################################
 # Floating tool box function 
 tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) {
   tags$div(
@@ -134,6 +105,54 @@ validate_suisanummer <- function(input) {
   grepl(p, input)
 }
 validate_suisanummer(c("1234.562","123.25"))
+
+
+# handel joined tables  
+convert_Einsatzplan <- function(df_temp, convert_to){
+  if(nrow(df_temp) == 1 & convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, as.character)|>
+                t()|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  } else if(nrow(df_temp) == 1 & convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, factor)|>
+                t()|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  }
+  else if(convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, as.character)|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  } else if(convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp |>
+                select(5:9) |>
+                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
+              df_temp|>
+                select(10:11)
+    )
+  }
+}
 
 # Define UI
 ui <- function(){
@@ -183,6 +202,23 @@ Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Em
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
+################################################
+# Einsatzplan temporary save
+
+join_Einsatzplan <- function(l_data){
+  # back up Einsatzplan
+  l_data$Einsatzplan_ <- l_data$Einsatzplan
+  # Einsatzplan to work with 
+  l_data$Einsatzplan <- l_data$Programm|>
+    select(1:5)|>
+    left_join(
+      l_data$Einsatzplan,
+      by = "ID")|>
+    select(-ID)
+  return(l_data)
+}
+l_data <- join_Einsatzplan(l_data)
+
 ###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
@@ -208,9 +244,9 @@ lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
 # last edit 
-last_selected_row <- reactiveVal(1)
-last_selected_page <- reactiveVal(1)
-page_length_var <- reactiveVal(6)
+last_selected_row <- reactiveVal(1L)
+last_selected_page <- reactiveVal(1L)
+page_length_var <- reactiveVal(6L)
 
 # Debug 
 c_debug <- reactiveVal(0)
@@ -288,10 +324,21 @@ server <- function(input, output, session) {
   # Save changes and update 
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
-    l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
-    l_temp <- update_combinde_tables(l_temp) # update joined tables
+    if (lastEdited_data_set_name() == "Einsatzplan") {
+      print("here")
+      l_temp$Programm
+      l_temp$Einsatzplan_ <- NULL
+      l_temp$Einsatzplan <- bind_cols(tibble(ID = 1:nrow(current_data())), 
+                current_data()|>
+                  select(-(1:4))
+                )
+    } else {
+      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+
+    }
     saveRDS(l_temp, c_file) # Save the updated list into file
-    l_data(readRDS(c_file)) # update data
+    readRDS(c_file)
+    l_data() # update data
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
       "Kategorie" = l_data()$Kategorie$Auswahl,
@@ -323,7 +370,7 @@ server <- function(input, output, session) {
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
-    if(lastEdited_data_set_name() != input$dataset){
+    if(lastEdited_data_set_name() == input$dataset){
         dataTableProxy("table")|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
@@ -361,7 +408,7 @@ server <- function(input, output, session) {
             )
           l_temp[[ii]]
         } # handle numeric inputs
-        else if(col_data_type == "numeric"){ 
+        else if(col_data_type %in% c("numeric", "integer")){ 
           print(col_data_type)
           l_temp[[ii]] <- 
             numericInput(inputId =  as.character(ii), 
@@ -451,7 +498,7 @@ server <- function(input, output, session) {
   observeEvent(input$edit_row_value, {
     # filter for selected data by user
     df_temp <- current_data()
-    
+    df_temp_ <- current_data()
     # get the user input
     generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
     c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
@@ -461,13 +508,14 @@ server <- function(input, output, session) {
     l_input <- list()
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- l_data()[[input$dataset]][,ii]|>pull()|>class()
+      # handle characters
       if(c_input_class == "character") {
         if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- as.character(NA)
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
         }
-      }
+      } # handle dates
       else if (c_input_class == "Date") {
         if(is.na(c_input[ii])){
           l_input[[ii]] <- as.Date(NA)
@@ -503,7 +551,14 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      df_temp[input$table_rows_selected,] <- df_updated
+      if(lastEdited_data_set_name() == "Einsatzplan"){
+        
+        df_temp <- convert_Einsatzplan(df_temp, "char")
+        df_temp[input$table_rows_selected,] <- df_updated
+        df_temp <- convert_Einsatzplan(df_temp, "fact")
+      }else{
+        df_temp[input$table_rows_selected,] <- df_updated
+      }
       current_data(df_temp)
       removeModal()
     }
@@ -685,28 +740,28 @@ server <- function(input, output, session) {
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
-    row |>
-      last_selected_row()
-    
-    # update page lenght
-    req(input$page_length)
-    page_length_var(input$page_length)
-    
-    # update page
+
+    # has the page lenght changed? 
+    if(!is.null(input$page_length)){
+      page_length_var(input$page_length)
+    }
+
+    # update 
     page <-  ceiling(row / page_length_var())
-    page|>
-      last_selected_page()
+    last_selected_page(page)
+    last_selected_row(input$table_rows_selected)
     
     # Debug
-    cat("\n**************************\n",
-        "Debug =", c_debug(),
-        "\nObserve Event select a row:",
-        "\nrow = ", row,
-        "\npage = ", page,
-        "\nlenght = ", page_length_var(),
-        "\n**************************\n",
-        sep = ""
-          )
+    cat(
+      "\n**************************\n",
+      "Debug =", c_debug(),
+      "\nObserve Event select a row:",
+      "\nrow = ", last_selected_row(),
+      "\npage = ", last_selected_page(),
+      "\nlenght = ", last_selected_page(),
+      "\n**************************\n",
+      sep = ""
+    )
     
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
@@ -719,27 +774,26 @@ server <- function(input, output, session) {
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
-    row |>
-      last_selected_row()
-    
-    # update page length
+
+    # update 
     req(input$page_length)
     page_length_var(input$page_length)
     
-    # update page
+    # update 
     page <-  ceiling(row / page_length_var())
-    page|>
-      last_selected_page()
+    last_selected_page(page)
+    last_selected_row(input$table_rows_selected)
     
     # Debug
-    cat("\n**************************\n",
-        "Debug =", c_debug(),
-        "\nChange page length:",
-        "\nrow = ", row,
-        "\npage = ", page, 
-        "\nlenght = ", page_length_var(),
-        "\n**************************\n",
-        sep = ""
+    cat(
+      "\n**************************\n",
+      "Debug =", c_debug(),
+      "\nObserve Event page length:",
+      "\nrow = ", last_selected_row(),
+      "\npage = ", last_selected_page(),
+      "\nlenght = ", last_selected_page(),
+      "\n**************************\n",
+      sep = ""
     )
     
     dataTableProxy("table")|>
