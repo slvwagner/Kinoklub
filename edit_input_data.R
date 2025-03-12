@@ -18,6 +18,39 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+# ##############################################################
+# # Edit data
+# ##############################################################
+# l_data$Verleiherabgaben
+# l_data$Programm
+# df_show
+# 
+# df_temp <- l_data$Programm|>
+#   rename(
+#          `Minimal Abzug [CHF]` = `Mindest-garantie`,
+#          `Abzug [%]` = `Konditionen in %`,
+#          `Abzug fix [CHF]` = `Fixer Abzug`
+#          )|>
+#   mutate(`Link Datum` = as.Date(NA),
+#          readr::parse_time(Zeit)
+#          )
+# 
+# paste0("\"",names(df_temp),"\"",collapse = ", ")|>
+#   writeLines()
+# 
+# df_temp <- df_temp|>
+#   select(
+#     "ID", "Suisanummer", "Filmtitel", "Datum", "Link Datum","Zeit",
+#     "Verleiher", "Verleiher Angefragt?", "Abzug [%]", "Minimal Abzug [CHF]", "Abzug fix [CHF]", "Verleihervertrag abgelegt",
+#     "Anzahl bestellter Poster und Flyer", "Poster und Flyer erhalten?", "Art der Filmlieferung",
+#     "Besucherzahlen an Verleiher gesendet", "Rechnung bezahlt und abgelegt", "KDM ja oder nein"
+#   )
+# df_temp
+# 
+# l_data$Programm <- df_temp
+# saveRDS(l_data,c_file)
+
+##############################################################
 # Format choices as factors
 l_data$Einnahmen <- l_data$Einnahmen|>
   mutate(Kategorie = factor(Kategorie))
