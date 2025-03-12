@@ -758,7 +758,7 @@ server <- function(input, output, session) {
       "\nObserve Event select a row:",
       "\nrow = ", last_selected_row(),
       "\npage = ", last_selected_page(),
-      "\nlenght = ", last_selected_page(),
+      "\nlenght = ", page_length_var(),
       "\n**************************\n",
       sep = ""
     )
@@ -791,7 +791,7 @@ server <- function(input, output, session) {
       "\nObserve Event page length:",
       "\nrow = ", last_selected_row(),
       "\npage = ", last_selected_page(),
-      "\nlenght = ", last_selected_page(),
+      "\nlenght = ", page_length_var(),
       "\n**************************\n",
       sep = ""
     )
