@@ -324,6 +324,8 @@ server <- function(input, output, session) {
   # Save changes and update 
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
+    
+    # specific data handling 
     if (lastEdited_data_set_name() == "Einsatzplan") {
       print("here")
       l_temp$Programm
@@ -332,7 +334,7 @@ server <- function(input, output, session) {
                 current_data()|>
                   select(-(1:4))
                 )
-    } else {
+    } else { # anything else
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
 
     }
@@ -551,12 +553,12 @@ server <- function(input, output, session) {
         )
       )
     }else{
+      # Specific data handling to store user input 
       if(lastEdited_data_set_name() == "Einsatzplan"){
-        
         df_temp <- convert_Einsatzplan(df_temp, "char")
         df_temp[input$table_rows_selected,] <- df_updated
         df_temp <- convert_Einsatzplan(df_temp, "fact")
-      }else{
+      } else { # anything else 
         df_temp[input$table_rows_selected,] <- df_updated
       }
       current_data(df_temp)
