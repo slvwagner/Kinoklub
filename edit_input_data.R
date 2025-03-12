@@ -139,9 +139,54 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-
 # handel joined tables  
 convert_Einsatzplan <- function(df_temp, convert_to){
+  if(nrow(df_temp) == 1 & convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, as.character)|>
+                t()|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  } else if(nrow(df_temp) == 1 & convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, factor)|>
+                t()|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  }
+  else if(convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                apply(2, as.character)|>
+                as_tibble(),
+              df_temp|>
+                select(10:11)
+    )
+  } else if(convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp |>
+                select(5:9) |>
+                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
+              df_temp|>
+                select(10:11)
+    )
+  }
+}
+
+convert_Programm <- function(df_temp, convert_to){
   if(nrow(df_temp) == 1 & convert_to == "char"){
     bind_cols(df_temp|>
                 select(1:4),
@@ -236,7 +281,7 @@ c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 ################################################
-# Einsatzplan temporary save
+# temporary save
 
 join_Einsatzplan <- function(l_data){
   # back up Einsatzplan
@@ -251,6 +296,16 @@ join_Einsatzplan <- function(l_data){
   return(l_data)
 }
 l_data <- join_Einsatzplan(l_data)
+
+join_Programm <- function(l_data){
+  # back up Einsatzplan
+  l_data$Programm_ <- l_data$Programm
+  # Einsatzplan to work with 
+  l_data$Programm <- l_data$Programm|>
+    select(-ID)
+  return(l_data)
+}
+l_data <- join_Programm(l_data)
 
 ###################################################
 # Split data to input and dropdown
@@ -357,15 +412,21 @@ server <- function(input, output, session) {
   # Save changes and update 
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
+    
+    # specific data handling 
     if (lastEdited_data_set_name() == "Einsatzplan") {
-      print("here")
-      l_temp$Programm
       l_temp$Einsatzplan_ <- NULL
       l_temp$Einsatzplan <- bind_cols(tibble(ID = 1:nrow(current_data())), 
                 current_data()|>
                   select(-(1:4))
                 )
-    } else {
+    } else if (lastEdited_data_set_name() == "Programm"){
+      print("here")
+      l_temp$Programm_ <- NULL
+      l_temp$Programm <- bind_cols(tibble(ID = 1:nrow(current_data())), 
+                                      current_data()
+      )
+    } else { # anything else
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
 
     }
@@ -584,12 +645,12 @@ server <- function(input, output, session) {
         )
       )
     }else{
+      # Specific data handling to store user input 
       if(lastEdited_data_set_name() == "Einsatzplan"){
-        
         df_temp <- convert_Einsatzplan(df_temp, "char")
         df_temp[input$table_rows_selected,] <- df_updated
         df_temp <- convert_Einsatzplan(df_temp, "fact")
-      }else{
+      } else { # anything else 
         df_temp[input$table_rows_selected,] <- df_updated
       }
       current_data(df_temp)
