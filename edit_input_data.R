@@ -1,5 +1,6 @@
 library(shiny)
 library(shinyjs)
+library(shinyTime)
 library(DT)
 library(viridis)
 library(colorspace)
@@ -18,33 +19,14 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# ##############################################################
-# # Edit data
-# ##############################################################
+##############################################################
+# Edit data
+##############################################################
 # l_data$Verleiherabgaben
 # l_data$Programm
-# df_show
 # 
 # df_temp <- l_data$Programm|>
-#   rename(
-#          `Minimal Abzug [CHF]` = `Mindest-garantie`,
-#          `Abzug [%]` = `Konditionen in %`,
-#          `Abzug fix [CHF]` = `Fixer Abzug`
-#          )|>
-#   mutate(`Link Datum` = as.Date(NA),
-#          readr::parse_time(Zeit)
-#          )
-# 
-# paste0("\"",names(df_temp),"\"",collapse = ", ")|>
-#   writeLines()
-# 
-# df_temp <- df_temp|>
-#   select(
-#     "ID", "Suisanummer", "Filmtitel", "Datum", "Link Datum","Zeit",
-#     "Verleiher", "Verleiher Angefragt?", "Abzug [%]", "Minimal Abzug [CHF]", "Abzug fix [CHF]", "Verleihervertrag abgelegt",
-#     "Anzahl bestellter Poster und Flyer", "Poster und Flyer erhalten?", "Art der Filmlieferung",
-#     "Besucherzahlen an Verleiher gesendet", "Rechnung bezahlt und abgelegt", "KDM ja oder nein"
-#   )
+#   mutate(Zeit = readr::parse_time(Zeit))
 # df_temp
 # 
 # l_data$Programm <- df_temp
@@ -139,99 +121,6 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-# handel joined tables  
-convert_Einsatzplan <- function(df_temp, convert_to){
-  if(nrow(df_temp) == 1 & convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, as.character)|>
-                t()|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  } else if(nrow(df_temp) == 1 & convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, factor)|>
-                t()|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  }
-  else if(convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, as.character)|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  } else if(convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp |>
-                select(5:9) |>
-                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
-              df_temp|>
-                select(10:11)
-    )
-  }
-}
-
-convert_Programm <- function(df_temp, convert_to){
-  if(nrow(df_temp) == 1 & convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, as.character)|>
-                t()|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  } else if(nrow(df_temp) == 1 & convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, factor)|>
-                t()|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  }
-  else if(convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp|>
-                select(5:9)|>
-                apply(2, as.character)|>
-                as_tibble(),
-              df_temp|>
-                select(10:11)
-    )
-  } else if(convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:4),
-              df_temp |>
-                select(5:9) |>
-                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
-              df_temp|>
-                select(10:11)
-    )
-  }
-}
-
 # Define UI
 ui <- function(){
   fluidPage(
@@ -281,8 +170,45 @@ c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 ################################################
-# temporary save
+# factor handling Programm 
+convert_Einsatzplan <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp|>
+                select(5:9)|>
+                mutate(across(everything(), as.character)),
+              df_temp|>
+                select(10:11)
+    )
+  } else if(convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:4),
+              df_temp |>
+                select(5:9) |>
+                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
+              df_temp|>
+                select(10:11)
+    )
+  }
+}
+# factor handling Programm 
+convert_Programm <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(
+      df_temp|>
+        mutate(Verleiher = as.character(Verleiher),
+               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
+    )
+  } else if(convert_to == "fact"){
+    df_temp|>
+      mutate(Verleiher = factor(Verleiher),
+             `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
+             )
+  }
+}
 
+# joined tables handling
 join_Einsatzplan <- function(l_data){
   # back up Einsatzplan
   l_data$Einsatzplan_ <- l_data$Einsatzplan
@@ -297,6 +223,7 @@ join_Einsatzplan <- function(l_data){
 }
 l_data <- join_Einsatzplan(l_data)
 
+# joined tables handling
 join_Programm <- function(l_data){
   # back up Einsatzplan
   l_data$Programm_ <- l_data$Programm
@@ -421,7 +348,6 @@ server <- function(input, output, session) {
                   select(-(1:4))
                 )
     } else if (lastEdited_data_set_name() == "Programm"){
-      print("here")
       l_temp$Programm_ <- NULL
       l_temp$Programm <- bind_cols(tibble(ID = 1:nrow(current_data())), 
                                       current_data()
@@ -487,6 +413,8 @@ server <- function(input, output, session) {
         col_data_type <- df_row[,ii]|>
           pull()|>
           class()
+        if(length(col_data_type) > 1) col_data_type <- col_data_type[1]
+        
         col_value <- current_data()[input$table_rows_selected,ii]|>pull()
         
         # handel Date inputs
@@ -501,6 +429,12 @@ server <- function(input, output, session) {
                       weekstart = 1
             )
           l_temp[[ii]]
+        } else if (col_data_type == "hms"){
+          l_temp[[ii]] <- 
+            timeInput(as.character(ii), "Zeit", 
+                      value = ifelse(is.na(col_value), readr::parse_time(NA), col_value), 
+                      seconds = FALSE)
+          
         } # handle numeric inputs
         else if(col_data_type %in% c("numeric", "integer")){ 
           print(col_data_type)
@@ -534,7 +468,6 @@ server <- function(input, output, session) {
           column_choices()[names(column_choices()) == col_name]
           c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
           names(c_choices) <- NULL
-          c_choices
           if(col_name == "Suisanummer"){
             # create text input for Suisanummer
             if(is.na(col_value)){
@@ -602,6 +535,9 @@ server <- function(input, output, session) {
     l_input <- list()
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- l_data()[[input$dataset]][,ii]|>pull()|>class()
+      
+      if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
+      
       # handle characters
       if(c_input_class == "character") {
         if (c_input[ii] == "" | c_input[ii] == "..."){
@@ -628,8 +564,34 @@ server <- function(input, output, session) {
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
         }
+      } else if(c_input_class == "hms"){
+        c_input[ii] <- as.character(c_input[ii])
+        if (c_input[ii] == "" | c_input[ii] == "..."){
+          l_input[[ii]] <- NA
+        } else {
+          # library(rebus)
+          # p <- "min"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "min\\s=\\s([\\d]+)"       
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_minutes <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_minutes <- c_minutes[2]
+
+          # p <- "hour"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "hour\\s=\\s([\\d]+)"
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_hours <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_hours <- c_hours[2]
+          
+          c_time <- paste0(c_hours, ":",c_minutes)
+          # Add a leading zero to the minutes if necessary
+          c_time <- format(as.POSIXct(c_time, format = "%H:%M"), format = "%H:%M")
+          c_time
+          l_input[[ii]] <- readr::parse_time(c_time)
+        }
       } else {
-        stop("should not end here")
+        stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
       }
     }
     names(l_input) <- names(df_temp)
@@ -645,11 +607,15 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      # Specific data handling to store user input 
+      # handle factors 
       if(lastEdited_data_set_name() == "Einsatzplan"){
         df_temp <- convert_Einsatzplan(df_temp, "char")
         df_temp[input$table_rows_selected,] <- df_updated
         df_temp <- convert_Einsatzplan(df_temp, "fact")
+      } else if (lastEdited_data_set_name() == "Programm"){
+        df_temp <- convert_Programm(df_temp, "char")
+        df_temp[input$table_rows_selected,] <- df_updated
+        df_temp <- convert_Programm(df_temp, "fact")
       } else { # anything else 
         df_temp[input$table_rows_selected,] <- df_updated
       }
@@ -1001,10 +967,11 @@ server <- function(input, output, session) {
           )
         )
       )
-    } else {
+    } 
+    else {
       # Create the DataTable for all other data sets
       dt <- datatable(
-        df_temp,
+        current_data(),
         editable = FALSE, # Nicht bearbeitbar
         selection = "single", # only select sinle row
         filter = "top", # Filter oben
