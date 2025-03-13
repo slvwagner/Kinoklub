@@ -22,7 +22,6 @@ if(file.exists(c_file)){
 ##############################################################
 # Edit data
 ##############################################################
-# l_data$Verleiherabgaben
 # l_data$Programm
 # 
 # df_temp <- l_data$Programm|>
@@ -59,8 +58,12 @@ l_data$Einsatzplan <- l_data$Einsatzplan|>
 
 l_data$Programm <- l_data$Programm|>
   mutate(Verleiher = factor(Verleiher),
-         `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
-  )
+         `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
+         `Verleihervertrag abgelegt` = factor(`Verleihervertrag abgelegt`),
+         `Besucherzahlen an Verleiher gesendet` = factor(`Besucherzahlen an Verleiher gesendet`),
+         `Rechnung bezahlt und abgelegt` = factor(`Rechnung bezahlt und abgelegt`),
+         `KDM ja oder nein` = factor(`KDM ja oder nein`)
+         )
 
 l_data$Einsatzplan
 l_data$Programm
@@ -76,6 +79,7 @@ column_choices <- list(
   "KDM ja oder nein" = l_data$JaNein$Auswahl,
   "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
   "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
+  "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
   "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
   "Verantwortlich" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
   "Operateur*in" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
@@ -192,6 +196,7 @@ convert_Einsatzplan <- function(df_temp, convert_to){
     )
   }
 }
+
 # factor handling Programm 
 convert_Programm <- function(df_temp, convert_to){
   if(convert_to == "char"){
@@ -210,10 +215,11 @@ convert_Programm <- function(df_temp, convert_to){
 
 # joined tables handling
 join_Programm <- function(l_data){
-  # back up Einsatzplan
-  l_data$Programm_ <- l_data$Programm
-  # Einsatzplan to work with 
-  l_data$Programm <- l_data$Programm|>
+  # back up Programm
+  if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
+  else l_data$Programm_ <- l_data$Programm
+  # Programm to work with 
+  l_data$Programm <- l_data$Programm_|>
     select(-ID)
   return(l_data)
 }
@@ -221,14 +227,19 @@ l_data <- join_Programm(l_data)
 
 # joined tables handling
 join_Einsatzplan <- function(l_data){
-  # back up Einsatzplan
-  l_data$Einsatzplan_ <- l_data$Einsatzplan
+  # back up 
+  if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
+  else l_data$Programm_ <- l_data$Programm
+  if(names(l_data$Einsatzplan)[1] != "ID") l_data$Einsatzplan_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Einsatzplan)
+  else l_data$Einsatzplan_ <-l_data$Einsatzplan
+  
   # Einsatzplan to work with 
   l_data$Einsatzplan <- l_data$Programm_|>
-    select(1:5)|>
+    select(1:6)|>
     left_join(
-      l_data$Einsatzplan,
-      by = "ID")|>
+      l_data$Einsatzplan_,
+      by = "ID"
+      )|>
     select(-ID)
   return(l_data)
 }
@@ -341,32 +352,44 @@ server <- function(input, output, session) {
   # Save changes and update 
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
-    
-    # specific data handling 
-    if (lastEdited_data_set_name() == "Einsatzplan") {
-      all.equal(l_temp$Einsatzplan_, 
-                bind_cols(tibble(ID = 1:nrow(current_data())), 
-                            current_data()|>
-                              select(-(1:4))
-                          )
-                )
-      l_temp$Einsatzplan_ <- NULL
-      l_temp$Einsatzplan <- bind_cols(tibble(ID = 1:nrow(current_data())), 
-                current_data()|>
-                  select(-(1:4))
-                )
-    } else if (lastEdited_data_set_name() == "Programm"){
+    # joined tables 
+    # specific data handling Programm
+    if (lastEdited_data_set_name() %in% c("Programm", "Einsatzplan")){
       all.equal(l_temp$Programm_, 
                 bind_cols(tibble(ID = 1:nrow(current_data())), 
                           current_data()
                           )
                 )
-      l_temp$Programm_ <- NULL
+
       l_temp$Programm <- 
         bind_cols(tibble(ID = 1:nrow(current_data())), 
                   current_data()
                   )
-    } else { # anything else
+      l_temp$Einsatzplan <- l_temp$Einsatzplan_ # load backup to save
+      
+      l_temp$Programm_ <- NULL # remove back up
+      l_temp$Einsatzplan_ <- NULL # remove back up
+      
+    } # specific data handling Einsatzplan
+    else if (lastEdited_data_set_name() == "Einsatzplan") {
+      all.equal(l_temp$Einsatzplan_, 
+                bind_cols(tibble(ID = 1:nrow(current_data())), 
+                          current_data()|>
+                            select(-(1:4))
+                )
+      )
+      
+      l_temp$Einsatzplan <- 
+        bind_cols(ID = 1:nrow(current_data()),
+                  current_data()|>
+                    select(-(1:4))
+        )
+      l_temp$Programm <- l_temp$Programm_ # load backup to save
+
+      l_temp$Programm_ <- NULL # remove back up
+      l_temp$Einsatzplan_ <- NULL # remove back up
+    } # anything else
+    else { 
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
 
     }
