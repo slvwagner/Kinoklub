@@ -447,122 +447,117 @@ server <- function(input, output, session) {
 
   })
 
-  # Create Modal form to Edit selected row  
   observeEvent(input$edit_row, {
-    if(!is.null(input$table_rows_selected)){
-      # get actual data
-      df_row <- current_data()
+    if (!is.null(input$table_rows_selected)) {
+      # Joined table handling
+      if (lastEdited_data_set_name() == "Einsatzplan") {
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> select(1:5)
+        # editable
+        df_row <- current_data() |> select(-(1:5))
+        
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[input$table_rows_selected, ii]))
+          )
+        })
+      } else {
+        # Get actual data
+        df_row <- current_data()
+      }
       
-      l_temp <- list()
+      if(slvwagner::r_is.defined(l_temp)) {
+        cnt <- length(l_temp) + 1
+      } else {
+        # Store HTML elements
+        l_temp <- list()
+        cnt <- 0
+        }
+      
       for (ii in 1:ncol(df_row)) {
-        col_name <- names(df_row[,ii])
-        col_data_type <- df_row[,ii]|>
-          pull()|>
-          class()
-        if(length(col_data_type) > 1) col_data_type <- col_data_type[1]
+        col_name <- names(df_row)[ii]
+        col_data_type <- class(pull(df_row[, ii]))[1]
+        col_value <- df_row[input$table_rows_selected, ii]|>pull()
         
-        col_value <- current_data()[input$table_rows_selected,ii]|>pull()
-        
-        # handel Date inputs
-        if(col_data_type == "Date"){
-          print(col_data_type)
-          l_temp[[ii]] <- 
-            dateInput(inputId =  as.character(ii), 
-                      label = col_name, 
-                      value = ifelse(is.na(col_value), as.Date(NA), col_value), 
-                      format = "dd.mm.yyyy", 
-                      language = "de", 
-                      weekstart = 1
-            )
-          l_temp[[ii]]
-        } else if (col_data_type == "hms"){ 
-          l_temp[[ii]] <- 
-            timeInput(as.character(ii), "Zeit", 
-                      value =  col_value, 
-                      seconds = FALSE
-                      )
-          
-        } # handle numeric inputs
-        else if(col_data_type %in% c("numeric", "integer")){ 
-          print(col_data_type)
-          l_temp[[ii]] <- 
-            numericInput(inputId =  as.character(ii), 
-                         label = col_name, 
-                         value =  ifelse(is.na(col_value), NA, col_value),
-                         step = 0.01
-            )
-        } # handle factor inputs
-        else if (col_data_type == "factor"){
+        if (col_data_type == "Date") {
+          l_temp[[ii + cnt]]  <- dateInput(
+            inputId = as.character(ii),
+            label = col_name,
+            value = ifelse(is.na(col_value), as.Date(NA), col_value),
+            format = "dd.mm.yyyy",
+            language = "de",
+            weekstart = 1
+          )
+        } else if (col_data_type == "hms") {
+          l_temp[[ii + cnt]]  <- timeInput(
+            inputId = as.character(ii),
+            label = "Zeit",
+            value = col_value,
+            seconds = FALSE
+          )
+        } else if (col_data_type %in% c("numeric", "integer")) {
+          l_temp[[ii + cnt]]  <- numericInput(
+            inputId = as.character(ii),
+            label = col_name,
+            value = ifelse(is.na(col_value), NA, col_value),
+            step = 0.01
+          )
+        } else if (col_data_type == "factor") {
           col_value <- as.character(col_value)
-          print(col_data_type)
-          column_choices()[names(column_choices()) == col_name]
-          c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
+          c_choices <- unlist(column_choices()[names(column_choices()) == col_name])
           names(c_choices) <- NULL
-          c_choices
-          if(col_name %in% names(column_choices())){ # look up choices
-            l_temp[[ii]] <- 
-              shiny::selectInput(
-                inputId = as.character(ii),
-                label = col_name,
-                choices = c_choices,
-                selected = ifelse(is.na(col_value), NA, col_value)
-              )
-          }else {
-            stop("you shoud not end here: factor else")
-          }
-        } else if (col_data_type == "character"){ # handle character inputs
-          print(col_data_type)
-          column_choices()[names(column_choices()) == col_name]
-          c_choices <- column_choices()[names(column_choices()) == col_name]|>unlist()
-          names(c_choices) <- NULL
-          if(col_name == "Suisanummer"){
-            # create text input for Suisanummer
-            if(is.na(col_value)){
-              generated_code <-paste0(
-                "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
-                " placeholder = \"xxxx.xxx\")"
-              )
-            }else{
-              generated_code <-paste0(
-                "textInput(inputId = \"", as.character(ii),"\", label = \"",col_name,"\",", 
-                " value = \"",col_value,"\")"
-              )
-            }
-            writeLines(generated_code)
-            eval(parse(text = generated_code))
-            l_temp[[ii]] <- eval(parse(text = generated_code))
-            
-          } else if (col_data_type == class(T)){
-            l_temp[[ii]] <- 
-              shiny::textInput(
-                inputId = as.character(ii),
-                label = col_name,
-                value = ifelse(is.na(col_value), NA, col_value)
-                )
+          
+          if (col_name %in% names(column_choices())) {
+            l_temp[[ii + cnt]]  <- selectInput(
+              inputId = as.character(ii),
+              label = col_name,
+              choices = c_choices,
+              selected = ifelse(is.na(col_value), NA, col_value)
+            )
           } else {
-            l_temp[[ii]] <- 
-              shiny::textInput(
-                inputId = as.character(ii),
-                label = col_name,
-                value = ifelse(is.na(col_value), NA, col_value)
-              )
+            stop("You should not end here: factor else")
+          }
+        } else if (col_data_type == "character") {
+          if (col_name == "Suisanummer") {
+            l_temp[[ii + cnt]]  <- textInput(
+              inputId = as.character(ii),
+              label = col_name,
+              value = ifelse(is.na(col_value), "", col_value),
+              placeholder = "xxxx.xxx"
+            )
+          } else {
+            l_temp[[ii + cnt]]  <- textInput(
+              inputId = as.character(ii),
+              label = col_name,
+              value = ifelse(is.na(col_value), "", col_value)
+            )
           }
         }
       }
-      # User interaction to save 
+      
+      l_temp <- base::Filter(function(x) !is.null(x) && length(x) > 0, l_temp)
+      
+      # User interaction to save
       showModal(
-        modalDialog(title = "Zeile editieren",
-                    l_temp,
-                    actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-                    actionButton("abort_save", "Abrechen"),
-                    easyClose = FALSE, footer = NULL
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort_save", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
         )
       )
     } else {
-      # User interaction 
+      # User interaction
       showModal(
-        modalDialog(title = "Bitte eine Zeile markieren",
-                    easyClose = TRUE, footer = modalButton("Abbrechen")
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
         )
       )
     }
@@ -573,16 +568,32 @@ server <- function(input, output, session) {
     # filter for selected data by user
     df_temp <- current_data()
     df_temp_ <- current_data()
-    # get the user input
-    generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
-    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-    names(c_input) <- NULL
+    
+    # Special user input handling
+    if(lastEdited_data_set_name() == "Einsatzplan"){
+      # get the user input
+      generated_code <- paste0("input$`", 1:7, "`")
+      c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+      names(c_input) <- NULL
+      c_select <- 6:ncol(df_temp)
+      df_temp <- df_temp|>
+        select(c_select)
+      
+    } 
+    # standard handling user input
+    else{
+      # get the user input
+      generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
+      c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+      names(c_input) <- NULL
+      c_slice <- NA
+    }
     
     # Coerce user input to correct data type 
     l_input <- list()
     for (ii in 1:ncol(df_temp)) {
-      c_input_class <- l_data()[[input$dataset]][,ii]|>pull()|>class()
-      
+      c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
+
       if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
       
       # handle characters
@@ -599,19 +610,22 @@ server <- function(input, output, session) {
         }else{
           l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
         }
-      } else if (c_input_class %in% c("double", "numeric")) {
+      } # numeric inputs
+      else if (c_input_class %in% c("double", "numeric")) {
         l_input[[ii]] <- as.numeric(c_input[ii])
-      }
+      } # integer inputs 
       else if (c_input_class == "integer") {
         l_input[[ii]] <- as.integer(c_input[ii])
-      } else if (c_input_class == "factor"){
+      } # factor or choices inputs
+      else if (c_input_class == "factor"){
         c_input[ii] <- as.character(c_input[ii])
         if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- as.character(NA)
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
         }
-      } else if(c_input_class == "hms"){
+      } # time inputs h:m 00:00
+      else if(c_input_class == "hms"){
         c_input[ii] <- as.character(c_input[ii])
         if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- NA
@@ -656,6 +670,12 @@ server <- function(input, output, session) {
     }else{
       # handle factors 
       if(lastEdited_data_set_name() == "Einsatzplan"){
+        df_temp <- bind_cols(
+          current_data()|>
+          select(1:5),
+          df_temp
+          )
+        df_updated <- bind_cols(current_data()[input$table_rows_selected, 1:5],df_updated)
         df_temp <- convert_Einsatzplan(df_temp, "char")
         df_temp[input$table_rows_selected,] <- df_updated
         df_temp <- convert_Einsatzplan(df_temp, "fact")
