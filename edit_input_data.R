@@ -178,21 +178,21 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(df_temp|>
-                select(1:4),
+                select(1:5),
               df_temp|>
-                select(5:9)|>
+                select(6:10)|>
                 mutate(across(everything(), as.character)),
               df_temp|>
-                select(10:11)
+                select(11:12)
     )
   } else if(convert_to == "fact"){
     bind_cols(df_temp|>
-                select(1:4),
+                select(1:5),
               df_temp |>
-                select(5:9) |>
+                select(6:10) |>
                 mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
               df_temp|>
-                select(10:11)
+                select(11:12)
     )
   }
 }
@@ -354,7 +354,7 @@ server <- function(input, output, session) {
     l_temp <- l_data() # get data list
     # joined tables 
     # specific data handling Programm
-    if (lastEdited_data_set_name() %in% c("Programm", "Einsatzplan")){
+    if (lastEdited_data_set_name() == "Programm"){
       all.equal(l_temp$Programm_, 
                 bind_cols(tibble(ID = 1:nrow(current_data())), 
                           current_data()
@@ -382,7 +382,7 @@ server <- function(input, output, session) {
       l_temp$Einsatzplan <- 
         bind_cols(ID = 1:nrow(current_data()),
                   current_data()|>
-                    select(-(1:4))
+                    select(-(1:5))
         )
       l_temp$Programm <- l_temp$Programm_ # load backup to save
 
@@ -1084,7 +1084,7 @@ server <- function(input, output, session) {
         pull()
       
       c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-      
+      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
       # Generate the magma color palette s
       magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
       
