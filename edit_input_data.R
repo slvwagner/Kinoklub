@@ -429,11 +429,12 @@ server <- function(input, output, session) {
                       weekstart = 1
             )
           l_temp[[ii]]
-        } else if (col_data_type == "hms"){
+        } else if (col_data_type == "hms"){ 
           l_temp[[ii]] <- 
             timeInput(as.character(ii), "Zeit", 
-                      value = ifelse(is.na(col_value), readr::parse_time(NA), col_value), 
-                      seconds = FALSE)
+                      value =  col_value, 
+                      seconds = FALSE
+                      )
           
         } # handle numeric inputs
         else if(col_data_type %in% c("numeric", "integer")){ 
