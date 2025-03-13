@@ -209,21 +209,6 @@ convert_Programm <- function(df_temp, convert_to){
 }
 
 # joined tables handling
-join_Einsatzplan <- function(l_data){
-  # back up Einsatzplan
-  l_data$Einsatzplan_ <- l_data$Einsatzplan
-  # Einsatzplan to work with 
-  l_data$Einsatzplan <- l_data$Programm|>
-    select(1:5)|>
-    left_join(
-      l_data$Einsatzplan,
-      by = "ID")|>
-    select(-ID)
-  return(l_data)
-}
-l_data <- join_Einsatzplan(l_data)
-
-# joined tables handling
 join_Programm <- function(l_data){
   # back up Einsatzplan
   l_data$Programm_ <- l_data$Programm
@@ -233,6 +218,23 @@ join_Programm <- function(l_data){
   return(l_data)
 }
 l_data <- join_Programm(l_data)
+
+# joined tables handling
+join_Einsatzplan <- function(l_data){
+  # back up Einsatzplan
+  l_data$Einsatzplan_ <- l_data$Einsatzplan
+  # Einsatzplan to work with 
+  l_data$Einsatzplan <- l_data$Programm_|>
+    select(1:5)|>
+    left_join(
+      l_data$Einsatzplan,
+      by = "ID")|>
+    select(-ID)
+  return(l_data)
+}
+l_data <- join_Einsatzplan(l_data)
+
+
 
 ###################################################
 # Split data to input and dropdown
@@ -342,23 +344,41 @@ server <- function(input, output, session) {
     
     # specific data handling 
     if (lastEdited_data_set_name() == "Einsatzplan") {
+      all.equal(l_temp$Einsatzplan_, 
+                bind_cols(tibble(ID = 1:nrow(current_data())), 
+                            current_data()|>
+                              select(-(1:4))
+                          )
+                )
       l_temp$Einsatzplan_ <- NULL
       l_temp$Einsatzplan <- bind_cols(tibble(ID = 1:nrow(current_data())), 
                 current_data()|>
                   select(-(1:4))
                 )
     } else if (lastEdited_data_set_name() == "Programm"){
+      all.equal(l_temp$Programm_, 
+                bind_cols(tibble(ID = 1:nrow(current_data())), 
+                          current_data()
+                          )
+                )
       l_temp$Programm_ <- NULL
-      l_temp$Programm <- bind_cols(tibble(ID = 1:nrow(current_data())), 
-                                      current_data()
-      )
+      l_temp$Programm <- 
+        bind_cols(tibble(ID = 1:nrow(current_data())), 
+                  current_data()
+                  )
     } else { # anything else
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
 
     }
     saveRDS(l_temp, c_file) # Save the updated list into file
-    readRDS(c_file)
-    l_data() # update data
+    l_temp <- readRDS(c_file) # load data 
+    # handle joined data sets 
+    l_temp <- join_Programm(l_temp) 
+    l_temp$Programm
+    l_temp$Programm_
+    
+    l_temp <- join_Einsatzplan(l_temp)
+    l_data(l_temp) # update data
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
       "Kategorie" = l_data()$Kategorie$Auswahl,
