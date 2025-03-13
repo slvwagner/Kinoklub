@@ -378,6 +378,9 @@ server <- function(input, output, session) {
     l_temp$Programm_
     
     l_temp <- join_Einsatzplan(l_temp)
+    l_temp$Einsatzplan_
+    l_temp$Einsatzplan
+    
     l_data(l_temp) # update data
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
