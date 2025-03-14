@@ -6,6 +6,8 @@ library(viridis)
 library(colorspace)
 library(tidyverse)
 
+source("source/functions.R")
+
 # Load the data
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
@@ -469,7 +471,7 @@ server <- function(input, output, session) {
         df_row <- current_data()
       }
       
-      if(slvwagner::r_is.defined(l_temp)) {
+      if(r_is.defined(l_temp)) {
         cnt <- length(l_temp) + 1
       } else {
         # Store HTML elements
