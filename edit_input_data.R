@@ -99,12 +99,15 @@ column_choices <- list(
 )
 
 # Floating tool box function 
-tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) {
+tool_box <- function(l_data_input, c_select = 1, page_length_var = NA) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-    # shiny::numericInput("page_lenght", "Wieviele Zeilen sollen angezeigt werden?", value = page_length_var),
+    # Function selection 
+    shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                        choices = c("Inputdaten", "Dropdowns")
+    ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -113,6 +116,48 @@ tool_box_floating <- function(l_data_input, c_select = 1, page_length_var = NA) 
     actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+    shiny::tags$hr(),
+    actionButton("save_edit", "Speichern", class = "btn-success"),
+    shiny::tags$hr(),
+    actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+  )
+}
+
+tool_box_programm <- function(l_data_input, c_select = 1, page_length_var = NA) {
+  tags$div(
+    id = "floating-panel",
+    tags$div(id = "floating-panel-header", "Werkzeuge"),
+    selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    shiny::tags$hr(),
+    actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+    shiny::tags$hr(),
+    actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+    actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+    actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+    shiny::tags$hr(),
+    actionButton("archive_row", "Neuer Film", class = "btn-success"),
+    shiny::tags$hr(),
+    actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+    shiny::tags$hr(),
+    actionButton("save_edit", "Speichern", class = "btn-success"),
+    shiny::tags$hr(),
+    actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+  )
+}
+
+tool_box_Einsatzplan <- function(l_data_input, c_select = 1, page_length_var = NA) {
+  tags$div(
+    id = "floating-panel",
+    tags$div(id = "floating-panel-header", "Werkzeuge"),
+    selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    shiny::tags$hr(),
+    actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+    # shiny::tags$hr(),
+    # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+    # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+    # actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+    # shiny::tags$hr(),
+    # actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
     actionButton("save_edit", "Speichern", class = "btn-success"),
     shiny::tags$hr(),
@@ -131,10 +176,10 @@ validate_suisanummer(c("1234.562","123.25"))
 ui <- function(){
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
-    # Function selection 
-    shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                        choices = c("Inputdaten", "Dropdowns")
-                        ),
+    # # Function selection 
+    # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+    #                     choices = c("Inputdaten", "Dropdowns")
+    #                     ),
     # Ensure jQuery UI is available for dragable tool box
     # includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     includeScript("source/JS/1.12.1_jquery-ui.js"),
@@ -247,8 +292,6 @@ join_Einsatzplan <- function(l_data){
 }
 l_data <- join_Einsatzplan(l_data)
 
-
-
 ###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:5,16,14)
@@ -270,6 +313,7 @@ table_edit <- reactiveVal("single")
 
 # Edited data 
 startup <- reactiveVal(TRUE)
+data_selection_ <- reactiveVal("Inputdaten")
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
@@ -314,6 +358,11 @@ server <- function(input, output, session) {
     C_verteiler|>
       writeClipboard()
     removeModal()
+  })
+  
+  observeEvent(input$data_selection,{
+    print("here")
+    data_selection_(input$data_selection)
   })
 
   # Observe dataset selection and update current_data
@@ -846,12 +895,18 @@ server <- function(input, output, session) {
     shiny::tagList(
       hr(),
       DTOutput("table"),
-      if(input$data_selection == "Inputdaten"){
-        # Floating tool box to edit input data 
-        tool_box_floating(l_data_input(),2, page_length_var = page_length_var())
+      
+      # Dynamically change Floating tool box to edit data
+      if(data_selection_() == "Inputdaten"){
+        if(lastEdited_data_set_name() == "Programm"){
+          tool_box_programm(l_data_input(),6, page_length_var = page_length_var())
+        }else if (lastEdited_data_set_name() == "Einsatzplan"){
+          tool_box_Einsatzplan(l_data_input(),7, page_length_var = page_length_var())
+        } else {
+          tool_box(l_data_input(), 2, page_length_var = page_length_var())
+        }
       } else {
-        # Floating tool box for editing choices
-        tool_box_floating(l_data_choices(), page_length_var = page_length_var())
+        tool_box(l_data_choices(), 1, page_length_var = page_length_var())
       },
       
       # JavaScript to make the floating panel draggable
@@ -934,7 +989,7 @@ server <- function(input, output, session) {
   output$table <- renderDataTable({
     # rendering the datatable depens on the input data 
     # for certain input data sets other renderings may be needed
-    if(input$data_selection == "Inputdaten") { # for all Input date change to user readable "Datum"
+    if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
       print("Render data table output")
       # get crrent data
       df_temp <- current_data()
