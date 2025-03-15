@@ -135,7 +135,7 @@ tool_box_programm <- function(l_data_input, c_select = 1, page_length_var = NA) 
     actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
     actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
     shiny::tags$hr(),
-    actionButton("archive_row", "Neuer Film", class = "btn-success"),
+    actionButton("archive_row", "Neuer Filmtitel", class = "btn-success"),
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
@@ -361,7 +361,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$data_selection,{
-    print("here")
     data_selection_(input$data_selection)
   })
 
@@ -869,6 +868,63 @@ server <- function(input, output, session) {
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
     
+  })
+  
+  # Duplicate Film and archive 
+  observeEvent(input$archive_row,{
+    print("here")
+    if(!is.null(input$table_rows_selected)){
+      req(input$table_rows_selected) # Ensure a row is selected
+      new_row <- current_data()[input$table_rows_selected, ]
+      # Update "Gültig ab Datum" to the current system date
+      
+      new_row <- new_row |>
+        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
+      new_row
+      
+      
+      if(nrow(current_data()) == 0){ 
+        # create new empty row with correct data type
+        updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
+        current_data(updated_data)
+      } else { # Add row to data  
+        if(is.null(input$table_rows_selected)){ # add row on bottom 
+          # User interaction 
+          showModal(
+            modalDialog(title = "Bitte eine Zeile markieren",
+                        easyClose = TRUE, footer = modalButton("Abbrechen")
+            )
+          )
+        } else {
+          if(input$table_rows_selected == nrow(current_data())){
+            updated_data <- 
+              bind_rows(current_data()[1:input$table_rows_selected,],
+                        new_row
+              )
+            current_data(updated_data)
+          }else {
+            updated_data <- 
+              bind_rows(current_data()[1:(input$table_rows_selected),],
+                        new_row,
+                        current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+              )
+            current_data(updated_data)
+          }
+        }
+      }
+      dataTableProxy("table")|>
+        selectRows(last_selected_row())|>
+        selectPage(last_selected_page())
+    }else{
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
   })
   
   # User interaction Delete selected row(s) 
