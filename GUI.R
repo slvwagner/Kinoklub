@@ -163,6 +163,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     
     # Create Verleiherabrechnung
     do_it <- df_mapping|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull()
+    if(is.na(do_it)) do_it <- FALSE
     if(do_it){
       # Template der Abrechnung einlesen
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
