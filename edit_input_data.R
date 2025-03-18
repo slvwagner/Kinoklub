@@ -67,10 +67,58 @@ l_data$Programm <- l_data$Programm|>
          `KDM ja oder nein` = factor(`KDM ja oder nein`)
          )
 
-l_data$Einsatzplan
-l_data$Programm
+# paste0("\"",names(l_data$Kinoklubmitglieder),"\"")|>
+#   paste(collapse = "\n,")|>
+#   writeLines()
 
-l_data$Kinoklubmitglieder
+l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+  mutate(ID = row_number(),
+         Mitglied = paste(Vorname, Nachname),
+         `Allgemeine Infos erhalten` = factor(`Allgemeine Infos erhalten`),
+         Programm = factor(Programm),
+         Sonderevents = factor(Sonderevents),
+         Marketing = factor(Marketing),
+         Finanzen = factor(Finanzen),
+         Sponsoring = factor(Sponsoring),
+         `Kasse / Bar` = factor(`Kasse / Bar`),
+         `Operateur*in` = factor(`Operateur*in`),
+         Koordination = factor(Koordination)
+         )|>
+  select("ID",
+         "Vorname"
+         ,"Nachname"
+         ,"Email"
+         ,"Allgemeine Infos erhalten"
+         ,"Programm"
+         ,"Sonderevents"
+         ,"Marketing"
+         ,"Finanzen"
+         ,"Sponsoring"
+         ,"Kasse / Bar"
+         ,"Operateur*in"
+         ,"Koordination"
+         ,"Kommentar"
+         ,"Mitglied")|>
+  mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))
+
+# Mitgliederauswahl für die Einsatzplanung
+Verantwortlich <- l_data$Kinoklubmitglieder|>
+  filter(Koordination == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+  pull()
+
+`Operateur*in` <- l_data$Kinoklubmitglieder|>
+  filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+`Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+  pull()
+
+`Kasse/Bar` <- l_data$Kinoklubmitglieder|>
+  filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+`Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+  pull()
 
 
 # choices list
@@ -86,11 +134,11 @@ column_choices <- list(
   "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
   "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
   "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
-  "Operateur*in" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
-  "Kasse/Bar 1" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
-  "Kasse/Bar 2" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
-  "Back-up" = ifelse(is.na(l_data$Kinoklubmitglieder$Vorname),"...",paste(l_data$Kinoklubmitglieder$Vorname, l_data$Kinoklubmitglieder$Nachname)),
+  "Verantwortlich" = Verantwortlich,
+  "Operateur*in" = `Operateur*in`,
+  "Kasse/Bar 1" = `Kasse/Bar`,
+  "Kasse/Bar 2" = `Kasse/Bar`,
+  "Back-up" = `Kasse/Bar`,
   "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
   "Kasse / Bar" = l_data$JaNein$Auswahl,
   "Programm" = l_data$JaNein$Auswahl,
