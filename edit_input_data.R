@@ -415,33 +415,7 @@ server <- function(input, output, session) {
   # Update changes
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
-    # joined tables 
-    # specific data handling Programm / Einsatzplan
-    if (lastEdited_data_set_name() == "Programm"){
-      if(all.equal(l_temp$Programm, current_data())|>is.logical()) {
-        print("lkjlkjd")
-      } else {
-        df_new <- anti_join(current_data(), l_temp$Programm)
-        df_new
-        
-        df_temp <- current_data()
-        df_temp
-        
-        df_temp[df_temp$ID == df_new$ID & df_temp$`Verleiher Angefragt?` == "Wird nicht gespielt", "ID"] <- nrow(current_data())
-        l_temp$Programm <- df_temp
-        
-        l_temp$Einsatzplan <- l_temp$Programm|>
-          select(ID, Suisanummer,Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
-          left_join(l_temp$Einsatzplan|>
-                      select(-`Verleiher Angefragt?`),
-                    by = "ID"
-          )
-      } 
-    } # anything else
-    else { 
-      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
-
-    }
+    l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
     saveRDS(l_temp, c_file) # Save the updated list into file
     l_temp <- readRDS(c_file) # load data 
     l_data(l_temp) # update data
