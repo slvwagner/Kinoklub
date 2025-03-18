@@ -359,9 +359,15 @@ server <- function(input, output, session) {
       paste0(collapse = ";")
     C_verteiler|>
       writeClipboard()
-    removeModal()
+    showModal(modalDialog(
+      modalButton("ok"),
+      title = "Email-Verteiler wurde in die Zwischenablage kopiert",
+      footer = NULL,
+      easyClose = TRUE,
+    ))
   })
   
+  # Check if dropdowns have been selected
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
@@ -841,20 +847,6 @@ server <- function(input, output, session) {
         current_data(template)
       }
     } else { 
-      # Create an empty row
-      new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
-      # special handling with ID`s
-      if (lastEdited_data_set_name() %in% c("Programm")) {
-        new_row <- new_row |>
-          mutate(ID = as.integer(nrow(current_data()) + 1))
-      }
-      # Update "Gültig ab Datum" to the current system date
-      if ("Gültig ab Datum" %in% colnames(new_row)) {
-        new_row <- new_row |>
-          mutate(`Gültig ab Datum` = Sys.Date())
-      }
-      
-      # Add row to data  
       if(is.null(input$table_rows_selected)){ # add row on bottom 
         # User interaction 
         showModal(
@@ -863,6 +855,19 @@ server <- function(input, output, session) {
           )
         )
       } else {
+        # Create an empty row
+        new_row <- current_data()[input$table_rows_selected, ] 
+        # special handling with ID`s
+        if (lastEdited_data_set_name() %in% c("Programm")) {
+          new_row <- new_row |>
+            mutate(ID = as.integer(nrow(current_data()) + 1))
+        }
+        # Update "Gültig ab Datum" to the current system date
+        if ("Gültig ab Datum" %in% colnames(new_row)) {
+          new_row <- new_row |>
+            mutate(`Gültig ab Datum` = Sys.Date())
+        }
+        # Add new row
         if(input$table_rows_selected == nrow(current_data())){
           updated_data <- 
             bind_rows(current_data()[1:input$table_rows_selected,],
