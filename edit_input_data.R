@@ -26,9 +26,8 @@ if(file.exists(c_file)){
 ##############################################################
 # l_data$Einsatzplan
 # 
-# l_data$Einsatzplan <-
-#   l_data$Programm|>
-#   select(ID, `Verleiher Angefragt?`)|>
+# l_data$Einsatzplan <- l_data$Programm|>
+#   select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
 #   left_join(l_data$Einsatzplan)
 # 
 # 
@@ -230,7 +229,7 @@ c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 ################################################
-# factor handling Programm 
+# factor handling Einsatzplan 
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(df_temp|>
@@ -239,7 +238,7 @@ convert_Einsatzplan <- function(df_temp, convert_to){
                 select(6:10)|>
                 mutate(across(everything(), as.character)),
               df_temp|>
-                select(11:12)
+                select(11:ncol(df_temp))
     )
   } else if(convert_to == "fact"){
     bind_cols(df_temp|>
@@ -248,7 +247,7 @@ convert_Einsatzplan <- function(df_temp, convert_to){
                 select(6:10) |>
                 mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
               df_temp|>
-                select(11:12)
+                select(11:ncol(df_temp))
     )
   }
 }
@@ -619,14 +618,11 @@ server <- function(input, output, session) {
     
     # Special user input handling
     if(lastEdited_data_set_name() == "Einsatzplan"){
-      
       # select columns to be updated 
       c_select <- 7:ncol(df_temp)
       df_temp <- current_data()[,c_select]
-      
       # input columns
       c_select_input <- 1:7
-      
       # get the user input
       generated_code <- paste0("input$`",c_select_input, "`")
       c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
@@ -713,7 +709,26 @@ server <- function(input, output, session) {
       as_tibble()
     df_updated
     
-    current_data()
+    # handle factors 
+    if(lastEdited_data_set_name() == "Einsatzplan"){
+      df_updated <- 
+        bind_cols(
+          current_data()[input$table_rows_selected,1:(min(c_select)-1)], 
+          df_updated
+        )|>
+        convert_Einsatzplan(convert_to = "char")
+      df_temp <- current_data()|>
+        convert_Einsatzplan(convert_to = "char")
+      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp <- convert_Einsatzplan(df_temp, "fact")
+    } else if (lastEdited_data_set_name() == "Programm"){
+      df_temp <- convert_Programm(df_temp, "char")
+      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp <- convert_Programm(df_temp, "fact")
+    } else { # anything else 
+      df_temp[input$table_rows_selected,] <- df_updated
+    }
+
     # check for changed data 
     if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_updated))){
       # User interaction 
@@ -724,19 +739,6 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      # handle factors 
-      if(lastEdited_data_set_name() == "Einsatzplan"){
-        df_updated <- bind_cols(current_data()[input$table_rows_selected, c_select],df_updated)
-        df_temp <- convert_Einsatzplan(df_temp, "char")
-        df_temp[input$table_rows_selected,] <- df_updated
-        df_temp <- convert_Einsatzplan(df_temp, "fact")
-      } else if (lastEdited_data_set_name() == "Programm"){
-        df_temp <- convert_Programm(df_temp, "char")
-        df_temp[input$table_rows_selected,] <- df_updated
-        df_temp <- convert_Programm(df_temp, "fact")
-      } else { # anything else 
-        df_temp[input$table_rows_selected,] <- df_updated
-      }
       current_data(df_temp)
       removeModal()
     }
@@ -1016,29 +1018,15 @@ server <- function(input, output, session) {
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
-
     # has the page lenght changed? 
     if(!is.null(input$page_length)){
       page_length_var(input$page_length)
     }
-
     # update 
     page <-  ceiling(row / page_length_var())
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
-    
-    # Debug
-    cat(
-      "\n**************************\n",
-      "Debug =", c_debug(),
-      "\nObserve Event select a row:",
-      "\nrow = ", last_selected_row(),
-      "\npage = ", last_selected_page(),
-      "\nlenght = ", page_length_var(),
-      "\n**************************\n",
-      sep = ""
-    )
-    
+
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
@@ -1059,18 +1047,6 @@ server <- function(input, output, session) {
     page <-  ceiling(row / page_length_var())
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
-    
-    # Debug
-    cat(
-      "\n**************************\n",
-      "Debug =", c_debug(),
-      "\nObserve Event page length:",
-      "\nrow = ", last_selected_row(),
-      "\npage = ", last_selected_page(),
-      "\nlenght = ", page_length_var(),
-      "\n**************************\n",
-      sep = ""
-    )
     
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
