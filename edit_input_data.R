@@ -24,13 +24,14 @@ if(file.exists(c_file)){
 ##############################################################
 # Edit data
 ##############################################################
-# l_data$Programm
+# l_data$Einsatzplan
 # 
-# df_temp <- l_data$Programm|>
-#   mutate(Zeit = readr::parse_time(Zeit))
-# df_temp
+# l_data$Einsatzplan <-
+#   l_data$Programm|>
+#   select(ID, `Verleiher Angefragt?`)|>
+#   left_join(l_data$Einsatzplan)
 # 
-# l_data$Programm <- df_temp
+# 
 # saveRDS(l_data,c_file)
 
 ##############################################################
@@ -99,14 +100,14 @@ column_choices <- list(
 )
 
 # Floating tool box function 
-tool_box <- function(l_data_input, c_select = 1, page_length_var = NA) {
+tool_box <- function(l_data_input, c_select = 1, data_set = c("Inputdaten", "Dropdowns")) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
     # Function selection 
     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                        choices = c("Inputdaten", "Dropdowns")
+                        choices = data_set
     ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -123,11 +124,15 @@ tool_box <- function(l_data_input, c_select = 1, page_length_var = NA) {
   )
 }
 
-tool_box_programm <- function(l_data_input, c_select = 1, page_length_var = NA) {
+tool_box_Programm <- function(l_data_input, c_select = 1,  data_set = c("Inputdaten", "Dropdowns")) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    # Function selection 
+    shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                        choices = data_set
+    ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     shiny::tags$hr(),
@@ -145,11 +150,15 @@ tool_box_programm <- function(l_data_input, c_select = 1, page_length_var = NA) 
   )
 }
 
-tool_box_Einsatzplan <- function(l_data_input, c_select = 1, page_length_var = NA) {
+tool_box_Einsatzplan <- function(l_data_input, c_select = 1,  data_set = c("Inputdaten", "Dropdowns")) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
+    # Function selection 
+    shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                        choices = data_set
+    ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
     # shiny::tags$hr(),
@@ -260,37 +269,37 @@ convert_Programm <- function(df_temp, convert_to){
   }
 }
 
-# joined tables handling
-join_Programm <- function(l_data){
-  # back up Programm
-  if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
-  else l_data$Programm_ <- l_data$Programm
-  # Programm to work with 
-  l_data$Programm <- l_data$Programm_|>
-    select(-ID)
-  return(l_data)
-}
-l_data <- join_Programm(l_data)
-
-# joined tables handling
-join_Einsatzplan <- function(l_data){
-  # back up 
-  if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
-  else l_data$Programm_ <- l_data$Programm
-  if(names(l_data$Einsatzplan)[1] != "ID") l_data$Einsatzplan_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Einsatzplan)
-  else l_data$Einsatzplan_ <-l_data$Einsatzplan
-  
-  # Einsatzplan to work with 
-  l_data$Einsatzplan <- l_data$Programm_|>
-    select(1:6)|>
-    left_join(
-      l_data$Einsatzplan_,
-      by = "ID"
-      )|>
-    select(-ID)
-  return(l_data)
-}
-l_data <- join_Einsatzplan(l_data)
+# # joined tables handling
+# join_Programm <- function(l_data){
+#   # back up Programm
+#   if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
+#   else l_data$Programm_ <- l_data$Programm
+#   # Programm to work with 
+#   l_data$Programm <- l_data$Programm_|>
+#     select(-ID)
+#   return(l_data)
+# }
+# l_data <- join_Programm(l_data)
+# 
+# # joined tables handling
+# join_Einsatzplan <- function(l_data){
+#   # back up 
+#   if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
+#   else l_data$Programm_ <- l_data$Programm
+#   if(names(l_data$Einsatzplan)[1] != "ID") l_data$Einsatzplan_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Einsatzplan)
+#   else l_data$Einsatzplan_ <-l_data$Einsatzplan
+#   
+#   # Einsatzplan to work with 
+#   l_data$Einsatzplan <- l_data$Programm_|>
+#     select(1:6)|>
+#     left_join(
+#       l_data$Einsatzplan_,
+#       by = "ID"
+#       )|>
+#     select(-ID)
+#   return(l_data)
+# }
+# l_data <- join_Einsatzplan(l_data)
 
 ###################################################
 # Split data to input and dropdown
@@ -399,45 +408,31 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  # Save changes and update 
+  # Update changes
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
     # joined tables 
-    # specific data handling Programm
+    # specific data handling Programm / Einsatzplan
     if (lastEdited_data_set_name() == "Programm"){
-      all.equal(l_temp$Programm_, 
-                bind_cols(tibble(ID = 1:nrow(current_data())), 
-                          current_data()
-                          )
-                )
-
-      l_temp$Programm <- 
-        bind_cols(tibble(ID = 1:nrow(current_data())), 
-                  current_data()
-                  )
-      l_temp$Einsatzplan <- l_temp$Einsatzplan_ # load backup to save
-      
-      l_temp$Programm_ <- NULL # remove back up
-      l_temp$Einsatzplan_ <- NULL # remove back up
-      
-    } # specific data handling Einsatzplan
-    else if (lastEdited_data_set_name() == "Einsatzplan") {
-      all.equal(l_temp$Einsatzplan_, 
-                bind_cols(tibble(ID = 1:nrow(current_data())), 
-                          current_data()|>
-                            select(-(1:4))
-                )
-      )
-      
-      l_temp$Einsatzplan <- 
-        bind_cols(ID = 1:nrow(current_data()),
-                  current_data()|>
-                    select(-(1:5))
-        )
-      l_temp$Programm <- l_temp$Programm_ # load backup to save
-
-      l_temp$Programm_ <- NULL # remove back up
-      l_temp$Einsatzplan_ <- NULL # remove back up
+      if(all.equal(l_temp$Programm, current_data())|>is.logical()) {
+        print("lkjlkjd")
+      } else {
+        df_new <- anti_join(current_data(), l_temp$Programm)
+        df_new
+        
+        df_temp <- current_data()
+        df_temp
+        
+        df_temp[df_temp$ID == df_new$ID & df_temp$`Verleiher Angefragt?` == "Wird nicht gespielt", "ID"] <- nrow(current_data())
+        l_temp$Programm <- df_temp
+        
+        l_temp$Einsatzplan <- l_temp$Programm|>
+          select(ID, Suisanummer,Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
+          left_join(l_temp$Einsatzplan|>
+                      select(-`Verleiher Angefragt?`),
+                    by = "ID"
+          )
+      } 
     } # anything else
     else { 
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
@@ -445,15 +440,6 @@ server <- function(input, output, session) {
     }
     saveRDS(l_temp, c_file) # Save the updated list into file
     l_temp <- readRDS(c_file) # load data 
-    # handle joined data sets 
-    l_temp <- join_Programm(l_temp) 
-    l_temp$Programm
-    l_temp$Programm_
-    
-    l_temp <- join_Einsatzplan(l_temp)
-    l_temp$Einsatzplan_
-    l_temp$Einsatzplan
-    
     l_data(l_temp) # update data
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
@@ -504,9 +490,9 @@ server <- function(input, output, session) {
         # Store HTML elements
         l_temp <- list()
         # only display
-        df_info <- current_data() |> select(1:5)
+        df_info <- current_data() |> select(1:6)
         # editable
-        df_row <- current_data() |> select(-(1:5))
+        df_row <- current_data() |> select(-(1:6))
         
         # Display the display columns (read-only)
         l_temp <- lapply(1:ncol(df_info), function(ii) {
@@ -548,12 +534,19 @@ server <- function(input, output, session) {
             value = col_value,
             seconds = FALSE
           )
-        } else if (col_data_type %in% c("numeric", "integer")) {
+        } else if (col_data_type %in% c("numeric")) {
           l_temp[[ii + cnt]]  <- numericInput(
             inputId = as.character(ii),
             label = col_name,
             value = ifelse(is.na(col_value), NA, col_value),
             step = 0.01
+          )
+        } else if (col_data_type %in% c("integer")) {
+          l_temp[[ii + cnt]]  <- numericInput(
+            inputId = as.character(ii),
+            label = col_name,
+            value = ifelse(is.na(col_value), NA, col_value),
+            step = 1
           )
         } else if (col_data_type == "factor") {
           col_value <- as.character(col_value)
@@ -621,14 +614,19 @@ server <- function(input, output, session) {
     
     # Special user input handling
     if(lastEdited_data_set_name() == "Einsatzplan"){
+      
+      # select columns to be updated 
+      c_select <- 7:ncol(df_temp)
+      df_temp <- current_data()[,c_select]
+      
+      # input columns
+      c_select_input <- 1:7
+      
       # get the user input
-      generated_code <- paste0("input$`", 1:7, "`")
+      generated_code <- paste0("input$`",c_select_input, "`")
       c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
       names(c_input) <- NULL
-      c_select <- 6:ncol(df_temp)
-      df_temp <- df_temp|>
-        select(c_select)
-      
+      c_input
     } 
     # standard handling user input
     else{
@@ -636,7 +634,7 @@ server <- function(input, output, session) {
       generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
       c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
       names(c_input) <- NULL
-      c_slice <- NA
+      c_input
     }
     
     # Coerce user input to correct data type 
@@ -708,6 +706,9 @@ server <- function(input, output, session) {
     names(l_input) <- names(df_temp)
     df_updated <- l_input|>
       as_tibble()
+    df_updated
+    
+    current_data()
     # check for changed data 
     if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_updated))){
       # User interaction 
@@ -720,12 +721,7 @@ server <- function(input, output, session) {
     }else{
       # handle factors 
       if(lastEdited_data_set_name() == "Einsatzplan"){
-        df_temp <- bind_cols(
-          current_data()|>
-          select(1:5),
-          df_temp
-          )
-        df_updated <- bind_cols(current_data()[input$table_rows_selected, 1:5],df_updated)
+        df_updated <- bind_cols(current_data()[input$table_rows_selected, c_select],df_updated)
         df_temp <- convert_Einsatzplan(df_temp, "char")
         df_temp[input$table_rows_selected,] <- df_updated
         df_temp <- convert_Einsatzplan(df_temp, "fact")
@@ -876,7 +872,6 @@ server <- function(input, output, session) {
     if(!is.null(input$table_rows_selected)){
       req(input$table_rows_selected) # Ensure a row is selected
       new_row <- current_data()[input$table_rows_selected, ]
-      # Update "Gültig ab Datum" to the current system date
       
       new_row <- new_row |>
         mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
@@ -901,6 +896,8 @@ server <- function(input, output, session) {
               bind_rows(current_data()[1:input$table_rows_selected,],
                         new_row
               )
+            updated_data <- convert_Programm(updated_data, "char")
+            updated_data <- convert_Programm(updated_data, "fact")
             current_data(updated_data)
           }else {
             updated_data <- 
@@ -908,6 +905,9 @@ server <- function(input, output, session) {
                         new_row,
                         current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
               )
+            updated_data <- convert_Programm(updated_data, "char")
+            updated_data <- convert_Programm(updated_data, "fact")
+            updated_data
             current_data(updated_data)
           }
         }
@@ -951,18 +951,25 @@ server <- function(input, output, session) {
     shiny::tagList(
       hr(),
       DTOutput("table"),
-      
       # Dynamically change Floating tool box to edit data
       if(data_selection_() == "Inputdaten"){
         if(lastEdited_data_set_name() == "Programm"){
-          tool_box_programm(l_data_input(),6, page_length_var = page_length_var())
+          tool_box_Programm(l_data_input(),6)
         }else if (lastEdited_data_set_name() == "Einsatzplan"){
-          tool_box_Einsatzplan(l_data_input(),7, page_length_var = page_length_var())
+          tool_box_Einsatzplan(l_data_input(),7)
+        } else if(lastEdited_data_set_name() == "Einnahmen"){
+          tool_box(l_data_input(),1)
+        } else if(lastEdited_data_set_name() == "Spezialpreisekiosk"){
+          tool_box(l_data_input(),3)
+        }else if(lastEdited_data_set_name() == "Verleiherabgaben"){
+          tool_box(l_data_input(),4)
+        }else if(lastEdited_data_set_name() == "Einkauf Kiosk"){
+          tool_box(l_data_input(),5)
         } else {
-          tool_box(l_data_input(), 2, page_length_var = page_length_var())
+          tool_box(l_data_input(),2)
         }
       } else {
-        tool_box(l_data_choices(), 1, page_length_var = page_length_var())
+        tool_box(l_data_choices(), 1)
       },
       
       # JavaScript to make the floating panel draggable
@@ -1052,65 +1059,70 @@ server <- function(input, output, session) {
       # find all column names containing "Datum"
       df_Date <- current_data()|>
         select(contains("datum"))
-      # create user readable Datum
-      df_Date_user <-
-        df_Date|>
-        as.matrix()|>
-        apply(2, function(x){
-          x <- as.Date(x)
-          x <- format(x, "%d.%m.%Y")
-          return(x)
-        })|>
-        as_tibble()
-      names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
       
-      # Insert user readable Datum 
-      run <- TRUE
-      ii <- 1
-      while(run){
-        if(names(df_temp)[ii] %in% names(df_Date)){
-          for (jj in 1:ncol(df_Date)) {
-            if(names(df_temp)[ii] == names(df_Date)[jj]){
-              if(ncol(df_temp) == ii){
-                df_temp <-
-                  bind_cols(
-                    df_temp[,1:ii],
-                    df_Date_user[, jj]
-                  )
-              }else{
-                df_temp <-
-                  bind_cols(
-                    df_temp[,1:ii],
-                    df_Date_user[, jj],
-                    df_temp[,(ii+1):ncol(df_temp)]
-                  )
+      if(ncol(df_Date) > 0){
+        # create user readable Datum
+        df_Date_user <-
+          df_Date|>
+          as.matrix()|>
+          apply(2, function(x){
+            x <- as.Date(x)
+            x <- format(x, "%d.%m.%Y")
+            return(x)
+          })|>
+          as_tibble()
+        names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
+        # Insert user readable Datum 
+        run <- TRUE
+        ii <- 1
+        while(run){
+          if(names(df_temp)[ii] %in% names(df_Date)){
+            for (jj in 1:ncol(df_Date)) {
+              if(names(df_temp)[ii] == names(df_Date)[jj]){
+                if(ncol(df_temp) == ii){
+                  df_temp <-
+                    bind_cols(
+                      df_temp[,1:ii],
+                      df_Date_user[, jj]
+                    )
+                }else{
+                  df_temp <-
+                    bind_cols(
+                      df_temp[,1:ii],
+                      df_Date_user[, jj],
+                      df_temp[,(ii+1):ncol(df_temp)]
+                    )
+                }
+                ii <- ii + 1
               }
-              ii <- ii + 1
             }
           }
+          if(ncol(df_temp) <= ii) run <- FALSE
+          ii <- ii + 1
         }
-        if(ncol(df_temp) <= ii) run <- FALSE
-        ii <- ii + 1
-      }
-      # Select user readable datum columns
-      c_select <- names(df_temp)|>as.integer()|>
-        suppressWarnings()
-      c_select
-      
-      # create option list for datatable function
-      l_columnDefs <- list()
-      cnt <- 1
-      for (ii in 1:length(c_select)) {
-        if(!is.na(c_select)[ii]){
-          l_columnDefs <- append(l_columnDefs, list(
-            list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
-            list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
-          ))
-          names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
-          cnt <- cnt + 2
+        # Select user readable datum columns
+        c_select <- names(df_temp)|>as.integer()|>
+          suppressWarnings()
+        c_select
+        
+        # create option list for datatable function
+        l_columnDefs <- list()
+        cnt <- 1
+        for (ii in 1:length(c_select)) {
+          if(!is.na(c_select)[ii]){
+            l_columnDefs <- append(l_columnDefs, list(
+              list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
+              list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
+            ))
+            names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
+            cnt <- cnt + 2
+          }
         }
+      }else {
+        # create option list for datatable function
+        l_columnDefs <- list()
       }
-      
+
       # Create the DataTable
       dt <- datatable(
         df_temp,
@@ -1189,8 +1201,6 @@ server <- function(input, output, session) {
     
     # Apply conditional formatting for different data sets
     if (!is.null(input$dataset) && input$dataset == "Programm") {
-      
-      # Apply conditional formatting to columns
       tryCatch({
         dt <- dt |>
           formatStyle(
