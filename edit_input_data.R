@@ -139,7 +139,7 @@ tool_box_Programm <- function(l_data_input, c_select = 1,  data_set = c("Inputda
     actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
     actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
     shiny::tags$hr(),
-    actionButton("archive_row", "Neuer Filmtitel", class = "btn-success"),
+    actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
     shiny::tags$hr(),
     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
@@ -160,12 +160,6 @@ tool_box_Einsatzplan <- function(l_data_input, c_select = 1,  data_set = c("Inpu
     ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-    # shiny::tags$hr(),
-    # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-    # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-    # actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
-    # shiny::tags$hr(),
-    # actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
     shiny::tags$hr(),
     actionButton("save_edit", "Speichern", class = "btn-success"),
     shiny::tags$hr(),
@@ -415,7 +409,21 @@ server <- function(input, output, session) {
   # Update changes
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
-    l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+    # joined tables 
+    # specific data handling Programm / Einsatzplan
+    if (lastEdited_data_set_name() == "Programm"){
+      df_temp <- current_data()
+      l_temp[[lastEdited_data_set_name()]] <- df_temp # Update the list with current edits
+      l_temp$Einsatzplan <- left_join(df_temp|>
+                  select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
+                l_temp[["Einsatzplan"]]|>
+                  select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
+                )
+    } # anything else
+    else { 
+      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+
+    }
     saveRDS(l_temp, c_file) # Save the updated list into file
     l_temp <- readRDS(c_file) # load data 
     l_data(l_temp) # update data
@@ -704,7 +712,7 @@ server <- function(input, output, session) {
     }
 
     # check for changed data 
-    if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_updated))){
+    if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_temp_[input$table_rows_selected,]))){
       # User interaction 
       showModal(
         modalDialog(title = "Es wurde nichts geändert!",
@@ -728,47 +736,61 @@ server <- function(input, output, session) {
   
   # Add a new row top of selected
   observeEvent(input$add_row_top, {
-    if(nrow(current_data()) == 0){ # get template data if no current data is available
-      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
-      current_data(updated_data)
-    } else { 
-      if(is.null(input$table_rows_selected)){
-        # User interaction 
+    if (nrow(current_data()) == 0) {
+      # get template data if no current data is available
+      l_template <- readRDS("Input/template.Rds")
+      template <- l_template[[lastEdited_data_set_name()]]
+      if (is.null(template))
+        stop("could not finde template data to create a new row")
+      else {
+        current_data(template)
+      }
+    } else {
+      if (is.null(input$table_rows_selected)) {
+        # User interaction
         showModal(
-          modalDialog(title = "Bitte eine Zeile markieren",
-                      easyClose = TRUE, footer = modalButton("Abbrechen")
+          modalDialog(
+            title = "Bitte eine Zeile markieren",
+            easyClose = TRUE,
+            footer = modalButton("Abbrechen")
           )
         )
       } else {
-        # get actuall data 
-        new_row <- current_data()[1, ]|>mutate(across(everything(), ~ NA)) # Create an empty row
-        if(input$table_rows_selected == 1){ # add row on top
-          updated_data <- 
-            bind_rows(new_row,
-                      current_data()[(input$table_rows_selected):nrow(current_data()),]
-            )
+        # Create an empty row
+        new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
+        # special handling with ID`s
+        if (lastEdited_data_set_name() %in% c("Programm")) {
+          new_row <- new_row |>
+            mutate(ID = as.integer(nrow(current_data()) + 1))
+        }
+        if (input$table_rows_selected == 1) {
+          # add row on top
+          updated_data <-
+            bind_rows(new_row, current_data()[(input$table_rows_selected):nrow(current_data()), ])
           current_data(updated_data)
-        }else{
-          updated_data <- 
-            bind_rows(current_data()[1:(input$table_rows_selected - 1),],
-                      new_row,
-                      current_data()[(input$table_rows_selected):nrow(current_data()),]
-            )
+        } else{
+          updated_data <-
+            bind_rows(current_data()[1:(input$table_rows_selected - 1), ], new_row, current_data()[(input$table_rows_selected):nrow(current_data()), ])
           current_data(updated_data)
         }
       }
+      dataTableProxy("table") |>
+        selectRows(last_selected_row() + 1) |>
+        selectPage(last_selected_page())
     }
-    dataTableProxy("table")|>
-      selectRows(last_selected_row() + 1)|>
-      selectPage(last_selected_page())
   })
   
   # Add a new row bottom of selected
   observeEvent(input$add_row_bottom, {
     if(nrow(current_data()) == 0){ 
-      # create new empty row with correct data type
-      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
-      current_data(updated_data)
+      # get template data if no current data is available
+      l_template <- readRDS("Input/template.Rds")
+      template <- l_template[[lastEdited_data_set_name()]]
+      if (is.null(template))
+        stop("could not finde template data to create a new row")
+      else {
+        current_data(template)
+      }
     } else { # Add row to data  
       if(is.null(input$table_rows_selected)){ # add row on bottom 
         # User interaction 
@@ -778,8 +800,13 @@ server <- function(input, output, session) {
           )
         )
       } else {
-        # create new empty row with correct data type 
-        new_row <- current_data()[1, ]|>mutate(across(everything(), ~ NA)) # Create an empty row
+        # Create an empty row
+        new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
+        # special handling with ID`s
+        if (lastEdited_data_set_name() %in% c("Programm")) {
+          new_row <- new_row |>
+            mutate(ID = as.integer(nrow(current_data()) + 1))
+        }
         if(input$table_rows_selected == nrow(current_data())){
           updated_data <- 
             bind_rows(current_data()[1:input$table_rows_selected,],
@@ -804,19 +831,30 @@ server <- function(input, output, session) {
   
   # Duplicate selected row(s) and update "Gültig ab Datum"
   observeEvent(input$duplicate_row, {
-    req(input$table_rows_selected) # Ensure a row is selected
-    new_row <- current_data()[input$table_rows_selected, ]
-    # Update "Gültig ab Datum" to the current system date
-    if ("Gültig ab Datum" %in% colnames(new_row)) {
-      new_row <- new_row |>
-        mutate(`Gültig ab Datum` = Sys.Date())
-    }
-
     if(nrow(current_data()) == 0){ 
-      # create new empty row with correct data type
-      updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
-      current_data(updated_data)
-    } else { # Add row to data  
+      # get template data if no current data is available
+      l_template <- readRDS("Input/template.Rds")
+      template <- l_template[[lastEdited_data_set_name()]]
+      if (is.null(template))
+        stop("could not finde template data to create a new row")
+      else {
+        current_data(template)
+      }
+    } else { 
+      # Create an empty row
+      new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
+      # special handling with ID`s
+      if (lastEdited_data_set_name() %in% c("Programm")) {
+        new_row <- new_row |>
+          mutate(ID = as.integer(nrow(current_data()) + 1))
+      }
+      # Update "Gültig ab Datum" to the current system date
+      if ("Gültig ab Datum" %in% colnames(new_row)) {
+        new_row <- new_row |>
+          mutate(`Gültig ab Datum` = Sys.Date())
+      }
+      
+      # Add row to data  
       if(is.null(input$table_rows_selected)){ # add row on bottom 
         # User interaction 
         showModal(
@@ -853,46 +891,36 @@ server <- function(input, output, session) {
     if(!is.null(input$table_rows_selected)){
       req(input$table_rows_selected) # Ensure a row is selected
       new_row <- current_data()[input$table_rows_selected, ]
-      
       new_row <- new_row |>
         mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
-      new_row
-      
+      new_row <- new_row|>
+        mutate(ID = as.integer(nrow(current_data()) + 1))
       
       if(nrow(current_data()) == 0){ 
         # create new empty row with correct data type
         updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
         current_data(updated_data)
       } else { # Add row to data  
-        if(is.null(input$table_rows_selected)){ # add row on bottom 
-          # User interaction 
-          showModal(
-            modalDialog(title = "Bitte eine Zeile markieren",
-                        easyClose = TRUE, footer = modalButton("Abbrechen")
+        if(input$table_rows_selected == nrow(current_data())){
+          updated_data <- 
+            bind_rows(current_data()[1:input$table_rows_selected,],
+                      new_row
             )
-          )
-        } else {
-          if(input$table_rows_selected == nrow(current_data())){
-            updated_data <- 
-              bind_rows(current_data()[1:input$table_rows_selected,],
-                        new_row
-              )
-            updated_data <- convert_Programm(updated_data, "char")
-            updated_data <- convert_Programm(updated_data, "fact")
-            current_data(updated_data)
-          }else {
-            updated_data <- 
-              bind_rows(current_data()[1:(input$table_rows_selected),],
-                        new_row,
-                        current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-              )
-            updated_data <- convert_Programm(updated_data, "char")
-            updated_data <- convert_Programm(updated_data, "fact")
-            updated_data
-            current_data(updated_data)
-          }
+          updated_data <- convert_Programm(updated_data, "char")
+          updated_data <- convert_Programm(updated_data, "fact")
+          current_data(updated_data)
+        }else {
+          updated_data <- 
+            bind_rows(current_data()[1:(input$table_rows_selected),],
+                      new_row,
+                      current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+            )
+          updated_data <- convert_Programm(updated_data, "char")
+          updated_data <- convert_Programm(updated_data, "fact")
+          updated_data
+          current_data(updated_data)
         }
-      }
+      } 
       dataTableProxy("table")|>
         selectRows(last_selected_row())|>
         selectPage(last_selected_page())
