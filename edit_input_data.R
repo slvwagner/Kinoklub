@@ -70,6 +70,9 @@ l_data$Programm <- l_data$Programm|>
 l_data$Einsatzplan
 l_data$Programm
 
+l_data$Kinoklubmitglieder
+
+
 # choices list
 column_choices <- list(
   "Lieferant" = l_data$Lieferanten$Lieferantenname,
@@ -261,38 +264,6 @@ convert_Programm <- function(df_temp, convert_to){
              )
   }
 }
-
-# # joined tables handling
-# join_Programm <- function(l_data){
-#   # back up Programm
-#   if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
-#   else l_data$Programm_ <- l_data$Programm
-#   # Programm to work with 
-#   l_data$Programm <- l_data$Programm_|>
-#     select(-ID)
-#   return(l_data)
-# }
-# l_data <- join_Programm(l_data)
-# 
-# # joined tables handling
-# join_Einsatzplan <- function(l_data){
-#   # back up 
-#   if(names(l_data$Programm)[1] != "ID") l_data$Programm_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Programm)
-#   else l_data$Programm_ <- l_data$Programm
-#   if(names(l_data$Einsatzplan)[1] != "ID") l_data$Einsatzplan_ <- bind_cols(ID = 1:nrow(l_data$Programm),l_data$Einsatzplan)
-#   else l_data$Einsatzplan_ <-l_data$Einsatzplan
-#   
-#   # Einsatzplan to work with 
-#   l_data$Einsatzplan <- l_data$Programm_|>
-#     select(1:6)|>
-#     left_join(
-#       l_data$Einsatzplan_,
-#       by = "ID"
-#       )|>
-#     select(-ID)
-#   return(l_data)
-# }
-# l_data <- join_Einsatzplan(l_data)
 
 ###################################################
 # Split data to input and dropdown
