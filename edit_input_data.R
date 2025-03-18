@@ -100,14 +100,14 @@ column_choices <- list(
 )
 
 # Floating tool box function 
-tool_box <- function(l_data_input, c_select = 1, data_set = c("Inputdaten", "Dropdowns")) {
+tool_box <- function(l_data_input, c_select = 1, data_set = c("Inputdaten", "Dropdowns"), c_selected = 1) {
   tags$div(
     id = "floating-panel",
     tags$div(id = "floating-panel-header", "Werkzeuge"),
     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
     # Function selection 
     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                        choices = data_set
+                        choices = data_set, selected = data_set[c_selected]
     ),
     shiny::tags$hr(),
     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -371,7 +371,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
-    if(input$data_selection == "input$data_selection"){
+    if(input$data_selection == "Dropdowns"){
       current_data(l_data_choices()[["Verleiher"]])
       lastEdited_data_set(l_data()[["Verleiher"]])
       lastEdited_data_set_name("Verleiher")
@@ -975,27 +975,31 @@ server <- function(input, output, session) {
         }
       } else if (data_selection_() == "Dropdowns") {
         if(lastEdited_data_set_name() == "Verleiher"){
-          tool_box(l_data_choices(), 1, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 1, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-          tool_box(l_data_choices(), 2, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 2, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Kategorie"){
-          tool_box(l_data_choices(), 3, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 3, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Spezialpreis"){
-          tool_box(l_data_choices(), 4, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 4, c_selected = 2)
         } else if (lastEdited_data_set_name() == "JaNein"){
-          tool_box(l_data_choices(), 5, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 5, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Lieferanten"){
-          tool_box(l_data_choices(), 6, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 6, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Platzkategorien zum Verrechnen"){
-          tool_box(l_data_choices(), 7, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 7, c_selected = 2)
         } else if (lastEdited_data_set_name() == "MWST"){
-          tool_box(l_data_choices(), 8, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 8, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Status Filmliste"){
-          tool_box(l_data_choices(), 9, data_set = c("Dropdowns", "Inputdaten"))
+          tool_box(l_data_choices(), 9, c_selected = 2)
         } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-          tool_box(l_data_choices(), 9, data_set = c("Dropdowns", "Inputdaten"))
-        } else stop("Not yet implemented dataset")
-      } else stop(paste("lastEdited_data_set_name()", lastEdited_data_set_name(), "not yet implemented")),
+          tool_box(l_data_choices(), 10, c_selected = 2)
+        } else {
+          stop("Not yet implemented dataset")
+          }
+      } else {
+        stop(paste("lastEdited_data_set_name()", lastEdited_data_set_name(), "not yet implemented"))
+      },
       
       # JavaScript to make the floating panel draggable
       tags$script(HTML("
