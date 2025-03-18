@@ -371,6 +371,11 @@ server <- function(input, output, session) {
   
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
+    if(input$data_selection == "input$data_selection"){
+      current_data(l_data_choices()[["Verleiher"]])
+      lastEdited_data_set(l_data()[["Verleiher"]])
+      lastEdited_data_set_name("Verleiher")
+    }
   })
 
   # Observe dataset selection and update current_data
@@ -968,9 +973,29 @@ server <- function(input, output, session) {
         } else {
           tool_box(l_data_input(),2)
         }
-      } else {
-        tool_box(l_data_choices(), 1)
-      },
+      } else if (data_selection_() == "Dropdowns") {
+        if(lastEdited_data_set_name() == "Verleiher"){
+          tool_box(l_data_choices(), 1, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
+          tool_box(l_data_choices(), 2, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Kategorie"){
+          tool_box(l_data_choices(), 3, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Spezialpreis"){
+          tool_box(l_data_choices(), 4, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "JaNein"){
+          tool_box(l_data_choices(), 5, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Lieferanten"){
+          tool_box(l_data_choices(), 6, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Platzkategorien zum Verrechnen"){
+          tool_box(l_data_choices(), 7, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "MWST"){
+          tool_box(l_data_choices(), 8, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Status Filmliste"){
+          tool_box(l_data_choices(), 9, data_set = c("Dropdowns", "Inputdaten"))
+        } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
+          tool_box(l_data_choices(), 9, data_set = c("Dropdowns", "Inputdaten"))
+        } else stop("Not yet implemented dataset")
+      } else stop(paste("lastEdited_data_set_name()", lastEdited_data_set_name(), "not yet implemented")),
       
       # JavaScript to make the floating panel draggable
       tags$script(HTML("
