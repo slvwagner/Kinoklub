@@ -67,9 +67,15 @@ l_data$Programm <- l_data$Programm|>
          `KDM ja oder nein` = factor(`KDM ja oder nein`)
          )
 
+
+l_data$Verleiher <- l_data$Verleiher|>
+  mutate(`Kinoförderer gratis?` = factor(`Kinoförderer gratis?`))
+
 # paste0("\"",names(l_data$Kinoklubmitglieder),"\"")|>
 #   paste(collapse = "\n,")|>
 #   writeLines()
+#   
+#   
 
 l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
   mutate(ID = row_number(),
@@ -215,50 +221,6 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
     )
   }
 }
-
-# tool_box_Programm <- function(l_data_input, c_select = 1,  data_set = c("Inputdaten", "Dropdowns")) {
-#   tags$div(
-#     id = "floating-panel",
-#     tags$div(id = "floating-panel-header", "Werkzeuge"),
-#     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-#     # Function selection 
-#     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-#                         choices = data_set
-#     ),
-#     shiny::tags$hr(),
-#     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-#     shiny::tags$hr(),
-#     actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-#     actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-#     actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
-#     shiny::tags$hr(),
-#     actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
-#     shiny::tags$hr(),
-#     actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-#     shiny::tags$hr(),
-#     actionButton("save_edit", "Speichern", class = "btn-success"),
-#     shiny::tags$hr(),
-#     actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-#   )
-# }
-# 
-# tool_box_Einsatzplan <- function(l_data_input, c_select = 1,  data_set = c("Inputdaten", "Dropdowns")) {
-#   tags$div(
-#     id = "floating-panel",
-#     tags$div(id = "floating-panel-header", "Werkzeuge"),
-#     selectInput("dataset", "Datensatz zum Editieren", selected = names(l_data_input)[c_select], choices = names(l_data_input)),
-#     # Function selection 
-#     shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-#                         choices = data_set
-#     ),
-#     shiny::tags$hr(),
-#     actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-#     shiny::tags$hr(),
-#     actionButton("save_edit", "Speichern", class = "btn-success"),
-#     shiny::tags$hr(),
-#     actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-#   )
-# }
 
 # Regex validation function for Suisanummer
 validate_suisanummer <- function(input) {
