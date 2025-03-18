@@ -267,7 +267,7 @@ convert_Programm <- function(df_temp, convert_to){
 
 ###################################################
 # Split data to input and dropdown
-c_select_input_data <- c(1:5,16,14)
+c_select_input_data <- c(1:3,5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
 
 ###################################################
@@ -1004,7 +1004,7 @@ server <- function(input, output, session) {
     page <-  ceiling(row / page_length_var())
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
-
+    # select last row
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
@@ -1012,20 +1012,17 @@ server <- function(input, output, session) {
   
   # Observe the change in page length
   observeEvent(input$page_length, {
-    c_debug(c_debug()+1)
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
-
     # update 
     req(input$page_length)
     page_length_var(input$page_length)
-    
     # update 
     page <-  ceiling(row / page_length_var())
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
-    
+    # select last row
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
