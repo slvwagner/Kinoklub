@@ -77,6 +77,10 @@ l_data$Verleiher <- l_data$Verleiher|>
 #   
 #   
 
+l_data$Verleiher <- l_data$Verleiher|>
+  as_tibble()
+
+
 l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
   mutate(ID = row_number(),
          Mitglied = paste(Vorname, Nachname),
@@ -105,7 +109,8 @@ l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
          ,"Koordination"
          ,"Kommentar"
          ,"Mitglied")|>
-  mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))
+  mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))|>
+  as_tibble()
 
 # Mitgliederauswahl für die Einsatzplanung
 Verantwortlich <- l_data$Kinoklubmitglieder|>
