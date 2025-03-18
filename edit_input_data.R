@@ -110,7 +110,7 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices_select
+                            choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -127,14 +127,14 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
       )
-  } else if(data_set_select == "Programm"){
+  } else if(data_set_select == "Einsatzplan"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", "Werkzeuge"),
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices_select
+                            choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -150,7 +150,7 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
       selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
       # Function selection 
       shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                          choices = choices, selected = choices_select
+                          choices = choices, selected = choices[choices_select]
       ),
       shiny::tags$hr(),
       actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -384,7 +384,7 @@ server <- function(input, output, session) {
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
-      current_data(l_data_choices()[["Verleiher"]])
+      current_data(l_data()[["Verleiher"]])
       lastEdited_data_set(l_data()[["Verleiher"]])
       lastEdited_data_set_name("Verleiher")
     }
@@ -980,7 +980,6 @@ server <- function(input, output, session) {
       DTOutput("table"),
       # Dynamically change Floating tool box to edit data
       if (data_selection_() == "Inputdaten") {
-        tool_box(l_data_input(), "Ausgaben")
         if (lastEdited_data_set_name() == "Programm") {
           tool_box(l_data_input(), "Programm")
         } else if (lastEdited_data_set_name() == "Einsatzplan") {
@@ -998,25 +997,25 @@ server <- function(input, output, session) {
         }
       } else if (data_selection_() == "Dropdowns") {
         if(lastEdited_data_set_name() == "Verleiher"){
-          tool_box(l_data_choices(), "Verleiher" )
+          tool_box(l_data_choices(), "Verleiher",2)
         } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-          tool_box(l_data_choices(), "Buchhaltungskonten")
+          tool_box(l_data_choices(), "Buchhaltungskonten",2)
         } else if (lastEdited_data_set_name() == "Kategorie"){
-          tool_box(l_data_choices(), "Kategorie")
+          tool_box(l_data_choices(), "Kategorie",2)
         } else if (lastEdited_data_set_name() == "Spezialpreis"){
-          tool_box(l_data_choices(), "Spezialpreis")
+          tool_box(l_data_choices(), "Spezialpreis", 2)
         } else if (lastEdited_data_set_name() == "JaNein"){
-          tool_box(l_data_choices(), "JaNein")
+          tool_box(l_data_choices(), "JaNein",2)
         } else if (lastEdited_data_set_name() == "Lieferanten"){
-          tool_box(l_data_choices(), "Lieferanten")
+          tool_box(l_data_choices(), "Lieferanten",2)
         } else if (lastEdited_data_set_name() == "Platzkategorien zum Verrechnen"){
-          tool_box(l_data_choices(), "Platzkategorien zum Verrechnen")
+          tool_box(l_data_choices(), "Platzkategorien zum Verrechnen",2)
         } else if (lastEdited_data_set_name() == "MWST"){
-          tool_box(l_data_choices(), "MWST")
+          tool_box(l_data_choices(), "MWST",2)
         } else if (lastEdited_data_set_name() == "Status Filmliste"){
-          tool_box(l_data_choices(), "Status Filmliste")
+          tool_box(l_data_choices(), "Status Filmliste",2)
         } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-          tool_box(l_data_choices(), "Kinoklubmitglieder")
+          tool_box(l_data_choices(), "Kinoklubmitglieder",2)
         } else {
           stop("Not yet implemented dataset")
           }
