@@ -29,34 +29,45 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 3.  Download [git:\\](git:\){.uri} <https://git-scm.com/downloads>
 4.  Kionklub Scripts download: Navigate to folder you would like to install the Scripts
 
-```         
-    git clone https://github.com/slvwagner/Kinoklub
-```
+    ```         
+        git clone https://github.com/slvwagner/Kinoklub
+    ```
 
 6.  Start Rstudio from the Kinoklub folder, or open the project with Rstudio "Kinoklub.Rproj".
 7.  Install the needed packages in the R Terminal
 
-```         
-# Define libraries to be installed
-# Define libraries to be installed
-packages <- c(
-  "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
-  "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
-)
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-  invisible(lapply(packages, library, character.only = TRUE))
-}
-```
+    ```         
+    # Define libraries to be installed
+    # Define libraries to be installed
+    packages <- c(
+      "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
+      "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
+      "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
+    )
+    # Install packages not yet installed
+    installed_packages <- packages %in% rownames(installed.packages())
+    if (any(installed_packages == FALSE)) {
+      install.packages(packages[!installed_packages])
+      invisible(lapply(packages, library, character.only = TRUE))
+    }
+    ```
+
+7.  SQL Passwort
+    Für Windows:
+    ```         
+      setx DB_PASSWORD_KINOKLUB "your_password_here"
+    ```
+    MAC / Linux
+    ```
+      export DB_PASSWORD_KINOKLUB="your_password_here"
+    ```
+
 
 7.  Run this command once in R-Terminal, error MSG can be ignored
-
-```         
-    webshot::install_phantomjs()
-```
+    
+    ```         
+        webshot::install_phantomjs()
+    ```
 
 ## Run the Appliction
 
@@ -70,18 +81,6 @@ Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse
 
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
-
-## SQL Verbindung
-
-### Passwortsytemvariable
-Für Windows:
-```         
-  setx DB_PASSWORD_KINOKLUB "your_password_here"
-```
-MAC / Linux
-```
-  export DB_PASSWORD_KINOKLUB="your_password_here"
-```
 
 ## Datensätze
 
