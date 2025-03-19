@@ -177,36 +177,16 @@ convert_DB_to_R <- function(data,template) {
   return(data_converted)
 }
 
-conver_data_type <- function()
-l_template <- l_data |> 
-  lapply(function(x) {
-    x |> 
-      slice(1) |> 
-      mutate(
-        across(where(is.character), ~NA_character_),
-        across(where(is.double), ~NA_real_),
-        across(where(is.integer), ~NA_integer_),
-        across(where(is.factor), ~factor(NA, levels = levels(.))),
-        across(where(lubridate::is.Date), ~as.Date(NA)),
-        across(where(lubridate::is.POSIXct), ~as.POSIXct(NA, origin = "1970-01-01")),
-        across(where(hms::is.hms), ~hms::as_hms(NA))
-      )
-  })
-
 # update all data in DB
 update_DB_all <- function(l_data, con) {
+  ii <- 2
+  copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])
+  
   # create and update tables on SQL
   1:length(l_data)|>
     lapply(function(ii){
       copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
     })
-  
-  l_data_sql <- names(l_data)|>
-    lapply(function(x){
-      tbl(con, x)|>
-        collect()
-    })
-  names(l_data_sql) <- names(l_data)
 }
 
 # get all data defined by the template l_data
