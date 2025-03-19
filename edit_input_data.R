@@ -35,8 +35,8 @@ source("source/SQL/SQL_Functions.R")
 # update_DB_all(l_data, con)
 
 # get passwort for hoststar DB from the environment variable 
-# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-pw <- "nrK4ytHA+JKNwfu"
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
 
 # DB connection
 con <- Connect_to_DB(pw)
