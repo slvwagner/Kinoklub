@@ -3,6 +3,7 @@ library(DBI)
 library(tidyverse)
 source("source/functions.R")
 
+# connection to Database
 Connect_to_DB <- function() {
   # get passwort for hoststar DB from the environment variable 
   pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
@@ -31,6 +32,7 @@ con
 tables <- dbListTables(con)
 print(tables)
 
+# Copy a data frame to SQL DB (slow done for each row because of DB batch restrictions)
 copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
   # Load necessary libraries
   library(DBI)
@@ -127,6 +129,7 @@ copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
 
+# Conversion template
 convert_to_template_types <- function(df_sql, df_template) {
   # Align columns (keep only those present in both data frames)
   common_cols <- intersect(colnames(df_sql), colnames(df_template))
@@ -159,7 +162,8 @@ convert_to_template_types <- function(df_sql, df_template) {
   return(df_sql)
 }
 
-convert_sql_to_R <- function(l_data_sql,l_data) {
+# convert data from DB to R with correct conversion template
+convert_DB_to_R <- function(l_data_sql,l_data) {
   # Convert data types for each table
   l_data_sql_converted <- names(l_data_sql) |>
     map(~ {
@@ -175,55 +179,18 @@ convert_sql_to_R <- function(l_data_sql,l_data) {
   return(l_data_sql_converted)
 }
 
-# Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date 
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
+# update all data in DB
+update_DB_all <- function(l_data, con) {
+  # create and update tables on SQL
+  1:length(l_data)|>
+    lapply(function(ii){
+      copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
+    })
+  
+  l_data_sql <- names(l_data)|>
+    lapply(function(x){
+      tbl(con, x)|>
+        collect()
+    })
+  names(l_data_sql) <- names(l_data)
 }
-
-l_data
-
-# create and update tables on SQL
-1:length(l_data)|>
-  lapply(function(ii){
-    copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-  })
-
-l_data_sql <- names(l_data)|>
-  lapply(function(x){
-    tbl(con, x)|>
-      collect()
-  })
-names(l_data_sql) <- names(l_data)
-
-# Convert data types for each table
-convert_sql_to_R(l_data_sql,l_data)
-
-all.equal(l_data, l_data_sql_converted)
-
-
-tbl(con, "Ausgaben")|>
-  filter(Kategorie == "Personalaufwand")|>
-  explain()
-tbl(con, "Einnahmen")|>
-  show_query()
-
-tbl(con, "Ausgaben")
-tbl(con, "Spezialpreisekiosk")
-tbl(con, "Einkauf Kiosk")
-tbl(con, "Programm")
-tbl(con, "Einsatzplan")
-
-
-###################################################
-# Disconnect from DB
-dbDisconnect(con)
-
-writeLines("Script run suggessfully")
