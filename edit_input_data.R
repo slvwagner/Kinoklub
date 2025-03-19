@@ -1200,7 +1200,7 @@ server <- function(input, output, session) {
           filter(column == TRUE)|>
           select(index)|>
           pull()
-        c_col
+        # offset needed becaus datatable starts at index 0
         c_select <- c(FALSE,c_select)
         l_filter <- list(NULL)
         for (ii in 1:(length(c_select))) {
@@ -1208,7 +1208,7 @@ server <- function(input, output, session) {
           else l_filter[[ii + 1]] <- NULL
         }
 
-      }else {
+      }else { # empty list if no filter needs to be applyed
         l_filter <- list()
       }
       
