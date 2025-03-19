@@ -203,3 +203,82 @@ get_Data <- function(l_data, con, download = TRUE) {
   return(temp)
 }
 
+
+data_conversion <- function(l_data) {
+  ##############################################################
+  # Format choices as factors
+  l_data$Einnahmen <- l_data$Einnahmen|>
+    mutate(Kategorie = factor(Kategorie))
+  
+  l_data$Ausgaben <- l_data$Ausgaben|>
+    mutate(Kategorie = factor(Kategorie))
+  
+  l_data$Verleiherabgaben  <- l_data$Verleiherabgaben|>
+    mutate(Verleiher = factor(Verleiher))
+  
+  l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
+    mutate(Spezialpreis = factor(Spezialpreis) )
+  
+  l_data$`Einkauf Kiosk` <- l_data$`Einkauf Kiosk`|>
+    mutate(Lieferant = factor(Lieferant))
+  
+  l_data$Einsatzplan <- l_data$Einsatzplan|>
+    mutate(Verantwortlich = factor(Verantwortlich),
+           `Operateur*in` = factor(`Operateur*in`),
+           `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
+           `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
+           `Back-up` = factor(`Back-up`)
+    )
+  
+  l_data$Programm <- l_data$Programm|>
+    mutate(Verleiher = factor(Verleiher),
+           `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
+           `Verleihervertrag abgelegt` = factor(`Verleihervertrag abgelegt`),
+           `Besucherzahlen an Verleiher gesendet` = factor(`Besucherzahlen an Verleiher gesendet`),
+           `Rechnung bezahlt und abgelegt` = factor(`Rechnung bezahlt und abgelegt`),
+           `KDM ja oder nein` = factor(`KDM ja oder nein`)
+    )
+  
+  
+  l_data$Verleiher <- l_data$Verleiher|>
+    mutate(`Kinoförderer gratis?` = factor(`Kinoförderer gratis?`))
+  
+  l_data$Verleiher <- l_data$Verleiher|>
+    as_tibble()
+  
+  l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+    mutate(ID = row_number(),
+           Mitglied = paste(Vorname, Nachname),
+           `Allgemeine Infos erhalten` = factor(`Allgemeine Infos erhalten`),
+           Programm = factor(Programm),
+           Sonderevents = factor(Sonderevents),
+           Marketing = factor(Marketing),
+           Finanzen = factor(Finanzen),
+           Sponsoring = factor(Sponsoring),
+           `Kasse / Bar` = factor(`Kasse / Bar`),
+           `Operateur*in` = factor(`Operateur*in`),
+           Koordination = factor(Koordination)
+    )|>
+    select("ID",
+           "Vorname"
+           ,"Nachname"
+           ,"Email"
+           ,"Allgemeine Infos erhalten"
+           ,"Programm"
+           ,"Sonderevents"
+           ,"Marketing"
+           ,"Finanzen"
+           ,"Sponsoring"
+           ,"Kasse / Bar"
+           ,"Operateur*in"
+           ,"Koordination"
+           ,"Kommentar"
+           ,"Mitglied")|>
+    mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))|>
+    as_tibble()
+  
+
+  
+  return(l_data)
+}
+
