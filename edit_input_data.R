@@ -253,9 +253,11 @@ validate_suisanummer(c("1234.562","123.25"))
 # Define UI
 ui <- function(){
   fluidPage(
-    shiny::headerPanel("Input Kinoklub"),
-    shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
-    shiny::actionButton("SQL_connect", "Mit Datenbank verbinden"),
+    shiny::inputPanel(shiny::headerPanel("Input Kinoklub"),
+                      shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+                      shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
+                      shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
+                      ),
     includeScript("source/JS/1.12.1_jquery-ui.js"),
     tags$head(
       tags$style(HTML("
@@ -378,6 +380,10 @@ server <- function(input, output, session) {
     print("here")
   })
   
+  observeEvent(input$SQL_disconnect,{
+    print("here")
+  })
+  
   # observe event get email list 
   observeEvent(input$get_email,{
     showModal(modalDialog(
@@ -481,7 +487,6 @@ server <- function(input, output, session) {
     l_data_sql <- get_Data(l_template, con)
     # Convert data types for each table
     l_temp <- convert_DB_to_R(l_data_sql,l_template)
-    print(l_temp)
     
     # saveRDS(l_temp, c_file) # Save the updated list into file
     # l_temp <- readRDS(c_file) # load data
@@ -1186,6 +1191,27 @@ server <- function(input, output, session) {
         # create option list for datatable function
         l_columnDefs <- list()
       }
+      
+      # custom search pre set 
+      if(lastEdited_data_set_name() == "Einsatzplan"){
+        c_select <- names(df_temp) == "Verleiher Angefragt?"
+        c_col <- tibble(column = c_select)|>
+          mutate(index = row_number())|>
+          filter(column == TRUE)|>
+          select(index)|>
+          pull()
+        c_col
+        c_select <- c(FALSE,c_select)
+        l_filter <- list(NULL)
+        for (ii in 1:(length(c_select))) {
+          if(c_select[ii]) l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]') # '["HR", "Finance"]'
+          else l_filter[[ii + 1]] <- NULL
+        }
+
+      }else {
+        l_filter <- list()
+      }
+      
 
       # Create the DataTable
       dt <- datatable(
@@ -1197,6 +1223,7 @@ server <- function(input, output, session) {
           columnDefs = l_columnDefs, # Spaltendefinitionen
           pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
           lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+          searchCols = l_filter,
           # observe the page lenght from data table
           initComplete = JS(
             "function(settings, json) {",
