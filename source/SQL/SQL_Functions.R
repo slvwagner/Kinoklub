@@ -142,10 +142,12 @@ convert_to_template_types <- function(df_sql, df_template) {
       df_sql[[col]] <- hms::as_hms(df_sql[[col]])
     } else if (any(col_type %in% c("POSIXct", "POSIXlt"))) {
       df_sql[[col]] <- as.POSIXct(df_sql[[col]])
-    } else if (any(col_type == "numeric")) {
+    } else if (any(col_type == "double")) {
       df_sql[[col]] <- as.numeric(df_sql[[col]])
     } else if (any(col_type == "integer")) {
       df_sql[[col]] <- as.integer(df_sql[[col]])
+    } else if (any(col_type == "numeric")) {
+      df_sql[[col]] <- as.numeric(df_sql[[col]])
     } else if (any(col_type == "character")) {
       df_sql[[col]] <- as.character(df_sql[[col]])
     } else if (any(col_type == "factor")) {
@@ -174,6 +176,22 @@ convert_DB_to_R <- function(data,template) {
   names(data_converted) <- names(data)
   return(data_converted)
 }
+
+conver_data_type <- function()
+l_template <- l_data |> 
+  lapply(function(x) {
+    x |> 
+      slice(1) |> 
+      mutate(
+        across(where(is.character), ~NA_character_),
+        across(where(is.double), ~NA_real_),
+        across(where(is.integer), ~NA_integer_),
+        across(where(is.factor), ~factor(NA, levels = levels(.))),
+        across(where(lubridate::is.Date), ~as.Date(NA)),
+        across(where(lubridate::is.POSIXct), ~as.POSIXct(NA, origin = "1970-01-01")),
+        across(where(hms::is.hms), ~hms::as_hms(NA))
+      )
+  })
 
 # update all data in DB
 update_DB_all <- function(l_data, con) {

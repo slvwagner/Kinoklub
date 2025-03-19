@@ -22,7 +22,7 @@ if(file.exists(c_file)){
 l_data
 
 # # create and update tables on SQL
-# update_DB_all(l_data, con)
+update_DB_all(l_data, con)
 
 # only glimps of data 
 get_Data(l_data, con, download = FALSE)
