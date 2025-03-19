@@ -32,9 +32,8 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     ```         
         git clone https://github.com/slvwagner/Kinoklub
     ```
-
-6.  Start Rstudio from the Kinoklub folder, or open the project with Rstudio "Kinoklub.Rproj".
-7.  Install the needed packages in the R Terminal
+5.  Start Rstudio from the Kinoklub folder, or open the project with Rstudio "Kinoklub.Rproj".
+6.  Install the needed packages in the R Terminal
 
     ```         
     # Define libraries to be installed
@@ -51,7 +50,6 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       invisible(lapply(packages, library, character.only = TRUE))
     }
     ```
-
 7.  SQL Passwort
     Für Windows:
     ```         
@@ -61,8 +59,6 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     ```
       export DB_PASSWORD_KINOKLUB="your_password_here"
     ```
-
-
 7.  Run this command once in R-Terminal, error MSG can be ignored
     
     ```         
