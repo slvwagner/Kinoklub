@@ -1,58 +1,35 @@
 library(RMySQL)
+library(DBI)
 library(tidyverse)
+source("source/functions.R")
 
-# get passwort for hoststar DB from the environment variable 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# host
-host <- "lx51.hoststar.hosting"
-#Database name 
-DB_name <- "ch367079_gui"
-# DB_user
-DB_user <- "ch367079_flo"
-
-if(!slvwagner::r_is.defined(con)) {
-  # Example connection
-  con <- dbConnect(
-    MySQL(),  # or MariaDB()
-    host = host,
-    user = DB_user,
-    password = pw,
-    dbname = DB_name,
-    port = 3306
-  )
+Connect_to_DB <- function() {
+  # get passwort for hoststar DB from the environment variable 
+  pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+  # host
+  host <- "lx51.hoststar.hosting"
+  #Database name 
+  DB_name <- "ch367079_gui"
+  # DB_user
+  DB_user <- "ch367079_flo"
+  
+  if(!r_is.defined(con)) {
+    # Example connection
+    con <- dbConnect(
+      MySQL(),  # or MariaDB()
+      host = host,
+      user = DB_user,
+      password = pw,
+      dbname = DB_name,
+      port = 3306
+    )
+    return(con)
+  }else return(con)
 }
-
+con <- Connect_to_DB()
+con
 tables <- dbListTables(con)
 print(tables)
-
-
-# Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date 
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
-
-# names(l_data$Einnahmen)
-# l_data$Einnahmen <- 
-#   tibble("Kategorie" = factor(NA),
-#        "Bezeichnung" = as.character(NA),
-#        "Datum" = as.Date(NA),
-#        "Suisanummer" = as.character(NA),
-#        "Betrag [CHF]" = as.numeric(NA),
-#        "Firmennamen" = as.character(NA),
-#        "Adresse" = as.character(NA),
-#        "Rechnungsnummer" = as.character(NA)
-#        )
-# saveRDS(l_data,c_file)
-
-library(DBI)
 
 copy_table_to_db <- function(df_data, con, table_name) {
   # Get column names and wrap them in backticks to handle spaces and special characters
@@ -139,6 +116,19 @@ copy_table_to_db <- function(df_data, con, table_name) {
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
 
+# Load the data
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date 
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+
 l_data
 
 # create and update tables on SQL
@@ -163,27 +153,6 @@ l_data_type <- l_data|>
 l_data_type|>
   str()
 
-# Function to read from the database and convert columns back to factors
-read_and_convert_factors <- function(con, table_name) {
-  # Read the data from the database
-  query <- sprintf("SELECT * FROM `%s`;", table_name)
-  df_data <- dbGetQuery(con, query)
-  
-  # Loop through the columns and convert to factor if appropriate
-  for (col in colnames(df_data)) {
-    # Check if the column is character (or factor before)
-    if (is.character(df_data[[col]])) {
-      df_data[[col]] <- factor(df_data[[col]])  # Convert to factor
-    }
-  }
-  
-  return(df_data)
-}
-
-# Example usage
-df_data <- read_and_convert_factors(con, "Kinoklubmitglieder")|>
-  as_tibble()
-df_data
 
 
 tbl(con, "Ausgaben")|>
@@ -194,17 +163,10 @@ tbl(con, "Einnahmen")|>
 
 tbl(con, "Ausgaben")
 tbl(con, "Spezialpreisekiosk")
-tbl(con, "Einkauf_Kiosk")
+tbl(con, "Einkauf Kiosk")
 tbl(con, "Programm")
 tbl(con, "Einsatzplan")
 
-
-# Example: Check if the "Ausgaben" table was uploaded
-result <- dbGetQuery(con, "SELECT * FROM Einnahmen LIMIT 5")
-
-
-
-
-
+# Disconnect from DB
 dbDisconnect(con)
-print(result)
+
