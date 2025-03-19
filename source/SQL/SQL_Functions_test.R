@@ -1,8 +1,11 @@
 
 source("source/SQL/SQL_Functions.R")
 
+# get passwort for hoststar DB from the environment variable 
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
 # DB connection
-con <- Connect_to_DB()
+con <- Connect_to_DB(pw)
 con
 tables <- dbListTables(con)
 print(tables)

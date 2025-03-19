@@ -4,9 +4,7 @@ library(tidyverse)
 source("source/functions.R")
 
 # connection to Database
-Connect_to_DB <- function() {
-  # get passwort for hoststar DB from the environment variable 
-  pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+Connect_to_DB <- function(pw) {
   # host
   host <- "lx51.hoststar.hosting"
   #Database name 
