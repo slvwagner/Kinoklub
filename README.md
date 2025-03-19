@@ -51,7 +51,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     }
     ```
 7.  SQL Passwort \
-    Für Windows:
+    Windows
     ```         
       setx DB_PASSWORD_KINOKLUB "your_password_here"
     ```
