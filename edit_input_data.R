@@ -1,3 +1,10 @@
+####################################################################################################
+# Shiny app to edit all Kinoklub input data
+# The data is stored on a SQL DB. The Password for the DB connection must be stored 
+# in a envirnonment variable: DB_PASSWORD_KINOKLUB 
+# Find instroction in the readme to set it up for windows or Mac/Linux
+####################################################################################################
+
 library(shiny)
 library(shinyjs)
 library(shinyTime)
@@ -7,7 +14,14 @@ library(colorspace)
 library(tidyverse)
 
 source("source/functions.R")
+source("source/SQL/SQL_Functions.R")
 
+# DB connection
+con <- Connect_to_DB()
+
+##############################################################
+# Push data to SQL DB
+##############################################################
 # Load the data
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
@@ -15,23 +29,30 @@ if(file.exists(c_file)){
   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
   if(!dir.exists("Input/backup")) dir.create("Input/backup")
   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date 
+}else{ # or load template date
   c_file <- "Input/template.Rds"
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
+# # create and update tables on SQL
+update_DB_all(l_data, con)
 
 ##############################################################
-# Edit data
+# read data from SQL DB
 ##############################################################
-# l_data$Einsatzplan
-# 
-# l_data$Einsatzplan <- l_data$Programm|>
-#   select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
-#   left_join(l_data$Einsatzplan)
-# 
-# 
-# saveRDS(l_data,c_file)
+# read in data templates (for data type conversion)
+l_template <- readRDS("Input/template.Rds")
+
+
+
+# get all data as defined in the template l_data
+l_data_sql <- get_Data(l_template, con)
+
+# Convert data types for each table
+l_data <- convert_DB_to_R(l_data_sql,l_template)
+
+# Test if all are same 
+all.equal(readRDS("Input/Data.Rds"), l_data)
 
 ##############################################################
 # Format choices as factors
@@ -447,7 +468,8 @@ server <- function(input, output, session) {
     # specific data handling Programm / Einsatzplan
     if (lastEdited_data_set_name() == "Programm"){
       df_temp <- current_data()
-      l_temp[[lastEdited_data_set_name()]] <- df_temp # Update the list with current edits
+      # Update the list with current edits
+      l_temp[[lastEdited_data_set_name()]] <- df_temp 
       l_temp$Einsatzplan <- left_join(df_temp|>
                   select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
                 l_temp[["Einsatzplan"]]|>
@@ -458,8 +480,16 @@ server <- function(input, output, session) {
       l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
 
     }
+    # create and update tables on SQL
+    update_DB_all(l_temp, con)
+    # get all data as defined in the template l_data
+    l_data_sql <- get_Data(l_template, con)
+    # Convert data types for each table
+    l_temp <- convert_DB_to_R(l_data_sql,l_data)
+    print(l_temp)
+    
     saveRDS(l_temp, c_file) # Save the updated list into file
-    l_temp <- readRDS(c_file) # load data 
+    l_temp <- readRDS(c_file) # load data
     l_data(l_temp) # update data
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
