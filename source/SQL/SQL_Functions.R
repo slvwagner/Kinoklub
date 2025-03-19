@@ -159,20 +159,20 @@ convert_to_template_types <- function(df_sql, df_template) {
 }
 
 # convert data from DB to R with correct conversion template
-convert_DB_to_R <- function(l_data_sql,l_data) {
+convert_DB_to_R <- function(data,template) {
   # Convert data types for each table
-  l_data_sql_converted <- names(l_data_sql) |>
+  data_converted <- names(data) |>
     map(~ {
       table_name <- .x
-      df_sql <- l_data_sql[[table_name]]
-      df_template <- l_data[[table_name]]
+      df_sql <- data[[table_name]]
+      df_template <- template[[table_name]]
       
       # Convert data types
       convert_to_template_types(df_sql, df_template)
     })
   # Assign names to the converted list
-  names(l_data_sql_converted) <- names(l_data_sql)
-  return(l_data_sql_converted)
+  names(data_converted) <- names(data)
+  return(data_converted)
 }
 
 # update all data in DB
@@ -191,5 +191,21 @@ update_DB_all <- function(l_data, con) {
   names(l_data_sql) <- names(l_data)
 }
 
-
+# get all data defined by the template l_data
+get_Data <- function(l_data, con, download = TRUE) {
+  if(download){
+    temp <- names(l_data)|>
+      lapply(function(x){
+        tbl(con, x)|>
+          collect()
+      })
+  } else {
+    temp <- names(l_data)|>
+      lapply(function(x){
+        tbl(con, x)
+      })
+  }
+  names(temp) <- names(l_data)
+  return(temp)
+}
 

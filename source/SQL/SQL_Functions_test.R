@@ -1,4 +1,6 @@
+
 source("source/SQL/SQL_Functions.R")
+
 # DB connection
 con <- Connect_to_DB()
 con
@@ -19,11 +21,19 @@ if(file.exists(c_file)){
 }
 l_data
 
-# create and update tables on SQL
-update_DB_all(l_data, con)
+# # create and update tables on SQL
+# update_DB_all(l_data, con)
+
+# only glimps of data 
+get_Data(l_data, con, download = FALSE)
+
+# get all data as defined in the template l_data
+l_data_sql <- get_Data(l_data, con)
+l_data_sql
 
 # Convert data types for each table
-convert_sql_to_R(l_data_sql,l_data)
+l_data_sql_converted <- convert_DB_to_R(l_data_sql,l_data)
+l_data_sql_converted
 
 all.equal(l_data, l_data_sql_converted)
 
