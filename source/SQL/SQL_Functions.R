@@ -184,12 +184,6 @@ update_DB_all <- function(l_data, con) {
       shiny::incProgress(length(l_data) / ii, detail = paste("Step", ii, "of", length(l_data)))
       copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
     }
-    # 
-    # # create and update tables on SQL
-    # 1:length(l_data)|>
-    #   lapply(function(ii){
-    #     copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-    #   })
   })
 }
 
