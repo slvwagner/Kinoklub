@@ -31,24 +31,28 @@ con
 tables <- dbListTables(con)
 print(tables)
 
-copy_table_to_db <- function(df_data, con, table_name) {
+copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
+  # Load necessary libraries
+  library(DBI)
+  library(hms)
+  
   # Get column names and wrap them in backticks to handle spaces and special characters
   col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
   
   # Check if table exists
   table_exists <- dbExistsTable(con, table_name)
   
-  if (table_exists) {
+  if (table_exists && delete_existing) {
     message(sprintf("Table '%s' exists. Deleting all existing rows...", table_name))
     # Delete all rows in the table
     dbExecute(con, sprintf("DELETE FROM `%s`;", table_name))
     message(sprintf("All rows deleted from '%s'.", table_name))
-  } else {
+  } else if (!table_exists) {
     message(sprintf("Table '%s' does not exist. Creating table...", table_name))
   }
   
   if (!table_exists) {
-    # Infer SQL column types based on R data types
+    # Infer SQL column types based on R data types (MySQL-specific)
     sql_types <- sapply(df_data, function(x) {
       if (is.integer(x)) {
         return("INT")
@@ -57,9 +61,13 @@ copy_table_to_db <- function(df_data, con, table_name) {
       } else if (inherits(x, "Date")) {
         return("DATE")
       } else if (inherits(x, "hms")) {
-        return("TIME")
+        return("TIME")  # Use TIME for time of day
+      } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
+        return("DATETIME")  # Use DATETIME for date-time values
+      } else if (is.character(x) || is.factor(x)) {
+        return("TEXT")  # Use TEXT for character or factor columns
       } else {
-        return("TEXT")  # Default to TEXT for character, factor, etc.
+        stop(sprintf("Unsupported data type for column: %s", class(x)))
       }
     })
     
@@ -82,19 +90,22 @@ copy_table_to_db <- function(df_data, con, table_name) {
       next
     }
     
+    # Format values for MySQL
     values <- sapply(df_data[i, ], function(x) {
       if (is.na(x)) {
         return("NULL")  # Handle NA values properly
-      } else if (is.numeric(x)) {  
-        return(as.character(x))  # Keep numeric values as is (int, double)
-      } else if (inherits(x, "Date")) {  
+      } else if (is.numeric(x)) {
+        return(as.character(x))  # Keep numeric values as is
+      } else if (inherits(x, "Date")) {
         return(sprintf("'%s'", as.character(x)))  # Format Date as 'YYYY-MM-DD'
-      } else if (inherits(x, "hms")) {  
-        return(sprintf("'%s'", as.character(x)))  # Handle time class (hms)
-      } else if (is.factor(x)) {  
-        return(sprintf("'%s'", as.character(x)))  # Convert factor to string
-      } else {  
-        return(sprintf("'%s'", x))  # Assume character type
+      } else if (inherits(x, "hms")) {
+        return(sprintf("'%s'", as.character(x)))  # Format time as 'HH:MM:SS'
+      } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
+        return(sprintf("'%s'", format(x, "%Y-%m-%d %H:%M:%S")))  # Format datetime as 'YYYY-MM-DD HH:MM:SS'
+      } else if (is.character(x) || is.factor(x)) {
+        return(sprintf("'%s'", gsub("'", "''", as.character(x))))  # Escape single quotes in strings
+      } else {
+        stop(sprintf("Unsupported data type for value: %s", class(x)))
       }
     })
     
@@ -115,6 +126,52 @@ copy_table_to_db <- function(df_data, con, table_name) {
   
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
+
+convert_to_template_types <- function(df_sql, df_template) {
+  # Align columns (keep only those present in both data frames)
+  common_cols <- intersect(colnames(df_sql), colnames(df_template))
+  df_sql <- df_sql |> select(all_of(common_cols))
+  df_template <- df_template |> select(all_of(common_cols))
+  
+  # Convert data types
+  for (col in common_cols) {
+    col_type <- class(df_template[[col]])
+
+    if (any(col_type == "Date")) {
+      df_sql[[col]] <- as.Date(df_sql[[col]])
+    } else if (any(col_type == "hms")) {
+      df_sql[[col]] <- hms::as_hms(df_sql[[col]])
+    } else if (any(col_type %in% c("POSIXct", "POSIXlt"))) {
+      df_sql[[col]] <- as.POSIXct(df_sql[[col]])
+    } else if (any(col_type == "numeric")) {
+      df_sql[[col]] <- as.numeric(df_sql[[col]])
+    } else if (any(col_type == "integer")) {
+      df_sql[[col]] <- as.integer(df_sql[[col]])
+    } else if (any(col_type == "character")) {
+      df_sql[[col]] <- as.character(df_sql[[col]])
+    } else if (any(col_type == "factor")) {
+      df_sql[[col]] <- as.factor(df_sql[[col]])
+    } else {
+      warning(sprintf("Unsupported data type for column '%s': %s", col, paste(col_type, collapse = ", ")))
+    }
+  }
+  
+  return(df_sql)
+}
+
+# Convert data types for each table
+l_data_sql_converted <- names(l_data_sql) |>
+  map(~ {
+    table_name <- .x
+    df_sql <- l_data_sql[[table_name]]
+    df_template <- l_data[[table_name]]
+    
+    # Convert data types
+    convert_to_template_types(df_sql, df_template)
+  })
+
+# Assign names to the converted list
+names(l_data_sql_converted) <- names(l_data_sql)
 
 # Load the data
 c_file <- "Input/Data.Rds"
@@ -142,7 +199,11 @@ l_data_sql <- names(l_data)|>
     tbl(con, x)|>
       collect()
   })
-l_data_sql
+names(l_data_sql) <- names(l_data)
+
+# Convet to correct data type
+l_data_sql|>
+  lapply(convert_data_types)
 
 # get data type
 l_data_type <- l_data|>
@@ -167,6 +228,31 @@ tbl(con, "Einkauf Kiosk")
 tbl(con, "Programm")
 tbl(con, "Einsatzplan")
 
+
+
+###################################################
+library(DBI)
+library(hms)
+
+# Example data frame
+df <- data.frame(
+  id = 1:3,
+  date = as.Date(c("2023-10-01", "2023-10-02", "2023-10-03")),
+  time = hms::hms(hours = c(14, 15, 16), minutes = c(30, 0, 45)),
+  datetime = as.POSIXct(c("2023-10-01 14:30:00", "2023-10-02 15:00:00", "2023-10-03 16:45:00"))
+)
+
+# Copy data to database
+copy_table_to_db(df, con, "test_table")
+
+# Query the table
+dbReadTable(con, "test_table")
+dbReadTable(con, "test_table")|>
+  as_tibble()
+
+
+
+###################################################
 # Disconnect from DB
 dbDisconnect(con)
 
