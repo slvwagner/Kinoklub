@@ -1,192 +1,20 @@
 # Data templates
+library(lubridate)
+library(hms)
 
-rm(list = ls())
-
-library(tidyverse)
-
-########################################################################
-# find all columnnames in all excel spread sheets
-########################################################################
-find_col_names_excel <- function(c_file) {
-  # Error handling
-  stopifnot(file.exists(c_file))
-  # Get sheet names
-  c_sheets <- readxl::excel_sheets(c_file)
-  # Read data from each sheet with specified column types
-  df_temp <- 
-    lapply(c_sheets, function(sheet_name) {
-      readxl::read_excel(
-        c_file,
-        sheet = sheet_name,
-        col_types = NULL # Apply column types
+l_template <- l_data |> 
+  lapply(function(x) {
+    x |> 
+      slice(1) |> 
+      mutate(
+        across(where(is.character), ~NA_character_),
+        across(where(is.double), ~NA_real_),
+        across(where(is.integer), ~NA_integer_),
+        across(where(is.factor), ~factor(NA, levels = levels(.))),
+        across(where(lubridate::is.Date), ~as.Date(NA)),
+        across(where(lubridate::is.POSIXct), ~as.POSIXct(NA, origin = "1970-01-01")),
+        across(where(hms::is.hms), ~hms::as_hms(NA))
       )
-    })
-  names(df_temp) <- c_sheets
-  df_temp|>
-    lapply(names)
-}
-
-########################################################################
-# Find all excel files to read in
-c_file <- list.files("input", pattern = "xlsx", full.names = T)
-c_file
-
-c_cols <- c_file|>
-  lapply(function(x){
-    find_col_names_excel(x)
   })
 
-names(c_cols) <- c_file
-
-templateInput <- list(
-  Einnahmen =
-    tibble(
-      "Kategorie" = as.character(),
-      "Bezeichnung" = as.character(),
-      "Datum" = as.Date(""),
-      "Suisanummer" = as.character(),
-      "Betrag [CHF]" = as.numeric(),
-      "Firmennamen" = as.character(),
-      "Adresse" = as.character(),
-      "Rechnungsnummer" = as.character()
-    ),
-  Ausgaben =
-    tibble(
-      "Kategorie" = as.character(),
-      "Spieldatum" = as.Date(""),
-      "Suisanummer" = as.character(),
-      "Bezeichnung" = as.character(),
-      "Datum" = as.Date(""),
-      "Betrag [CHF]" = as.numeric(),
-      "Firmennamen" = as.character(),
-      "Adresse" = as.character(),
-      "Referenz" = as.character(),
-      "Rechnungsnummer" = as.character(),
-      "Buchungskonto" = as.character()
-    ),
-  Spezialpreisekiosk =
-    tibble(
-      "Datum" = as.Date(""),
-      "Suisanummer" = as.character(),
-      "Spezialpreis" = as.character(),
-      "Artikelname" = as.character()
-    ),
-  Verleiherabgaben =
-    tibble(
-      "Datum" = as.Date(""),
-      "Link Datum" = as.Date(""),
-      "Suisanummer" = as.character(),
-      "Minimal Abzug [CHF]" = as.numeric(),
-      "Abzug [%]" = as.numeric(),
-      "Abzug fix [CHF]" = as.numeric(),
-      "Filmtitel" = as.numeric(),
-      "Verleiher" = as.character(),
-    ),
-  `Einkauf Kiosk` =
-    tibble(
-      "Artikel" = as.character(),
-      "Artikelname-Kassensystem" = as.character(),
-      "Verkaufspreis [CHF]" = as.numeric(),
-      "Menge" = as.character(),
-      "Einkaufspreis [CHF]" = as.numeric(),
-      "Lieferant" = as.character(),
-      "Gewinn [CHF]" = as.numeric()
-    ),
-  Verleiher =
-    tibble(
-      "Verleihername" = as.character(),
-      "Kinoförderer gratis?" = as.character(),
-      "Adresse" = as.character(),
-      "PLZ" = as.numeric(),
-      "Ort" = as.character()
-    ),
-  Buchhaltungskonten =
-    tibble(
-      Buchungskontoname =
-        c("...",
-          "4404 Filmmiete Kino",
-          "4405 Einkauf Kioskwaren Kino",
-          "4406 Werbung Kino",
-          "4407 Unterhalt"
-        )
-    ),
-  Kategorie =
-    tibble(
-      Auswahl = 
-        c("...",
-          "Event",
-          "Kiosk",
-          "Personalaufwand",
-          "Sonstiges",
-          "Verleiher",
-          "Vermietung",
-          "Werbung"
-        )
-    ),
-  Spezialpreis = tibble(
-    Spezialpreisname = 
-      c("...",
-        paste0("Spez ", 1:4)
-        )
-  ),
-  JaNein = tibble(
-    Auswahl = 
-      c("...",
-        "ja", 
-        "nein"
-        )
-    ),
-  df_P_kat_verechnen = 
-    tibble(
-      Kinoförderer = c("Kinoförderer","Kinofördererkarte"),
-      Verkaufspreis =  c(13,13)
-      ),
-  MWST = 
-    tibble(
-      MWST = 8.1
-    )
-)
-
-# Einkaufspreise Kiosk
-templateInput$`Einkauf Kiosk` <- readxl::read_excel("Input/Einkauf Kiosk  01.11.23.xlsx")|>
-  mutate("Gültig ab Datum" =as.Date("2023-11-01"),
-         "Gewinn" = NULL
-         )|>
-  rename("Artikelname-Kassensystem" = `Artikelname Kassensystem`,
-         "Verkaufspreis [CHF]" = `Verkaufs-preis`,
-         "Einkaufspreis [CHF]" = `Einkaufs- preis`,
-         )
-
-templateInput$Lieferanten <- templateInput$`Einkauf Kiosk`|>
-  distinct(Lieferant)|>
-  filter(Lieferant != "MIgros")|>
-  rename(Lieferantenname = Lieferant)
-templateInput$Lieferanten <- bind_rows(tibble(Lieferantenname = "..."),
-          templateInput$Lieferanten
-          )
-templateInput$Lieferanten
-
-# Verleiher
-templateInput$Verleiher <- readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Kinoförderer gratis")|>
-  rename(Verleihername = Verleiher)
-templateInput$Verleiher
-
-templateInput$Verleiherabgaben <- 
-  readxl::read_excel("Input/Verleiherabgaben.xlsx", sheet = "Verleiherabgaben")|>
-  mutate(Datum = as.Date(Datum),
-         `Link Datum` = as.Date(`Link Datum`),
-         `Minimal Abzug` = as.double(`Minimal Abzug`),
-         `Abzug [%]` = as.double(`Abzug [%]`),
-         `Abzug fix [CHF]` = as.double(`Abzug fix [CHF]`)
-         )|>
-  rename(Filmtitel = Titel,
-         `Minimal Abzug [CHF]` = `Minimal Abzug`)
-templateInput$Verleiherabgaben
-
-c_file <- "Input/template.Rds"
-# Create Data Source 
-saveRDS(templateInput, c_file)
-
-readRDS(c_file)
-
-print("DataTemplates erstellt")
+saveRDS(l_template,file = "Input/template.Rds")
