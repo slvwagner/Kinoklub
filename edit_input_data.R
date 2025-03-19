@@ -19,9 +19,9 @@ source("source/SQL/SQL_Functions.R")
 # DB connection
 con <- Connect_to_DB()
 
-##############################################################
-# Push data to SQL DB
-##############################################################
+# ##############################################################
+# # Push data to SQL DB
+# ##############################################################
 # Load the data
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
@@ -35,15 +35,13 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 # # create and update tables on SQL
-update_DB_all(l_data, con)
+# update_DB_all(l_data, con)
 
 ##############################################################
 # read data from SQL DB
 ##############################################################
 # read in data templates (for data type conversion)
 l_template <- readRDS("Input/template.Rds")
-
-
 
 # get all data as defined in the template l_data
 l_data_sql <- get_Data(l_template, con)
@@ -92,15 +90,8 @@ l_data$Programm <- l_data$Programm|>
 l_data$Verleiher <- l_data$Verleiher|>
   mutate(`Kinoförderer gratis?` = factor(`Kinoförderer gratis?`))
 
-# paste0("\"",names(l_data$Kinoklubmitglieder),"\"")|>
-#   paste(collapse = "\n,")|>
-#   writeLines()
-#   
-#   
-
 l_data$Verleiher <- l_data$Verleiher|>
   as_tibble()
-
 
 l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
   mutate(ID = row_number(),
@@ -485,12 +476,14 @@ server <- function(input, output, session) {
     # get all data as defined in the template l_data
     l_data_sql <- get_Data(l_template, con)
     # Convert data types for each table
-    l_temp <- convert_DB_to_R(l_data_sql,l_data)
+    l_temp <- convert_DB_to_R(l_data_sql,l_template)
     print(l_temp)
     
-    saveRDS(l_temp, c_file) # Save the updated list into file
-    l_temp <- readRDS(c_file) # load data
-    l_data(l_temp) # update data
+    # saveRDS(l_temp, c_file) # Save the updated list into file
+    # l_temp <- readRDS(c_file) # load data
+    
+    # update data
+    l_data(l_temp) 
     list(  # update choices
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
       "Kategorie" = l_data()$Kategorie$Auswahl,

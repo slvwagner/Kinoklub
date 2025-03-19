@@ -179,14 +179,18 @@ convert_DB_to_R <- function(data,template) {
 
 # update all data in DB
 update_DB_all <- function(l_data, con) {
-  ii <- 2
-  copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])
-  
-  # create and update tables on SQL
-  1:length(l_data)|>
-    lapply(function(ii){
+  shiny::withProgress(message = "Running script...", value = 0, {
+    for (ii in 1:length(l_data)) {
+      shiny::incProgress(length(l_data) / ii, detail = paste("Step", ii, "of", length(l_data)))
       copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-    })
+    }
+    # 
+    # # create and update tables on SQL
+    # 1:length(l_data)|>
+    #   lapply(function(ii){
+    #     copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
+    #   })
+  })
 }
 
 # get all data defined by the template l_data
