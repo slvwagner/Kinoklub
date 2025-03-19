@@ -27,10 +27,6 @@ Connect_to_DB <- function() {
     return(con)
   }else return(con)
 }
-con <- Connect_to_DB()
-con
-tables <- dbListTables(con)
-print(tables)
 
 # Copy a data frame to SQL DB (slow done for each row because of DB batch restrictions)
 copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
@@ -194,3 +190,6 @@ update_DB_all <- function(l_data, con) {
     })
   names(l_data_sql) <- names(l_data)
 }
+
+
+
