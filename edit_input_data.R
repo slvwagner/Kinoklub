@@ -16,9 +16,6 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# DB connection
-con <- Connect_to_DB()
-
 # ##############################################################
 # # Push data to SQL DB
 # ##############################################################
@@ -36,6 +33,13 @@ con <- Connect_to_DB()
 # }
 # # create and update tables on SQL
 # update_DB_all(l_data, con)
+
+# get passwort for hoststar DB from the environment variable 
+# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+pw <- "nrK4ytHA+JKNwfu"
+
+# DB connection
+con <- Connect_to_DB(pw)
 
 ##############################################################
 # read data from SQL DB
@@ -250,12 +254,8 @@ validate_suisanummer(c("1234.562","123.25"))
 ui <- function(){
   fluidPage(
     shiny::headerPanel("Input Kinoklub"),
-    # # Function selection 
-    # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-    #                     choices = c("Inputdaten", "Dropdowns")
-    #                     ),
-    # Ensure jQuery UI is available for dragable tool box
-    # includeScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
+    shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+    shiny::actionButton("SQL_connect", "Mit Datenbank verbinden"),
     includeScript("source/JS/1.12.1_jquery-ui.js"),
     tags$head(
       tags$style(HTML("
@@ -373,6 +373,10 @@ sys_msg <- reactiveVal("")
 ###################################################
 # server logic
 server <- function(input, output, session) {
+  
+  observeEvent(input$SQL_connect,{
+    print("here")
+  })
   
   # observe event get email list 
   observeEvent(input$get_email,{
