@@ -22,18 +22,18 @@ con <- Connect_to_DB()
 # ##############################################################
 # # Push data to SQL DB
 # ##############################################################
-# Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
+# # Load the data
+# c_file <- "Input/Data.Rds"
+# if(file.exists(c_file)){
+#   l_data <- readRDS(c_file)
+#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
+#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+# }else{ # or load template date
+#   c_file <- "Input/template.Rds"
+#   l_data <- readRDS(c_file)
+#   c_file <- "Input/Data.Rds"
+# }
 # # create and update tables on SQL
 # update_DB_all(l_data, con)
 
