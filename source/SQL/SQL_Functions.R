@@ -159,19 +159,21 @@ convert_to_template_types <- function(df_sql, df_template) {
   return(df_sql)
 }
 
-# Convert data types for each table
-l_data_sql_converted <- names(l_data_sql) |>
-  map(~ {
-    table_name <- .x
-    df_sql <- l_data_sql[[table_name]]
-    df_template <- l_data[[table_name]]
-    
-    # Convert data types
-    convert_to_template_types(df_sql, df_template)
-  })
-
-# Assign names to the converted list
-names(l_data_sql_converted) <- names(l_data_sql)
+convert_sql_to_R <- function(l_data_sql,l_data) {
+  # Convert data types for each table
+  l_data_sql_converted <- names(l_data_sql) |>
+    map(~ {
+      table_name <- .x
+      df_sql <- l_data_sql[[table_name]]
+      df_template <- l_data[[table_name]]
+      
+      # Convert data types
+      convert_to_template_types(df_sql, df_template)
+    })
+  # Assign names to the converted list
+  names(l_data_sql_converted) <- names(l_data_sql)
+  return(l_data_sql_converted)
+}
 
 # Load the data
 c_file <- "Input/Data.Rds"
@@ -201,19 +203,10 @@ l_data_sql <- names(l_data)|>
   })
 names(l_data_sql) <- names(l_data)
 
-# Convet to correct data type
-l_data_sql|>
-  lapply(convert_data_types)
+# Convert data types for each table
+convert_sql_to_R(l_data_sql,l_data)
 
-# get data type
-l_data_type <- l_data|>
-  lapply(function(x){
-    x|>
-      apply(2,class)
-  })
-l_data_type|>
-  str()
-
+all.equal(l_data, l_data_sql_converted)
 
 
 tbl(con, "Ausgaben")|>
@@ -229,30 +222,8 @@ tbl(con, "Programm")
 tbl(con, "Einsatzplan")
 
 
-
-###################################################
-library(DBI)
-library(hms)
-
-# Example data frame
-df <- data.frame(
-  id = 1:3,
-  date = as.Date(c("2023-10-01", "2023-10-02", "2023-10-03")),
-  time = hms::hms(hours = c(14, 15, 16), minutes = c(30, 0, 45)),
-  datetime = as.POSIXct(c("2023-10-01 14:30:00", "2023-10-02 15:00:00", "2023-10-03 16:45:00"))
-)
-
-# Copy data to database
-copy_table_to_db(df, con, "test_table")
-
-# Query the table
-dbReadTable(con, "test_table")
-dbReadTable(con, "test_table")|>
-  as_tibble()
-
-
-
 ###################################################
 # Disconnect from DB
 dbDisconnect(con)
 
+writeLines("Script run suggessfully")
