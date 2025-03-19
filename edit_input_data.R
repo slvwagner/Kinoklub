@@ -34,148 +34,6 @@ source("source/SQL/SQL_Functions.R")
 # # create and update tables on SQL
 # update_DB_all(l_data, con)
 
-# get passwort for hoststar DB from the environment variable 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-
-# DB connection
-con <- Connect_to_DB(pw)
-
-##############################################################
-# read data from SQL DB
-##############################################################
-# read in data templates (for data type conversion)
-l_template <- readRDS("Input/template.Rds")
-
-# get all data as defined in the template l_data
-l_data_sql <- get_Data(l_template, con)
-
-# Convert data types for each table
-l_data <- convert_DB_to_R(l_data_sql,l_template)
-
-# Test if all are same 
-all.equal(readRDS("Input/Data.Rds"), l_data)
-
-##############################################################
-# Format choices as factors
-l_data$Einnahmen <- l_data$Einnahmen|>
-  mutate(Kategorie = factor(Kategorie))
-
-l_data$Ausgaben <- l_data$Ausgaben|>
-  mutate(Kategorie = factor(Kategorie))
-
-l_data$Verleiherabgaben  <- l_data$Verleiherabgaben|>
-  mutate(Verleiher = factor(Verleiher))
-
-l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
-  mutate(Spezialpreis = factor(Spezialpreis) )
-
-l_data$`Einkauf Kiosk` <- l_data$`Einkauf Kiosk`|>
-  mutate(Lieferant = factor(Lieferant))
-
-l_data$Einsatzplan <- l_data$Einsatzplan|>
-  mutate(Verantwortlich = factor(Verantwortlich),
-         `Operateur*in` = factor(`Operateur*in`),
-         `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
-         `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
-         `Back-up` = factor(`Back-up`)
-  )
-
-l_data$Programm <- l_data$Programm|>
-  mutate(Verleiher = factor(Verleiher),
-         `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
-         `Verleihervertrag abgelegt` = factor(`Verleihervertrag abgelegt`),
-         `Besucherzahlen an Verleiher gesendet` = factor(`Besucherzahlen an Verleiher gesendet`),
-         `Rechnung bezahlt und abgelegt` = factor(`Rechnung bezahlt und abgelegt`),
-         `KDM ja oder nein` = factor(`KDM ja oder nein`)
-         )
-
-
-l_data$Verleiher <- l_data$Verleiher|>
-  mutate(`Kinoförderer gratis?` = factor(`Kinoförderer gratis?`))
-
-l_data$Verleiher <- l_data$Verleiher|>
-  as_tibble()
-
-l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-  mutate(ID = row_number(),
-         Mitglied = paste(Vorname, Nachname),
-         `Allgemeine Infos erhalten` = factor(`Allgemeine Infos erhalten`),
-         Programm = factor(Programm),
-         Sonderevents = factor(Sonderevents),
-         Marketing = factor(Marketing),
-         Finanzen = factor(Finanzen),
-         Sponsoring = factor(Sponsoring),
-         `Kasse / Bar` = factor(`Kasse / Bar`),
-         `Operateur*in` = factor(`Operateur*in`),
-         Koordination = factor(Koordination)
-         )|>
-  select("ID",
-         "Vorname"
-         ,"Nachname"
-         ,"Email"
-         ,"Allgemeine Infos erhalten"
-         ,"Programm"
-         ,"Sonderevents"
-         ,"Marketing"
-         ,"Finanzen"
-         ,"Sponsoring"
-         ,"Kasse / Bar"
-         ,"Operateur*in"
-         ,"Koordination"
-         ,"Kommentar"
-         ,"Mitglied")|>
-  mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))|>
-  as_tibble()
-
-# Mitgliederauswahl für die Einsatzplanung
-Verantwortlich <- l_data$Kinoklubmitglieder|>
-  filter(Koordination == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-  pull()
-
-`Operateur*in` <- l_data$Kinoklubmitglieder|>
-  filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-`Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-  pull()
-
-`Kasse/Bar` <- l_data$Kinoklubmitglieder|>
-  filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-`Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-  pull()
-
-
-# choices list
-column_choices <- list(
-  "Lieferant" = l_data$Lieferanten$Lieferantenname,
-  "Kategorie" = l_data$Kategorie$Auswahl,
-  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-  "Verleiher" = l_data$Verleiher$Verleihername,
-  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
-  "KDM ja oder nein" = l_data$JaNein$Auswahl,
-  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
-  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
-  "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
-  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = Verantwortlich,
-  "Operateur*in" = `Operateur*in`,
-  "Kasse/Bar 1" = `Kasse/Bar`,
-  "Kasse/Bar 2" = `Kasse/Bar`,
-  "Back-up" = `Kasse/Bar`,
-  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
-  "Kasse / Bar" = l_data$JaNein$Auswahl,
-  "Programm" = l_data$JaNein$Auswahl,
-  "Sonderevents" = l_data$JaNein$Auswahl,
-  "Marketing" = l_data$JaNein$Auswahl,
-  "Finanzen" = l_data$JaNein$Auswahl,
-  "Sponsoring" = l_data$JaNein$Auswahl,
-  "Koordination" = l_data$JaNein$Auswahl
-)
-
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
@@ -250,6 +108,45 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
+# factor handling Einsatzplan 
+convert_Einsatzplan <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:5),
+              df_temp|>
+                select(6:10)|>
+                mutate(across(everything(), as.character)),
+              df_temp|>
+                select(11:ncol(df_temp))
+    )
+  } else if(convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:5),
+              df_temp |>
+                select(6:10) |>
+                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
+              df_temp|>
+                select(11:ncol(df_temp))
+    )
+  }
+}
+
+# factor handling Programm 
+convert_Programm <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(
+      df_temp|>
+        mutate(Verleiher = as.character(Verleiher),
+               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
+    )
+  } else if(convert_to == "fact"){
+    df_temp|>
+      mutate(Verleiher = factor(Verleiher),
+             `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
+             )
+  }
+}
+
 # Define UI
 ui <- function(){
   fluidPage(
@@ -290,51 +187,79 @@ ui <- function(){
   )
 }
 
+# get passwort for hoststar DB from the environment variable 
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+# DB connection
+con <- Connect_to_DB(pw)
+
+##############################################################
+# read data from SQL DB
+##############################################################
+# read in data templates (for data type conversion)
+l_template <- readRDS("Input/template.Rds")
+
+# get all data as defined in the template l_data
+l_data_sql <- get_Data(l_template, con)
+
+# Convert data types for each table
+l_data <- convert_DB_to_R(l_data_sql,l_template)
+
+# Mitgliederauswahl für die Einsatzplanung
+Verantwortlich <- l_data$Kinoklubmitglieder|>
+  filter(Koordination == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+  pull()
+
+`Operateur*in` <- l_data$Kinoklubmitglieder|>
+  filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+`Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+  pull()
+
+`Kasse/Bar` <- l_data$Kinoklubmitglieder|>
+  filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+  select(Mitglied)
+`Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+  pull()
+
+# choices list
+column_choices <- list(
+  "Lieferant" = l_data$Lieferanten$Lieferantenname,
+  "Kategorie" = l_data$Kategorie$Auswahl,
+  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+  "Verleiher" = l_data$Verleiher$Verleihername,
+  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
+  "KDM ja oder nein" = l_data$JaNein$Auswahl,
+  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
+  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
+  "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
+  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
+  "Verantwortlich" = Verantwortlich,
+  "Operateur*in" = `Operateur*in`,
+  "Kasse/Bar 1" = `Kasse/Bar`,
+  "Kasse/Bar 2" = `Kasse/Bar`,
+  "Back-up" = `Kasse/Bar`,
+  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
+  "Kasse / Bar" = l_data$JaNein$Auswahl,
+  "Programm" = l_data$JaNein$Auswahl,
+  "Sonderevents" = l_data$JaNein$Auswahl,
+  "Marketing" = l_data$JaNein$Auswahl,
+  "Finanzen" = l_data$JaNein$Auswahl,
+  "Sponsoring" = l_data$JaNein$Auswahl,
+  "Koordination" = l_data$JaNein$Auswahl
+)
+
+
 ###################################################
 # Konstanten
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
-################################################
-# factor handling Einsatzplan 
-convert_Einsatzplan <- function(df_temp, convert_to){
-  if(convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:5),
-              df_temp|>
-                select(6:10)|>
-                mutate(across(everything(), as.character)),
-              df_temp|>
-                select(11:ncol(df_temp))
-    )
-  } else if(convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:5),
-              df_temp |>
-                select(6:10) |>
-                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
-              df_temp|>
-                select(11:ncol(df_temp))
-    )
-  }
-}
 
-# factor handling Programm 
-convert_Programm <- function(df_temp, convert_to){
-  if(convert_to == "char"){
-    bind_cols(
-      df_temp|>
-        mutate(Verleiher = as.character(Verleiher),
-               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
-    )
-  } else if(convert_to == "fact"){
-    df_temp|>
-      mutate(Verleiher = factor(Verleiher),
-             `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
-             )
-  }
-}
 
 ###################################################
 # Split data to input and dropdown
@@ -493,7 +418,27 @@ server <- function(input, output, session) {
     
     # update data
     l_data(l_temp) 
-    list(  # update choices
+    
+    # update choices
+    Verantwortlich <- l_data()$Kinoklubmitglieder|>
+      filter(Koordination == pull(l_data$JaNein)[2])|>
+      select(Mitglied)
+    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+      pull()
+    
+    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
+      filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+      select(Mitglied)
+    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+      pull()
+    
+    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
+      filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+      select(Mitglied)
+    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+      pull()
+    
+    list(  
       "Lieferant" = l_data()$Lieferanten$Lieferantenname,
       "Kategorie" = l_data()$Kategorie$Auswahl,
       "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
@@ -504,11 +449,11 @@ server <- function(input, output, session) {
       "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
       "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
       "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
-      "Operateur*in" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
-      "Kasse/Bar 1" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
-      "Kasse/Bar 2" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
-      "Back-up" = ifelse(is.na(l_data()$Kinoklubmitglieder$Vorname),"...",paste(l_data()$Kinoklubmitglieder$Vorname, l_data()$Kinoklubmitglieder$Nachname)),
+      "Verantwortlich" = Verantwortlich,
+      "Operateur*in" = `Operateur*in`,
+      "Kasse/Bar 1" = `Kasse/Bar`,
+      "Kasse/Bar 2" = `Kasse/Bar`,
+      "Back-up" = `Kasse/Bar`,
       "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
       "Kasse / Bar" = l_data()$JaNein$Auswahl,
       "Programm" = l_data()$JaNein$Auswahl,
@@ -1223,7 +1168,7 @@ server <- function(input, output, session) {
           columnDefs = l_columnDefs, # Spaltendefinitionen
           pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
           lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-          searchCols = l_filter,
+          searchCols = l_filter, # custom filtering
           # observe the page lenght from data table
           initComplete = JS(
             "function(settings, json) {",
