@@ -179,7 +179,7 @@ convert_DB_to_R <- function(data,template) {
 update_DB_all <- function(l_data, con) {
   shiny::withProgress(message = "Running script...", value = 0, {
     for (ii in 1:length(l_data)) {
-      shiny::incProgress(length(l_data) / ii, detail = paste("Step", ii, "of", length(l_data)))
+      shiny::incProgress( 1 / length(l_data) , detail = paste("Step", ii, "of", length(l_data)))
       copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
     }
   })
