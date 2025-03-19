@@ -50,7 +50,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       invisible(lapply(packages, library, character.only = TRUE))
     }
     ```
-7.  SQL Passwort
+7.  SQL Passwort \
     Für Windows:
     ```         
       setx DB_PASSWORD_KINOKLUB "your_password_here"
