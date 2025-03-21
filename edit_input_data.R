@@ -219,9 +219,6 @@ l_template$Einnahmen <- l_template$Einnahmen|>
   mutate(Kategorie = "...")
 saveRDS(l_template,"Input/template.Rds")
 
-length(l_template)
-length(l_data)
-
 # Split data to input and dropdown
 c_select_input_data <- c(1:3,5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
@@ -275,9 +272,12 @@ server <- function(input, output, session) {
     }else{ # run on changing the data set
       if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
         # only ask to save if there is something to save  
-        current_data(l_data()[[input$dataset]])
-        lastEdited_data_set(l_data()[[input$dataset]])
+        df_temp <- DB_get_table(input$dataset,DB_con())|>
+          convert_to_template_types(l_template[[input$dataset]])
+        current_data(df_temp)
+        lastEdited_data_set(df_temp)
         lastEdited_data_set_name(input$dataset)
+        
         return()
       } else { 
         # If a change has been made ask the user to save 

@@ -63,12 +63,12 @@ get_Data <- function(l_template, con, download = TRUE) {
   return(temp)
 }
 
-get_table <- function(table_name, con, download = TRUE){
+DB_get_table <- function(table_name, con, download = TRUE){
   if(download){
-    tbl(con, x)|>
+    tbl(con, table_name)|>
       collect()
   } else {
-    tbl(con, x)
+    tbl(con, table_name)
   }
 }
 
