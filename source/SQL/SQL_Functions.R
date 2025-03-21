@@ -5,25 +5,71 @@ source("source/functions.R")
 
 # connection to Database
 Connect_to_DB <- function(pw) {
-  # host
+  # Database credentials
   host <- "lx51.hoststar.hosting"
-  #Database name 
   DB_name <- "ch367079_gui"
-  # DB_user
   DB_user <- "ch367079_flo"
   
-  if(!r_is.defined(con)) {
-    # Example connection
-    con <- dbConnect(
-      MySQL(),  # or MariaDB()
-      host = host,
-      user = DB_user,
-      password = pw,
-      dbname = DB_name,
-      port = 3306
-    )
+  # Check if connection already exists and is valid
+  if (exists("con") && dbIsValid(con)) {
     return(con)
-  }else return(con)
+  } else {
+    # Close existing invalid connection
+    if (exists("con")) {
+      dbDisconnect(con)
+      rm(con)
+    }
+    
+    # Create a new connection
+    con <- tryCatch({
+      dbConnect(
+        MySQL(),
+        host = host,
+        user = DB_user,
+        password = pw,
+        dbname = DB_name,
+        port = 3306
+      )
+    }, error = function(e) {
+      stop("Failed to connect to the database: ", e$message)
+    })
+    
+    return(con)
+  }
+}
+
+# update all data in DB
+update_DB_all <- function(l_data, con) {
+  for (ii in 1:length(l_data)) {
+    copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
+  }
+}
+
+# get all data defined by the template l_data
+get_Data <- function(l_template, con, download = TRUE) {
+  if(download){
+    temp <- names(l_template)|>
+      lapply(function(x){
+        tbl(con, x)|>
+          collect()
+      })
+  } else {
+    temp <- names(l_template)|>
+      lapply(function(x){
+        tbl(con, x)
+      })
+  }
+  names(temp) <- names(l_template)
+  return(temp)
+}
+
+get_table <- function(table_name, con, download = TRUE){
+  if(download){
+    tbl(con, x)|>
+      collect()
+  } else {
+    tbl(con, x)
+  }
 }
 
 # Copy a data frame to SQL DB (slow done for each row because of DB batch restrictions)
@@ -175,33 +221,9 @@ convert_DB_to_R <- function(data,template) {
   return(data_converted)
 }
 
-# update all data in DB
-update_DB_all <- function(l_data, con) {
-  shiny::withProgress(message = "Running script...", value = 0, {
-    for (ii in 1:length(l_data)) {
-      shiny::incProgress( 1 / length(l_data) , detail = paste("Step", ii, "of", length(l_data)))
-      copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-    }
-  })
-}
 
-# get all data defined by the template l_data
-get_Data <- function(l_data, con, download = TRUE) {
-  if(download){
-    temp <- names(l_data)|>
-      lapply(function(x){
-        tbl(con, x)|>
-          collect()
-      })
-  } else {
-    temp <- names(l_data)|>
-      lapply(function(x){
-        tbl(con, x)
-      })
-  }
-  names(temp) <- names(l_data)
-  return(temp)
-}
+
+
 
 
 data_conversion <- function(l_data) {

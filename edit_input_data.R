@@ -19,20 +19,34 @@ source("source/SQL/SQL_Functions.R")
 # ##############################################################
 # # Push data to SQL DB
 # ##############################################################
-# # Load the data
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
-# # create and update tables on SQL
-# update_DB_all(l_data, con)
+
+#Load the data
+
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+l_template <- readRDS("Input/template.Rds")
+
+# get passwort for hoststar DB from the environment variable
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+# DB connection
+DB_con <- Connect_to_DB(pw)
+
+get_Data(l_template, DB_con)|>
+  convert_DB_to_R(l_template) 
+
+
+# create and update tables on SQL
+update_DB_all(l_data, DB_con)
 
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
@@ -187,93 +201,33 @@ ui <- function(){
   )
 }
 
-# get passwort for hoststar DB from the environment variable 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-# DB connection
-con <- Connect_to_DB(pw)
-
-##############################################################
-# read data from SQL DB
-##############################################################
-# read in data templates (for data type conversion)
-l_template <- readRDS("Input/template.Rds")
-
-# get all data as defined in the template l_data
-l_data_sql <- get_Data(l_template, con)
-
-# Convert data types for each table
-l_data <- convert_DB_to_R(l_data_sql,l_template)
-
-# Mitgliederauswahl für die Einsatzplanung
-Verantwortlich <- l_data$Kinoklubmitglieder|>
-  filter(Koordination == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-  pull()
-
-`Operateur*in` <- l_data$Kinoklubmitglieder|>
-  filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-`Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-  pull()
-
-`Kasse/Bar` <- l_data$Kinoklubmitglieder|>
-  filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
-  select(Mitglied)
-`Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-  pull()
-
-# choices list
-column_choices <- list(
-  "Lieferant" = l_data$Lieferanten$Lieferantenname,
-  "Kategorie" = l_data$Kategorie$Auswahl,
-  "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
-  "Verleiher" = l_data$Verleiher$Verleihername,
-  "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
-  "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
-  "KDM ja oder nein" = l_data$JaNein$Auswahl,
-  "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
-  "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
-  "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
-  "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
-  "Verantwortlich" = Verantwortlich,
-  "Operateur*in" = `Operateur*in`,
-  "Kasse/Bar 1" = `Kasse/Bar`,
-  "Kasse/Bar 2" = `Kasse/Bar`,
-  "Back-up" = `Kasse/Bar`,
-  "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
-  "Kasse / Bar" = l_data$JaNein$Auswahl,
-  "Programm" = l_data$JaNein$Auswahl,
-  "Sonderevents" = l_data$JaNein$Auswahl,
-  "Marketing" = l_data$JaNein$Auswahl,
-  "Finanzen" = l_data$JaNein$Auswahl,
-  "Sponsoring" = l_data$JaNein$Auswahl,
-  "Koordination" = l_data$JaNein$Auswahl
-)
-
-
 ###################################################
 # Konstanten
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
+# read in data templates (for data type conversion)
+l_template <- readRDS("Input/template.Rds")
+l_template$Einnahmen <- l_template$Einnahmen|>
+  mutate(Kategorie = "...")
+saveRDS(l_template,"Input/template.Rds")
 
+length(l_template)
+length(l_data)
 
-###################################################
 # Split data to input and dropdown
 c_select_input_data <- c(1:3,5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
 
 ###################################################
 # Reactive lists
-l_data_input <- reactiveVal(l_data[c_select_input_data])
-l_data_choices <- reactiveVal(l_data[c_select_dropdown_data])
-l_data <- reactiveVal(l_data)
+l_data_input <- reactiveVal(list())
+l_data_choices <- reactiveVal(list())
+l_data <- reactiveVal(list())
 
 # drop down choices list
-column_choices <- reactiveVal(column_choices)
+column_choices <- reactiveVal(list())
 
 # Reactive value to store the current data set
 current_data <- reactiveVal(tibble())
@@ -282,7 +236,7 @@ table_edit <- reactiveVal("single")
 
 # Edited data 
 startup <- reactiveVal(TRUE)
-data_selection_ <- reactiveVal("Inputdaten")
+data_selection_ <- reactiveVal("")
 lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
@@ -290,6 +244,10 @@ lastEdited_data_set_name <- reactiveVal("")
 last_selected_row <- reactiveVal(1L)
 last_selected_page <- reactiveVal(1L)
 page_length_var <- reactiveVal(6L)
+
+# connected to db
+c_connected_to_db <- reactiveVal(FALSE)
+DB_con <- reactiveVal(list())
 
 # Debug 
 c_debug <- reactiveVal(0)
@@ -301,12 +259,177 @@ sys_msg <- reactiveVal("")
 # server logic
 server <- function(input, output, session) {
   
-  observeEvent(input$SQL_connect,{
-    print("here")
+  # Observe dataset selection and update current_data
+  observeEvent(input$dataset, {
+    if(startup()){ # only run on app start up
+      current_data(l_data()[[input$dataset]])
+      lastEdited_data_set(l_data()[[input$dataset]])
+      lastEdited_data_set_name(input$dataset)
+      startup(FALSE)
+    }else{ # run on changing the data set
+      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
+        # only ask to save if there is something to save  
+        current_data(l_data()[[input$dataset]])
+        lastEdited_data_set(l_data()[[input$dataset]])
+        lastEdited_data_set_name(input$dataset)
+        return()
+      } else { 
+        # If a change has been made ask the user to save 
+        showModal(modalDialog(
+          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
+          footer = tagList(
+            actionButton("abort_save","Abrechen"),
+            actionButton("save_edit","Speichern")
+          )
+        ))
+      }
+    }
   })
   
+
+  observeEvent(input$SQL_connect,{
+    print("SQL_connect")
+    # req(input$SQL_PW)
+    # 
+    # Connect_to_DB(input$SQL_PW)|>
+    #   DB_con()
+    
+    # get passwort for hoststar DB from the environment variable
+    pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+    # DB connection
+    Connect_to_DB(pw)|>
+      DB_con()
+
+    # get all data as defined in the template l_data
+    l_data_sql <- get_Data(l_template, DB_con())
+    
+    # Convert data types for each table
+    convert_DB_to_R(l_data_sql,l_template)|>
+      l_data()
+    
+    # Mitgliederauswahl für die Einsatzplanung
+    Verantwortlich <- l_data()$Kinoklubmitglieder|>
+      filter(Koordination == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+      pull()
+    
+    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
+      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+      pull()
+    
+    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
+      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+      pull()
+    
+    # choices list
+    list(
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
+      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
+      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
+      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
+      "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
+      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
+      "Verantwortlich" = Verantwortlich,
+      "Operateur*in" = `Operateur*in`,
+      "Kasse/Bar 1" = `Kasse/Bar`,
+      "Kasse/Bar 2" = `Kasse/Bar`,
+      "Back-up" = `Kasse/Bar`,
+      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
+      "Kasse / Bar" = l_data()$JaNein$Auswahl,
+      "Programm" = l_data()$JaNein$Auswahl,
+      "Sonderevents" = l_data()$JaNein$Auswahl,
+      "Marketing" = l_data()$JaNein$Auswahl,
+      "Finanzen" = l_data()$JaNein$Auswahl,
+      "Sponsoring" = l_data()$JaNein$Auswahl,
+      "Koordination" = l_data()$JaNein$Auswahl
+    )|>
+      column_choices()
+    
+    l_data()[c_select_input_data]|>
+      l_data_input()
+    l_data()[c_select_dropdown_data]|>
+      l_data_choices()
+    
+    current_data(l_data()[["Ausgaben"]])
+    lastEdited_data_set(l_data()[["Ausgaben"]])
+    lastEdited_data_set_name("Ausgaben")
+    startup(FALSE)
+    data_selection_("Inputdaten")
+    c_connected_to_db(TRUE)
+
+  })
+  
+  # update all data in DB
+  update_DB_all <- function(l_data, con) {
+    shiny::withProgress(message = "Running script...", value = 0, {
+      for (ii in 1:length(l_data)) {
+        shiny::incProgress( 1 / length(l_data) , detail = paste("Step", ii, "of", length(l_data)))
+        copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
+      }
+    })
+  }
+  
   observeEvent(input$SQL_disconnect,{
-    print("here")
+    print("SQL_disconnect")
+    c_file <- "Input/Data.Rds"
+    if(file.exists(c_file)){
+      l_data <- readRDS(c_file)
+      c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+      if(!dir.exists("Input/backup")) dir.create("Input/backup")
+      saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+    }else{ # or load template date
+      c_file <- "Input/template.Rds"
+      l_data <- readRDS(c_file)
+      c_file <- "Input/Data.Rds"
+    }
+    # create and update tables on SQL
+    update_DB_all(l_template, DB_con())|>
+      l_data()
+    
+    # choices list
+    list(
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
+      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
+      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
+      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
+      "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
+      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
+      "Verantwortlich" = Verantwortlich,
+      "Operateur*in" = `Operateur*in`,
+      "Kasse/Bar 1" = `Kasse/Bar`,
+      "Kasse/Bar 2" = `Kasse/Bar`,
+      "Back-up" = `Kasse/Bar`,
+      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
+      "Kasse / Bar" = l_data()$JaNein$Auswahl,
+      "Programm" = l_data()$JaNein$Auswahl,
+      "Sonderevents" = l_data()$JaNein$Auswahl,
+      "Marketing" = l_data()$JaNein$Auswahl,
+      "Finanzen" = l_data()$JaNein$Auswahl,
+      "Sponsoring" = l_data()$JaNein$Auswahl,
+      "Koordination" = l_data()$JaNein$Auswahl
+    )|>
+      column_choices()
+    
+    l_data()[c_select_input_data]|>
+      l_data_input()
+    l_data()[c_select_dropdown_data]|>
+      l_data_choices()
   })
   
   # observe event get email list 
@@ -352,33 +475,6 @@ server <- function(input, output, session) {
     }
   })
 
-  # Observe dataset selection and update current_data
-  observeEvent(input$dataset, {
-    if(startup()){ # only run on app start up
-      current_data(l_data()[[input$dataset]])
-      lastEdited_data_set(l_data()[[input$dataset]])
-      lastEdited_data_set_name(input$dataset)
-      startup(FALSE)
-    }else{ # run on changing the data set
-      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
-        # only ask to save if there is something to save  
-        current_data(l_data()[[input$dataset]])
-        lastEdited_data_set(l_data()[[input$dataset]])
-        lastEdited_data_set_name(input$dataset)
-        return()
-      } else { 
-        # If a change has been made ask the user to save 
-        showModal(modalDialog(
-          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
-          footer = tagList(
-            actionButton("abort_save","Abrechen"),
-            actionButton("save_edit","Speichern")
-            )
-        ))
-      }
-    }
-  })
-  
   # Abort changes and update 
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
@@ -407,9 +503,9 @@ server <- function(input, output, session) {
 
     }
     # create and update tables on SQL
-    update_DB_all(l_temp, con)
+    update_DB_all(l_temp, DB_con())
     # get all data as defined in the template l_data
-    l_data_sql <- get_Data(l_template, con)
+    l_data_sql <- get_Data(l_template, DB_con())
     # Convert data types for each table
     l_temp <- convert_DB_to_R(l_data_sql,l_template)
     
@@ -421,19 +517,19 @@ server <- function(input, output, session) {
     
     # update choices
     Verantwortlich <- l_data()$Kinoklubmitglieder|>
-      filter(Koordination == pull(l_data$JaNein)[2])|>
+      filter(Koordination == pull(l_data()$JaNein)[2])|>
       select(Mitglied)
     Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
       pull()
     
     `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-      filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
       select(Mitglied)
     `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
       pull()
     
     `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-      filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
       select(Mitglied)
     `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
       pull()
@@ -964,12 +1060,52 @@ server <- function(input, output, session) {
     current_data(updated_data)
     removeModal()
   })
+
+  # observe Event select a row 
+  observeEvent(input$table_rows_selected, {
+    c_debug(c_debug()+1)
+    # update last selected row  
+    req(input$table_rows_selected)
+    row <- input$table_rows_selected
+    # has the page lenght changed? 
+    if(!is.null(input$page_length)){
+      page_length_var(input$page_length)
+    }
+    # update 
+    page <-  ceiling(row / page_length_var())
+    last_selected_page(page)
+    last_selected_row(input$table_rows_selected)
+    # select last row
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
+  })
+  
+  # Observe the change in page length
+  observeEvent(input$page_length, {
+    # update last selected row  
+    req(input$table_rows_selected)
+    row <- input$table_rows_selected
+    # update 
+    req(input$page_length)
+    page_length_var(input$page_length)
+    # update 
+    page <-  ceiling(row / page_length_var())
+    last_selected_page(page)
+    last_selected_row(input$table_rows_selected)
+    # select last row
+    dataTableProxy("table")|>
+      selectRows(last_selected_row())|>
+      selectPage(last_selected_page())
+  })
   
   # Render: Dynamically update the floating tool box
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       hr(),
-      DTOutput("table"),
+      if(c_connected_to_db())  {
+        DTOutput("table")
+      },
       # Dynamically change Floating tool box to edit data
       if (data_selection_() == "Inputdaten") {
         if (lastEdited_data_set_name() == "Programm") {
@@ -1010,9 +1146,9 @@ server <- function(input, output, session) {
           tool_box(l_data_choices(), "Kinoklubmitglieder",2)
         } else {
           stop("Not yet implemented dataset")
-          }
+        }
       } else {
-        stop(paste("lastEdited_data_set_name()", lastEdited_data_set_name(), "not yet implemented"))
+        
       },
       
       # JavaScript to make the floating panel draggable
@@ -1024,304 +1160,271 @@ server <- function(input, output, session) {
     )
   })
   
-  # observe Event select a row 
-  observeEvent(input$table_rows_selected, {
-    c_debug(c_debug()+1)
-    # update last selected row  
-    req(input$table_rows_selected)
-    row <- input$table_rows_selected
-    # has the page lenght changed? 
-    if(!is.null(input$page_length)){
-      page_length_var(input$page_length)
-    }
-    # update 
-    page <-  ceiling(row / page_length_var())
-    last_selected_page(page)
-    last_selected_row(input$table_rows_selected)
-    # select last row
-    dataTableProxy("table")|>
-      selectRows(last_selected_row())|>
-      selectPage(last_selected_page())
-  })
-  
-  # Observe the change in page length
-  observeEvent(input$page_length, {
-    # update last selected row  
-    req(input$table_rows_selected)
-    row <- input$table_rows_selected
-    # update 
-    req(input$page_length)
-    page_length_var(input$page_length)
-    # update 
-    page <-  ceiling(row / page_length_var())
-    last_selected_page(page)
-    last_selected_row(input$table_rows_selected)
-    # select last row
-    dataTableProxy("table")|>
-      selectRows(last_selected_row())|>
-      selectPage(last_selected_page())
-  })
   
   # Render data table output
   output$table <- renderDataTable({
-    # rendering the datatable depens on the input data 
-    # for certain input data sets other renderings may be needed
-    if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
-      print("Render data table output")
-      # get crrent data
-      df_temp <- current_data()
-      # find all column names containing "Datum"
-      df_Date <- current_data()|>
-        select(contains("datum"))
-      
-      if(ncol(df_Date) > 0){
-        # create user readable Datum
-        df_Date_user <-
-          df_Date|>
-          as.matrix()|>
-          apply(2, function(x){
-            x <- as.Date(x)
-            x <- format(x, "%d.%m.%Y")
-            return(x)
-          })|>
-          as_tibble()
-        names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
-        # Insert user readable Datum 
-        run <- TRUE
-        ii <- 1
-        while(run){
-          if(names(df_temp)[ii] %in% names(df_Date)){
-            for (jj in 1:ncol(df_Date)) {
-              if(names(df_temp)[ii] == names(df_Date)[jj]){
-                if(ncol(df_temp) == ii){
-                  df_temp <-
-                    bind_cols(
-                      df_temp[,1:ii],
-                      df_Date_user[, jj]
-                    )
-                }else{
-                  df_temp <-
-                    bind_cols(
-                      df_temp[,1:ii],
-                      df_Date_user[, jj],
-                      df_temp[,(ii+1):ncol(df_temp)]
-                    )
+    if(lastEdited_data_set_name() != ""){
+      # rendering the datatable depens on the input data 
+      # for certain input data sets other renderings may be needed
+      if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
+        print("Render data table output")
+        # get crrent data
+        df_temp <- current_data()
+        # find all column names containing "Datum"
+        df_Date <- current_data()|>
+          select(contains("datum"))
+        
+        if(ncol(df_Date) > 0){
+          # create user readable Datum
+          df_Date_user <-
+            df_Date|>
+            as.matrix()|>
+            apply(2, function(x){
+              x <- as.Date(x)
+              x <- format(x, "%d.%m.%Y")
+              return(x)
+            })
+          df_Date_user <- df_Date_user|>
+              as_tibble()
+  
+
+          names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
+          # Insert user readable Datum 
+          run <- TRUE
+          ii <- 1
+          while(run){
+            if(names(df_temp)[ii] %in% names(df_Date)){
+              for (jj in 1:ncol(df_Date)) {
+                if(names(df_temp)[ii] == names(df_Date)[jj]){
+                  if(ncol(df_temp) == ii){
+                    df_temp <-
+                      bind_cols(
+                        df_temp[,1:ii],
+                        df_Date_user[, jj]
+                      )
+                  }else{
+                    df_temp <-
+                      bind_cols(
+                        df_temp[,1:ii],
+                        df_Date_user[, jj],
+                        df_temp[,(ii+1):ncol(df_temp)]
+                      )
+                  }
+                  ii <- ii + 1
                 }
-                ii <- ii + 1
               }
             }
+            if(ncol(df_temp) <= ii) run <- FALSE
+            ii <- ii + 1
           }
-          if(ncol(df_temp) <= ii) run <- FALSE
-          ii <- ii + 1
+          # Select user readable datum columns
+          c_select <- names(df_temp)|>as.integer()|>
+            suppressWarnings()
+          c_select
+          
+          # create option list for datatable function
+          l_columnDefs <- list()
+          cnt <- 1
+          for (ii in 1:length(c_select)) {
+            if(!is.na(c_select)[ii]){
+              l_columnDefs <- append(l_columnDefs, list(
+                list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
+                list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
+              ))
+              names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
+              cnt <- cnt + 2
+            }
+          }
+        }else {
+          # create option list for datatable function
+          l_columnDefs <- list()
         }
-        # Select user readable datum columns
-        c_select <- names(df_temp)|>as.integer()|>
-          suppressWarnings()
-        c_select
         
-        # create option list for datatable function
-        l_columnDefs <- list()
-        cnt <- 1
-        for (ii in 1:length(c_select)) {
-          if(!is.na(c_select)[ii]){
-            l_columnDefs <- append(l_columnDefs, list(
-              list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
-              list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
-            ))
-            names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
-            cnt <- cnt + 2
+        # custom search pre set 
+        if(lastEdited_data_set_name() == "Einsatzplan"){
+          c_select <- names(df_temp) == "Verleiher Angefragt?"
+          c_col <- tibble(column = c_select)|>
+            mutate(index = row_number())|>
+            filter(column == TRUE)|>
+            select(index)|>
+            pull()
+          # offset needed becaus datatable starts at index 0
+          c_select <- c(FALSE,c_select)
+          l_filter <- list(NULL)
+          for (ii in 1:(length(c_select))) {
+            if(c_select[ii]) l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]') # '["HR", "Finance"]'
+            else l_filter[[ii + 1]] <- NULL
           }
+          
+        }else { # empty list if no filter needs to be applyed
+          l_filter <- list()
         }
-      }else {
-        # create option list for datatable function
-        l_columnDefs <- list()
-      }
-      
-      # custom search pre set 
-      if(lastEdited_data_set_name() == "Einsatzplan"){
-        c_select <- names(df_temp) == "Verleiher Angefragt?"
-        c_col <- tibble(column = c_select)|>
-          mutate(index = row_number())|>
-          filter(column == TRUE)|>
-          select(index)|>
-          pull()
-        # offset needed becaus datatable starts at index 0
-        c_select <- c(FALSE,c_select)
-        l_filter <- list(NULL)
-        for (ii in 1:(length(c_select))) {
-          if(c_select[ii]) l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]') # '["HR", "Finance"]'
-          else l_filter[[ii + 1]] <- NULL
-        }
-
-      }else { # empty list if no filter needs to be applyed
-        l_filter <- list()
-      }
-      
-
-      # Create the DataTable
-      dt <- datatable(
-        df_temp,
-        editable = FALSE, # Nicht bearbeitbar
-        selection = "single", # only select sinle row
-        filter = "top", # Filter oben
-        options = list(
-          columnDefs = l_columnDefs, # Spaltendefinitionen
-          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-          searchCols = l_filter, # custom filtering
-          # observe the page lenght from data table
-          initComplete = JS(
-            "function(settings, json) {",
-            "  var table = settings.oInstance.api();",
-            "  table.on('length.dt', function(e, settings, len) {",
-            "    Shiny.setInputValue('page_length', len);",
-            "  });",
-            "}"
-          ),
-          language = list(
-            lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
-            search = "Suchen:", # Text für das Suchfeld
-            searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
-            zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
-            info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
-            infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
-            infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
-            paginate = list(
-              first = "Erste Seite", # Text für die erste Seite
-              last = "Letzte Seite", # Text für die letzte Seite
-              `next` = "Nächste Seite", # Text für die nächste Seite
-              previous = "Vorherige Seite" # Text für die vorherige Seite
+        
+        
+        # Create the DataTable
+        dt <- datatable(
+          df_temp,
+          editable = FALSE, # Nicht bearbeitbar
+          selection = "single", # only select sinle row
+          filter = "top", # Filter oben
+          options = list(
+            columnDefs = l_columnDefs, # Spaltendefinitionen
+            pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+            lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+            searchCols = l_filter, # custom filtering
+            # observe the page lenght from data table
+            initComplete = JS(
+              "function(settings, json) {",
+              "  var table = settings.oInstance.api();",
+              "  table.on('length.dt', function(e, settings, len) {",
+              "    Shiny.setInputValue('page_length', len);",
+              "  });",
+              "}"
+            ),
+            language = list(
+              lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+              search = "Suchen:", # Text für das Suchfeld
+              searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+              zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+              info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+              infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+              infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+              paginate = list(
+                first = "Erste Seite", # Text für die erste Seite
+                last = "Letzte Seite", # Text für die letzte Seite
+                `next` = "Nächste Seite", # Text für die nächste Seite
+                previous = "Vorherige Seite" # Text für die vorherige Seite
+              )
             )
           )
         )
-      )
-    } 
-    else {
-      # Create the DataTable for all other data sets
-      dt <- datatable(
-        current_data(),
-        editable = FALSE, # Nicht bearbeitbar
-        selection = "single", # only select sinle row
-        filter = "top", # Filter oben
-        options = list(
-          # columnDefs = l_columnDefs, # Spaltendefinitionen
-          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl,
-          # observe the page lenght
-          initComplete = JS( 
-            "function(settings, json) {",
-            "  var table = settings.oInstance.api();",
-            "  table.on('length.dt', function(e, settings, len) {",
-            "    Shiny.setInputValue('page_length', len);",
-            "  });",
-            "}"
-          ),
-          language = list(
-            lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
-            search = "Suchen:", # Text für das Suchfeld
-            searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
-            zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
-            info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
-            infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
-            infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
-            paginate = list(
-              first = "Erste Seite", # Text für die erste Seite
-              last = "Letzte Seite", # Text für die letzte Seite
-              `next` = "Nächste Seite", # Text für die nächste Seite
-              previous = "Vorherige Seite" # Text für die vorherige Seite
+      } 
+      else {
+        # Create the DataTable for all other data sets
+        dt <- datatable(
+          current_data(),
+          editable = FALSE, # Nicht bearbeitbar
+          selection = "single", # only select sinle row
+          filter = "top", # Filter oben
+          options = list(
+            # columnDefs = l_columnDefs, # Spaltendefinitionen
+            pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+            lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl,
+            # observe the page lenght
+            initComplete = JS( 
+              "function(settings, json) {",
+              "  var table = settings.oInstance.api();",
+              "  table.on('length.dt', function(e, settings, len) {",
+              "    Shiny.setInputValue('page_length', len);",
+              "  });",
+              "}"
+            ),
+            language = list(
+              lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+              search = "Suchen:", # Text für das Suchfeld
+              searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+              zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+              info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+              infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+              infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+              paginate = list(
+                first = "Erste Seite", # Text für die erste Seite
+                last = "Letzte Seite", # Text für die letzte Seite
+                `next` = "Nächste Seite", # Text für die nächste Seite
+                previous = "Vorherige Seite" # Text für die vorherige Seite
+              )
             )
           )
         )
-      )
-    }
-    
-    # Apply conditional formatting for different data sets
-    if (!is.null(input$dataset) && input$dataset == "Programm") {
-      tryCatch({
-        dt <- dt |>
-          formatStyle(
-            "Verleiher Angefragt?",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
-              values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+      }
+      req(input$dataset)
+      # Apply conditional formatting for different data sets
+      if (!is.null(input$dataset) && input$dataset == "Programm") {
+        tryCatch({
+          dt <- dt |>
+            formatStyle(
+              "Verleiher Angefragt?",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
+                values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+              )
             )
-          )
-        
-      }, error = function(e) {
-        paste0(
-          "Conditionall formating error:\n",
-          e$message
-        )|>sys_msg()
-        
-      })
-    } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
-      names(l_data()[["Kinoklubmitglieder"]])
-      c_Kinoklubmitglied <- 
-        l_data()[["Kinoklubmitglieder"]]|>
-        mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
-        select(Kinoklubmitglied)|>
-        pull()
-      
-      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-      # Generate the magma color palette s
-      magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
-      
-      # Lighten the colors to create a pastel effect
-      pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
-      
-      # Apply conditional formatting to columns
-      tryCatch({
-        dt <- dt |>
-          formatStyle(
-            "Verantwortlich",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c_Kinoklubmitglied,  # Exact values from your column
-              values = pastel_magma  # Corresponding colors
-            )
-          )|>
-          formatStyle(
-            "Kasse/Bar 1",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c_Kinoklubmitglied,  # Exact values from your column
-              values = pastel_magma  # Corresponding colors
-            )
-          )|>
-          formatStyle(
-            "Kasse/Bar 2",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c_Kinoklubmitglied,  # Exact values from your column
-              values = pastel_magma  # Corresponding colors
-            )
-          )|>
-          formatStyle(
-            "Operateur*in",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c_Kinoklubmitglied,  # Exact values from your column
-              values = pastel_magma  # Corresponding colors
-            )
-          )|>
-          formatStyle(
-            "Back-up",  # Ensure this column name matches exactly
-            backgroundColor = styleEqual(
-              levels = c_Kinoklubmitglied,  # Exact values from your column
-              values = pastel_magma  # Corresponding colors
-            )
-          )
-        
-      }, error = function(e) {
+          
+        }, error = function(e) {
           paste0(
             "Conditionall formating error:\n",
             e$message
           )|>sys_msg()
+          
+        })
+      } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
+        names(l_data()[["Kinoklubmitglieder"]])
+        c_Kinoklubmitglied <- 
+          l_data()[["Kinoklubmitglieder"]]|>
+          mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
+          select(Kinoklubmitglied)|>
+          pull()
         
-      })
+        c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+        c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+        # Generate the magma color palette s
+        magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
+        
+        # Lighten the colors to create a pastel effect
+        pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
+        
+        # Apply conditional formatting to columns
+        tryCatch({
+          dt <- dt |>
+            formatStyle(
+              "Verantwortlich",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c_Kinoklubmitglied,  # Exact values from your column
+                values = pastel_magma  # Corresponding colors
+              )
+            )|>
+            formatStyle(
+              "Kasse/Bar 1",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c_Kinoklubmitglied,  # Exact values from your column
+                values = pastel_magma  # Corresponding colors
+              )
+            )|>
+            formatStyle(
+              "Kasse/Bar 2",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c_Kinoklubmitglied,  # Exact values from your column
+                values = pastel_magma  # Corresponding colors
+              )
+            )|>
+            formatStyle(
+              "Operateur*in",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c_Kinoklubmitglied,  # Exact values from your column
+                values = pastel_magma  # Corresponding colors
+              )
+            )|>
+            formatStyle(
+              "Back-up",  # Ensure this column name matches exactly
+              backgroundColor = styleEqual(
+                levels = c_Kinoklubmitglied,  # Exact values from your column
+                values = pastel_magma  # Corresponding colors
+              )
+            )
+          
+        }, error = function(e) {
+          paste0(
+            "Conditionall formating error:\n",
+            e$message
+          )|>sys_msg()
+          
+        })
+      }
+      sys_msg()|>
+        writeLines()
+      return(dt)
     }
-    sys_msg()|>
-      writeLines()
-    return(dt)
   })
-  
 }
 
 # shinyApp(ui = ui, server = server)
