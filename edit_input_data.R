@@ -33,18 +33,42 @@ source("source/SQL/SQL_Functions.R")
 #   l_data <- readRDS(c_file)
 #   c_file <- "Input/Data.Rds"
 # }
+
+
 # l_template <- readRDS("Input/template.Rds")
 # 
-# # get passwort for hoststar DB from the environment variable
-# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+# l_template$Ausgaben <- l_template$Ausgaben |> mutate(across(everything(), ~ NA))|>
+#   convert_to_template_types(l_template$Ausgaben)|>
+#   mutate(Kategorie = "...")
 # 
-# # DB connection
-# DB_con <- Connect_to_DB(pw)
+# l_template$Spezialpreisekiosk <- l_template$Spezialpreisekiosk |> 
+#   mutate(across(everything(), ~ NA))|>
+#   convert_to_template_types(l_template$Spezialpreisekiosk)|>
+#   mutate(Datum = as.Date(NA))
+# l_template$Spezialpreisekiosk
 # 
-# get_Data(l_template, DB_con)|>
-#   convert_DB_to_R(l_template) 
-# 
-# 
+# l_template$`Platzkategorien zum Verrechnen` <- l_template$`Platzkategorien zum Verrechnen` |> 
+#   mutate(across(everything(), ~ NA))|>
+#   convert_to_template_types(l_template$`Platzkategorien zum Verrechnen`)|>
+#   mutate(ID = 1)
+
+
+# get passwort for hoststar DB from the environment variable
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+# DB connection
+DB_con <- Connect_to_DB(pw)
+
+# load template
+l_template <- readRDS("Input/template.Rds")
+
+# read data from DB
+df_temp <- get_Data(l_template, DB_con)
+
+df_temp|>
+  convert_DB_to_R(l_template)
+
+
 # # create and update tables on SQL
 # update_DB_all(l_data, DB_con)
 
@@ -264,34 +288,25 @@ server <- function(input, output, session) {
   
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
-    if(startup()){ # only run on app start up
-      current_data(l_data()[[input$dataset]])
-      lastEdited_data_set(l_data()[[input$dataset]])
+    if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
+      # only ask to save if there is something to save  
+      df_temp <- DB_get_table(input$dataset,DB_con())|>
+        convert_to_template_types(l_template[[input$dataset]])
+      current_data(df_temp)
+      lastEdited_data_set(df_temp)
       lastEdited_data_set_name(input$dataset)
-      startup(FALSE)
-    }else{ # run on changing the data set
-      if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
-        # only ask to save if there is something to save  
-        df_temp <- DB_get_table(input$dataset,DB_con())|>
-          convert_to_template_types(l_template[[input$dataset]])
-        current_data(df_temp)
-        lastEdited_data_set(df_temp)
-        lastEdited_data_set_name(input$dataset)
-        
-        return()
-      } else { 
-        # If a change has been made ask the user to save 
-        showModal(modalDialog(
-          title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
-          footer = tagList(
-            actionButton("abort_save","Abrechen"),
-            actionButton("save_edit","Speichern")
-          )
-        ))
-      }
-    }
+      return()
+    } else { 
+      # If a change has been made ask the user to save 
+      showModal(modalDialog(
+        title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
+        footer = tagList(
+          actionButton("abort_save","Abrechen"),
+          actionButton("save_edit","Speichern")
+        )
+      ))
+    } 
   })
-  
 
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
@@ -804,6 +819,8 @@ server <- function(input, output, session) {
       as_tibble()
     df_updated
     
+    
+    
     # handle factors 
     if(lastEdited_data_set_name() == "Einsatzplan"){
       df_updated <- 
@@ -834,6 +851,7 @@ server <- function(input, output, session) {
         )
       )
     }else{
+      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), "ID", input$table_rows_selected, df_updated)
       current_data(df_temp)
       removeModal()
     }
@@ -870,7 +888,11 @@ server <- function(input, output, session) {
         )
       } else {
         # Create an empty row
-        new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
+        new_row <- current_data()[1, ] |> 
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # special handling with ID`s
         if (lastEdited_data_set_name() %in% c("Programm")) {
           new_row <- new_row |>
@@ -914,7 +936,12 @@ server <- function(input, output, session) {
         )
       } else {
         # Create an empty row
-        new_row <- current_data()[1, ] |> mutate(across(everything(), ~ NA))
+        new_row <- current_data()[1, ] |> 
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+
         # special handling with ID`s
         if (lastEdited_data_set_name() %in% c("Programm")) {
           new_row <- new_row |>
@@ -963,7 +990,11 @@ server <- function(input, output, session) {
         )
       } else {
         # Create an empty row
-        new_row <- current_data()[input$table_rows_selected, ] 
+        new_row <- current_data()[1, ] |> 
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # special handling with ID`s
         if (lastEdited_data_set_name() %in% c("Programm")) {
           new_row <- new_row |>
@@ -1009,8 +1040,14 @@ server <- function(input, output, session) {
         mutate(ID = as.integer(nrow(current_data()) + 1))
       
       if(nrow(current_data()) == 0){ 
+        # Create an empty row
+        new_row <- current_data()[1, ] |> 
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # create new empty row with correct data type
-        updated_data <- l_data()[[lastEdited_data_set_name()]][1, ]
+        updated_data <- new_row
         current_data(updated_data)
       } else { # Add row to data  
         if(input$table_rows_selected == nrow(current_data())){

@@ -78,6 +78,10 @@ copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
   library(DBI)
   library(hms)
   
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
   # Get column names and wrap them in backticks to handle spaces and special characters
   col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
   
@@ -221,86 +225,123 @@ convert_DB_to_R <- function(data,template) {
   return(data_converted)
 }
 
+library(RMySQL)
+library(DBI)
+library(tidyverse)
 
-
-
-
-
-data_conversion <- function(l_data) {
-  ##############################################################
-  # Format choices as factors
-  l_data$Einnahmen <- l_data$Einnahmen|>
-    mutate(Kategorie = factor(Kategorie))
+# Function to add a row to any table
+DB_add_row  <- function(con, table_name, new_row) {
+  # Validate inputs
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  if (!dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
   
-  l_data$Ausgaben <- l_data$Ausgaben|>
-    mutate(Kategorie = factor(Kategorie))
+  # Get the table's column names and types
+  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  col_names <- table_info$Field
+  col_types <- table_info$Type
   
-  l_data$Verleiherabgaben  <- l_data$Verleiherabgaben|>
-    mutate(Verleiher = factor(Verleiher))
+  # Validate the new row data
+  if (!all(names(new_row) %in% col_names)) {
+    stop("New row contains invalid column names.")
+  }
   
-  l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
-    mutate(Spezialpreis = factor(Spezialpreis) )
+  # Ensure the new row has all required columns (non-NULL columns without defaults)
+  required_cols <- table_info %>%
+    filter(Null == "NO" & is.na(Default)) %>%
+    pull(Field)
+  missing_cols <- setdiff(required_cols, names(new_row))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
   
-  l_data$`Einkauf Kiosk` <- l_data$`Einkauf Kiosk`|>
-    mutate(Lieferant = factor(Lieferant))
+  # Replace NA values with NULL for SQL
+  new_row <- lapply(new_row, function(x) if (is.na(x)) NULL else x)
   
-  l_data$Einsatzplan <- l_data$Einsatzplan|>
-    mutate(Verantwortlich = factor(Verantwortlich),
-           `Operateur*in` = factor(`Operateur*in`),
-           `Kasse/Bar 1` = factor(`Kasse/Bar 1`),
-           `Kasse/Bar 2` = factor(`Kasse/Bar 2`),
-           `Back-up` = factor(`Back-up`)
-    )
+  # Prepare the SQL query
+  sql_cols <- paste(paste0("`", names(new_row), "`"), collapse = ", ")  # Enclose column names in backticks
+  sql_vals <- paste(sapply(new_row, function(x) {
+    if (is.null(x)) "NULL" else if (is.character(x)) paste0("'", x, "'") else x
+  }), collapse = ", ")
+  sql_query <- paste0(
+    "INSERT INTO ", table_name, " (", sql_cols, ") VALUES (", sql_vals, ")"
+  )
   
-  l_data$Programm <- l_data$Programm|>
-    mutate(Verleiher = factor(Verleiher),
-           `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
-           `Verleihervertrag abgelegt` = factor(`Verleihervertrag abgelegt`),
-           `Besucherzahlen an Verleiher gesendet` = factor(`Besucherzahlen an Verleiher gesendet`),
-           `Rechnung bezahlt und abgelegt` = factor(`Rechnung bezahlt und abgelegt`),
-           `KDM ja oder nein` = factor(`KDM ja oder nein`)
-    )
+  # Execute the query
+  dbExecute(con, sql_query)
   
-  
-  l_data$Verleiher <- l_data$Verleiher|>
-    mutate(`Kinoförderer gratis?` = factor(`Kinoförderer gratis?`))
-  
-  l_data$Verleiher <- l_data$Verleiher|>
-    as_tibble()
-  
-  l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-    mutate(ID = row_number(),
-           Mitglied = paste(Vorname, Nachname),
-           `Allgemeine Infos erhalten` = factor(`Allgemeine Infos erhalten`),
-           Programm = factor(Programm),
-           Sonderevents = factor(Sonderevents),
-           Marketing = factor(Marketing),
-           Finanzen = factor(Finanzen),
-           Sponsoring = factor(Sponsoring),
-           `Kasse / Bar` = factor(`Kasse / Bar`),
-           `Operateur*in` = factor(`Operateur*in`),
-           Koordination = factor(Koordination)
-    )|>
-    select("ID",
-           "Vorname"
-           ,"Nachname"
-           ,"Email"
-           ,"Allgemeine Infos erhalten"
-           ,"Programm"
-           ,"Sonderevents"
-           ,"Marketing"
-           ,"Finanzen"
-           ,"Sponsoring"
-           ,"Kasse / Bar"
-           ,"Operateur*in"
-           ,"Koordination"
-           ,"Kommentar"
-           ,"Mitglied")|>
-    mutate(Mitglied = if_else(Mitglied == "NA NA", NA, Mitglied))|>
-    as_tibble()
-  
-
-  
-  return(l_data)
+  message("Row added successfully to table '", table_name, "'.")
 }
 
+library(RMySQL)
+library(DBI)
+library(tidyverse)
+
+# Function to edit a row in any table
+library(RMySQL)
+library(DBI)
+library(tidyverse)
+
+# Function to edit a row in any table
+DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values) {
+  # Validate inputs
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  if (!dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
+  
+  # Get the table's column names and types
+  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  col_names <- table_info$Field
+  col_types <- table_info$Type
+  
+  # Validate the primary key column
+  if (!primary_key_col %in% col_names) {
+    stop(paste("Primary key column '", primary_key_col, "' does not exist in the table."))
+  }
+
+  # Validate the updated values
+  if (!all(names(updated_values) %in% col_names)) {
+    stop("Updated values contain invalid column names.")
+  }
+  
+  # Replace NA values with NULL for SQL
+  updated_values <- lapply(updated_values, function(x) if (is.na(x)) NULL else x)
+  
+  # Prepare the SET clause for the SQL query
+  set_clause <- paste(
+    sapply(names(updated_values), function(col) {
+      value <- updated_values[[col]]
+      if (is.null(value)) {
+        paste0("`", col, "` = NULL")
+      } else if (is.character(value)) {
+        paste0("`", col, "` = '", value, "'")
+      } else if (inherits(value, "POSIXt") || inherits(value, "Date")) {
+        paste0("`", col, "` = '", format(value, "%Y-%m-%d"), "'")
+      } else if (inherits(value, "difftime")) {
+        paste0("`", col, "` = '", format(as.POSIXct(value, origin = "1970-01-01"), "%H:%M:%S"), "'")
+      } else {
+        paste0("`", col, "` = ", value)
+      }
+    }),
+    collapse = ", "
+  )
+  
+  # Prepare the WHERE clause for the SQL query
+  where_clause <- paste0("`", primary_key_col, "` = ", if (is.character(primary_key_value)) paste0("'", primary_key_value, "'") else primary_key_value)
+  
+  # Construct the SQL query
+  sql_query <- paste0(
+    "UPDATE ", table_name, " SET ", set_clause, " WHERE ", where_clause
+  )
+  
+  # Execute the query
+  dbExecute(con, sql_query)
+  
+  message("Row with ", primary_key_col, " = ", primary_key_value, " updated successfully in table '", table_name, "'.")
+}
