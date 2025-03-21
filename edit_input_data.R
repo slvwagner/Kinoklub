@@ -1005,7 +1005,8 @@ server <- function(input, output, session) {
         # Create an empty row
         new_row <- current_data()[input$table_rows_selected, ] |> 
           # mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+          mutate(ID = nrow(current_data()) + 1L)
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # special handling with ID`s
@@ -1114,6 +1115,7 @@ server <- function(input, output, session) {
     req(input$table_rows_selected)
     updated_data <- current_data()[-input$table_rows_selected, ]
     current_data(updated_data)
+    DB_delete_row (DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
     removeModal()
   })
 

@@ -78,106 +78,6 @@ copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
   library(DBI)
   library(hms)
   
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
-  }
-  
-  # Get column names and wrap them in backticks to handle spaces and special characters
-  col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
-  
-  # Check if table exists
-  table_exists <- dbExistsTable(con, table_name)
-  
-  if (table_exists && delete_existing) {
-    message(sprintf("Table '%s' exists. Deleting all existing rows...", table_name))
-    # Delete all rows in the table
-    dbExecute(con, sprintf("DELETE FROM `%s`;", table_name))
-    message(sprintf("All rows deleted from '%s'.", table_name))
-  } else if (!table_exists) {
-    message(sprintf("Table '%s' does not exist. Creating table...", table_name))
-  }
-  
-  if (!table_exists) {
-    # Infer SQL column types based on R data types (MySQL-specific)
-    sql_types <- sapply(df_data, function(x) {
-      if (is.integer(x)) {
-        return("INT")
-      } else if (is.numeric(x)) {
-        return("DOUBLE")
-      } else if (inherits(x, "Date")) {
-        return("DATE")
-      } else if (inherits(x, "hms")) {
-        return("TIME")  # Use TIME for time of day
-      } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
-        return("DATETIME")  # Use DATETIME for date-time values
-      } else if (is.character(x) || is.factor(x)) {
-        return("TEXT")  # Use TEXT for character or factor columns
-      } else {
-        stop(sprintf("Unsupported data type for column: %s", class(x)))
-      }
-    })
-    
-    # Construct CREATE TABLE query with backticks around column names
-    create_query <- sprintf(
-      "CREATE TABLE `%s` (%s);",
-      table_name,
-      paste(paste0("`", colnames(df_data), "` ", sql_types), collapse = ", ")
-    )
-    
-    # Execute table creation
-    dbExecute(con, create_query)
-    message(sprintf("Table '%s' created successfully.", table_name))
-  }
-  
-  # Loop through each row and insert data
-  for (i in 1:nrow(df_data)) {
-    # Skip empty rows
-    if (all(is.na(df_data[i, ]))) {
-      next
-    }
-    
-    # Format values for MySQL
-    values <- sapply(df_data[i, ], function(x) {
-      if (is.na(x)) {
-        return("NULL")  # Handle NA values properly
-      } else if (is.numeric(x)) {
-        return(as.character(x))  # Keep numeric values as is
-      } else if (inherits(x, "Date")) {
-        return(sprintf("'%s'", as.character(x)))  # Format Date as 'YYYY-MM-DD'
-      } else if (inherits(x, "hms")) {
-        return(sprintf("'%s'", as.character(x)))  # Format time as 'HH:MM:SS'
-      } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
-        return(sprintf("'%s'", format(x, "%Y-%m-%d %H:%M:%S")))  # Format datetime as 'YYYY-MM-DD HH:MM:SS'
-      } else if (is.character(x) || is.factor(x)) {
-        return(sprintf("'%s'", gsub("'", "''", as.character(x))))  # Escape single quotes in strings
-      } else {
-        stop(sprintf("Unsupported data type for value: %s", class(x)))
-      }
-    })
-    
-    # Create SQL query with backticks around column names
-    query <- sprintf(
-      "INSERT INTO `%s` (%s) VALUES (%s);",
-      table_name,
-      col_names,
-      paste(values, collapse = ", ")
-    )
-    
-    # Ensure NULL values are correctly formatted (without quotes)
-    query <- gsub("'NULL'", "NULL", query)
-    
-    # Execute query
-    dbExecute(con, query)
-  }
-  
-  message(sprintf("Data inserted into '%s' successfully!", table_name))
-}
-
-copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
-  # Load necessary libraries
-  library(DBI)
-  library(hms)
-  
   # Validate database connection
   if (!dbIsValid(con)) {
     stop("Invalid database connection.")
@@ -327,10 +227,6 @@ convert_DB_to_R <- function(data,template) {
   return(data_converted)
 }
 
-library(RMySQL)
-library(DBI)
-library(tidyverse)
-
 # Function to add a row to any table
 DB_add_row  <- function(con, table_name, new_row) {
   # Validate inputs
@@ -378,7 +274,7 @@ DB_add_row  <- function(con, table_name, new_row) {
   message("Row added successfully to table '", table_name, "'.")
 }
 
-# Function to edit a row in any table
+# Function to edit a row in table
 DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -440,4 +336,41 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   dbExecute(con, sql_query)
   
   message("Row with ", primary_key_col, " = ", primary_key_value, " updated successfully in table '", table_name, "'.")
+}
+
+
+# Function to delete a row from any table
+DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
+  # Validate inputs
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  if (!dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
+  
+  # Get the table's column names
+  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  col_names <- table_info$Field
+  
+  # Validate the primary key column
+  if (!primary_key_col %in% col_names) {
+    stop(paste("Primary key column '", primary_key_col, "' does not exist in the table."))
+  }
+
+  # Prepare the WHERE clause for the SQL query
+  where_clause <- paste0("`", primary_key_col, "` = ", if (is.character(primary_key_value)) paste0("'", primary_key_value, "'") else primary_key_value)
+  
+  # Construct the SQL query
+  sql_query <- paste0(
+    "DELETE FROM `", table_name, "` WHERE ", where_clause
+  )
+  
+  # Print the SQL query for debugging
+  message("Executing SQL query: ", sql_query)
+  
+  # Execute the query
+  dbExecute(con, sql_query)
+  
+  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
 }
