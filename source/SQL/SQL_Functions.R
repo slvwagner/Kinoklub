@@ -228,7 +228,7 @@ convert_DB_to_R <- function(data,template) {
 }
 
 # Function to add a row to any table
-DB_add_row  <- function(con, table_name, new_row) {
+DB_add_row <- function(con, table_name, new_row) {
   # Validate inputs
   if (!dbIsValid(con)) {
     stop("Invalid database connection.")
@@ -237,14 +237,28 @@ DB_add_row  <- function(con, table_name, new_row) {
     stop("Table '", table_name, "' does not exist in the database.")
   }
   
+  # Ensure new_row is a named list or data frame
+  if (!is.list(new_row) || is.null(names(new_row))) {
+    stop("new_row must be a named list or data frame.")
+  }
+  
   # Get the table's column names and types
   table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
   col_names <- table_info$Field
   col_types <- table_info$Type
   
+  # # Debug: Print column names and new_row names
+  # message("Column names in table: ", paste(col_names, collapse = ", "))
+  # message("Column names in new_row: ", paste(names(new_row), collapse = ", "))
+  
   # Validate the new row data
   if (!all(names(new_row) %in% col_names)) {
     stop("New row contains invalid column names.")
+  }
+  
+  # Ensure all column names are non-empty
+  if (any(names(new_row) == "")) {
+    stop("One or more column names in new_row are empty.")
   }
   
   # Ensure the new row has all required columns (non-NULL columns without defaults)
@@ -259,14 +273,22 @@ DB_add_row  <- function(con, table_name, new_row) {
   # Replace NA values with NULL for SQL
   new_row <- lapply(new_row, function(x) if (is.na(x)) NULL else x)
   
+  # Debug: Print new_row values
+  message("Values in new_row: ", paste(new_row, collapse = ", "))
+  
   # Prepare the SQL query
-  sql_cols <- paste(paste0("`", names(new_row), "`"), collapse = ", ")  # Enclose column names in backticks
+  sql_cols <- paste(paste0("`", names(new_row), "`"), collapse = ", ")
   sql_vals <- paste(sapply(new_row, function(x) {
-    if (is.null(x)) "NULL" else if (is.character(x)) paste0("'", x, "'") else x
+    if (is.null(x)) "NULL"
+    else if (is.character(x)) paste0("'", x, "'")
+    else x
   }), collapse = ", ")
   sql_query <- paste0(
     "INSERT INTO ", table_name, " (", sql_cols, ") VALUES (", sql_vals, ")"
   )
+  
+  # # Debug: Print SQL query
+  # message("Executing SQL query: ", sql_query)
   
   # Execute the query
   dbExecute(con, sql_query)

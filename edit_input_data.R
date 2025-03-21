@@ -1068,20 +1068,21 @@ server <- function(input, output, session) {
           updated_data <- 
             bind_rows(current_data()[1:input$table_rows_selected,],
                       new_row
-            )
-          updated_data <- convert_Programm(updated_data, "char")
-          updated_data <- convert_Programm(updated_data, "fact")
+            )|>
+            convert_to_template_types(current_data())
+          DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
           current_data(updated_data)
+          
         }else {
           updated_data <- 
             bind_rows(current_data()[1:(input$table_rows_selected),],
                       new_row,
-                      current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-            )
-          updated_data <- convert_Programm(updated_data, "char")
-          updated_data <- convert_Programm(updated_data, "fact")
-          updated_data
+                      current_data()[(input$table_rows_selected + 1L):nrow(current_data()),]
+            )|>
+            convert_to_template_types(current_data())
+          DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
           current_data(updated_data)
+          
         }
       } 
       dataTableProxy("table")|>
