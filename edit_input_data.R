@@ -22,17 +22,17 @@ source("source/SQL/SQL_Functions.R")
 
 #Load the data
 
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
 
 
 # l_template <- readRDS("Input/template.Rds")
@@ -990,8 +990,8 @@ server <- function(input, output, session) {
         )
       } else {
         # Create an empty row
-        new_row <- current_data()[1, ] |> 
-          mutate(across(everything(), ~ NA))|>
+        new_row <- current_data()[input$table_rows_selected, ] |> 
+          # mutate(across(everything(), ~ NA))|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)

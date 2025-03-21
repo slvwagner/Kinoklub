@@ -302,9 +302,9 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   
   # Validate the primary key column
   if (!primary_key_col %in% col_names) {
-    stop(paste("Primary key column '", primary_key_col, "' does not exist in the table."))
+    stop("Primary key column '", primary_key_col, "' does not exist in the table.")
   }
-
+  
   # Validate the updated values
   if (!all(names(updated_values) %in% col_names)) {
     stop("Updated values contain invalid column names.")
@@ -339,6 +339,9 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   sql_query <- paste0(
     "UPDATE ", table_name, " SET ", set_clause, " WHERE ", where_clause
   )
+  
+  # Print the SQL query for debugging
+  # message("Executing SQL query:\n", sql_query)
   
   # Execute the query
   dbExecute(con, sql_query)
