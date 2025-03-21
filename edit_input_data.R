@@ -1007,14 +1007,8 @@ server <- function(input, output, session) {
           # mutate(across(everything(), ~ NA))|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
           mutate(ID = nrow(current_data()) + 1L)
-        # updata SQL DB
-        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
-        # special handling with ID`s
-        if (lastEdited_data_set_name() %in% c("Programm")) {
-          new_row <- new_row |>
-            mutate(ID = as.integer(nrow(current_data()) + 1))
-        }
-        # Update "Gültig ab Datum" to the current system date
+        
+          # Update "Gültig ab Datum" to the current system date
         if ("Gültig ab Datum" %in% colnames(new_row)) {
           new_row <- new_row |>
             mutate(`Gültig ab Datum` = Sys.Date())
@@ -1025,15 +1019,16 @@ server <- function(input, output, session) {
             bind_rows(current_data()[1:input$table_rows_selected,],
                       new_row
             )
-          current_data(updated_data)
         }else {
           updated_data <- 
             bind_rows(current_data()[1:(input$table_rows_selected),],
                       new_row,
                       current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
             )
-          current_data(updated_data)
         }
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        current_data(updated_data)
       }
     }
     dataTableProxy("table")|>
@@ -1218,7 +1213,6 @@ server <- function(input, output, session) {
       "))
     )
   })
-  
   
   # Render data table output
   output$table <- renderDataTable({
@@ -1488,7 +1482,6 @@ server <- function(input, output, session) {
 
 # shinyApp(ui = ui, server = server)
  
-
 # Run the app
 shiny::runApp(
   host = "0.0.0.0",
