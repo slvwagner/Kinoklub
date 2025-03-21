@@ -165,44 +165,6 @@ validate_suisanummer <- function(input) {
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-# factor handling Einsatzplan 
-convert_Einsatzplan <- function(df_temp, convert_to){
-  if(convert_to == "char"){
-    bind_cols(df_temp|>
-                select(1:5),
-              df_temp|>
-                select(6:10)|>
-                mutate(across(everything(), as.character)),
-              df_temp|>
-                select(11:ncol(df_temp))
-    )
-  } else if(convert_to == "fact"){
-    bind_cols(df_temp|>
-                select(1:5),
-              df_temp |>
-                select(6:10) |>
-                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
-              df_temp|>
-                select(11:ncol(df_temp))
-    )
-  }
-}
-
-# factor handling Programm 
-convert_Programm <- function(df_temp, convert_to){
-  if(convert_to == "char"){
-    bind_cols(
-      df_temp|>
-        mutate(Verleiher = as.character(Verleiher),
-               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
-    )
-  } else if(convert_to == "fact"){
-    df_temp|>
-      mutate(Verleiher = factor(Verleiher),
-             `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
-             )
-  }
-}
 
 # Define UI
 ui <- function(){
@@ -904,13 +866,15 @@ server <- function(input, output, session) {
         new_row <- current_data()[1, ] |> 
           mutate(across(everything(), ~ NA))|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-        # updata SQL DB
-        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+
         # special handling with ID`s
         if (lastEdited_data_set_name() %in% c("Programm")) {
           new_row <- new_row |>
-            mutate(ID = as.integer(nrow(current_data()) + 1))
+            mutate(ID = nrow(current_data()) + 1L)
         }
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        
         if (input$table_rows_selected == 1) {
           # add row on top
           updated_data <-
@@ -1026,6 +990,8 @@ server <- function(input, output, session) {
                       current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
             )
         }
+        new_row <- new_row|>
+          convert_to_template_types(current_data())
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         current_data(updated_data)
@@ -1046,7 +1012,7 @@ server <- function(input, output, session) {
       new_row <- new_row |>
         mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
       new_row <- new_row|>
-        mutate(ID = as.integer(nrow(current_data()) + 1))
+        mutate(ID = nrow(current_data()) + 1L)
       
       if(nrow(current_data()) == 0){ 
         # Create an empty row
@@ -1065,9 +1031,6 @@ server <- function(input, output, session) {
                       new_row
             )|>
             convert_to_template_types(current_data())
-          DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
-          current_data(updated_data)
-          
         }else {
           updated_data <- 
             bind_rows(current_data()[1:(input$table_rows_selected),],
@@ -1075,10 +1038,9 @@ server <- function(input, output, session) {
                       current_data()[(input$table_rows_selected + 1L):nrow(current_data()),]
             )|>
             convert_to_template_types(current_data())
-          DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
-          current_data(updated_data)
-          
         }
+        DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
+        current_data(updated_data)
       } 
       dataTableProxy("table")|>
         selectRows(last_selected_row())|>
