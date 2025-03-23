@@ -22,18 +22,18 @@ source("source/SQL/SQL_Functions.R")
 
 #Load the data
 
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
-# l_data
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+l_data
 
 # l_template|>
 #   lapply(function(x){
@@ -52,19 +52,19 @@ source("source/SQL/SQL_Functions.R")
 #   convert_to_template_types(l_template$Ausgaben)|>
 #   mutate(Kategorie = "...")
 # 
-# l_template$Spezialpreisekiosk <- l_template$Spezialpreisekiosk |> 
+# l_template$Spezialpreisekiosk <- l_template$Spezialpreisekiosk |>
 #   mutate(across(everything(), ~ NA))|>
 #   convert_to_template_types(l_template$Spezialpreisekiosk)|>
 #   mutate(Datum = as.Date(NA))
 # l_template$Spezialpreisekiosk
 # 
-# l_template$`Platzkategorien zum Verrechnen` <- l_template$`Platzkategorien zum Verrechnen` |> 
+# l_template$`Platzkategorien zum Verrechnen` <- l_template$`Platzkategorien zum Verrechnen` |>
 #   mutate(across(everything(), ~ NA))|>
 #   convert_to_template_types(l_template$`Platzkategorien zum Verrechnen`)|>
 #   mutate(ID = 1)
-
-
-# get passwort for hoststar DB from the environment variable
+# 
+# 
+# # get passwort for hoststar DB from the environment variable
 # pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 # 
 # # DB connection
@@ -83,13 +83,6 @@ source("source/SQL/SQL_Functions.R")
 #   convert_DB_to_R(l_template)
 # 
 # 
-
-
-
-
-
-
-
 
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
@@ -164,6 +157,45 @@ validate_suisanummer <- function(input) {
   grepl(p, input)
 }
 validate_suisanummer(c("1234.562","123.25"))
+
+# factor handling Einsatzplan 
+convert_Einsatzplan <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(df_temp|>
+                select(1:5),
+              df_temp|>
+                select(6:10)|>
+                mutate(across(everything(), as.character)),
+              df_temp|>
+                select(11:ncol(df_temp))
+    )
+  } else if(convert_to == "fact"){
+    bind_cols(df_temp|>
+                select(1:5),
+              df_temp |>
+                select(6:10) |>
+                mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
+              df_temp|>
+                select(11:ncol(df_temp))
+    )
+  }
+}
+
+# factor handling Programm 
+convert_Programm <- function(df_temp, convert_to){
+  if(convert_to == "char"){
+    bind_cols(
+      df_temp|>
+        mutate(Verleiher = as.character(Verleiher),
+               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
+    )
+  } else if(convert_to == "fact"){
+    df_temp|>
+      mutate(Verleiher = factor(Verleiher),
+             `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
+      )
+  }
+}
 
 
 # Define UI
@@ -285,85 +317,83 @@ server <- function(input, output, session) {
 
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
-    # req(input$SQL_PW)
-    # 
-    # Connect_to_DB(input$SQL_PW)|>
-    #   DB_con()
+    req(input$SQL_PW)
     
-    # get passwort for hoststar DB from the environment variable
-    pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-    # DB connection
-    Connect_to_DB(pw)|>
-      DB_con()
-
-    # get all data as defined in the template l_data
-    l_data_sql <- get_Data(l_template, DB_con())
-    
-    # Convert data types for each table
-    convert_DB_to_R(l_data_sql,l_template)|>
-      l_data()
-    
-    # Mitgliederauswahl für die Einsatzplanung
-    Verantwortlich <- l_data()$Kinoklubmitglieder|>
-      filter(Koordination == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-      pull()
-    
-    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-      pull()
-    
-    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-      pull()
-    
-    # choices list
-    list(
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
-      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
-      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
-      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
-      "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
-      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = Verantwortlich,
-      "Operateur*in" = `Operateur*in`,
-      "Kasse/Bar 1" = `Kasse/Bar`,
-      "Kasse/Bar 2" = `Kasse/Bar`,
-      "Back-up" = `Kasse/Bar`,
-      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
-      "Kasse / Bar" = l_data()$JaNein$Auswahl,
-      "Programm" = l_data()$JaNein$Auswahl,
-      "Sonderevents" = l_data()$JaNein$Auswahl,
-      "Marketing" = l_data()$JaNein$Auswahl,
-      "Finanzen" = l_data()$JaNein$Auswahl,
-      "Sponsoring" = l_data()$JaNein$Auswahl,
-      "Koordination" = l_data()$JaNein$Auswahl
-    )|>
-      column_choices()
-    
-    l_data()[c_select_input_data]|>
-      l_data_input()
-    l_data()[c_select_dropdown_data]|>
-      l_data_choices()
-    
-    current_data(l_data()[["Ausgaben"]])
-    lastEdited_data_set(l_data()[["Ausgaben"]])
-    lastEdited_data_set_name("Ausgaben")
-    startup(FALSE)
-    data_selection_("Inputdaten")
-    c_connected_to_db(TRUE)
-
+    tryCatch({
+      # Connect to data base 
+      Connect_to_DB(input$SQL_PW)|>
+        DB_con()
+      
+      # get all data as defined in the template l_data
+      l_data_sql <- get_Data(l_template, DB_con())
+      
+      # Convert data types for each table
+      convert_DB_to_R(l_data_sql,l_template)|>
+        l_data()
+      
+      # Mitgliederauswahl für die Einsatzplanung
+      Verantwortlich <- l_data()$Kinoklubmitglieder|>
+        filter(Koordination == pull(l_data()$JaNein)[2])|>
+        select(Mitglied)
+      Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+        pull()
+      
+      `Operateur*in` <- l_data()$Kinoklubmitglieder|>
+        filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
+        select(Mitglied)
+      `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+        pull()
+      
+      `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
+        filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
+        select(Mitglied)
+      `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+        pull()
+      
+      # choices list
+      list(
+        "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+        "Kategorie" = l_data()$Kategorie$Auswahl,
+        "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+        "Verleiher" = l_data()$Verleiher$Verleihername,
+        "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+        "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
+        "KDM ja oder nein" = l_data()$JaNein$Auswahl,
+        "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
+        "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
+        "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
+        "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
+        "Verantwortlich" = Verantwortlich,
+        "Operateur*in" = `Operateur*in`,
+        "Kasse/Bar 1" = `Kasse/Bar`,
+        "Kasse/Bar 2" = `Kasse/Bar`,
+        "Back-up" = `Kasse/Bar`,
+        "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
+        "Kasse / Bar" = l_data()$JaNein$Auswahl,
+        "Programm" = l_data()$JaNein$Auswahl,
+        "Sonderevents" = l_data()$JaNein$Auswahl,
+        "Marketing" = l_data()$JaNein$Auswahl,
+        "Finanzen" = l_data()$JaNein$Auswahl,
+        "Sponsoring" = l_data()$JaNein$Auswahl,
+        "Koordination" = l_data()$JaNein$Auswahl
+      )|>
+        column_choices()
+      
+      l_data()[c_select_input_data]|>
+        l_data_input()
+      l_data()[c_select_dropdown_data]|>
+        l_data_choices()
+      
+      current_data(l_data()[["Ausgaben"]])
+      lastEdited_data_set(l_data()[["Ausgaben"]])
+      lastEdited_data_set_name("Ausgaben")
+      startup(FALSE)
+      data_selection_("Inputdaten")
+      c_connected_to_db(TRUE)
+      
+    },error =  function(e){
+      writeLines(e$message)
+    })
   })
   
   # update all data in DB
@@ -392,6 +422,25 @@ server <- function(input, output, session) {
     # create and update tables on SQL
     update_DB_all(l_template, DB_con())|>
       l_data()
+    
+    # Mitgliederauswahl für die Einsatzplanung
+    Verantwortlich <- l_data()$Kinoklubmitglieder|>
+      filter(Koordination == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+      pull()
+    
+    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
+      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+      pull()
+    
+    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
+      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+      pull()
     
     # choices list
     list(
