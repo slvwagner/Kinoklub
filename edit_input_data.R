@@ -248,24 +248,14 @@ server <- function(input, output, session) {
   
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
-    if(all.equal(current_data(),lastEdited_data_set()) |>class() == "logical"){ 
-      # only ask to save if there is something to save  
-      df_temp <- DB_get_table(input$dataset,DB_con())|>
-        convert_to_template_types(l_template[[input$dataset]])
-      current_data(df_temp)
-      lastEdited_data_set(df_temp)
-      lastEdited_data_set_name(input$dataset)
-      return()
-    } else { 
-      # If a change has been made ask the user to save 
-      showModal(modalDialog(
-        title = paste0("Achtung ungespeicherte Änderungen in Input \"", lastEdited_data_set_name(), "\""),
-        footer = tagList(
-          actionButton("abort_save","Abrechen"),
-          actionButton("save_edit","Speichern")
-        )
-      ))
-    } 
+    req(input$dataset)
+    # only ask to save if there is something to save  
+    df_temp <- DB_get_table(input$dataset,DB_con())|>
+      convert_to_template_types(l_template[[input$dataset]])
+    current_data(df_temp)
+    lastEdited_data_set(df_temp)
+    lastEdited_data_set_name(input$dataset)
+    
   })
 
   # Connect to Datea base

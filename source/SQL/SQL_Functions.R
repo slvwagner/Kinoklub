@@ -261,8 +261,8 @@ DB_add_row <- function(con, table_name, new_row) {
   }
   
   # Ensure the new row has all required columns (non-NULL columns without defaults)
-  required_cols <- table_info %>%
-    filter(Null == "NO" & is.na(Default)) %>%
+  required_cols <- table_info |>
+    filter(Null == "NO" & is.na(Default)) |>
     pull(Field)
   missing_cols <- setdiff(required_cols, names(new_row))
   if (length(missing_cols) > 0) {
