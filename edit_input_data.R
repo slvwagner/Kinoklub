@@ -287,7 +287,7 @@ sys_msg <- reactiveVal("")
 ###################### server logic #############################
 server <- function(input, output, session) {
   
-  #### Observe dataset selection and update current_data ####
+  #### Dataset selection ####
   observeEvent(input$dataset, {
     print("change data set")
     req(input$dataset)
@@ -297,7 +297,7 @@ server <- function(input, output, session) {
     l_temp <- l_data()
 
     # data handling for Programm / Einsatzplan (joined tables)
-    if (lastEdited_data_set_name() == "Programm"){
+    if (lastEdited_data_set_name() %in% c("Programm")){
       df_temp <- DB_get_table(lastEdited_data_set_name(),DB_con())|>
         convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       # Update the list with current edits
@@ -379,7 +379,7 @@ server <- function(input, output, session) {
     DB_con(NULL)
   })
   
-  #### observe event get email list ####
+  #### Get email list ####
   observeEvent(input$get_email,{
     showModal(modalDialog(
       shiny::radioButtons("Verteiler", "Verteiler", 
@@ -521,7 +521,7 @@ server <- function(input, output, session) {
 
   })
 
-  #### edit row ####
+  #### Edit row ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling
@@ -645,7 +645,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #### Observe edit row value button ####
+  #### Edit row value button ####
   observeEvent(input$edit_row_value, {
     # filter for selected data by user
     df_temp <- current_data()
@@ -785,7 +785,7 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  #### abort: Es wurde nichts geändert! ####
+  #### Abort: Es wurde nichts geändert! ####
   observeEvent(input$abort,{
     removeModal()
   })
@@ -1029,7 +1029,7 @@ server <- function(input, output, session) {
     }
   })
 
-  #### observe Event select a row ####
+  #### Select a row ####
   observeEvent(input$table_rows_selected, {
     c_debug(c_debug()+1)
     # update last selected row  
@@ -1049,7 +1049,7 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  #### Observe the change in page length ####
+  #### Change in page length ####
   observeEvent(input$page_length, {
     # update last selected row  
     req(input$table_rows_selected)
@@ -1128,7 +1128,7 @@ server <- function(input, output, session) {
     )
   })
   
-  #### Render data table output ####
+  #### Render: data table output ####
   output$table <- DT::renderDT({
     if(lastEdited_data_set_name() != ""){
       # rendering the datatable depens on the input data 
@@ -1338,7 +1338,7 @@ server <- function(input, output, session) {
         magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
         
         # Lighten the colors to create a pastel effect
-        pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
+        pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
         
         # Apply conditional formatting to columns
         tryCatch({
@@ -1349,28 +1349,34 @@ server <- function(input, output, session) {
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )|>
+            )
+          
+          dt <- dt |>
             formatStyle(
               "Kasse/Bar 1",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )|>
+            )
+          
+          dt <- dt |>
             formatStyle(
               "Kasse/Bar 2",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )|>
+            )
+          dt <- dt |>
             formatStyle(
               "Operateur*in",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )|>
+            )
+          dt <- dt |>
             formatStyle(
               "Back-up",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
@@ -1389,8 +1395,9 @@ server <- function(input, output, session) {
       }
       sys_msg()|>
         writeLines()
-      return(dt)
     }
+    # render dt (data table)
+    dt
   })
 }
 
