@@ -530,7 +530,7 @@ server <- function(input, output, session) {
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling
-      if (lastEdited_data_set_name() == "Einsatzplan") {
+      if (lastEdited_data_set_name() %in% c("Programm","Einsatzplan")) {
         # Store HTML elements
         l_temp <- list()
         # only display
@@ -1399,12 +1399,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the app
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the app
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
