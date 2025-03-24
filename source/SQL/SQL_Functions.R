@@ -32,9 +32,32 @@ Connect_to_DB <- function(pw, DB_user = "ch367079_flo") {
     }, error = function(e) {
       stop("Failed to connect to the database: ", e$message)
     })
-    
     return(con)
   }
+}
+
+# Copy a table to DB, setting ID as Primary Key
+copy_table_to_db <- function(df, con, table_name) {
+  if (!"ID" %in% colnames(df)) {
+    stop("Data frame must have an 'ID' column to use as the primary key.")
+  }
+  
+  # Convert "ID" to integer if necessary
+  df$ID <- as.integer(df$ID)
+  
+  # Drop the table if it exists (optional: adjust this if you need to append instead)
+  dbExecute(con, paste0("DROP TABLE IF EXISTS ", table_name))
+  
+  # Create the table with ID as primary key
+  create_query <- paste0(
+    "CREATE TABLE ", table_name, " (",
+    "ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ",
+    paste(setdiff(colnames(df), "ID"), collapse = " TEXT, "), " TEXT)"
+  )
+  dbExecute(con, create_query)
+  
+  # Insert data
+  dbWriteTable(con, table_name, df, append = TRUE, row.names = FALSE)
 }
 
 # update all data in DB
@@ -42,6 +65,17 @@ update_DB_all <- function(l_data, con) {
   for (ii in 1:length(l_data)) {
     copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
   }
+}
+
+# Update all tables in DB with ID as Primary Key
+update_db_all <- function(l_data, con) {
+  if (!is.list(l_data) || is.null(names(l_data))) {
+    stop("l_data must be a named list where names correspond to table names.")
+  }
+  
+  lapply(names(l_data), function(table_name) {
+    copy_table_to_db(l_data[[table_name]], con, table_name)
+  })
 }
 
 # get all data defined by the template l_data
@@ -242,7 +276,18 @@ DB_add_row <- function(con, table_name, new_row) {
   }
   
   # Get the table's column names and types
-  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  # library(rebus)
+  # p <- SPC
+  # as.character(p)
+  p <- "\\s"
+  
+  # handle column names correctly
+  if(str_detect(table_name, p)) {
+    table_name <- paste0("`",table_name,"`")
+  }
+  
+  table_info <- dbGetQuery(con, paste0("DESCRIBE ", table_name))
+  
   col_names <- table_info$Field
   col_types <- table_info$Type
   
@@ -280,6 +325,7 @@ DB_add_row <- function(con, table_name, new_row) {
   sql_vals <- paste(sapply(new_row, function(x) {
     if (is.null(x)) "NULL"
     else if (is.character(x)) paste0("'", x, "'")
+    else if (is.Date(x)) paste0("'", x, "'")
     else x
   }), collapse = ", ")
   sql_query <- paste0(

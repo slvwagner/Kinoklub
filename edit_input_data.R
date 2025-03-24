@@ -16,29 +16,33 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# ##############################################################
-# # Push data to SQL DB
-# ##############################################################
-# 
-# #Load the data
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
-# l_data
-# 
-# # load template
-# l_template <- readRDS("Input/template.Rds")
+##############################################################
+# Push data to SQL DB
+##############################################################
+
+#Load the data
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+l_data
+
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+pw
+con <- Connect_to_DB(pw)
+
+update_DB_all(l_data ,con)
 
 
 
+##############################################################
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
@@ -151,7 +155,6 @@ convert_Programm <- function(df_temp, convert_to){
       )
   }
 }
-
 
 # Define UI
 ui <- function(){
@@ -328,9 +331,6 @@ server <- function(input, output, session) {
       last_selected_page(NA)
       last_selected_row(NA)
     }
-    
-    showNotification("Changes saved successfully!", type = "message")
-    # lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
   })
@@ -406,7 +406,6 @@ server <- function(input, output, session) {
         l_data_choices()
       
       current_data(l_data()[["Ausgaben"]])
-      # lastEdited_data_set(l_data()[["Ausgaben"]])
       lastEdited_data_set_name("Ausgaben")
       startup(FALSE)
       data_selection_("Inputdaten")
@@ -470,7 +469,6 @@ server <- function(input, output, session) {
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
       current_data(l_data()[["Verleiher"]])
-      # lastEdited_data_set(l_data()[["Verleiher"]])
       lastEdited_data_set_name("Verleiher")
     }
   })
@@ -478,7 +476,7 @@ server <- function(input, output, session) {
   # Abort changes and update 
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
-    # lastEdited_data_set(l_data()[[input$dataset]])
+    
     lastEdited_data_set_name(input$dataset)
     removeModal()
   })
@@ -504,13 +502,12 @@ server <- function(input, output, session) {
     }
     # create and update tables on SQL
     update_DB_all(l_temp, DB_con())
+    
     # get all data as defined in the template l_data
     l_data_sql <- get_Data(l_template, DB_con())
+    
     # Convert data types for each table
     l_temp <- convert_DB_to_R(l_data_sql,l_template)
-    
-    # saveRDS(l_temp, c_file) # Save the updated list into file
-    # l_temp <- readRDS(c_file) # load data
     
     # update data
     l_data(l_temp) 
@@ -561,7 +558,7 @@ server <- function(input, output, session) {
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
-    # lastEdited_data_set(l_data()[[input$dataset]])
+    
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
@@ -869,13 +866,9 @@ server <- function(input, output, session) {
         # Create an empty row
         new_row <- current_data()[1, ] |> 
           mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+          mutate(ID = max(current_data()$ID) + 1L)
 
-        # special handling with ID`s
-        if (lastEdited_data_set_name() %in% c("Programm")) {
-          new_row <- new_row |>
-            mutate(ID = nrow(current_data()) + 1L)
-        }
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         
@@ -919,7 +912,9 @@ server <- function(input, output, session) {
         # Create an empty row
         new_row <- current_data()[1, ] |> 
           mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+          mutate(ID = max(current_data()$ID) + 1L)
+        
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
 
@@ -950,7 +945,7 @@ server <- function(input, output, session) {
       
   })
   
-  # Duplicate selected row(s) and update "Gültig ab Datum"
+  # Duplicate selected row
   observeEvent(input$duplicate_row, {
     if(nrow(current_data()) == 0){ 
       # get template data if no current data is available
@@ -962,21 +957,20 @@ server <- function(input, output, session) {
         current_data(template)
       }
     } else { 
-      if(is.null(input$table_rows_selected)){ # add row on bottom 
+      if(is.null(input$table_rows_selected)){ 
         # User interaction 
         showModal(
           modalDialog(title = "Bitte eine Zeile markieren",
                       easyClose = TRUE, footer = modalButton("Abbrechen")
           )
         )
-      } else {
-        # Create an empty row
+      } else { 
+        # Create duplicate row and add to table
         new_row <- current_data()[input$table_rows_selected, ] |> 
-          # mutate(across(everything(), ~ NA))|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
-          mutate(ID = nrow(current_data()) + 1L)
-        
-          # Update "Gültig ab Datum" to the current system date
+          mutate(ID = max(current_data()$ID) + 1L)
+
+        # Update "Gültig ab Datum" to the current system date
         if ("Gültig ab Datum" %in% colnames(new_row)) {
           new_row <- new_row |>
             mutate(`Gültig ab Datum` = Sys.Date())
@@ -994,8 +988,7 @@ server <- function(input, output, session) {
                       current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
             )
         }
-        new_row <- new_row|>
-          convert_to_template_types(current_data())
+
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         current_data(updated_data)
@@ -1012,11 +1005,9 @@ server <- function(input, output, session) {
     print("here")
     if(!is.null(input$table_rows_selected)){
       req(input$table_rows_selected) # Ensure a row is selected
-      new_row <- current_data()[input$table_rows_selected, ]
-      new_row <- new_row |>
-        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
-      new_row <- new_row|>
-        mutate(ID = nrow(current_data()) + 1L)
+      new_row <- current_data()[input$table_rows_selected, ] |>
+        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])|>
+        mutate(ID = max(current_data()$ID) + 1L)
       
       if(nrow(current_data()) == 0){ 
         # Create an empty row
@@ -1043,7 +1034,9 @@ server <- function(input, output, session) {
             )|>
             convert_to_template_types(current_data())
         }
-        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        DB_add_row(DB_con(), lastEdited_data_set_name(), 
+                   new_row
+                   )
         current_data(updated_data)
       } 
       dataTableProxy("table")|>
