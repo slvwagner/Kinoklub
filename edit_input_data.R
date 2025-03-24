@@ -224,7 +224,7 @@ table_edit <- reactiveVal("single")
 # Edited data 
 startup <- reactiveVal(TRUE)
 data_selection_ <- reactiveVal("")
-lastEdited_data_set <- reactiveVal(NULL)
+# lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
 
 # last edit 
@@ -253,9 +253,86 @@ server <- function(input, output, session) {
     df_temp <- DB_get_table(input$dataset,DB_con())|>
       convert_to_template_types(l_template[[input$dataset]])
     current_data(df_temp)
-    lastEdited_data_set(df_temp)
-    lastEdited_data_set_name(input$dataset)
     
+    l_temp <- l_data()
+
+    # joined tables 
+    # specific data handling Programm / Einsatzplan
+    if (lastEdited_data_set_name() == "Programm"){
+      df_temp <- current_data()
+      # Update the list with current edits
+      l_temp[[lastEdited_data_set_name()]] <- df_temp 
+      l_temp$Einsatzplan <- left_join(df_temp|>
+                                        select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
+                                      l_temp[["Einsatzplan"]]|>
+                                        select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
+      )
+    } # anything else
+    else { 
+      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+    }
+    # update all data
+    l_data(l_temp)
+    
+    # update choices
+    Verantwortlich <- l_data()$Kinoklubmitglieder|>
+      filter(Koordination == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+      pull()
+    
+    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
+      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+      pull()
+    
+    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
+      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
+      select(Mitglied)
+    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+      pull()
+    
+    list(  
+      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
+      "Kategorie" = l_data()$Kategorie$Auswahl,
+      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
+      "Verleiher" = l_data()$Verleiher$Verleihername,
+      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
+      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
+      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
+      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
+      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
+      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
+      "Verantwortlich" = Verantwortlich,
+      "Operateur*in" = `Operateur*in`,
+      "Kasse/Bar 1" = `Kasse/Bar`,
+      "Kasse/Bar 2" = `Kasse/Bar`,
+      "Back-up" = `Kasse/Bar`,
+      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
+      "Kasse / Bar" = l_data()$JaNein$Auswahl,
+      "Programm" = l_data()$JaNein$Auswahl,
+      "Sonderevents" = l_data()$JaNein$Auswahl,
+      "Marketing" = l_data()$JaNein$Auswahl,
+      "Finanzen" = l_data()$JaNein$Auswahl,
+      "Sponsoring" = l_data()$JaNein$Auswahl,
+      "Koordination" = l_data()$JaNein$Auswahl
+    )|>
+      column_choices()
+
+    if(lastEdited_data_set_name() == input$dataset){
+      dataTableProxy("table")|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+    }else{
+      last_selected_page(NA)
+      last_selected_row(NA)
+    }
+    
+    showNotification("Changes saved successfully!", type = "message")
+    # lastEdited_data_set(l_data()[[input$dataset]])
+    lastEdited_data_set_name(input$dataset)
+    current_data(l_data()[[input$dataset]])
   })
 
   # Connect to Datea base
@@ -329,7 +406,7 @@ server <- function(input, output, session) {
         l_data_choices()
       
       current_data(l_data()[["Ausgaben"]])
-      lastEdited_data_set(l_data()[["Ausgaben"]])
+      # lastEdited_data_set(l_data()[["Ausgaben"]])
       lastEdited_data_set_name("Ausgaben")
       startup(FALSE)
       data_selection_("Inputdaten")
@@ -393,7 +470,7 @@ server <- function(input, output, session) {
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
       current_data(l_data()[["Verleiher"]])
-      lastEdited_data_set(l_data()[["Verleiher"]])
+      # lastEdited_data_set(l_data()[["Verleiher"]])
       lastEdited_data_set_name("Verleiher")
     }
   })
@@ -401,7 +478,7 @@ server <- function(input, output, session) {
   # Abort changes and update 
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
-    lastEdited_data_set(l_data()[[input$dataset]])
+    # lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
     removeModal()
   })
@@ -484,7 +561,7 @@ server <- function(input, output, session) {
     )|>
       column_choices()
     showNotification("Changes saved successfully!", type = "message")
-    lastEdited_data_set(l_data()[[input$dataset]])
+    # lastEdited_data_set(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
     current_data(l_data()[[input$dataset]])
     removeModal()
@@ -966,7 +1043,7 @@ server <- function(input, output, session) {
             )|>
             convert_to_template_types(current_data())
         }
-        DB_add_row(DB_con(), lastEdited_data_set_name(), updated_data[updated_data$ID == max(updated_data$ID), ])
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         current_data(updated_data)
       } 
       dataTableProxy("table")|>
