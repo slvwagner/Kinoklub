@@ -19,73 +19,25 @@ source("source/SQL/SQL_Functions.R")
 # ##############################################################
 # # Push data to SQL DB
 # ##############################################################
-
-#Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
-l_data
-
-# load template
-l_template <- readRDS("Input/template.Rds")
-l_template
-
-# l_template|>
-#   lapply(function(x){
-#     if(sum(names(x) == "ID") == 0 ){
-#       bind_cols(tibble(ID = 1:nrow(x)),
-#                 x
-#                 )
-#     }else x
-#   })|>
-#   saveRDS("Input/template.Rds")
-
-
-# l_template <- readRDS("Input/template.Rds")
 # 
-# l_template$Ausgaben <- l_template$Ausgaben |> mutate(across(everything(), ~ NA))|>
-#   convert_to_template_types(l_template$Ausgaben)|>
-#   mutate(Kategorie = "...")
-# 
-# l_template$Spezialpreisekiosk <- l_template$Spezialpreisekiosk |>
-#   mutate(across(everything(), ~ NA))|>
-#   convert_to_template_types(l_template$Spezialpreisekiosk)|>
-#   mutate(Datum = as.Date(NA))
-# l_template$Spezialpreisekiosk
-# 
-# l_template$`Platzkategorien zum Verrechnen` <- l_template$`Platzkategorien zum Verrechnen` |>
-#   mutate(across(everything(), ~ NA))|>
-#   convert_to_template_types(l_template$`Platzkategorien zum Verrechnen`)|>
-#   mutate(ID = 1)
-# 
-# 
-# get passwort for hoststar DB from the environment variable
-# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# 
-# # DB connection
-# DB_con <- Connect_to_DB(pw)
-# 
-# # create and update tables on SQL
-# update_DB_all(l_data, DB_con)
+# #Load the data
+# c_file <- "Input/Data.Rds"
+# if(file.exists(c_file)){
+#   l_data <- readRDS(c_file)
+#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
+#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+# }else{ # or load template date
+#   c_file <- "Input/template.Rds"
+#   l_data <- readRDS(c_file)
+#   c_file <- "Input/Data.Rds"
+# }
+# l_data
 # 
 # # load template
 # l_template <- readRDS("Input/template.Rds")
-# 
-# # read data from DB
-# df_temp <- get_Data(l_template, DB_con)
-# 
-# df_temp|>
-#   convert_DB_to_R(l_template)
-# 
-# 
+
+
 
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
@@ -250,9 +202,6 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 # read in data templates (for data type conversion)
 l_template <- readRDS("Input/template.Rds")
-l_template$Einnahmen <- l_template$Einnahmen|>
-  mutate(Kategorie = "...")
-saveRDS(l_template,"Input/template.Rds")
 
 # Split data to input and dropdown
 c_select_input_data <- c(1:3,5,16,14)
@@ -319,6 +268,7 @@ server <- function(input, output, session) {
     } 
   })
 
+  # Connect to Datea base
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
     req(input$SQL_PW)
@@ -1047,7 +997,7 @@ server <- function(input, output, session) {
   # User interaction Delete selected row(s) 
   observeEvent(input$delete_row, {
     showModal(modalDialog(
-      title = "Möchten sie die selektierten Zeile(n) löschen?",
+      title = "Selektierten Zeile löschen?",
       footer = tagList(
         modalButton("Abbrechen"),
         actionButton("confirm_delete", "Löschen")
@@ -1058,10 +1008,20 @@ server <- function(input, output, session) {
   # Delete selected row 
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
-    updated_data <- current_data()[-input$table_rows_selected, ]
-    current_data(updated_data)
-    DB_delete_row (DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
-    removeModal()
+    if(nrow(current_data()) <= 1){
+      showModal(modalDialog(
+        title = "Die letzte Zeile kannn nicht gelöscht werden",
+        footer = tagList(
+          modalButton("Abbrechen")
+        )
+      ))
+    }
+    else {
+      updated_data <- current_data()[-input$table_rows_selected, ]
+      current_data(updated_data)
+      DB_delete_row (DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
+      removeModal()
+    }
   })
 
   # observe Event select a row 
