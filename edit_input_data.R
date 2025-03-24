@@ -15,25 +15,25 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# #Load the data
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
-# l_data
-# 
-# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# pw
-# con <- Connect_to_DB(pw, "ch367079_flo")
-# 
-# update_db_all(l_data ,con)
+#Load the data
+c_file <- "Input/Data.Rds"
+if(file.exists(c_file)){
+  l_data <- readRDS(c_file)
+  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+  if(!dir.exists("Input/backup")) dir.create("Input/backup")
+  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+}else{ # or load template date
+  c_file <- "Input/template.Rds"
+  l_data <- readRDS(c_file)
+  c_file <- "Input/Data.Rds"
+}
+l_data
+
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+pw
+con <- Connect_to_DB(pw, "ch367079_flo")
+
+update_db_all(l_data ,con)
 
 
 # fuction to update all drop down menus choices 
@@ -211,6 +211,21 @@ l_template <- readRDS("source/SQL/template.Rds")
 c_select_input_data <- c(1:3,5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
 
+DT_language <- list(
+  lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+  search = "Suchen:", # Text für das Suchfeld
+  searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+  zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+  info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+  infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+  infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+  paginate = list(
+    first = "Erste Seite", # Text für die erste Seite
+    last = "Letzte Seite", # Text für die letzte Seite
+    `next` = "Nächste Seite", # Text für die nächste Seite
+    previous = "Vorherige Seite" # Text für die vorherige Seite
+    )
+  )
 
 ################# Define UI ################# 
 ui <- 
@@ -291,27 +306,26 @@ server <- function(input, output, session) {
   observeEvent(input$dataset, {
     print("change data set")
     req(input$dataset)
- 
+    
+    # read data from data base
     df_temp <- DB_get_table(input$dataset,DB_con())|>
       convert_to_template_types(l_template[[input$dataset]])
+    
+    # temp data
     l_temp <- l_data()
-
+    
     # data handling for Programm / Einsatzplan (joined tables)
     if (lastEdited_data_set_name() %in% c("Programm")){
-      df_temp <- DB_get_table(lastEdited_data_set_name(),DB_con())|>
-        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-      # Update the list with current edits
-      l_temp[[lastEdited_data_set_name()]] <- df_temp 
       l_temp$Einsatzplan <- left_join(df_temp|>
                                         select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
                                       l_temp[["Einsatzplan"]]|>
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
                                       by = join_by(ID)
                                       )
-    } # anything else
-    else { 
-      l_temp[[input$dataset]] <- df_temp # Update the list with current edits
-    }
+    } 
+    
+    # Update the list with current edits
+    l_temp[[lastEdited_data_set_name()]] <- df_temp 
     # update all data
     l_data(l_temp)
     
@@ -1031,7 +1045,7 @@ server <- function(input, output, session) {
 
   #### Select a row ####
   observeEvent(input$table_rows_selected, {
-    c_debug(c_debug()+1)
+
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
@@ -1218,9 +1232,14 @@ server <- function(input, output, session) {
           # offset needed becaus datatable starts at index 0
           c_select <- c(FALSE,c_select)
           l_filter <- list(NULL)
+          # create filters for data table
           for (ii in 1:(length(c_select))) {
-            if(c_select[ii]) l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]') # '["HR", "Finance"]'
-            else l_filter[[ii + 1]] <- NULL
+            if(c_select[ii]) {
+              l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]')
+              } 
+            else {
+              l_filter[[ii + 1]] <- NULL
+              }
           }
           
         }else { # empty list if no filter needs to be applyed
@@ -1248,21 +1267,7 @@ server <- function(input, output, session) {
               "  });",
               "}"
             ),
-            language = list(
-              lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
-              search = "Suchen:", # Text für das Suchfeld
-              searchPlaceholder = "Volltextsuche", # Platzhaltertext für das Suchfeld
-              zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
-              info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
-              infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
-              infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
-              paginate = list(
-                first = "Erste Seite", # Text für die erste Seite
-                last = "Letzte Seite", # Text für die letzte Seite
-                `next` = "Nächste Seite", # Text für die nächste Seite
-                previous = "Vorherige Seite" # Text für die vorherige Seite
-              )
-            )
+            language = DT_language
           )
         )
       } 
@@ -1286,21 +1291,7 @@ server <- function(input, output, session) {
               "  });",
               "}"
             ),
-            language = list(
-              lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
-              search = "Suchen:", # Text für das Suchfeld
-              searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
-              zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
-              info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
-              infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
-              infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
-              paginate = list(
-                first = "Erste Seite", # Text für die erste Seite
-                last = "Letzte Seite", # Text für die letzte Seite
-                `next` = "Nächste Seite", # Text für die nächste Seite
-                previous = "Vorherige Seite" # Text für die vorherige Seite
-              )
-            )
+            language = DT_language
           )
         )
       }
@@ -1325,11 +1316,10 @@ server <- function(input, output, session) {
           
         })
       } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
-        names(l_data()[["Kinoklubmitglieder"]])
         c_Kinoklubmitglied <- 
           l_data()[["Kinoklubmitglieder"]]|>
-          mutate(Kinoklubmitglied = paste(Vorname, Nachname))|>
-          select(Kinoklubmitglied)|>
+          filter(!is.na(`Kasse / Bar`))|>
+          select(Mitglied)|>
           pull()
         
         c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
@@ -1349,34 +1339,28 @@ server <- function(input, output, session) {
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )
-          
-          dt <- dt |>
+            )|>
             formatStyle(
               "Kasse/Bar 1",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )
-          
-          dt <- dt |>
+            )|>
             formatStyle(
               "Kasse/Bar 2",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )
-          dt <- dt |>
+            )|>
             formatStyle(
               "Operateur*in",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
                 levels = c_Kinoklubmitglied,  # Exact values from your column
                 values = pastel_magma  # Corresponding colors
               )
-            )
-          dt <- dt |>
+            )|>
             formatStyle(
               "Back-up",  # Ensure this column name matches exactly
               backgroundColor = styleEqual(
