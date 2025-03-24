@@ -1403,7 +1403,7 @@ server <- function(input, output, session) {
 
 # shinyApp(ui = ui, server = server)
  
-#### Run the app ####
+#### Run the shiny app ####
 shiny::runApp(
   host = "0.0.0.0",
   shiny::shinyApp(ui = ui, server = server),
