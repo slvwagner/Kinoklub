@@ -43,6 +43,56 @@ update_db_all(l_data ,con)
 
 
 ##############################################################
+# fuction to update all drop down menus choices 
+update_choices <- function(l_data) {
+  # Mitgliederauswahl für die Einsatzplanung
+  Verantwortlich <- l_data$Kinoklubmitglieder|>
+    filter(Koordination == pull(l_data$JaNein)[2])|>
+    select(Mitglied)
+  Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
+    pull()
+  
+  `Operateur*in` <- l_data$Kinoklubmitglieder|>
+    filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+    select(Mitglied)
+  `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
+    pull()
+  
+  `Kasse/Bar` <- l_data$Kinoklubmitglieder|>
+    filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+    select(Mitglied)
+  `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
+    pull()
+  
+  # choices list
+  list(
+    "Lieferant" = l_data$Lieferanten$Lieferantenname,
+    "Kategorie" = l_data$Kategorie$Auswahl,
+    "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
+    "Verleiher" = l_data$Verleiher$Verleihername,
+    "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
+    "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
+    "KDM ja oder nein" = l_data$JaNein$Auswahl,
+    "Besucherzahlen an Verleiher gesendet" = l_data$JaNein$Auswahl,
+    "Verleihervertrag abgelegt" = l_data$JaNein$Auswahl,
+    "Rechnung bezahlt und abgelegt" = l_data$JaNein$Auswahl,
+    "Verleiher Angefragt?" = l_data$`Status Filmliste`$`Status Filmliste`,
+    "Verantwortlich" = Verantwortlich,
+    "Operateur*in" = `Operateur*in`,
+    "Kasse/Bar 1" = `Kasse/Bar`,
+    "Kasse/Bar 2" = `Kasse/Bar`,
+    "Back-up" = `Kasse/Bar`,
+    "Allgemeine Infos erhalten" = l_data$JaNein$Auswahl,
+    "Kasse / Bar" = l_data$JaNein$Auswahl,
+    "Programm" = l_data$JaNein$Auswahl,
+    "Sonderevents" = l_data$JaNein$Auswahl,
+    "Marketing" = l_data$JaNein$Auswahl,
+    "Finanzen" = l_data$JaNein$Auswahl,
+    "Sponsoring" = l_data$JaNein$Auswahl,
+    "Koordination" = l_data$JaNein$Auswahl
+  )
+}
+
 # Floating tool box function 
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
@@ -252,17 +302,15 @@ server <- function(input, output, session) {
   observeEvent(input$dataset, {
     print("change data set")
     req(input$dataset)
-    # only ask to save if there is something to save  
+ 
     df_temp <- DB_get_table(input$dataset,DB_con())|>
       convert_to_template_types(l_template[[input$dataset]])
-    current_data(df_temp)
-    
     l_temp <- l_data()
 
-    # joined tables 
-    # specific data handling Programm / Einsatzplan
+    # data handling for Programm / Einsatzplan (joined tables)
     if (lastEdited_data_set_name() == "Programm"){
-      df_temp <- current_data()
+      df_temp <- DB_get_table(lastEdited_data_set_name(),DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       # Update the list with current edits
       l_temp[[lastEdited_data_set_name()]] <- df_temp 
       l_temp$Einsatzplan <- left_join(df_temp|>
@@ -272,55 +320,13 @@ server <- function(input, output, session) {
       )
     } # anything else
     else { 
-      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
+      l_temp[[input$dataset]] <- df_temp # Update the list with current edits
     }
     # update all data
     l_data(l_temp)
     
     # update choices
-    Verantwortlich <- l_data()$Kinoklubmitglieder|>
-      filter(Koordination == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-      pull()
-    
-    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-      pull()
-    
-    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-      pull()
-    
-    list(  
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
-      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
-      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
-      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
-      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = Verantwortlich,
-      "Operateur*in" = `Operateur*in`,
-      "Kasse/Bar 1" = `Kasse/Bar`,
-      "Kasse/Bar 2" = `Kasse/Bar`,
-      "Back-up" = `Kasse/Bar`,
-      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
-      "Kasse / Bar" = l_data()$JaNein$Auswahl,
-      "Programm" = l_data()$JaNein$Auswahl,
-      "Sonderevents" = l_data()$JaNein$Auswahl,
-      "Marketing" = l_data()$JaNein$Auswahl,
-      "Finanzen" = l_data()$JaNein$Auswahl,
-      "Sponsoring" = l_data()$JaNein$Auswahl,
-      "Koordination" = l_data()$JaNein$Auswahl
-    )|>
+    update_choices(l_data())|>
       column_choices()
 
     if(lastEdited_data_set_name() == input$dataset){
@@ -354,52 +360,8 @@ server <- function(input, output, session) {
       convert_DB_to_R(l_data_sql,l_template)|>
         l_data()
       
-      # Mitgliederauswahl für die Einsatzplanung
-      Verantwortlich <- l_data()$Kinoklubmitglieder|>
-        filter(Koordination == pull(l_data()$JaNein)[2])|>
-        select(Mitglied)
-      Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-        pull()
-      
-      `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-        filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
-        select(Mitglied)
-      `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-        pull()
-      
-      `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-        filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
-        select(Mitglied)
-      `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-        pull()
-      
-      # choices list
-      list(
-        "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-        "Kategorie" = l_data()$Kategorie$Auswahl,
-        "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-        "Verleiher" = l_data()$Verleiher$Verleihername,
-        "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-        "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
-        "KDM ja oder nein" = l_data()$JaNein$Auswahl,
-        "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
-        "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
-        "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
-        "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-        "Verantwortlich" = Verantwortlich,
-        "Operateur*in" = `Operateur*in`,
-        "Kasse/Bar 1" = `Kasse/Bar`,
-        "Kasse/Bar 2" = `Kasse/Bar`,
-        "Back-up" = `Kasse/Bar`,
-        "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
-        "Kasse / Bar" = l_data()$JaNein$Auswahl,
-        "Programm" = l_data()$JaNein$Auswahl,
-        "Sonderevents" = l_data()$JaNein$Auswahl,
-        "Marketing" = l_data()$JaNein$Auswahl,
-        "Finanzen" = l_data()$JaNein$Auswahl,
-        "Sponsoring" = l_data()$JaNein$Auswahl,
-        "Koordination" = l_data()$JaNein$Auswahl
-      )|>
+      # update choices
+      update_choices(l_data())|>
         column_choices()
       
       l_data()[c_select_input_data]|>
@@ -1300,7 +1262,7 @@ server <- function(input, output, session) {
             language = list(
               lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
               search = "Suchen:", # Text für das Suchfeld
-              searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+              searchPlaceholder = "Volltextsuche", # Platzhaltertext für das Suchfeld
               zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
               info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
               infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind

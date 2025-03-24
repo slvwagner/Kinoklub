@@ -313,6 +313,7 @@ DB_add_row <- function(con, table_name, new_row) {
     if (is.null(x)) "NULL"
     else if (is.character(x)) paste0("'", x, "'")
     else if (is.Date(x)) paste0("'", x, "'")
+    else if (is.factor(x)) paste0("'", as.character(x), "'")
     else x
   }), collapse = ", ")
   sql_query <- paste0(
