@@ -1,9 +1,8 @@
-####################################################################################################
+##### Edit input data for Kinoklub ######
 # Shiny app to edit all Kinoklub input data
 # The data is stored on a SQL DB. The Password for the DB connection must be stored 
 # in a envirnonment variable: DB_PASSWORD_KINOKLUB 
 # Find instroction in the readme to set it up for windows or Mac/Linux
-####################################################################################################
 
 library(shiny)
 library(shinyjs)
@@ -16,7 +15,6 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# ##############################################################
 # #Load the data
 # c_file <- "Input/Data.Rds"
 # if(file.exists(c_file)){
@@ -37,7 +35,7 @@ source("source/SQL/SQL_Functions.R")
 # 
 # update_db_all(l_data ,con)
 
-##############################################################
+
 # fuction to update all drop down menus choices 
 update_choices <- function(l_data) {
   # Mitgliederauswahl für die Einsatzplanung
@@ -201,15 +199,28 @@ convert_Programm <- function(df_temp, convert_to){
   }
 }
 
-# Define UI
-ui <- function(){
+####################### Constants ############################
+Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
+c_pageLength = 5 # Initial page length
+c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
+
+# read in data templates (for data type conversion)
+l_template <- readRDS("source/SQL/template.Rds")
+
+# Split data to input and dropdown
+c_select_input_data <- c(1:3,5,16,14)
+c_select_dropdown_data <- c(6:13, 15, 17)
+
+
+################# Define UI ################# 
+ui <- 
   fluidPage(
     shiny::inputPanel(shiny::headerPanel("Input Kinoklub"),
                       shiny::textInput("user", "Benutzer"),
                       shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
                       shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
                       shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
-                      ),
+    ),
     includeScript("source/JS/1.12.1_jquery-ui.js"),
     tags$head(
       tags$style(HTML("
@@ -240,22 +251,9 @@ ui <- function(){
       shiny::uiOutput("dynamicContent_output_panel"),
     )
   )
-}
 
-###################################################
-# Constants
-Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
-c_pageLength = 5 # Initial page length
-c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
-# read in data templates (for data type conversion)
-l_template <- readRDS("source/SQL/template.Rds")
-
-# Split data to input and dropdown
-c_select_input_data <- c(1:3,5,16,14)
-c_select_dropdown_data <- c(6:13, 15, 17)
-
-###################################################
+####################### Reactive variables ############################
 # Reactive lists
 l_data_input <- reactiveVal(list())
 l_data_choices <- reactiveVal(list())
@@ -283,17 +281,13 @@ page_length_var <- reactiveVal(6L)
 c_connected_to_db <- reactiveVal(FALSE)
 DB_con <- reactiveVal(NULL)
 
-# Debug 
-c_debug <- reactiveVal(0)
-
 # System messages 
 sys_msg <- reactiveVal("")
 
-###################################################
-# server logic
+###################### server logic #############################
 server <- function(input, output, session) {
   
-  # Observe dataset selection and update current_data
+  #### Observe dataset selection and update current_data ####
   observeEvent(input$dataset, {
     print("change data set")
     req(input$dataset)
@@ -337,7 +331,7 @@ server <- function(input, output, session) {
     current_data(l_data()[[input$dataset]])
   })
 
-  # Connect to Datea base
+  #### Connect to Datea base ####
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
     shiny::withProgress(message = "login... ", value = 0, {
@@ -377,7 +371,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Disconnect from DB
+  #### Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
     dbDisconnect(DB_con())
@@ -385,7 +379,7 @@ server <- function(input, output, session) {
     DB_con(NULL)
   })
   
-  # observe event get email list 
+  #### observe event get email list ####
   observeEvent(input$get_email,{
     showModal(modalDialog(
       shiny::radioButtons("Verteiler", "Verteiler", 
@@ -398,7 +392,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # select email verteiler and copy emails to clipboard 
+  ### select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
@@ -418,7 +412,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # Check if dropdowns have been selected
+  #### Check if dropdowns have been selected ####
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
@@ -427,7 +421,7 @@ server <- function(input, output, session) {
     }
   })
 
-  # Abort changes and update 
+  ### Abort changes and update ####
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
     
@@ -435,7 +429,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  # Update changes
+  #### Update changes ####
   observeEvent(input$save_edit, {
     l_temp <- l_data() # get data list
     # joined tables 
@@ -527,6 +521,7 @@ server <- function(input, output, session) {
 
   })
 
+  #### edit row ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling
@@ -650,7 +645,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Observe edit row value button
+  #### Observe edit row value button ####
   observeEvent(input$edit_row_value, {
     # filter for selected data by user
     df_temp <- current_data()
@@ -790,12 +785,12 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  # abort: Es wurde nichts geändert! 
+  #### abort: Es wurde nichts geändert! ####
   observeEvent(input$abort,{
     removeModal()
   })
   
-  # Add a new row top of selected
+  #### Add a new row top of selected ####
   observeEvent(input$add_row_top, {
     if (nrow(current_data()) == 0) {
       template <- l_template[[lastEdited_data_set_name()]]
@@ -841,7 +836,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Add a new row bottom of selected
+  #### Add a new row bottom of selected ####
   observeEvent(input$add_row_bottom, {
     if(nrow(current_data()) == 0){ 
       template <- l_template[[lastEdited_data_set_name()]]
@@ -895,7 +890,7 @@ server <- function(input, output, session) {
       
   })
   
-  # Duplicate selected row
+  #### Duplicate selected row ####
   observeEvent(input$duplicate_row, {
     if(nrow(current_data()) == 0){ 
       
@@ -950,7 +945,7 @@ server <- function(input, output, session) {
     
   })
   
-  # Duplicate Film and archive 
+  #### Duplicate Film and archive ####
   observeEvent(input$archive_row,{
     print("here")
     if(!is.null(input$table_rows_selected)){
@@ -1004,7 +999,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # User interaction Delete selected row(s) 
+  #### User interaction Delete selected row(s) ####
   observeEvent(input$delete_row, {
     showModal(modalDialog(
       title = "Selektierten Zeile löschen?",
@@ -1015,7 +1010,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # Delete selected row 
+  #### Delete selected row ####
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
     if(nrow(current_data()) <= 1){
@@ -1034,7 +1029,7 @@ server <- function(input, output, session) {
     }
   })
 
-  # observe Event select a row 
+  #### observe Event select a row ####
   observeEvent(input$table_rows_selected, {
     c_debug(c_debug()+1)
     # update last selected row  
@@ -1054,7 +1049,7 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  # Observe the change in page length
+  #### Observe the change in page length ####
   observeEvent(input$page_length, {
     # update last selected row  
     req(input$table_rows_selected)
@@ -1072,7 +1067,7 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  # Render: Dynamically update the floating tool box
+  #### Render: Dynamically update the floating tool box ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       hr(),
@@ -1133,7 +1128,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Render data table output
+  #### Render data table output ####
   output$table <- DT::renderDT({
     if(lastEdited_data_set_name() != ""){
       # rendering the datatable depens on the input data 
@@ -1401,7 +1396,7 @@ server <- function(input, output, session) {
 
 # shinyApp(ui = ui, server = server)
  
-# Run the app
+#### Run the app ####
 shiny::runApp(
   host = "0.0.0.0",
   shiny::shinyApp(ui = ui, server = server),
