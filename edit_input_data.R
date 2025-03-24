@@ -16,31 +16,26 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-##############################################################
-# Push data to SQL DB
-##############################################################
-
-#Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
-l_data
-
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-pw
-con <- Connect_to_DB(pw, "ch367079_flo")
-
-update_db_all(l_data ,con)
-
-
+# ##############################################################
+# #Load the data
+# c_file <- "Input/Data.Rds"
+# if(file.exists(c_file)){
+#   l_data <- readRDS(c_file)
+#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
+#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+# }else{ # or load template date
+#   c_file <- "Input/template.Rds"
+#   l_data <- readRDS(c_file)
+#   c_file <- "Input/Data.Rds"
+# }
+# l_data
+# 
+# pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+# pw
+# con <- Connect_to_DB(pw, "ch367079_flo")
+# 
+# update_db_all(l_data ,con)
 
 ##############################################################
 # fuction to update all drop down menus choices 
@@ -248,7 +243,8 @@ ui <- function(){
 }
 
 ###################################################
-# Konstanten
+# Constants
+l_template <- readRDS("Input/template.Rds")
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
@@ -316,8 +312,9 @@ server <- function(input, output, session) {
       l_temp$Einsatzplan <- left_join(df_temp|>
                                         select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
                                       l_temp[["Einsatzplan"]]|>
-                                        select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
-      )
+                                        select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
+                                      by = join_by(ID)
+                                      )
     } # anything else
     else { 
       l_temp[[input$dataset]] <- df_temp # Update the list with current edits
@@ -800,8 +797,6 @@ server <- function(input, output, session) {
   # Add a new row top of selected
   observeEvent(input$add_row_top, {
     if (nrow(current_data()) == 0) {
-      # get template data if no current data is available
-      l_template <- readRDS("Input/template.Rds")
       template <- l_template[[lastEdited_data_set_name()]]
       if (is.null(template))
         stop("could not finde template data to create a new row")
@@ -848,8 +843,6 @@ server <- function(input, output, session) {
   # Add a new row bottom of selected
   observeEvent(input$add_row_bottom, {
     if(nrow(current_data()) == 0){ 
-      # get template data if no current data is available
-      l_template <- readRDS("Input/template.Rds")
       template <- l_template[[lastEdited_data_set_name()]]
       if (is.null(template))
         stop("could not finde template data to create a new row")
@@ -904,8 +897,8 @@ server <- function(input, output, session) {
   # Duplicate selected row
   observeEvent(input$duplicate_row, {
     if(nrow(current_data()) == 0){ 
-      # get template data if no current data is available
-      l_template <- readRDS("Input/template.Rds")
+      
+     
       template <- l_template[[lastEdited_data_set_name()]]
       if (is.null(template))
         stop("could not finde template data to create a new row")
@@ -1405,12 +1398,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the app
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the app
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
