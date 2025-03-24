@@ -4,21 +4,15 @@ library(tidyverse)
 source("source/functions.R")
 
 # connection to Database
-Connect_to_DB <- function(pw, DB_user = "ch367079_flo") {
+Connect_to_DB <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   # Database credentials
   host <- "lx51.hoststar.hosting"
   DB_name <- "ch367079_gui"
   
   # Check if connection already exists and is valid
-  if (exists("con") && dbIsValid(con)) {
+  if (!is.null(con)) {
     return(con)
   } else {
-    # Close existing invalid connection
-    if (exists("con")) {
-      dbDisconnect(con)
-      rm(con)
-    }
-    
     # Create a new connection
     con <- tryCatch({
       dbConnect(
@@ -58,13 +52,6 @@ copy_table_to_db <- function(df, con, table_name) {
   
   # Insert data
   dbWriteTable(con, table_name, df, append = TRUE, row.names = FALSE)
-}
-
-# update all data in DB
-update_DB_all <- function(l_data, con) {
-  for (ii in 1:length(l_data)) {
-    copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-  }
 }
 
 # Update all tables in DB with ID as Primary Key

@@ -36,9 +36,9 @@ l_data
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
-con <- Connect_to_DB(pw)
+con <- Connect_to_DB(pw, "ch367079_flo")
 
-update_DB_all(l_data ,con)
+update_db_all(l_data ,con)
 
 
 
@@ -225,7 +225,6 @@ current_data <- reactiveVal(tibble())
 table_edit <- reactiveVal("single")
 
 # Edited data 
-startup <- reactiveVal(TRUE)
 data_selection_ <- reactiveVal("")
 # lastEdited_data_set <- reactiveVal(NULL)
 lastEdited_data_set_name <- reactiveVal("")
@@ -237,7 +236,7 @@ page_length_var <- reactiveVal(6L)
 
 # connected to db
 c_connected_to_db <- reactiveVal(FALSE)
-DB_con <- reactiveVal(list())
+DB_con <- reactiveVal(NULL)
 
 # Debug 
 c_debug <- reactiveVal(0)
@@ -251,6 +250,7 @@ server <- function(input, output, session) {
   
   # Observe dataset selection and update current_data
   observeEvent(input$dataset, {
+    print("change data set")
     req(input$dataset)
     # only ask to save if there is something to save  
     df_temp <- DB_get_table(input$dataset,DB_con())|>
@@ -338,11 +338,13 @@ server <- function(input, output, session) {
   # Connect to Datea base
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
+    
     req(input$SQL_PW)
+    req(input$user)
     
     tryCatch({
       # Connect to data base 
-      Connect_to_DB(input$SQL_PW)|>
+      Connect_to_DB(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
         DB_con()
       
       # get all data as defined in the template l_data
@@ -407,7 +409,6 @@ server <- function(input, output, session) {
       
       current_data(l_data()[["Ausgaben"]])
       lastEdited_data_set_name("Ausgaben")
-      startup(FALSE)
       data_selection_("Inputdaten")
       c_connected_to_db(TRUE)
       
@@ -416,19 +417,12 @@ server <- function(input, output, session) {
     })
   })
   
-  # update all data in DB
-  update_DB_all <- function(l_data, con) {
-    shiny::withProgress(message = "Running script...", value = 0, {
-      for (ii in 1:length(l_data)) {
-        shiny::incProgress( 1 / length(l_data) , detail = paste("Step", ii, "of", length(l_data)))
-        copy_table_to_db(l_data[[ii]], con, names(l_data)[ii])    
-      }
-    })
-  }
-  
   # Disconnect from DB
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
+    dbDisconnect(DB_con())
+    c_connected_to_db(FALSE)
+    DB_con(NULL)
   })
   
   # observe event get email list 
@@ -1130,7 +1124,7 @@ server <- function(input, output, session) {
         DTOutput("table")
       },
       # Dynamically change Floating tool box to edit data
-      if (data_selection_() == "Inputdaten") {
+      if (c_connected_to_db() && data_selection_() == "Inputdaten") {
         if (lastEdited_data_set_name() == "Programm") {
           tool_box(l_data_input(), "Programm")
         } else if (lastEdited_data_set_name() == "Einsatzplan") {
@@ -1146,7 +1140,7 @@ server <- function(input, output, session) {
         } else {
           tool_box(l_data_input(), "Ausgaben")
         }
-      } else if (data_selection_() == "Dropdowns") {
+      } else if (c_connected_to_db() && data_selection_() == "Dropdowns") {
         if(lastEdited_data_set_name() == "Verleiher"){
           tool_box(l_data_choices(), "Verleiher",2)
         } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
