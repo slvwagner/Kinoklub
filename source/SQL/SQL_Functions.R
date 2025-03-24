@@ -4,11 +4,10 @@ library(tidyverse)
 source("source/functions.R")
 
 # connection to Database
-Connect_to_DB <- function(pw) {
+Connect_to_DB <- function(pw, DB_user = "ch367079_flo") {
   # Database credentials
   host <- "lx51.hoststar.hosting"
   DB_name <- "ch367079_gui"
-  DB_user <- "ch367079_flo"
   
   # Check if connection already exists and is valid
   if (exists("con") && dbIsValid(con)) {

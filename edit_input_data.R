@@ -21,7 +21,6 @@ source("source/SQL/SQL_Functions.R")
 # ##############################################################
 
 #Load the data
-
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
   l_data <- readRDS(c_file)
@@ -34,6 +33,10 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 l_data
+
+# load template
+l_template <- readRDS("Input/template.Rds")
+l_template
 
 # l_template|>
 #   lapply(function(x){
@@ -64,7 +67,7 @@ l_data
 #   mutate(ID = 1)
 # 
 # 
-# # get passwort for hoststar DB from the environment variable
+# get passwort for hoststar DB from the environment variable
 # pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 # 
 # # DB connection
@@ -202,6 +205,7 @@ convert_Programm <- function(df_temp, convert_to){
 ui <- function(){
   fluidPage(
     shiny::inputPanel(shiny::headerPanel("Input Kinoklub"),
+                      shiny::textInput("user", "Benutzer"),
                       shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
                       shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
                       shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
@@ -406,75 +410,9 @@ server <- function(input, output, session) {
     })
   }
   
+  # Disconnect from DB
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
-    c_file <- "Input/Data.Rds"
-    if(file.exists(c_file)){
-      l_data <- readRDS(c_file)
-      c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-      if(!dir.exists("Input/backup")) dir.create("Input/backup")
-      saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-    }else{ # or load template date
-      c_file <- "Input/template.Rds"
-      l_data <- readRDS(c_file)
-      c_file <- "Input/Data.Rds"
-    }
-    # create and update tables on SQL
-    update_DB_all(l_template, DB_con())|>
-      l_data()
-    
-    # Mitgliederauswahl für die Einsatzplanung
-    Verantwortlich <- l_data()$Kinoklubmitglieder|>
-      filter(Koordination == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-      pull()
-    
-    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-      pull()
-    
-    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-      pull()
-    
-    # choices list
-    list(
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
-      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
-      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
-      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
-      "Rechnung bezahlt und abgelegt" = l_data()$JaNein$Auswahl,
-      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = Verantwortlich,
-      "Operateur*in" = `Operateur*in`,
-      "Kasse/Bar 1" = `Kasse/Bar`,
-      "Kasse/Bar 2" = `Kasse/Bar`,
-      "Back-up" = `Kasse/Bar`,
-      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
-      "Kasse / Bar" = l_data()$JaNein$Auswahl,
-      "Programm" = l_data()$JaNein$Auswahl,
-      "Sonderevents" = l_data()$JaNein$Auswahl,
-      "Marketing" = l_data()$JaNein$Auswahl,
-      "Finanzen" = l_data()$JaNein$Auswahl,
-      "Sponsoring" = l_data()$JaNein$Auswahl,
-      "Koordination" = l_data()$JaNein$Auswahl
-    )|>
-      column_choices()
-    
-    l_data()[c_select_input_data]|>
-      l_data_input()
-    l_data()[c_select_dropdown_data]|>
-      l_data_choices()
   })
   
   # observe event get email list 
