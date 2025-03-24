@@ -1134,7 +1134,7 @@ server <- function(input, output, session) {
   })
   
   # Render data table output
-  output$table <- renderDataTable({
+  output$table <- DT::renderDT({
     if(lastEdited_data_set_name() != ""){
       # rendering the datatable depens on the input data 
       # for certain input data sets other renderings may be needed
