@@ -273,7 +273,7 @@ DB_add_row <- function(con, table_name, new_row) {
   new_row <- lapply(new_row, function(x) if (is.na(x)) NULL else x)
   
   # Debug: Print new_row values
-  message("Values in new_row: ", paste(new_row, collapse = ", "))
+  # message("Values in new_row: ", paste(new_row, collapse = ", "))
   
   # Prepare the SQL query
   sql_cols <- paste(paste0("`", names(new_row), "`"), collapse = ", ")
@@ -359,7 +359,6 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   message("Row with ", primary_key_col, " = ", primary_key_value, " updated successfully in table '", table_name, "'.")
 }
 
-
 # Function to delete a row from any table
 DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   # Validate inputs
@@ -388,7 +387,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   )
   
   # Print the SQL query for debugging
-  message("Executing SQL query: ", sql_query)
+  # message("Executing SQL query: ", sql_query)
   
   # Execute the query
   dbExecute(con, sql_query)
