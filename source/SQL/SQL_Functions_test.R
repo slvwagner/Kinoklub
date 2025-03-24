@@ -1,58 +1,25 @@
 
 source("source/SQL/SQL_Functions.R")
 
-# get passwort for hoststar DB from the environment variable 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-# DB connection
-con <- Connect_to_DB(pw)
-con
-tables <- dbListTables(con)
-print(tables)
-
-# Load the data
+#Load the data
 c_file <- "Input/Data.Rds"
 if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
   if(!dir.exists("Input/backup")) dir.create("Input/backup")
   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date 
+}else{ # or load template date
   c_file <- "Input/template.Rds"
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
 l_data
 
-# # create and update tables on SQL
-update_DB_all(l_data, con)
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+pw
+con <- Connect_to_DB(pw, "ch367079_flo")
 
-# only glimps of data 
-get_Data(l_data, con, download = FALSE)
-
-# get all data as defined in the template l_data
-l_data_sql <- get_Data(l_data, con)
-l_data_sql
-
-# Convert data types for each table
-l_data_sql_converted <- convert_DB_to_R(l_data_sql,l_data)
-l_data_sql_converted
-
-all.equal(l_data, l_data_sql_converted)
-
-
-tbl(con, "Ausgaben")|>
-  filter(Kategorie == "Personalaufwand")|>
-  explain()
-tbl(con, "Einnahmen")|>
-  show_query()
-
-tbl(con, "Ausgaben")
-tbl(con, "Spezialpreisekiosk")
-tbl(con, "Einkauf Kiosk")
-tbl(con, "Programm")
-tbl(con, "Einsatzplan")
-
+update_db_all(l_data ,con)
 
 ###################################################
 # Disconnect from DB

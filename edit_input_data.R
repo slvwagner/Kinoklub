@@ -15,27 +15,6 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-#Load the data
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
-l_data
-
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-pw
-con <- Connect_to_DB(pw, "ch367079_flo")
-
-update_db_all(l_data ,con)
-
-
 # fuction to update all drop down menus choices 
 update_choices <- function(l_data) {
   # Mitgliederauswahl für die Einsatzplanung
@@ -1392,12 +1371,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-#### Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# #### Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
