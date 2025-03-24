@@ -244,13 +244,12 @@ ui <- function(){
 
 ###################################################
 # Constants
-l_template <- readRDS("Input/template.Rds")
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 # read in data templates (for data type conversion)
-l_template <- readRDS("Input/template.Rds")
+l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown
 c_select_input_data <- c(1:3,5,16,14)
