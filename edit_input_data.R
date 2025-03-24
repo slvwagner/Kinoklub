@@ -322,10 +322,11 @@ server <- function(input, output, session) {
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
                                       by = join_by(ID)
                                       )
-    } 
+    } else {
+      # Update the list with current edits
+      l_temp[[lastEdited_data_set_name()]] <- df_temp
+    }
     
-    # Update the list with current edits
-    l_temp[[lastEdited_data_set_name()]] <- df_temp 
     # update all data
     l_data(l_temp)
     
@@ -406,7 +407,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  ### select email verteiler and copy emails to clipboard ####
+  ### Select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
@@ -426,13 +427,18 @@ server <- function(input, output, session) {
     ))
   })
   
-  #### Check if dropdowns have been selected ####
+  #### Data set selection####
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
       current_data(l_data()[["Verleiher"]])
       lastEdited_data_set_name("Verleiher")
+    }else{
+      current_data(l_data()[["Ausgaben"]])
+      lastEdited_data_set_name("Ausgaben")
     }
+    last_selected_page(NA)
+    last_selected_row(NA)
   })
 
   ### Abort changes and update ####
@@ -1149,7 +1155,7 @@ server <- function(input, output, session) {
       # for certain input data sets other renderings may be needed
       if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
         print("Render data table output")
-        # get crrent data
+        # get current data
         df_temp <- current_data()
         # find all column names containing "Datum"
         df_Date <- current_data()|>
@@ -1379,9 +1385,10 @@ server <- function(input, output, session) {
       }
       sys_msg()|>
         writeLines()
+      
+      # render dt (data table)
+      dt
     }
-    # render dt (data table)
-    dt
   })
 }
 
