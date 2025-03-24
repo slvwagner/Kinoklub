@@ -341,38 +341,40 @@ server <- function(input, output, session) {
   # Connect to Datea base
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
-    
-    req(input$SQL_PW)
-    req(input$user)
-    
-    tryCatch({
-      # Connect to data base 
-      Connect_to_DB(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
-        DB_con()
-      
-      # get all data as defined in the template l_data
-      l_data_sql <- get_Data(l_template, DB_con())
-      
-      # Convert data types for each table
-      convert_DB_to_R(l_data_sql,l_template)|>
-        l_data()
-      
-      # update choices
-      update_choices(l_data())|>
-        column_choices()
-      
-      l_data()[c_select_input_data]|>
-        l_data_input()
-      l_data()[c_select_dropdown_data]|>
-        l_data_choices()
-      
-      current_data(l_data()[["Ausgaben"]])
-      lastEdited_data_set_name("Ausgaben")
-      data_selection_("Inputdaten")
-      c_connected_to_db(TRUE)
-      
-    },error =  function(e){
-      writeLines(e$message)
+    shiny::withProgress(message = "login... ", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Filmabrechnungen", 1, "of 3"))
+      req(input$SQL_PW)
+      req(input$user)
+      tryCatch({
+        # Connect to data base 
+        Connect_to_DB(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
+          DB_con()
+        shiny::incProgress(1 / 2, detail = paste("Filmabrechnungen", 2, "of 3"))
+        # get all data as defined in the template l_data
+        l_data_sql <- get_Data(l_template, DB_con())
+        
+        # Convert data types for each table
+        convert_DB_to_R(l_data_sql,l_template)|>
+          l_data()
+        
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        
+        l_data()[c_select_input_data]|>
+          l_data_input()
+        l_data()[c_select_dropdown_data]|>
+          l_data_choices()
+        
+        current_data(l_data()[["Ausgaben"]])
+        lastEdited_data_set_name("Ausgaben")
+        data_selection_("Inputdaten")
+        c_connected_to_db(TRUE)
+        
+      },error =  function(e){
+        writeLines(e$message)
+      })
+      shiny::incProgress(1 , detail = paste("Filmabrechnungen", 3, "of 3"))
     })
   })
   
