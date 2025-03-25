@@ -1390,6 +1390,7 @@ server <- function(input, output, session) {
             c_Kinoklubmitglied <- 
               l_data()[["Kinoklubmitglieder"]]|>
               filter(!is.na(`Kasse / Bar`))|>
+              mutate(Mitglied = paste(Vorname, Nachname))|>
               select(Mitglied)|>
               pull()
             
@@ -1441,15 +1442,15 @@ server <- function(input, output, session) {
                 )
               
             }, error = function(e) {
-              paste0(
-                "Conditionall formating error:\n",
-                e$message
-              )|>sys_msg()
-              
+              showModal(modalDialog(
+                title = "Fehler beim Verbinden mit der Datenbank",
+                renderText(e$message),
+                footer = tagList(
+                  actionButton("abort","Abbrechen")
+                )
+              ))
             })
           }
-          sys_msg()|>
-            writeLines()
       } 
       else {
         print("Render Dropdowns")
