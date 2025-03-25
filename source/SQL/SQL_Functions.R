@@ -4,7 +4,7 @@ library(tidyverse)
 source("source/functions.R")
 
 # connection to Database
-Connect_to_DB <- function(pw, DB_user = "ch367079_flo", con = NULL) {
+DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   # Database credentials
   host <- "lx51.hoststar.hosting"
   DB_name <- "ch367079_gui"

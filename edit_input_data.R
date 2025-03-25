@@ -398,7 +398,7 @@ server <- function(input, output, session) {
       req(input$user)
       tryCatch({
         # Connect to data base 
-        Connect_to_DB(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
+        DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
           DB_con()
         shiny::incProgress(1 / 2, detail = paste("Filmabrechnungen", 2, "of 3"))
         # get all data as defined in the template l_data
@@ -435,7 +435,6 @@ server <- function(input, output, session) {
       shiny::incProgress(1 , detail = paste("Filmabrechnungen", 3, "of 3"))
     })
   })
-  
   
   #### Abort ####
   observeEvent(input$abort,{
