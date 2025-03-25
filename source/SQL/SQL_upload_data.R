@@ -14,6 +14,20 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+l_temp <- readRDS("source/SQL/template.Rds")
+
+l_temp$Kinoklubmitglieder <- l_temp$Kinoklubmitglieder|>
+  mutate(Mitglied = NULL)
+
+saveRDS(l_temp, c_file)
+
+
+l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+  mutate(Mitglied = NULL)
+
+saveRDS(l_data, c_file)
+
+
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
 con <- Connect_to_DB(pw, "ch367079_flo")
