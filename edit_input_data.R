@@ -20,18 +20,21 @@ update_choices <- function(l_data) {
   # Mitgliederauswahl für die Einsatzplanung
   Verantwortlich <- l_data$Kinoklubmitglieder|>
     filter(Koordination == pull(l_data$JaNein)[2])|>
+    mutate(Mitglied = paste(Vorname, Nachname))|>
     select(Mitglied)
   Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
     pull()
   
   `Operateur*in` <- l_data$Kinoklubmitglieder|>
     filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+    mutate(Mitglied = paste(Vorname, Nachname))|>
     select(Mitglied)
   `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
     pull()
   
   `Kasse/Bar` <- l_data$Kinoklubmitglieder|>
     filter(`Kasse / Bar` == pull(l_data$JaNein)[2])|>
+    mutate(Mitglied = paste(Vorname, Nachname))|>
     select(Mitglied)
   `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
     pull()

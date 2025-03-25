@@ -13,20 +13,16 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-
-l_temp <- readRDS("source/SQL/template.Rds")
-
-l_temp$Kinoklubmitglieder <- l_temp$Kinoklubmitglieder|>
-  mutate(Mitglied = NULL)
-
-saveRDS(l_temp, c_file)
-
-
-l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-  mutate(Mitglied = NULL)
-
-saveRDS(l_data, c_file)
-
+# # update template
+# l_temp <- readRDS("source/SQL/template.Rds")
+# l_temp$Kinoklubmitglieder <- l_temp$Kinoklubmitglieder|>
+#   mutate(Mitglied = NULL)
+# saveRDS(l_temp, "source/SQL/template.Rds")
+# 
+# # update data 
+# l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+#   mutate(Mitglied = NULL)
+# saveRDS(l_data, c_file)
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
