@@ -461,7 +461,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  #### Data set selection####
+  #### Data set selection ####
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
@@ -828,7 +828,7 @@ server <- function(input, output, session) {
       )
     }else{
       # update data base 
-      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), "ID", input$table_rows_selected, df_updated)
+      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), "ID", df_updated$ID, df_updated)
       
       # update joined data sets 
       if(input$dataset == "Programm"){
@@ -1102,9 +1102,10 @@ server <- function(input, output, session) {
       ))
     }
     else {
+      req(input$table_rows_selected)
       updated_data <- current_data()[-input$table_rows_selected, ]
       current_data(updated_data)
-      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", input$table_rows_selected)
       if(lastEdited_data_set_name() == "Programm"){
         DB_delete_row(DB_con(), "Einsatzplan", "ID", input$table_rows_selected)
       }
@@ -1115,7 +1116,7 @@ server <- function(input, output, session) {
   #### Select a row ####
   observeEvent(input$table_rows_selected, {
     Selected_row <- input$table_rows_selected
-    writeLines(paste0("Selected row ",Selected_row, "in table: ", input$dataset))
+    writeLines(paste0("Selected row ",Selected_row, " in table: ", input$dataset))
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
