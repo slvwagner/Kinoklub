@@ -424,7 +424,8 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   # message("Executing SQL query: ", sql_query)
   
   # Execute the query
-  dbExecute(con, sql_query)
+  test <- dbExecute(con, sql_query)
   
-  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
+  if(test)  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
+  else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }

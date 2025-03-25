@@ -322,31 +322,49 @@ sys_msg <- reactiveVal("")
 ###################### server logic #############################
 server <- function(input, output, session) {
   
-  #### Dataset selection ####
+  #### Data set type selection ####
+  observeEvent(input$data_selection,{
+    data_selection_(input$data_selection)
+    if(input$data_selection == "Dropdowns"){
+      current_data(l_data()[["Verleiher"]])
+      lastEdited_data_set_name("Verleiher")
+    }else{
+      current_data(l_data()[["Ausgaben"]])
+      lastEdited_data_set_name("Ausgaben")
+    }
+    last_selected_page(NA)
+    last_selected_row(NA)
+  })
+  
+  #### Data set selection ####
   observeEvent(input$dataset, {
-    print("change data set")
+    print("Data set selection")
     req(input$dataset)
+    req(input$data_selection)
+    c_input_dataset <- input$dataset
+    paste0("change data set to \"", c_input_dataset, "\"")|>
+      writeLines()
     
     # read data from data base
-    df_temp <- DB_get_table(input$dataset,DB_con())|>
-      convert_to_template_types(l_template[[input$dataset]])
+    df_temp <- DB_get_table(c_input_dataset,DB_con())|>
+      convert_to_template_types(l_template[[c_input_dataset]])
     
     # temp data
     l_temp <- l_data()
     
     # data handling for Programm / Einsatzplan (joined tables)
-    if (lastEdited_data_set_name() %in% c("Programm", "Einsatzplan")){
+    if (c_input_dataset %in% c("Programm", "Einsatzplan")){
       l_temp$Einsatzplan <- left_join(df_temp|>
                                         select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
                                       DB_get_table("Einsatzplan",DB_con())|>
-                                        convert_to_template_types(l_template[[input$dataset]])|>
+                                        convert_to_template_types(l_template[[c_input_dataset]])|>
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
                                       by = join_by(ID)
                                       )
-    } else {
-      # Update the list with current edits
-      l_temp[[lastEdited_data_set_name()]] <- df_temp
-    }
+    } 
+    
+    # Update the list
+    l_temp[[c_input_dataset]] <- df_temp
     
     # update all data
     l_data(l_temp)
@@ -354,8 +372,8 @@ server <- function(input, output, session) {
     # update choices
     update_choices(l_data())|>
       column_choices()
-
-    if(lastEdited_data_set_name() == input$dataset){
+    
+    if(lastEdited_data_set_name() == c_input_dataset & data_selection_() == input$data_selection){
       dataTableProxy("table")|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
@@ -363,8 +381,9 @@ server <- function(input, output, session) {
       last_selected_page(NA)
       last_selected_row(NA)
     }
-    lastEdited_data_set_name(input$dataset)
-    current_data(l_data()[[input$dataset]])
+    lastEdited_data_set_name(c_input_dataset)
+    current_data(l_data()[[c_input_dataset]])
+    print(current_data())
   })
 
   #### Connect to Datea base ####
@@ -459,20 +478,6 @@ server <- function(input, output, session) {
       footer = NULL,
       easyClose = TRUE,
     ))
-  })
-  
-  #### Data set selection ####
-  observeEvent(input$data_selection,{
-    data_selection_(input$data_selection)
-    if(input$data_selection == "Dropdowns"){
-      current_data(l_data()[["Verleiher"]])
-      lastEdited_data_set_name("Verleiher")
-    }else{
-      current_data(l_data()[["Ausgaben"]])
-      lastEdited_data_set_name("Ausgaben")
-    }
-    last_selected_page(NA)
-    last_selected_row(NA)
   })
 
   ### Abort changes and update ####
@@ -932,25 +937,21 @@ server <- function(input, output, session) {
           Update_Einsatzplan(new_row, new_row = TRUE)
         }
 
-        # special handling with ID`s
-        if (lastEdited_data_set_name() %in% c("Programm")) {
-          new_row <- new_row |>
-            mutate(ID = as.integer(nrow(current_data()) + 1))
-        }
         if(input$table_rows_selected == nrow(current_data())){
           updated_data <- 
             bind_rows(current_data()[1:input$table_rows_selected,],
                       new_row
             )
-          current_data(updated_data)
+          
         }else {
           updated_data <- 
             bind_rows(current_data()[1:(input$table_rows_selected),],
                       new_row,
                       current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
             )
-          current_data(updated_data)
+          
         }
+        current_data(updated_data)
       }
     }
     dataTableProxy("table")|>
@@ -1103,11 +1104,18 @@ server <- function(input, output, session) {
     }
     else {
       req(input$table_rows_selected)
-      updated_data <- current_data()[-input$table_rows_selected, ]
+      # Find ID to delete
+      row <- current_data()[input$table_rows_selected, ]
+      
+      # Update data
+      updated_data <- current_data()|>
+        filter(ID != row$ID)
       current_data(updated_data)
-      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", input$table_rows_selected)
+      
+      # Update SQL
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", row$ID)
       if(lastEdited_data_set_name() == "Programm"){
-        DB_delete_row(DB_con(), "Einsatzplan", "ID", input$table_rows_selected)
+        DB_delete_row(DB_con(), "Einsatzplan", "ID", row$ID)
       }
       removeModal()
     }
@@ -1173,8 +1181,10 @@ server <- function(input, output, session) {
           tool_box(l_data_input(), "Spezialpreisekiosk")
         } else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
           tool_box(l_data_input(), "Einkauf Kiosk")
-        } else {
+        } else if (lastEdited_data_set_name() == "Ausgaben") {
           tool_box(l_data_input(), "Ausgaben")
+        }else {
+          stop("tool_box not yet implemented")
         }
       } else if (c_connected_to_db() && data_selection_() == "Dropdowns") {
         if(lastEdited_data_set_name() == "Verleiher"){
@@ -1198,7 +1208,7 @@ server <- function(input, output, session) {
         } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
           tool_box(l_data_choices(), "Kinoklubmitglieder",2)
         } else {
-          stop("Not yet implemented dataset")
+          stop("tool_box not yet implemented dataset")
         }
       } else {
         
@@ -1219,7 +1229,7 @@ server <- function(input, output, session) {
       # rendering the datatable depens on the input data 
       # for certain input data sets other renderings may be needed
       if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
-        print("Render data table output")
+        print("Render Inputdaten")
         # get current data
         df_temp <- current_data()
         # find all column names containing "Datum"
@@ -1428,6 +1438,7 @@ server <- function(input, output, session) {
           writeLines()
       } 
       else {
+        print("Render Dropdowns")
         # Create the DataTable for all other data sets
         dt <- datatable(
           current_data(),
@@ -1451,8 +1462,6 @@ server <- function(input, output, session) {
           )
         )
       }
-
-      
       # render dt (data table)
       dt
     }

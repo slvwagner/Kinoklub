@@ -24,4 +24,4 @@ update_db_all(l_data ,con)
 # Disconnect from DB
 dbDisconnect(con)
 
-writeLines("Script run suggessfully")
+writeLines("Script run done")
