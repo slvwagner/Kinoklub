@@ -13,7 +13,19 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-l_data
+
+# l_data$Kinoklubmitglieder <- bind_rows(l_data$Kinoklubmitglieder|>
+#             slice(1:15),
+#           l_data$Kinoklubmitglieder|>
+#             filter(Nachname == "Jablonski", Vorname == "Stefan")|>
+#             mutate(`Kasse / Bar` = "ja"),
+#           l_data$Kinoklubmitglieder|>
+#             slice(17:nrow(l_data$Kinoklubmitglieder))
+#           )|>
+#   mutate(`Kasse / Bar` = factor(`Kasse / Bar`))
+# 
+# saveRDS(l_data, c_file)
+
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
