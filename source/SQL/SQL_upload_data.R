@@ -26,7 +26,7 @@ if(file.exists(c_file)){
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
-con <- Connect_to_DB(pw, "ch367079_flo")
+con <- DB_connect(pw, "ch367079_flo")
 
 update_db_all(l_data ,con)
 
