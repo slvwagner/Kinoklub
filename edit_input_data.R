@@ -1236,6 +1236,7 @@ server <- function(input, output, session) {
         df_Date <- current_data()|>
           select(contains("datum"))
         
+        # create option list for datatable function
         if(ncol(df_Date) > 0){
           # create user readable Datum
           df_Date_user <-
@@ -1298,12 +1299,26 @@ server <- function(input, output, session) {
             }
           }
         }else {
-          # create option list for datatable function
+          # create empty option list for datatable function
           l_columnDefs <- list()
         }
         
         # custom search pre set 
         if(lastEdited_data_set_name() == "Einsatzplan"){
+          
+          c_choices <- DB_get_table("Programm",DB_con())|>
+            filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+            distinct(`Verleiher Angefragt?`)|>
+            pull()
+          c_choices
+          
+          if(length(c_choices) == 1){
+            c_choices <- paste0("[\"",c_choices,"\"]")
+          }else{
+            c_choices <- paste0("[",paste0("\"", c_choices,"\"", collapse = ","),"]")
+          }
+          writeLines(c_choices)
+          
           c_select <- names(df_temp) == "Verleiher Angefragt?"
           c_col <- tibble(column = c_select)|>
             mutate(index = row_number())|>
@@ -1316,126 +1331,125 @@ server <- function(input, output, session) {
           # create filters for data table
           for (ii in 1:(length(c_select))) {
             if(c_select[ii]) {
-              l_filter[[ii]] <- list(search = '["Bestätigt", "Anfrage läuft"]')
+              l_filter[[ii]] <- list(search = c_choices)
               } 
             else {
               l_filter[[ii + 1]] <- NULL
               }
           }
           
-        }else { # empty list if no filter needs to be applyed
-          l_filter <- list()
-        }
+          }else { # empty list if no filter needs to be applyed
+            l_filter <- list()
+          }
         
-        
-        # Create the DataTable
-        dt <- datatable(
-          df_temp,
-          editable = FALSE, # Nicht bearbeitbar
-          selection = "single", # only select sinle row
-          filter = "top", # Filter oben
-          options = list(
-            columnDefs = l_columnDefs, # Spaltendefinitionen
-            pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-            lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-            searchCols = l_filter, # custom filtering
-            # observe the page lenght from data table
-            initComplete = JS(
-              "function(settings, json) {",
-              "  var table = settings.oInstance.api();",
-              "  table.on('length.dt', function(e, settings, len) {",
-              "    Shiny.setInputValue('page_length', len);",
-              "  });",
-              "}"
-            ),
-            language = DT_language
+          # Create the DataTable
+          dt <- datatable(
+            df_temp,
+            editable = FALSE, # Nicht bearbeitbar
+            selection = "single", # only select sinle row
+            filter = "top", # Filter oben
+            options = list(
+              columnDefs = l_columnDefs, # Spaltendefinitionen
+              pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+              lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+              searchCols = l_filter, # custom filtering
+              # observe the page lenght from data table
+              initComplete = JS(
+                "function(settings, json) {",
+                "  var table = settings.oInstance.api();",
+                "  table.on('length.dt', function(e, settings, len) {",
+                "    Shiny.setInputValue('page_length', len);",
+                "  });",
+                "}"
+              ),
+              language = DT_language
+            )
           )
-        )
-        req(input$dataset)
+          req(input$dataset)
         
-        # Apply conditional formatting for different data sets
-        if (!is.null(input$dataset) && input$dataset == "Programm") {
-          tryCatch({
-            dt <- dt |>
-              formatStyle(
-                "Verleiher Angefragt?",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
-                  values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+          # Apply conditional formatting for different data sets
+          if (!is.null(input$dataset) && input$dataset == "Programm") {
+            tryCatch({
+              dt <- dt |>
+                formatStyle(
+                  "Verleiher Angefragt?",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
+                    values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
+                  )
                 )
-              )
+              
+            }, error = function(e) {
+              paste0(
+                "Conditionall formating error:\n",
+                e$message
+              )|>sys_msg()
+              
+            })
+          } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
+            c_Kinoklubmitglied <- 
+              l_data()[["Kinoklubmitglieder"]]|>
+              filter(!is.na(`Kasse / Bar`))|>
+              select(Mitglied)|>
+              pull()
             
-          }, error = function(e) {
-            paste0(
-              "Conditionall formating error:\n",
-              e$message
-            )|>sys_msg()
+            c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+            c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+            # Generate the magma color palette s
+            magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
             
-          })
-        } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
-          c_Kinoklubmitglied <- 
-            l_data()[["Kinoklubmitglieder"]]|>
-            filter(!is.na(`Kasse / Bar`))|>
-            select(Mitglied)|>
-            pull()
-          
-          c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-          c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-          # Generate the magma color palette s
-          magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
-          
-          # Lighten the colors to create a pastel effect
-          pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
-          
-          # Apply conditional formatting to columns
-          tryCatch({
-            dt <- dt |>
-              formatStyle(
-                "Verantwortlich",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Kasse/Bar 1",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Kasse/Bar 2",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Operateur*in",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Back-up",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )
+            # Lighten the colors to create a pastel effect
+            pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
             
-          }, error = function(e) {
-            paste0(
-              "Conditionall formating error:\n",
-              e$message
-            )|>sys_msg()
-            
-          })
-        }
-        sys_msg()|>
-          writeLines()
+            # Apply conditional formatting to columns
+            tryCatch({
+              dt <- dt |>
+                formatStyle(
+                  "Verantwortlich",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c_Kinoklubmitglied,  # Exact values from your column
+                    values = pastel_magma  # Corresponding colors
+                  )
+                )|>
+                formatStyle(
+                  "Kasse/Bar 1",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c_Kinoklubmitglied,  # Exact values from your column
+                    values = pastel_magma  # Corresponding colors
+                  )
+                )|>
+                formatStyle(
+                  "Kasse/Bar 2",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c_Kinoklubmitglied,  # Exact values from your column
+                    values = pastel_magma  # Corresponding colors
+                  )
+                )|>
+                formatStyle(
+                  "Operateur*in",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c_Kinoklubmitglied,  # Exact values from your column
+                    values = pastel_magma  # Corresponding colors
+                  )
+                )|>
+                formatStyle(
+                  "Back-up",  # Ensure this column name matches exactly
+                  backgroundColor = styleEqual(
+                    levels = c_Kinoklubmitglied,  # Exact values from your column
+                    values = pastel_magma  # Corresponding colors
+                  )
+                )
+              
+            }, error = function(e) {
+              paste0(
+                "Conditionall formating error:\n",
+                e$message
+              )|>sys_msg()
+              
+            })
+          }
+          sys_msg()|>
+            writeLines()
       } 
       else {
         print("Render Dropdowns")
@@ -1468,12 +1482,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# #### Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+#### Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
