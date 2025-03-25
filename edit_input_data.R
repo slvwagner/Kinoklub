@@ -393,14 +393,14 @@ server <- function(input, output, session) {
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
     shiny::withProgress(message = "login... ", value = 0, {
-      shiny::incProgress(1 / 3, detail = paste("Filmabrechnungen", 1, "of 3"))
+      shiny::incProgress(1 / 3, detail = paste("SQL login", 1, "of 3"))
       req(input$SQL_PW)
       req(input$user)
       tryCatch({
         # Connect to data base 
         DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
           DB_con()
-        shiny::incProgress(1 / 2, detail = paste("Filmabrechnungen", 2, "of 3"))
+        shiny::incProgress(1 / 2, detail = paste("SQL login", 2, "of 3"))
         # get all data as defined in the template l_data
         l_data_sql <- DB_get_Data(l_template, DB_con())
         
@@ -432,7 +432,7 @@ server <- function(input, output, session) {
           )
         ))
       })
-      shiny::incProgress(1 , detail = paste("Filmabrechnungen", 3, "of 3"))
+      shiny::incProgress(1 , detail = paste("SQL login", 3, "of 3"))
     })
   })
   
@@ -1123,19 +1123,23 @@ server <- function(input, output, session) {
     }
   })
 
-  #### Select a row ####
+  #### Select a row and finde page ####
   observeEvent(input$table_rows_selected, {
-    Selected_row <- input$table_rows_selected
-    writeLines(paste0("Selected row ",Selected_row, " in table: ", input$dataset))
-    # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
+    writeLines(paste0("Selected row ", row, " in table: ", input$dataset))
+    
     # has the page lenght changed? 
     if(!is.null(input$page_length)){
       page_length_var(input$page_length)
     }
+    
     # update 
     page <-  ceiling(row / page_length_var())
+    writeLines(paste0("page ", page, " in table: ", input$dataset))
+    
+    
+    if(page == 0) page <- 1
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
     # select last row
