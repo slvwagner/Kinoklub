@@ -10,6 +10,7 @@ writeLines("Daten werden einlesen und berechnet...")
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
+###### read in data ###### 
 # # Einlesen Input daten
 # c_file <- "Input/Data.Rds"
 # if(file.exists(c_file)){
@@ -32,13 +33,10 @@ pw
 tryCatch({
   # Connect to data base 
   con <- DB_connect(pw, "ch367079_flo")
-  
   # get all data as defined in the template l_data
   l_data_sql <- DB_get_Data(l_template, con)
-  
   # Convert data types for each table
   l_data <- convert_DB_to_R(l_data_sql,l_template)
-  
 },error =  function(e){
   stop(e$message)
 })
@@ -309,7 +307,7 @@ convert_data_kiosk_txt <- function(c_files) {
   return(l_return)
 }
 
-# Einnahmen und Ausgaben einlesen
+################## Einnahmen und Ausgaben einlesen ##################
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
                                Ausgaben = l_data$Ausgaben)
 
@@ -394,7 +392,7 @@ if(nrow(df_temp)>0) {
   }
 }
 
-# Eintritt aus Advanced Tickets
+################## Eintritt aus Advanced Tickets ##################
 # files to read in
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 
@@ -455,7 +453,7 @@ df_mapping <- tibble(Datum = df_Flimvorfuerungen$Datum,
 remove(df_Flimvorfuerungen)
 df_mapping
 
-# Kioskabrechnungen
+################## Kioskabrechnungen ##################
 # Einkaufspreise
 c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 c_file
@@ -658,7 +656,7 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
 }
 
 
-# show times
+################## show times ##################
 # error handling file not found
 c_file <- "Input/advance tickets/Shows.txt"
 c_raw <- paste0("Die Datei \"Shows.txt\" konnte nicht gefunden werden:",
@@ -764,12 +762,11 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
                                     trim_ws = TRUE)
 
 
-# Verleiherabgaben einlesen
+################## Verleiherabgaben einlesen ################## 
 df_verleiherabgaben <- l_data$Verleiherabgaben|>
   left_join(l_data$Verleiher,
             by = c("Verleiher" = "Verleihername"))
 df_verleiherabgaben
-
 
 # Suisa automatisch korrigieren 
 df_verleiherabgaben$Suisanummer <- df_verleiherabgaben$Suisanummer|>
@@ -851,7 +848,7 @@ if(nrow(df_temp)>0){
 }
 
 
-# Ticketabrechnung vorbereiten
+##################  Ticketabrechnung vorbereiten ################## 
 df_Abrechnung <- df_Eintritt|>
   distinct(Datum, `Suisa Nummer`, .keep_all = TRUE)|>
   select(-(4:8))|>
@@ -916,7 +913,7 @@ df_Eintritt <- df_Eintritt|>
   rename(Suisanummer = `Suisa Nummer`)
 df_Eintritt
 
-# Abrechnungsperiode erstellen
+##################  Abrechnungsperiode erstellen ################## 
 l_keineRechnung <- list()
 l_abrechnung <- list()
 ii <- 6
@@ -975,7 +972,7 @@ df_keine_Rechnung <- l_keineRechnung|>
 df_keine_Rechnung
 
 
-# Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
+##################  Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen  ################## 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 ii <- 6
 
@@ -1137,7 +1134,7 @@ for (ii in 1:nrow(df_mapping)) {
 }
 
 
-# Abrechnung Filmvorführung erstellen (für Berichte verwendet)
+##################  Abrechnung Filmvorführung erstellen (für Berichte verwendet) ################## 
 # Runden aller [CHF]  Beträge
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
@@ -1217,8 +1214,7 @@ df_Besucherzahlen <- df_Eintritt|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
-
-# write to Excel
+################## write to Excel ################## 
 c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
 

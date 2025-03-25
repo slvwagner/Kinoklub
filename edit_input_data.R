@@ -462,7 +462,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  ### Select email verteiler and copy emails to clipboard ####
+  #### Select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
@@ -482,7 +482,7 @@ server <- function(input, output, session) {
     ))
   })
 
-  ### Abort changes and update ####
+  #### Abort changes and update ####
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
@@ -1489,12 +1489,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# #### Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+#### Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)

@@ -28,7 +28,7 @@ pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 pw
 con <- DB_connect(pw, "ch367079_flo")
 
-update_db_all(l_data ,con)
+DB_update_all(l_data ,con)
 
 ###################################################
 # Disconnect from DB

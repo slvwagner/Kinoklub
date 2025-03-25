@@ -30,38 +30,14 @@ DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   }
 }
 
-# Copy a table to DB, setting ID as Primary Key
-copy_table_to_db <- function(df, con, table_name) {
-  if (!"ID" %in% colnames(df)) {
-    stop("Data frame must have an 'ID' column to use as the primary key.")
-  }
-  
-  # Convert "ID" to integer if necessary
-  df$ID <- as.integer(df$ID)
-  
-  # Drop the table if it exists (optional: adjust this if you need to append instead)
-  dbExecute(con, paste0("DROP TABLE IF EXISTS ", table_name))
-  
-  # Create the table with ID as primary key
-  create_query <- paste0(
-    "CREATE TABLE ", table_name, " (",
-    "ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ",
-    paste(setdiff(colnames(df), "ID"), collapse = " TEXT, "), " TEXT)"
-  )
-  dbExecute(con, create_query)
-  
-  # Insert data
-  dbWriteTable(con, table_name, df, append = TRUE, row.names = FALSE)
-}
-
 # Update all tables in DB with ID as Primary Key
-update_db_all <- function(l_data, con) {
+DB_update_all <- function(l_data, con) {
   if (!is.list(l_data) || is.null(names(l_data))) {
     stop("l_data must be a named list where names correspond to table names.")
   }
   
   lapply(names(l_data), function(table_name) {
-    copy_table_to_db(l_data[[table_name]], con, table_name)
+    DB_copy_table(l_data[[table_name]], con, table_name)
   })
 }
 
@@ -93,7 +69,7 @@ DB_get_table <- function(table_name, con, download = TRUE){
 }
 
 # Copy a data frame to SQL DB (slow done for each row because of DB batch restrictions)
-copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
+DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   # Load necessary libraries
   library(DBI)
   library(hms)
@@ -193,58 +169,6 @@ copy_table_to_db <- function(df_data, con, table_name, delete_existing = TRUE) {
   }
   
   message(sprintf("Data inserted into '%s' successfully!", table_name))
-}
-
-# Conversion template
-convert_to_template_types <- function(df_sql, df_template) {
-  # Align columns (keep only those present in both data frames)
-  common_cols <- intersect(colnames(df_sql), colnames(df_template))
-  df_sql <- df_sql |> select(all_of(common_cols))
-  df_template <- df_template |> select(all_of(common_cols))
-  
-  # Convert data types
-  for (col in common_cols) {
-    col_type <- class(df_template[[col]])
-
-    if (any(col_type == "Date")) {
-      df_sql[[col]] <- as.Date(df_sql[[col]])
-    } else if (any(col_type == "hms")) {
-      df_sql[[col]] <- hms::as_hms(df_sql[[col]])
-    } else if (any(col_type %in% c("POSIXct", "POSIXlt"))) {
-      df_sql[[col]] <- as.POSIXct(df_sql[[col]])
-    } else if (any(col_type == "double")) {
-      df_sql[[col]] <- as.numeric(df_sql[[col]])
-    } else if (any(col_type == "integer")) {
-      df_sql[[col]] <- as.integer(df_sql[[col]])
-    } else if (any(col_type == "numeric")) {
-      df_sql[[col]] <- as.numeric(df_sql[[col]])
-    } else if (any(col_type == "character")) {
-      df_sql[[col]] <- as.character(df_sql[[col]])
-    } else if (any(col_type == "factor")) {
-      df_sql[[col]] <- as.factor(df_sql[[col]])
-    } else {
-      warning(sprintf("Unsupported data type for column '%s': %s", col, paste(col_type, collapse = ", ")))
-    }
-  }
-  
-  return(df_sql)
-}
-
-# convert data from DB to R with correct conversion template
-convert_DB_to_R <- function(data,template) {
-  # Convert data types for each table
-  data_converted <- names(data) |>
-    map(~ {
-      table_name <- .x
-      df_sql <- data[[table_name]]
-      df_template <- template[[table_name]]
-      
-      # Convert data types
-      convert_to_template_types(df_sql, df_template)
-    })
-  # Assign names to the converted list
-  names(data_converted) <- names(data)
-  return(data_converted)
 }
 
 # Function to add a row to any table
@@ -428,4 +352,56 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   
   if(test)  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
+}
+
+# Conversion template
+convert_to_template_types <- function(df_sql, df_template) {
+  # Align columns (keep only those present in both data frames)
+  common_cols <- intersect(colnames(df_sql), colnames(df_template))
+  df_sql <- df_sql |> select(all_of(common_cols))
+  df_template <- df_template |> select(all_of(common_cols))
+  
+  # Convert data types
+  for (col in common_cols) {
+    col_type <- class(df_template[[col]])
+    
+    if (any(col_type == "Date")) {
+      df_sql[[col]] <- as.Date(df_sql[[col]])
+    } else if (any(col_type == "hms")) {
+      df_sql[[col]] <- hms::as_hms(df_sql[[col]])
+    } else if (any(col_type %in% c("POSIXct", "POSIXlt"))) {
+      df_sql[[col]] <- as.POSIXct(df_sql[[col]])
+    } else if (any(col_type == "double")) {
+      df_sql[[col]] <- as.numeric(df_sql[[col]])
+    } else if (any(col_type == "integer")) {
+      df_sql[[col]] <- as.integer(df_sql[[col]])
+    } else if (any(col_type == "numeric")) {
+      df_sql[[col]] <- as.numeric(df_sql[[col]])
+    } else if (any(col_type == "character")) {
+      df_sql[[col]] <- as.character(df_sql[[col]])
+    } else if (any(col_type == "factor")) {
+      df_sql[[col]] <- as.factor(df_sql[[col]])
+    } else {
+      warning(sprintf("Unsupported data type for column '%s': %s", col, paste(col_type, collapse = ", ")))
+    }
+  }
+  
+  return(df_sql)
+}
+
+# convert data from DB to R with correct conversion template
+convert_DB_to_R <- function(data,template) {
+  # Convert data types for each table
+  data_converted <- names(data) |>
+    map(~ {
+      table_name <- .x
+      df_sql <- data[[table_name]]
+      df_template <- template[[table_name]]
+      
+      # Convert data types
+      convert_to_template_types(df_sql, df_template)
+    })
+  # Assign names to the converted list
+  names(data_converted) <- names(data)
+  return(data_converted)
 }
