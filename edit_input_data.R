@@ -178,6 +178,47 @@ convert_Programm <- function(df_temp, convert_to){
   }
 }
 
+# Update Einsatzpan 
+Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
+  # If the Programm changes Einsatzplan must be updated too
+  if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
+  
+  df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
+    filter(ID %in% df_updated$ID)|>
+    select(-ID, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
+  
+  if(nrow(df_temp) >= 1){
+    df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
+                            select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                            filter(ID %in% df_updated$ID),
+                          df_temp
+                          )
+  }else{
+    df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
+      select(-ID, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)|>
+      slice(1)|>
+      mutate(Verantwortlich = "", 
+             `Operateur*in` = "",
+             `Kasse/Bar 1` = "",
+             `Kasse/Bar 2` = "",
+             `Back-up` = "",
+             Kommentar = "",
+             Trailer = "")
+    
+    df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
+                           select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                           filter(ID %in% df_updated$ID),
+                         df_temp
+    )
+  }
+  if (new_row) {
+    DB_add_row(DB_con(), "Einsatzplan", df_temp)
+  }
+  else {
+    DB_edit_row_in_table(DB_con(), "Einsatzplan", "ID", df_updated$ID, df_temp)
+  }
+}
+
 ####################### Constants ############################
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
@@ -294,10 +335,11 @@ server <- function(input, output, session) {
     l_temp <- l_data()
     
     # data handling for Programm / Einsatzplan (joined tables)
-    if (lastEdited_data_set_name() %in% c("Programm","Einsatzplan")){
+    if (lastEdited_data_set_name() %in% c("Programm", "Einsatzplan")){
       l_temp$Einsatzplan <- left_join(df_temp|>
                                         select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
-                                      l_temp[["Einsatzplan"]]|>
+                                      DB_get_table("Einsatzplan",DB_con())|>
+                                        convert_to_template_types(l_template[[input$dataset]])|>
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
                                       by = join_by(ID)
                                       )
@@ -360,9 +402,22 @@ server <- function(input, output, session) {
         
       },error =  function(e){
         writeLines(e$message)
+        showModal(modalDialog(
+          title = "Fehler beim Verbinden mit der Datenbank",
+          renderText(e$message),
+          footer = tagList(
+            actionButton("abort","Abbrechen")
+          )
+        ))
       })
       shiny::incProgress(1 , detail = paste("Filmabrechnungen", 3, "of 3"))
     })
+  })
+  
+  
+  #### Abort ####
+  observeEvent(input$abort,{
+    removeModal()
   })
   
   #### Disconnect from DB ####
@@ -423,7 +478,6 @@ server <- function(input, output, session) {
   ### Abort changes and update ####
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
-    
     lastEdited_data_set_name(input$dataset)
     removeModal()
   })
@@ -743,8 +797,6 @@ server <- function(input, output, session) {
       as_tibble()
     df_updated
     
-    
-    
     # handle factors 
     if(lastEdited_data_set_name() == "Einsatzplan"){
       df_updated <- 
@@ -775,7 +827,14 @@ server <- function(input, output, session) {
         )
       )
     }else{
+      # update data base 
       DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), "ID", input$table_rows_selected, df_updated)
+      
+      # update joined data sets 
+      if(input$dataset == "Programm"){
+        Update_Einsatzplan(df_updated)
+      }
+      # update data 
       current_data(df_temp)
       removeModal()
     }
@@ -818,6 +877,11 @@ server <- function(input, output, session) {
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         
+        # update joined data sets 
+        if(input$dataset == "Programm"){
+          Update_Einsatzplan(new_row, new_row = TRUE)
+        }
+        
         if (input$table_rows_selected == 1) {
           # add row on top
           updated_data <-
@@ -849,7 +913,8 @@ server <- function(input, output, session) {
         # User interaction 
         showModal(
           modalDialog(title = "Bitte eine Zeile markieren",
-                      easyClose = TRUE, footer = modalButton("Abbrechen")
+                      easyClose = TRUE, 
+                      footer = modalButton("Abbrechen")
           )
         )
       } else {
@@ -861,6 +926,11 @@ server <- function(input, output, session) {
         
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        
+        # update joined data sets 
+        if(input$dataset == "Programm"){
+          Update_Einsatzplan(new_row, new_row = TRUE)
+        }
 
         # special handling with ID`s
         if (lastEdited_data_set_name() %in% c("Programm")) {
@@ -892,8 +962,6 @@ server <- function(input, output, session) {
   #### Duplicate selected row ####
   observeEvent(input$duplicate_row, {
     if(nrow(current_data()) == 0){ 
-      
-     
       template <- l_template[[lastEdited_data_set_name()]]
       if (is.null(template))
         stop("could not finde template data to create a new row")
@@ -935,6 +1003,10 @@ server <- function(input, output, session) {
 
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        # update joined data sets 
+        if(input$dataset == "Programm"){
+          Update_Einsatzplan(new_row, new_row = TRUE)
+        }
         current_data(updated_data)
       }
     }
@@ -960,6 +1032,11 @@ server <- function(input, output, session) {
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        # update joined data sets 
+        if(lastEdited_data_set_name() == "Programm"){
+          Update_Einsatzplan(new_row, new_row = TRUE)
+        }
+        
         # create new empty row with correct data type
         updated_data <- new_row
         current_data(updated_data)
@@ -978,9 +1055,13 @@ server <- function(input, output, session) {
             )|>
             convert_to_template_types(current_data())
         }
-        DB_add_row(DB_con(), lastEdited_data_set_name(), 
-                   new_row
-                   )
+        # update DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        # update joined data sets 
+        if(lastEdited_data_set_name() == "Programm"){
+          Update_Einsatzplan(new_row, new_row = TRUE)
+        }
+        
         current_data(updated_data)
       } 
       dataTableProxy("table")|>
@@ -1023,7 +1104,10 @@ server <- function(input, output, session) {
     else {
       updated_data <- current_data()[-input$table_rows_selected, ]
       current_data(updated_data)
-      DB_delete_row (DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", updated_data$ID)
+      if(lastEdited_data_set_name() == "Programm"){
+        DB_delete_row(DB_con(), "Einsatzplan", "ID", input$table_rows_selected)
+      }
       removeModal()
     }
   })

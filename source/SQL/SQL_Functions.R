@@ -326,7 +326,7 @@ DB_add_row <- function(con, table_name, new_row) {
   # Execute the query
   dbExecute(con, sql_query)
   
-  message("Row added successfully to table '", table_name, "'.")
+  message("Row ",new_row$ID ," added successfully to table '", table_name, "'.")
 }
 
 # Function to edit a row in table
