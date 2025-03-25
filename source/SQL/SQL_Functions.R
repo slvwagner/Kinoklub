@@ -66,7 +66,7 @@ update_db_all <- function(l_data, con) {
 }
 
 # get all data defined by the template l_data
-get_Data <- function(l_template, con, download = TRUE) {
+DB_get_Data <- function(l_template, con, download = TRUE) {
   if(download){
     temp <- names(l_template)|>
       lapply(function(x){

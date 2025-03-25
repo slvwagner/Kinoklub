@@ -380,7 +380,7 @@ server <- function(input, output, session) {
           DB_con()
         shiny::incProgress(1 / 2, detail = paste("Filmabrechnungen", 2, "of 3"))
         # get all data as defined in the template l_data
-        l_data_sql <- get_Data(l_template, DB_con())
+        l_data_sql <- DB_get_Data(l_template, DB_con())
         
         # Convert data types for each table
         convert_DB_to_R(l_data_sql,l_template)|>
@@ -1114,7 +1114,8 @@ server <- function(input, output, session) {
 
   #### Select a row ####
   observeEvent(input$table_rows_selected, {
-
+    Selected_row <- input$table_rows_selected
+    writeLines(paste0("Selected row ",Selected_row, "in table: ", input$dataset))
     # update last selected row  
     req(input$table_rows_selected)
     row <- input$table_rows_selected
