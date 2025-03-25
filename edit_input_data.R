@@ -1134,10 +1134,10 @@ server <- function(input, output, session) {
       page_length_var(input$page_length)
     }
     
-    # update 
-    page <-  ceiling(row / page_length_var())
+    # find page
+    if(lastEdited_data_set_name() == "Einsatzplan") page <-  round(row / page_length_var()) # don`t know why I need to calculate it differently for Einsatzplan 
+    else page <-  ceiling(row / page_length_var())
     writeLines(paste0("page ", page, " in table: ", input$dataset))
-    
     
     if(page == 0) page <- 1
     last_selected_page(page)
@@ -1489,12 +1489,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-#### Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# #### Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
