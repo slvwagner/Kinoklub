@@ -8,19 +8,40 @@ writeLines("Daten werden einlesen und berechnet...")
 
 # load user settings
 source("source/functions.R")
+source("source/SQL/SQL_Functions.R")
 
-# Einlesen Input daten
-c_file <- "Input/Data.Rds"
-if(file.exists(c_file)){
-  l_data <- readRDS(c_file)
-  c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-  if(!dir.exists("Input/backup")) dir.create("Input/backup")
-  saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-}else{ # or load template date 
-  c_file <- "Input/template.Rds"
-  l_data <- readRDS(c_file)
-  c_file <- "Input/Data.Rds"
-}
+# # Einlesen Input daten
+# c_file <- "Input/Data.Rds"
+# if(file.exists(c_file)){
+#   l_data <- readRDS(c_file)
+#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
+#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
+#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
+# }else{ # or load template date 
+#   c_file <- "Input/template.Rds"
+#   l_data <- readRDS(c_file)
+#   c_file <- "Input/Data.Rds"
+# }
+
+# read template 
+l_template <- readRDS("source/SQL/template.Rds")
+
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+pw
+
+tryCatch({
+  # Connect to data base 
+  con <- DB_connect(pw, "ch367079_flo")
+  
+  # get all data as defined in the template l_data
+  l_data_sql <- DB_get_Data(l_template, con)
+  
+  # Convert data types for each table
+  l_data <- convert_DB_to_R(l_data_sql,l_template)
+  
+},error =  function(e){
+  stop(e$message)
+})
 
 # Eintritte aus Advanced Tickets files
 convert_data_Film_txt <- function(fileName) {
