@@ -657,70 +657,87 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
 
 
 ################## show times ##################
-# error handling file not found
-c_file <- "Input/advance tickets/Shows.txt"
-c_raw <- paste0("Die Datei \"Shows.txt\" konnte nicht gefunden werden:",
-                "\nBitte die Datei über GUI hochladen oder abspeichern unter \".../Kinoklub/",c_file, "\".",
-                "\nBitte herunterladen von https://www.advance-ticket.ch/shows?lang=de")
-if(!file.exists(c_file)) stop(c_raw)
+# # error handling file not found
+# c_file <- "Input/advance tickets/Shows.txt"
+# c_raw <- paste0("Die Datei \"Shows.txt\" konnte nicht gefunden werden:",
+#                 "\nBitte die Datei über GUI hochladen oder abspeichern unter \".../Kinoklub/",c_file, "\".",
+#                 "\nBitte herunterladen von https://www.advance-ticket.ch/shows?lang=de")
+# if(!file.exists(c_file)) stop(c_raw)
+# 
+# # read file
+# c_raw <- readLines(c_file)|>
+#   suppressWarnings()
+# 
+# c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
+#   mutate(index = row_number(),
+#          index = if_else(found, index, NA))|>
+#   filter(!is.na(index))|>
+#   arrange(index)|>
+#   slice(1)|>
+#   pull()
+# c_select
+# 
+# m <- c_raw[c_select:length(c_raw)]|>
+#   str_split("\t", simplify = T)
+# m
+# c_names <- m[1,m[1,] != ""]
+# 
+# m <- m[2:nrow(m),m[1,] != ""]
+# colnames(m) <- c_names
+# m
+# 
+# df_show <- m|>
+#   as_tibble()|>
+#   mutate(Datum = Tag|>lubridate::ymd(),
+#          Anfang = parse_time(Anfang),
+#          Ende = parse_time(Ende))|>
+#   select(Datum,Anfang, Ende, Saal, Titel, Version, Alter)|>
+#   rename(Filmtitel = Titel)|>
+#   arrange(Datum)
+# 
+# df_show
 
-# read file
-c_raw <- readLines(c_file)|>
-  suppressWarnings()
-
-c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
-  mutate(index = row_number(),
-         index = if_else(found, index, NA))|>
-  filter(!is.na(index))|>
-  arrange(index)|>
-  slice(1)|>
-  pull()
-c_select
-
-m <- c_raw[c_select:length(c_raw)]|>
-  str_split("\t", simplify = T)
-m
-c_names <- m[1,m[1,] != ""]
-
-m <- m[2:nrow(m),m[1,] != ""]
-colnames(m) <- c_names
-m
-
-df_show <- m|>
-  as_tibble()|>
-  mutate(Datum = Tag|>lubridate::ymd(),
-         Anfang = parse_time(Anfang),
-         Ende = parse_time(Ende))|>
-  select(Datum,Anfang, Ende, Saal, Titel, Version, Alter)|>
-  rename(Filmtitel = Titel)|>
-  arrange(Datum)
-
+df_show <- l_data$Programm|>
+  filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+  select(ID, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)
 df_show
 
 df_show <- df_show|>
   left_join(df_Eintritt|>
-              distinct(Datum, `Suisa Nummer`, Filmtitel),
-            by = c(Datum = "Datum", Filmtitel = "Filmtitel")
+              rename(Suisanummer = `Suisa Nummer`)|>
+              distinct(Datum, Suisanummer, Filmtitel),
+            by = c(Suisanummer="Suisanummer",Datum = "Datum", Filmtitel = "Filmtitel")
   )|>
   arrange(Datum)
-
-df_show <- df_show|>
-  filter(!is.na(`Suisa Nummer`))
 df_show
 
+
 ## error handling 
-df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
-  anti_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-  left_join(df_Eintritt, by = join_by(Datum, `Suisa Nummer`))|>
-  distinct(Datum, .keep_all = T)
+p <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
+df_temp <- df_show|>
+  filter(!str_detect(Suisanummer,p))
 df_temp
 
 if(nrow(df_temp) != 0) {
-  stop(paste0(
+  warning(paste0(
     "Für den Film: ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
-    " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern\nhttps://www.advance-ticket.ch/shows?lang=de")
+    " ist keine Suisanummer vorhanden")
   )}
+
+
+# df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
+#   anti_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
+#   left_join(df_Eintritt, by = join_by(Datum, `Suisa Nummer`))|>
+#   distinct(Datum, .keep_all = T)
+# df_temp
+# 
+# if(nrow(df_temp) != 0) {
+#   stop(paste0(
+#     "Für den Film: ",df_temp$Filmtitel, " am ", 
+#     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
+#     " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern\nhttps://www.advance-ticket.ch/shows?lang=de")
+#   )}
 
 
 # Abos und Kinogutscheine
