@@ -600,8 +600,23 @@ server <- function(input, output, session) {
           )
         })
       } else {
-        # Get actual data
-        df_row <- current_data()
+        
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> select(1)
+        # editable
+        df_row <- current_data() |> select(2:ncol(current_data()))
+        
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[input$table_rows_selected, ii]))
+          )
+        })
+        
+        # # Get actual data
+        # df_row <- current_data()
       }
       
       if(r_is.defined(l_temp)) {
@@ -731,10 +746,13 @@ server <- function(input, output, session) {
       c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
       names(c_input) <- NULL
       c_input
+      
+      df_temp <- current_data()[,2:ncol(current_data())]
     }
     
     # Coerce user input to correct data type 
     l_input <- list()
+
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
 
@@ -802,7 +820,10 @@ server <- function(input, output, session) {
     names(l_input) <- names(df_temp)
     df_updated <- l_input|>
       as_tibble()
-    df_updated
+    
+    # Handel ID`s
+    df_updated <- bind_cols(current_data()[input$table_rows_selected,1],df_updated)
+    df_temp <- bind_cols(current_data()[,1],df_temp)
     
     # handle factors 
     if(lastEdited_data_set_name() == "Einsatzplan"){
@@ -1489,12 +1510,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-#### Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# #### Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
