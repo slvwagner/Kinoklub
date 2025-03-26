@@ -343,7 +343,7 @@ Einnahmen_und_Ausgaben$Einnahmen$Suisanummer <- Einnahmen_und_Ausgaben$Einnahmen
   str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
 Einnahmen_und_Ausgaben
 
-################## Error handling Einnahmen und Ausgaben ##################
+# Error handling 
 # Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben 
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
@@ -429,7 +429,7 @@ if(nrow(df_temp) != 0) {
   warning(paste0(
     "Für den Film: ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
-    " ist keine Suisanummer vorhanden")
+    " ist keine Suisanummer vorhanden oder das Format stimmmt nicht.")
   )}
 
 ################## Eintritt aus Advanced Tickets ##################
@@ -443,11 +443,6 @@ if(is_empty(c_files)) {
               "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"")
        )
   }
-
-# suisa and date from file name
-c_suisa <- str_extract(c_files, DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT)
-c_datum <- str_extract(c_files, DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)
-
 # read and convert Eintritte
 l_Eintritt <- convert_data_Film_txt(c_files)
 l_Eintritt
@@ -709,28 +704,46 @@ df_temp <- df_verleiherabgaben|>
 
 if(nrow(df_temp)>0){
   warning(paste0("\nEs gibt keinen Verleiher für den Film, ",df_temp$Filmtitel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
-              "\nBitte korrrigieren in der Datei Programm"))
+              "\nBitte das Programm korrigieren!"))
 }
 
-# Eintrite
-df_Abrechnung <- df_Eintritt|>
-  left_join(df_verleiherabgaben|>
-              select(-Filmtitel, -Adresse, -PLZ, -Ort),
-            by = c("Suisanummer", "Datum"))|>
-  mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
-         Zahlend = if_else(Verkaufspreis>0, T, F))
 
+################ Abrechnung ################
+df_Abrechnung <- l_data$Programm|>
+  select(1:11)|>
+  rename(ID_Programm = ID)|>
+  left_join(l_data$Verleiher|>
+              select(-ID, -Kontakt, -Adresse, -PLZ, -Ort), 
+            by = c(Verleiher = "Verleihername")
+            )|>
+  mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
 df_Abrechnung
 
-# # Eintrite 
-# df_Eintritt <- df_Eintritt|>
-#   left_join(df_verleiherabgaben|>
-#               select(-Filmtitel, -Adresse, -PLZ, -Ort),
-#             by = c("Suisanummer", "Datum"))|>
-#   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
-#          Zahlend = if_else(Verkaufspreis>0, T, F))
-# df_Eintritt
+df_Abrechnung <-
+  df_Abrechnung|>
+  left_join(Einnahmen_und_Ausgaben$Ausgaben|>
+              filter(Kategorie == "Verleiher")|>
+              select(1:7,-ID, -Datum, -Kategorie)|>
+              rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`)
+  )
+df_Abrechnung
 
+# paste0("\"",names(df_Abrechnung),"\"")|>
+#   paste0(collapse = ",")|>
+#   writeLines()
+
+# error handling 
+df_temp <- df_Abrechnung|>
+  filter(is.na(ID_Programm))|>
+  slice(1)
+
+if(nrow(df_temp) > 0){
+  warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+                 " wurde kein Programm eintrag gefunden.",
+                 "\nBitte das Programm korrigieren!"
+                 )
+          )
+}
 
 # Errorhandling 
 # kein prozentualer noch fixer abzug definiert
@@ -743,24 +756,25 @@ if(nrow(df_temp)>0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
-              "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte das Programm korrigieren!"
+              )
   )
 }
 
 # kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde)
-df_temp <- df_Eintritt|>
+df_temp <- df_Abrechnung|>
   filter(is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
 if(nrow(df_temp)>0) warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
-                                "\nBitte korrigieren im File:",
-                                "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+                                "\nBitte das Programm korrigieren!"
+                                )
 )
 
 # Prozentualer und Fixer Abzug definiert
-df_temp <- df_Eintritt|>
+df_temp <- df_Abrechnung|>
   filter(!is.na(`Abzug [%]`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
@@ -768,13 +782,13 @@ df_temp
 if(nrow(df_temp)>0){ 
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte korrigieren im File:",
-              "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
+              "\nBitte das Programm korrigieren!"
+              )
   )
 }
 
 # minimal und Fixer Abzug definiert
-df_temp <- df_Eintritt|>
+df_temp <- df_Abrechnung|>
   filter(!is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
@@ -782,58 +796,17 @@ df_temp
 if(nrow(df_temp)>0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte korrigieren im File",
-              "\n.../Kinoklub/input/Verleiherabgaben.xlsx")
+              "\nBitte das Programm korrigieren!"
+              )
   )
 }
 
 
 ##################  Ticketabrechnung vorbereiten ################## 
 
-df_Eintritt
-
-df_Abrechnung <- df_show|>
-  filter(Datum < Sys.Date(), 
-         `Verleiher Angefragt?` == "Bestätigt"
-         )|>
-  left_join( # Verleiherrechnungen 
-    Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-      filter(Kategorie == pull(l_data$Kategorie)[6])|> # suchen nach den Verleiher Einträgen
-      select(Spieldatum, Suisanummer,`Betrag [CHF]`)|>
-      # select(1:2)|>
-      rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`,
-             Datum = Spieldatum),
-    by = join_by(Datum, Suisanummer)
-  )|>
-  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
-  )|>
-  mutate(Datum = as.Date(Datum),
-         Zeit.y = NULL)|>
-  rename(Zeit = Zeit.x)
+df_Abrechnung <- df_Abrechnung|>
+  filter(Datum <= Sys.Date()) # Nur abrechnen was bereits vorgeführt (Filme) 
 df_Abrechnung
-
-df_Abrechnung <- df_Eintritt|>
-  distinct(Datum, `Suisanummer`, .keep_all = TRUE)|>
-  select(-(4:8))|>
-  left_join(df_show|>
-              select(Datum, `Suisanummer`, Zeit),
-            by = join_by(Datum, `Suisanummer`))|>
-  left_join( # Verleiherrechnungen 
-    Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-      filter(Kategorie == pull(l_data$Kategorie)[6])|> # suchen nach den Verleiher Einträgen
-      select(Spieldatum, Suisanummer,`Betrag [CHF]`)|>
-      # select(1:2)|>
-      rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`,
-             Datum = Spieldatum),
-    by = join_by(Datum, Suisanummer)
-  )|>
-  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
-         )|>
-  mutate(Datum = as.Date(Datum),
-         Zeit.y = NULL)|>
-  rename(Zeit = Zeit.x)
-df_Abrechnung
-
 
 # error handling
 # Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
@@ -845,17 +818,18 @@ df_temp <- df_Abrechnung|>
   filter(`Minimal Abzug unterschritten`)
 
 # error handling, keine Verleiherrechnung
-if(nrow(df_temp)>0) {
+if(nrow(df_temp) > 0) {
   warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                  "\nist der Verleiherrechnungsbetrag kleiner als die Mindestgarantie.",
-                 "\nBitte korrigieren in der Datei: .../Kinokulb/input/Verleiherabgaben.xlsx\n"
+                 "\nBitte Programm korrigieren!\n"
   )
   )  
 }
 
 
 
-# Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. 
+##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
+
 # Für die Berechnung von "Netto 3" müssen die Kinoförder als Umsatz verrechnet werden.
 # Netto 3 = Umsatz minus SUISA-Vorabzug.
 df_Eintritt <- bind_rows(
@@ -874,6 +848,7 @@ df_Eintritt <- bind_rows(
 )|>
   arrange(desc(Datum))
 
+df_Eintritt
 
 ##################  Abrechnungsperiode erstellen ################## 
 l_keineRechnung <- list()
