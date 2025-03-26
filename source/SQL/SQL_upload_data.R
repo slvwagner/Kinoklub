@@ -15,13 +15,16 @@ if(file.exists(c_file)){
 }
 # # update template
 # l_temp <- readRDS("source/SQL/template.Rds")
-# l_temp$Kinoklubmitglieder <- l_temp$Kinoklubmitglieder|>
-#   mutate(Mitglied = NULL)
+# l_temp$Programm <- l_temp$Programm|>
+#   rename(`Link ID` = `Link Datum`)|>
+#   mutate(`Link ID` = as.integer(`Link ID`))
+# 
 # saveRDS(l_temp, "source/SQL/template.Rds")
 # 
-# # update data 
-# l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-#   mutate(Mitglied = NULL)
+# # update data
+# l_data$Programm <- l_data$Programm|>
+#   rename(`Link ID` = `Link Datum`)|>
+#   mutate(`Link ID` = as.integer(`Link ID`))
 # saveRDS(l_data, c_file)
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
