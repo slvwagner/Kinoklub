@@ -1,7 +1,5 @@
-#######################################################################################
-# spez. Round for Swiss currency "CHF"
-#######################################################################################
 
+# spez. Round for Swiss currency "CHF"
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
     if(is.na(zahl)){
@@ -25,9 +23,8 @@ round5Rappen <- function(zahl) {
     round(2)
 }
 
-#######################################################################################
+
 # variable is present in global environment
-#######################################################################################
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
@@ -45,59 +42,8 @@ r_is.library_loaded <- function(package_name) {
   return(is_loaded)
 }
 
-##  --------------------------------------------------------
-##  Cleanup R console: clc
-##  Version 1.0
-##  by Hubert Ronald
-##  --------------------------------------------------------
-##  check first if you have "clc.R" in your currently root
-##  sum(list.files() %in% "clc.R")
-
-##  if TRUE then
-##  Write in console: source("clc.R")
-##  else
-##  setwd() or source("yourPath/clc.R")
-
-##  after write "clc" in console or when 
-##  you need clean it
-
-##  Console or Terminal'll be clean
-
-##  --------------------------------------------------------
-##  Reference:
-
-##  English
-##  https://stackoverflow.com/questions/14260340/function-to-clear-the-console-in-r-and-rstudio
-
-##  Espaniol - Spanish
-##  https://es.stackoverflow.com/questions/237112/c%C3%B3mo-limpiar-la-consola-de-rstudio-y-los-terminales-rstudio-y-macos
-##  --------------------------------------------------------
-
-##  The MIT License
-##  Copyright 2019 Hubert Ronald
-
-##  Permission is hereby granted, free of charge, to any person obtaining a copy
-##  of this software and associated documentation files (the "Software"), to deal
-##  in the Software without restriction, including without limitation the rights
-##  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-##  copies of the Software, and to permit persons to whom the Software is furnished 
-##  to do so, subject to the following conditions:
-
-##  The above copyright notice and this permission notice shall be included in 
-##  all copies or substantial portions of the Software.
-
-##  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-##  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-##  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-##  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-##  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-##  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-##  IN THE SOFTWARE.
 
 
-##  ------------------------------------------------------------
-##  Detect RStudio Terminal or RStudio Console or Terminal macOS
-##  --------------------------------------------------------------
 if (commandArgs()[1]=='RStudio'){
   ##  method print: \f: Form Feed
   print.cleanup <- function(cleanupObject) cat("\f")     
@@ -105,46 +51,20 @@ if (commandArgs()[1]=='RStudio'){
   
 }else if(substr(commandArgs()[1], nchar(commandArgs()[1]), nchar(commandArgs()[1])) == "R"){        
   
-  ##  -------------------------------------------------------------
-  ##  }else if(tail(strsplit(commandArgs()[1], split = "")[[1]], n=length(commandArgs()[1])))       
-  ##  -------------------------------------------------------------
-  ##  Reference
-  ##  Rapp defaul configuration in macOS:
-  ##  "/Library/Frameworks/R.framework/Resources/bin/exec/R"
-  ##  --------------------------------------------------------------
-  ##  http://ascii-table.com/ansi-escape-sequences.php                                                (check)
-  ##  https://invisible-island.net/ncurses/man/clear.1.html                                           (check)
-  ##  https://stackoverflow.com/questions/1348563/clearing-output-of-a-terminal-program-linux-c-c     (check)
   print.cleanup <- function(cleanupObject) cat(c("\033[2J","\033[H"))
   
 }else{print(paste0("not support: ",commandArgs()[1]))}                                                                         
 
 
-##  ----------------------------------------
-##  About 'clc'
-##  ----------------------------------------
-##  Can replace 'clc' by:
-
-##  'cls' command DOS
-##  'clear' terminal macOS / Linux / Unix
-##  or whatever you choose
-
-##  Directly in this code or in console or terminal
-
-##  For example change clc by clear
-##  source("clc.R") or source("yourPath/clc.R")
-##  clear <- 0
-##  class(clear) <- 'cleanup'
-##  ----------------------------------------                                                                     
+                                                                    
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
 #print(clc)                                      ##  when you load this source,
 ##  it cleans all console
 
 
-################################################################################
-#
-################################################################################
+
+
 # library(rebus)
 # p <- START%R%one_or_more("#")%R%SPC
 # as.character(p)
@@ -184,9 +104,6 @@ create_df <- function(c_Rmd) {
   return(df_data)
 }
 
-################################################################################
-#
-################################################################################
 r_toc_for_Rmd <- function(
     c_Rmd,
     toc_heading_string = "Table of Contents" ,
@@ -194,15 +111,12 @@ r_toc_for_Rmd <- function(
     pagebreak_level = "non"
 )
 {
-  ##########################################################################
   # create data frame to work with
   df_data <- create_df(c_Rmd)
   
-  ##########################################################################
   # Headings
   m <- df_data[df_data$is.heading, 5:ncol(df_data)]
   
-  ##########################################################################
   # Analyze heading structure
   heading_struct <- m|>
     apply(2, function(x) {
@@ -232,7 +146,6 @@ r_toc_for_Rmd <- function(
     }
   }
   
-  ##########################################################################
   # correct heading structure
   c_names <- c("#","##","###","####","#####","######")
   
@@ -280,7 +193,6 @@ r_toc_for_Rmd <- function(
   }
   m_
   
-  ##########################################################################
   # create structure number system
   # Heading structure counts
   heading_cnt <- rep(0, 6)
@@ -322,7 +234,6 @@ r_toc_for_Rmd <- function(
     
   }
   
-  ##########################################################################
   # create structure number
   c_nb <- m__ |>
     apply(1, function(x) {
@@ -330,16 +241,13 @@ r_toc_for_Rmd <- function(
       paste0(temp, collapse = ".")
     })
   
-  ##########################################################################
   # create link link to table of contents
   c_top_link <-  paste0("\n[", toc_heading_string, "](#", toc_heading_string, ")\n")
   c_top_link
   
-  ##########################################################################
   c_Heading <- c_Rmd[df_data$is.heading]|>stringr::str_remove_all("#")|>stringr::str_trim()
   c_Heading
   
-  ##########################################################################
   # create anchor
   if (create_nb) {
     if (nb_front) { # number system in front of heading
@@ -378,7 +286,6 @@ r_toc_for_Rmd <- function(
   # format toc according to found heading structure
   c_toc <- paste0(c_add_structure, c_toc)
   
-  #########################################################################
   # Enhance headings
   df_data_ <- dplyr::left_join(df_data[, 1:4],
                                data.frame(index = rownames(m__) |> as.integer(),
@@ -387,9 +294,6 @@ r_toc_for_Rmd <- function(
   
   df_data_$c_Rmd_ <-  ifelse(!is.na(df_data_$c_anchor), df_data_$c_anchor, c_Rmd)
   
-  
-  
-  #########################################################################
   # create TOC
   highest_order_jj <- ifelse(set_first_heading_level, 1, highest_order_jj)
   c_toc_link <- switch(highest_order_jj,
@@ -405,7 +309,6 @@ r_toc_for_Rmd <- function(
                        paste0(c_toc_link, "<a name=\"", toc_heading_string, "\"></a>"),
                        c_toc_link)
   
-  #########################################################################
   # find position to insert table of contents
   check <- stringr::str_detect(c_Rmd, "---")
   c_start <- 1
@@ -419,7 +322,6 @@ r_toc_for_Rmd <- function(
     }
   }
   
-  #########################################################################
   # Insert table of contents
   c_Rmd <- c(df_data_$c_Rmd_ [1:(c_start)],
              c_toc_link,
@@ -428,9 +330,7 @@ r_toc_for_Rmd <- function(
              df_data_$c_Rmd_[(c_start+1):nrow(df_data)]
   )
   
-  #########################################################################
   # Insert page breaks
-  
   #create data frame to work with
   df_data <- create_df(c_Rmd)
   
@@ -484,19 +384,61 @@ r_toc_for_Rmd <- function(
   return(c_Rmd)
 }
 
-# readLines("source/Abrechnung.Rmd")|>
-#   r_toc_for_Rmd()
-
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
   exists(sym, env)
 }
 
-#######################################################################################
-# 
-#######################################################################################
 r_signif <- function (x, significant_digits = 3)
 {
   format(x, format = "g", digits = significant_digits)
 }
+
+inspect_link <- function(df_mapping, ID){
+  link <- df_mapping|>
+    filter(ID_Programm == ID)|>
+    pull()
+  if(length(link) > 0) return(link)
+  else return(NULL)
+}
+
+inspect_link_ids <- function(df_mapping) {
+  result <- vector("list", nrow(df_mapping))  # Initialize an empty list
+  names(result) <- df_mapping$ID_Programm  # Set names to ID_Programm
+  
+  for (ii in seq_len(nrow(df_mapping))) {
+    link_ids <- c(df_mapping[ii,"ID_Programm"]|>pull())  # Store all consecutive Link IDs for this row
+    link <- df_mapping[ii,"Link ID"]|>pull()
+    run <- TRUE
+    if (!is.na(link)){
+      link_ids <- c(link_ids, link)
+      while (run) {
+        link <- inspect_link(df_mapping, link)
+        if (!is.na(link)){
+          link_ids <- c(link_ids, link)
+        }else {
+          run <- FALSE
+        }
+      }
+    }
+    result[[ii]] <- link_ids
+  }
+  return(result)
+}
+
+nullify_used_entries <- function(lst) {
+  # Collect all values that appear in chains (excluding the first element of each list)
+  used_values <- unlist(lapply(lst, function(x) x[-1])) 
+  
+  # Convert list names to numeric for comparison
+  used_names <- as.numeric(names(lst))
+  
+  # Nullify entries whose names are used in another chain
+  lst[used_names %in% used_values] <- NULL
+  
+  return(lst)
+}
+
+
+

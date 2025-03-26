@@ -692,7 +692,7 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
 
 ################## Verleiherabgaben einlesen ################## 
 df_temp <- l_data$Programm|>
-  select(1:11,-`Link Datum`)|>
+  select(1:11,-`Link ID`)|>
   left_join(l_data$Verleiher|>
               select(-ID),
             by = c("Verleiher" = "Verleihername"))
@@ -728,7 +728,8 @@ df_Abrechnung <-
   left_join(Einnahmen_und_Ausgaben$Ausgaben|>
               filter(Kategorie == "Verleiher")|>
               select(1:7,-ID, -Datum, -Kategorie)|>
-              rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`)
+              rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
+            by = join_by(Suisanummer)
   )
 df_Abrechnung
 
@@ -757,10 +758,10 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 if(nrow(df_temp)>0){ 
-  warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+  warning(paste0("Für den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
-              "\nBitte im Programm korrigieren!"
+              "\nBitte im Programm korrigieren!\n\n"
               )
   )
 }
@@ -771,9 +772,9 @@ df_temp <- df_Abrechnung|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_temp)>0) warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+if(nrow(df_temp)>0) warning(paste0("Für den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
-                                "\nBitte im Programm korrigieren!"
+                                "\nBitte im Programm korrigieren!\n\n"
                                 )
 )
 
@@ -852,7 +853,7 @@ df_temp <- df_temp|>
   arrange(desc(Datum))
 
 df_Abrechnung <- df_temp|>
-  select(c("ID_Programm",-"Spieldatum","Datum", "Zeit","Link Datum", "Suisanummer",
+  select(c("ID_Programm",-"Spieldatum","Datum", "Zeit","Link ID", "Suisanummer",
            "Platzkategorie","Zahlend","Verkaufspreis","Anzahl","Umsatz",
            "SUISA-Vorabzug","Filmtitel",
            "Verleiher",
@@ -870,72 +871,100 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
-               " mit der Suisanummer ", df_temp$Suisanummer,
+warning(paste0("Achtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
+               "\nmit der Suisanummer ", df_temp$Suisanummer,
                " gibt es keine Verleiherrechnung.",
-               "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n")
-)
+               "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n\n"))
+
 
 ##################  Abrechnungsperiode erstellen ################## 
 
-df_Abrechnung|>
-  group_by(ID_Programm)|>
-  reframe(`Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`),
-          `Umsatz [CHF]` = sum(Umsatz)
-          )
+df_mapping <- l_data$Programm|>
+  distinct(ID_Programm, .keep_all = T)|>
+  select(1:5)|>
+  filter(!is.na(ID_Programm))
+df_mapping
 
+l_abrechnung <- inspect_link_ids(df_mapping)
+l_abrechnung
 
+l_abrechnung <- nullify_used_entries(l_abrechnung)
+l_abrechnung
+
+df_Abrechnung
 
 l_keineRechnung <- list()
-l_abrechnung <- list()
-ii <- 6
-for (ii in df_Abrechnung$ID_Programm) {
 
-  l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                               select(Datum, `Link Datum`, Zeit, Filmtitel, Suisanummer, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
-                                      `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
-                             Tickets = df_Abrechnung|>
-                               filter(ii == Suisanummer)|>
-                               filter(Datum %in% c(ii, df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, Filmtitel, Suisanummer, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, 
-                                      `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
-                             )
-
-
-  # error handling
-  # Verleiherrechnung vorhanden?
-
-  if(l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`|>sum(na.rm = T) > 0) {
-    # Gemeinsame Abrechnung (Datum und link Datum): Verleiherrechnung wir auch auf dem Linkdatum eingetragen
-    c_Verleiherrechnungsbetrag <- l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`[!is.na(l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`)]
-    l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]` <- rep(c_Verleiherrechnungsbetrag, length(l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`))
-    remove(c_Verleiherrechnungsbetrag)
-  }else{
-    # Error handling: Keine Verleiherrechnung vorhanden
-    warning(paste0("\nAchtung für den Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
-                   day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum),
-                   " / ", l_abrechnung[[ii]]$Abrechnung$Suisanummer,
-                   "\ngibt es keine Verleiherrechnung. Bitte korrigieren in der Datei:",
-                   "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
-    )
-    # Rechnungen vorhanden (wird im Bericht verwendet)
-    l_keineRechnung[[ii]] <- tibble(Datum = l_abrechnung[[ii]]$Abrechnung$Datum ,
-                                    Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel,
-                                    Suisanummmer = l_abrechnung[[ii]]$Abrechnung$Suisanummer)
-    
-  }
-
-  # Berechnung Umsatz für Netto3 (für gemeinsame Abrechnung verwendet)
-  l_abrechnung[[ii]]$Abrechnung <- 
+ID <- "1"
+for (ID in names(l_abrechnung)) {
+  IDs <- l_abrechnung[[ID]]
+  
+  l_data$Programm|>
+    filter(ID_Programm %in% IDs)
+  df_Abrechnung|>
+    filter(ID_Programm %in% IDs)
+  
+  df_Verteilprodukt <- df_Abrechnung|>
+    filter(ID_Programm %in% IDs)|>
+    group_by(ID_Programm)|>
+    reframe(`Umsatz [CHF]`= sum(Umsatz),
+            `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
+            )|>
+    mutate(Verteilprodukt_1 = `Umsatz [CHF]` / sum(`Umsatz [CHF]`),
+           Verteilprodukt_2 = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`)
+           )|>
+    left_join(l_data$Programm|>select(1:6)|>select(-`Link ID`),
+              by = join_by(ID_Programm)
+              )
+  
+  df_temp <-
     bind_cols(
-      l_abrechnung[[ii]]$Abrechnung,
-      l_abrechnung[[ii]]$Tickets|>
-        group_by(Datum)|>
-        reframe(Umsatz = sum(Umsatz),
-                `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`))|>
-        select(-Datum)
+      l_data$Programm|>
+        select(ID_Programm, Suisanummer, Filmtitel)|>
+        slice(as.integer(ID)),
+      df_Abrechnung |>
+        filter(ID_Programm %in% IDs) |>
+        reframe(
+          `Umsatz [CHF]` = sum(Umsatz),
+          `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
+        )
     )
+  df_temp
+  
+  l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+                               filter(ID_Programm %in% IDs)|>
+                               reframe(`Umsatz [CHF]`= sum(Umsatz),
+                                       `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
+                               ),
+                             Tickets = df_Abrechnung|>
+                               filter(ID_Programm %in% IDs)
+  )
+  
 }
+  
+
+#   l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+#                                filter(df_mapping$Suisanummer[ii] == `Suisanummer`)|>
+#                                filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link ID`[ii]))|>
+#                                select(Datum, `Link ID`, Zeit, Filmtitel, `Suisanummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
+#                                       `SUISA-Vorabzug [%]`, `Link ID`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
+#                              Tickets = df_Abrechnung|>
+#                                filter(df_mapping$Suisanummer[ii] == `Suisanummer`)|>
+#                                filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link ID`[ii]))|>
+#                                select(Datum, Filmtitel, `Suisanummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
+#   )
+# 
+#   # Berechnung Umsatz für Netto3 (für gemeinsame Abrechnung verwendet)
+#   l_abrechnung[[ii]]$Abrechnung <- 
+#     bind_cols(
+#       l_abrechnung[[ii]]$Abrechnung,
+#       l_abrechnung[[ii]]$Tickets|>
+#         group_by(Datum)|>
+#         reframe(Umsatz = sum(Umsatz),
+#                 `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`))|>
+#         select(-Datum)
+#     )
+# }
 names(l_abrechnung) <- paste(df_mapping$Datum, df_mapping$Suisanummer)
 
 df_keine_Rechnung <- l_keineRechnung|>
