@@ -1372,6 +1372,7 @@ server <- function(input, output, session) {
           # Create the DataTable
           dt <- datatable(
             df_temp,
+            rownames = FALSE,
             editable = FALSE, # Nicht bearbeitbar
             selection = "single", # only select sinle row
             filter = "top", # Filter oben
@@ -1484,6 +1485,7 @@ server <- function(input, output, session) {
         # Create the DataTable for all other data sets
         dt <- datatable(
           current_data(),
+          rownames = FALSE,
           editable = FALSE, # Nicht bearbeitbar
           selection = "single", # only select sinle row
           filter = "top", # Filter oben
@@ -1510,12 +1512,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# #### Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+#### Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
