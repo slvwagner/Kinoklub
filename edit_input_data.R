@@ -1318,8 +1318,8 @@ server <- function(input, output, session) {
           for (ii in 1:length(c_select)) {
             if(!is.na(c_select)[ii]){
               l_columnDefs <- append(l_columnDefs, list(
-                list(targets = ii - 1, visible =  FALSE),   # Hide the 'Datum' column
-                list(targets = ii , orderData = ii-1)     # Use the 'Datum' column for sorting 'Datum_display'
+                list(targets = ii - 2, visible =  FALSE),   # Hide the 'Datum' column
+                list(targets = ii - 1 , orderData = ii-2)     # Use the 'Datum' column for sorting 'Datum_display'
               ))
               names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
               cnt <- cnt + 2
@@ -1512,12 +1512,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-#### Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# #### Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
