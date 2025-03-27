@@ -459,6 +459,20 @@ df_Eintritt <- l_Eintritt|>
   select(Datum, Suisanummer, Filmtitel, Platzkategorie, Zahlend, Verkaufspreis, Anzahl, Umsatz,`SUISA-Vorabzug`)
 df_Eintritt
 
+# join ID_Programm 
+df_Eintritt <- df_Eintritt|>
+  left_join(l_data$Programm|>
+              select(ID_Programm, Datum, Suisanummer),
+            by = join_by(Datum, Suisanummer)
+            )
+
+if(sum(is.na(df_Eintritt$ID_Programm)) > 0){
+  df_temp <- df_Eintritt|>
+    filter(is.na(ID_Programm))
+  warning("\nFür den Film ", df_temp$Filmtitel, " mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " existiert kein Programmeintrag\nBitte das Programm korrigieren!\n")
+}
+  
+
 ################## Kioskabrechnungen ##################
 # Einkaufspreise
 c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
@@ -650,7 +664,7 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk,
        df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
        ii,
-       c_path, c_files, l_temp)
+       c_path, c_files, l_temp, l_Eintritt)
 
 
 ################  Gibt es gleich viele Kiosk wie Filmabrechungen? ##############
@@ -664,17 +678,17 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   df_temp <- anti_join(n_kiosk,n_Film, by = "Datum")|>
     select(Datum)
   
-  warning(paste0("Es fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
-              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de"
+  warning(paste0("\nEs fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
+              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de\n"
   )
   )
 }else if(df_Kiosk|>distinct(Datum)|>nrow() < df_Eintritt|>distinct(Datum)|>nrow()){
   
   df_temp <- anti_join(n_Film, n_kiosk, by = "Datum")|>
     select(1:3)
-  warning(paste0("Es fehlt einen Kioskabrechnug zum Film:\n", 
+  warning(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n", 
               df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
-              "\n\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de"
+              "\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de\n"
   ))
 }
 remove(n_kiosk, n_Film)
@@ -901,10 +915,13 @@ for (ii in df_Film$Suisanummer) {
 
 df_temp <- df_Eintritt|>
   left_join(df_Abrechnung,
-            by = c("Datum", "Suisanummer")
+            by = "ID_Programm"
             )|>
-  select(-Filmtitel.x)|>
-  rename( Filmtitel = Filmtitel.y)
+  select(-Filmtitel.y, -Suisanummer.y, -Datum.y)|>
+  rename(Filmtitel = Filmtitel.x,
+         Suisanummer = Suisanummer.x,
+         Datum = Datum.x
+         )
 df_temp
 
 df_temp <- df_temp|>
@@ -914,9 +931,9 @@ df_temp <- df_temp|>
               l_data$`Platzkategorien zum Verrechnen`$Verkaufspreis[1],
               Verkaufspreis
       ),
-    `Umsatz für Netto3 [CHF]` = Anzahl * `Verkaufspreis Abgerechnet [CHF]`
-  )|>
+    `Umsatz für Netto3 [CHF]` = Anzahl * `Verkaufspreis Abgerechnet [CHF]`)|>
   arrange(desc(Datum))
+df_temp
 
 df_Abrechnung <- df_temp|>
   select(c("ID_Programm",-"Spieldatum","Datum", "Zeit","Link ID", "Suisanummer",
@@ -944,6 +961,7 @@ warning(paste0("Achtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_te
 
 
 ####################################  Gemeinsame Abrechnung erstellen #################################### 
+
 df_mapping <- l_data$Programm|>
   distinct(ID_Programm, .keep_all = T)|>
   select(1:5)|>
@@ -959,7 +977,7 @@ df_Abrechnung
 l_keineRechnung <- list()
 
 cnt <- 1
-ID <- "2"
+ID <- "1"
 for (ID in names(l_abrechnung)) {
   IDs <- l_abrechnung[[ID]]
   df_temp <- df_Abrechnung|>
@@ -1122,7 +1140,9 @@ for (ID in names(l_abrechnung)) {
   
   # Update results 
   l_abrechnung[[ID]] <- list(
-    Eintritte = df_Eintritte,
+    Eintritte = df_Eintritt|>
+      filter(ID_Programm == as.integer(ID))|>
+      select(-`SUISA-Vorabzug`),
     Verteilprodukt = df_Verteilprodukt,
     Abrechnung = Abrechnung,
     `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
@@ -1132,7 +1152,7 @@ for (ID in names(l_abrechnung)) {
     `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
       filter(ID_Programm == as.integer(ID))|>
       select(`Überschuss / Manko`)|>
-      pull(),
+      pull()
     )
   
   l_abrechnung[[ID]] <-
