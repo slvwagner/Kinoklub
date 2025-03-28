@@ -698,8 +698,8 @@ remove(n_kiosk, n_Film)
 
 ######### Abos und Kinogutscheine ######### 
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
-  warning(paste0("Die Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
-       "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de"))
+  warning(paste0("\nDie Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
+       "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
   }
 atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
                               delim = "\t", escape_double = FALSE, 
@@ -710,8 +710,8 @@ atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
                                                count_use = col_integer()), trim_ws = TRUE)
 
 if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
-  warning(paste("Die Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
-         "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de"))
+  warning(paste("\nDie Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
+         "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
   }
 atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -754,7 +754,7 @@ df_temp <- df_temp|>
 
 if(nrow(df_temp)>0){
   warning(paste0("\nEs gibt keinen Verleiher für den Film, ",df_temp$Filmtitel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
-              "\nBitte das Programm korrigieren!"))
+              "\nBitte das Programm korrigieren!\n"))
 }
 
 
@@ -803,10 +803,10 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 if(nrow(df_temp)>0){ 
-  warning(paste0("Für den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+  warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
-              "\nBitte im Programm korrigieren!\n\n"
+              "\nBitte im Programm korrigieren!\n"
               )
   )
 }
@@ -817,9 +817,9 @@ df_temp <- df_Abrechnung|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_temp)>0) warning(paste0("Für den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+if(nrow(df_temp)>0) warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
-                                "\nBitte im Programm korrigieren!\n\n"
+                                "\nBitte im Programm korrigieren!\n"
                                 )
 )
 
@@ -832,7 +832,7 @@ df_temp
 if(nrow(df_temp)>0){ 
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im Programm korrigieren!"
+              "\nBitte im Programm korrigieren!\n"
               )
   )
 }
@@ -846,7 +846,7 @@ df_temp
 if(nrow(df_temp)>0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im Programm korrigieren!"
+              "\nBitte im Programm korrigieren!\n"
               )
   )
 }
