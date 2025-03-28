@@ -979,10 +979,10 @@ error_calculate <-  paste0(
 
 # Initialize variables
 # Initialize variables
-calculate_warnings <- character()  # Store warnings
-ausgabe_text <- character()        # Store script output
+calculate_warnings <- ""  # Store warnings
+ausgabe_text <- ""        # Store script output
 startup_error <- FALSE
-error_message <- character()       # Store errors
+error_message <- ""       # Store errors
 
 # Try executing the source file
 tryCatch({
@@ -1015,9 +1015,9 @@ output_text <- if (length(ausgabe_text) > 0) paste(ausgabe_text, collapse = "\n"
 
 # Combine all results
 final_output <- paste(
-  if (error_message != "") error_message else "No Errors.",
-  if (warnings_text != "") warnings_text else "No Warnings.",
-  if (output_text != "") output_text else "No Output.",
+  if (nchar(error_message) > 0) error_message else "No Errors.",
+  if (nchar(warnings_text) > 0) warnings_text else "No Warnings.",
+  if (nchar(output_text) > 0) output_text else "No Output.",
   sep = "\n"
 )
 
