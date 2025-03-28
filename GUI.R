@@ -134,7 +134,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
         Datum == (df_mapping |> filter(index == ii) |> select(Datum) |> pull()),
         Suisanummer == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
       ) |>
-      mutate(Anfang = paste0(lubridate::hour(Anfang),":",lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
+      mutate(Zeit = paste0(lubridate::hour(Zeit),":",lubridate::minute(Zeit) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
              Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
       ) |>
       rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
@@ -1090,11 +1090,11 @@ ui <- function(){
 #     )
 #   )
 # )
-
-# Server-Logik
+ 
+############### Server-Logik ###############
 server <- function(input, output, session) {
   
-  # Überwachung Button Daten Einlesen
+  ##### Überwachung Button Daten Einlesen #####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
     c_time <- Sys.time()
@@ -1138,7 +1138,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Überwachung Button Filmabrechnung(en) erstellen 
+  ##### Überwachung Button Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1218,7 +1218,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Überwachung Button Statistik
+  ##### Überwachung Button Statistik #####
   shiny::observeEvent(input$Statistik, {
     # Execution time 
     c_time <- Sys.time()
@@ -1261,7 +1261,7 @@ server <- function(input, output, session) {
     
   })
   
-  # Überwachung Button Jahresrechnung
+  ##### Überwachung Button Jahresrechnung #####
   shiny::observeEvent(input$Jahresrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1301,7 +1301,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Download Handler Werbung
+  ##### Download Handler Werbung #####
   output$downloadExcel <- downloadHandler(
     filename = function() {
       "Werbung.xlsx"
@@ -1316,7 +1316,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # Überwachung Button Wordpress
+  ##### Überwachung Button Wordpress #####
   shiny::observeEvent(input$wordpress, {
     # Execution time 
     c_time <- Sys.time()
@@ -1356,7 +1356,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Überwachung Button "Alles erstellen"
+  ##### Überwachung Button "Alles erstellen" #####
   shiny::observeEvent(input$ErstelleAbrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1458,7 +1458,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Download Handler Wordpress
+  ##### Download Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
@@ -1476,7 +1476,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # Überwachung Input: Inhaltsverzeichniss
+  ##### Überwachung Input: Inhaltsverzeichniss #####
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1484,7 +1484,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-  # Upload handler
+  ##### Upload handler #####
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
@@ -1599,13 +1599,13 @@ server <- function(input, output, session) {
     }
   })
   
-  # Read selected sheet data
+  ##### Read selected sheet data #####
   selected_data <- shiny::reactive({
     shiny::req(file_data(), input$selected_sheet)
     col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
   })
   
-  # Reder: Update table with all the dates in the selected range
+  ##### Reder: Update table with all the dates in the selected range #####
   output$dateTable <- shiny::renderTable({
     if (exists("data_env")) {
       start_datum <- input$dateRange |> min()
@@ -1613,21 +1613,21 @@ server <- function(input, output, session) {
       
       get("df_Abrechnung", envir = data_env) |>
         filter(between(Datum, start_datum, end_datum)) |>
-        arrange(desc(Datum), desc(Anfang)) |>
+        arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
-               Zeit = format(Anfang, "%H%M")) |>
+               Zeit = format(Zeit, "%H%M")) |>
         select(Datum, Zeit, Filmtitel, Suisanummer)
     }
   })
   
-  # Render: txt file rendering
+  ##### Render: txt file rendering
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
   
-  # Render: dynamic sheet selection UI
+  ##### Render: dynamic sheet selection UI #####
   output$sheet_selector <- shiny::renderUI({
     shiny::req(file_data())
     shiny::selectInput("selected_sheet",
@@ -1635,18 +1635,18 @@ server <- function(input, output, session) {
                        choices = file_data()$sheets)
   })
   
-  # Render: Systemrückmeldungen aktualisieren
+  ##### Render: Systemrückmeldungen aktualisieren #####
   output$ausgabe <- renderText({
     ausgabe_text()
   })
   
-  # Render: selected sheet contents
+  ##### Render: selected sheet contents #####
   output$table_output <- shiny::renderTable({
     shiny::req(selected_data())
     selected_data()
   })
   
-  # Render: Dynamically update the input panel content
+  ##### Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
       # File input handler
@@ -1758,7 +1758,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Render: Dynamically update the output panel content
+  ##### Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       shiny::actionButton("launch_app", "Input Daten editieren"),
@@ -1783,10 +1783,10 @@ server <- function(input, output, session) {
     
   })
   
-  # Store the process in a reactive value
+  ##### Store the process in a reactive value #####
   second_app_process <- reactiveVal(NULL)
   
-  # launch the Dateien editieren App
+  ##### launch the Dateien editieren App #####
   observeEvent(input$launch_app, {
     # Execution time 
     c_time <- Sys.time()
@@ -1818,7 +1818,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # stop input data edit app
+  ##### stop input data edit app #####
   observeEvent(input$stop_app, {
     # Execution time 
     c_time <- Sys.time()
@@ -1840,6 +1840,8 @@ server <- function(input, output, session) {
     })
   }) 
 }
+
+# shiny::shinyApp(ui = ui, server = server)
 
 # Run the app
 shiny::runApp(
