@@ -6,6 +6,9 @@ library(tidyverse)
 
 writeLines("Daten werden einlesen und berechnet...")
 
+# clean
+rm(list = ls())
+
 # load user settings
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
@@ -33,10 +36,12 @@ pw
 tryCatch({
   # Connect to data base 
   con <- DB_connect(pw, "ch367079_flo")
-  # get all data as defined in the template l_data
-  l_data_sql <- DB_get_Data(l_template, con)
+  # get all data as defined in the template l_template
   # Convert data types for each table
-  l_data <- convert_DB_to_R(l_data_sql,l_template)
+  l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
+  # Disconnect from DB
+  dbDisconnect(con)
+  remove(con)
 },error =  function(e){
   stop(e$message)
 })
@@ -45,21 +50,24 @@ tryCatch({
 l_data$Programm <- l_data$Programm|>
   rename(ID_Programm = ID)
 
+Programm <- l_data$Programm
+
 ##### Eintritte aus Advanced Tickets files ##### 
-convert_data_Film_txt <- function(fileName) {
+convert_data_Film_txt <- function(fileName, Programm) {
+  print("convert_data_Film_txt")
   l_Eintritt <- fileName|>
     lapply(function(fileName){
       
-      c_suisa <- str_extract(fileName, DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT)
-      c_datum <- str_extract(fileName, one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))|>
-        lubridate::dmy()
+      # find ID_Program from file name 
+      ID <- str_match(fileName, "ID"%R%optional(SPC)%R%capture(one_or_more(DGT)))[2]|>
+        as.integer()
       
       # read in data
       c_raw <- suppressWarnings(readLines(fileName))
       c_raw
       l_temp <- list()
       
-      # Extract suisa
+      # Extract suisa from file
       p <- or(START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
               START%R%WRD%R%WRD%R%WRD%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) #suisa
       index <- c_raw|>
@@ -69,12 +77,18 @@ convert_data_Film_txt <- function(fileName) {
         str_split("\t")|>
         unlist()
       
-      ii <- 1
+      # Error handling: Suisa from Programm vs Suisa from Programm
+      df_temp <- Programm|>
+        filter(ID_Programm == ID)
+      df_temp$Suisanummer
       
-      if(c_temp[1] != c_suisa) {
-        warning("\nIn der Datei: .../Kinoklub/", fileName, " wurde einen andere Suisanummer gefunden als im Dateinamen angegeben wurde: ", c_temp[1],"\n\n")
+      if(c_temp[1] != df_temp$Suisanummer) {
+        warning("\nIn der Datei: .../Kinoklub/", fileName, 
+                "\nwurde die Suisanummer ",c_suisa," gefunden.","\nIm Program wurde aber die Suisanummer ",df_temp$Suisanummer, " definiert.\n\n")
       }
       
+      # Save Suisa
+      ii <- 1
       l_temp[[ii]] <- c_temp[1]
       names(l_temp)[ii] <- "Suisa"
       ii <- ii+1
@@ -85,7 +99,9 @@ convert_data_Film_txt <- function(fileName) {
       ii <- ii+1
       
       # Extract Datum
-      p <- "\t"%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT #Datum
+      p <- or("\t"%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT, # format 01.01.2025
+              "\t"%R%DGT%R%DGT%R%"/"%R%DGT%R%DGT%R%"/"%R%DGT%R%DGT%R%DGT%R%DGT  # format 01/01/2025
+      ) 
       index <- c_raw|>
         str_detect(p)
       index
@@ -95,8 +111,10 @@ convert_data_Film_txt <- function(fileName) {
         unlist()
       c_temp
       
-      if(dmy(c_temp[2]) != c_datum) {
-        warning("\nIn der Datei: .../Kinoklub/", fileName, " wurde einen anderes Datum gefunden als im Dateinamen angegeben wurde: ", c_temp[2],"\n\n" )
+      if(dmy(c_temp[2]) != df_temp$Datum) {
+        warning("\nIn der Datei: .../Kinoklub/", fileName, 
+                "\nwurde das Datum ",c_temp[2]," gefunden",
+                "\nIm Programm wurde aber das Datum ",df_temp$Datum," definiert\n\n" )
       }
       
       l_temp[[ii]] <- c_temp[2]
@@ -175,161 +193,155 @@ convert_data_Film_txt <- function(fileName) {
   return(l_Eintritt)
 }
 
-##### Extrakt Verkäufe  und Überschuss / Manko #####
-convert_data_kiosk_txt <- function(c_files) {
-  
-  l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
-  l_raw
-  
-  ## extract suisa from file name
-  c_files
-  p <- capture(one_or_more(WRD)%R%DOT%R%one_or_more(WRD))%R%DOT%R%"txt"
-  c_kiosk_suisa <- str_match(c_files, pattern = p)[,2]
-  c_kiosk_suisa
-  
-  ## extract date from file name 
-  c_fileDate  <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)))[,2]
-  c_fileDate
-  
-  # detect Verkaufarikel in string
-  p1 <- or1(paste0(df_verkaufsartikel$`Artikelname-Kassensystem`))
-  
-  # detect Spez Preise 
-  p2 <- or1(paste0("Spez"%R%SPC, 1:4))
-  
-  # Detect Überschuss Manko 
-  p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
-  
-  l_extracted <- list()
-  for (ii in 1:length(l_raw)) {
-    l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
-                                                                                 l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
-    )
-    ),
-    `Überschuss / Manko` = tibble(`Überschuss / Manko` = 
-                                    l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>
-                                    str_extract(p3)|>
-                                    as.numeric()
-    )|>
-      mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`),0, `Überschuss / Manko`)),
-    Suisanummer =  c_kiosk_suisa[ii],
-    Datum = c_fileDate[ii]
-    )
-  }
-  names(l_extracted) <- paste(c_fileDate, c_kiosk_suisa)
-  l_extracted
-  
-  l_Kiosk <- l_extracted |>
-    lapply(function(x) {
-      y <- x[["Verkaufsartikel"]]$Verkaufartikel_string |>
-        str_split(pattern = "\t", simplify = T)
-      # y <- cbind(y, x[["Suisanummer"]])
-      return(y)
-    })
-  l_Kiosk
-  
-  c_suisanummer <- l_extracted |>
-    lapply(function(x) {
-      x[["Suisanummer"]]
-    })|>
-    unlist()
-  c_suisanummer
-  
-  # Wie viele Spalten
-  c_lenght <- l_Kiosk|>
-    lapply(ncol)|>
-    unlist()
-  c_lenght
-  
-  ii <- 1
-  for (ii in 1:length(l_Kiosk)) {
-    if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
-      l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
-      x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
-        apply(2, as.numeric)
-      colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+##### Extrakt Kioskverkauf und Überschuss / Manko #####
+convert_data_kiosk_txt <- function(fileName, Programm) {
+  l_temp <- fileName|>
+    lapply(function(fileName){
+      c_raw <- suppressWarnings(readLines(fileName))
       
-      x <- x|>
-        as_tibble()|>
-        mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
-        select(-Korrektur)
-      
-      l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii],
-                                                                                Datum = c_fileDate[ii]
-                                                                                ))
-      
-    }else if(c_lenght[ii] == 5){ # keine Korrekturbuchungen
-      l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:3,5)]
-      x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
-        apply(2, as.numeric)
-      colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
-      
-      l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii],
-                                                                                Datum = c_fileDate[ii]
-                                                                                ))
-    }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
-      l_Kiosk[[ii]] <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
-                              Einzelpreis = 0,
-                              Anzahl = 0,
-                              Betrag = 0,
-                              Suisanummer = c_suisanummer[ii]
-                              
-      )
-    } else {
-      stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
-                  "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
-    }
-  }
-  l_Kiosk
+      # find ID_Program from file name 
+      ID <- str_match(fileName, "ID"%R%optional(SPC)%R%capture(one_or_more(DGT)))[2]|>
+        as.integer()
 
-  # Data returned by function
-  l_return <- list()
-  l_return[["df_Kiosk"]] <- l_Kiosk|>
-    bind_rows()|>
-    mutate(Datum = dmy(Datum),
-           Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
-           Betrag = if_else(Anzahl == 0, 0, Betrag))
-  
-  # Extrakt Überschuss / Manko
-  l_return[["Überschuss / Manko"]] <- l_extracted |>
-    lapply(function(x) {
-      cbind(x[["Überschuss / Manko"]],
-            tibble(Datum = x[["Datum"]],
-                   Suisanummer = x[["Suisanummer"]]
-                   )
+      # find ID_Program 
+      df_temp <- Programm|>
+        filter(ID_Programm == ID)
+      
+      # Extract Datum from file 
+      p <- or(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT, # format 01.01.2025
+              DGT%R%DGT%R%"/"%R%DGT%R%DGT%R%"/"%R%DGT%R%DGT%R%DGT%R%DGT  # format 01/01/2025
+      ) 
+      index <- c_raw|>
+        str_detect(p)
+      index
+      
+      c_fileDate <- c_raw[index]|>
+        str_split("\t")|>
+        unlist()|>
+        dmy()
+      c_fileDate
+      
+      if(c_fileDate != df_temp$Datum) {
+        warning("\nIn der Datei: .../Kinoklub/", fileName, 
+                "\nwurde das Datum ",c_fileDate," gefunden",
+                "\nIm Programm wurde aber das Datum ",df_temp$Datum," definiert\n\n" )
+      }
+      
+      # detect Verkaufarikel in string
+      p1 <- or1(paste0(df_verkaufsartikel$`Artikelname-Kassensystem`))
+      
+      # detect Spez Preise 
+      p2 <- or1(paste0("Spez"%R%SPC, 1:4))
+      
+      # Detect Überschuss Manko 
+      p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
+
+      # create list to store data 
+      ii <- 1L
+      l_extracted <- list()
+      
+      # get all lines with Verkauf
+      l_extracted[[ii]] <-
+        list(Verkaufsartikel =
+               tibble(Verkaufartikel_string = c(c_raw[str_detect(c_raw, p1)], ## Arikel erfasst in Kassasystem
+                                                c_raw[str_detect(c_raw, p2)]  ## Spez Arikel
+                                                )
+                      )
+             )
+      # Extract Überschuss Manko der Kasse 
+      ii <- ii + 1L
+      l_extracted[[ii]] <- 
+        list(
+          `Überschuss / Manko` = 
+          tibble(`Überschuss / Manko` = 
+                   c_raw[str_detect(c_raw, "Manko")]|>
+                   str_extract(p3)|>
+                   as.numeric()
+                 )|>
+          mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`), 0, `Überschuss / Manko`))
+          )
+      # ID_Programm
+      ii <- ii + 1L
+      l_extracted[[ii]] <- 
+        list(ID_Programm =  ID)
+      
+      # File date 
+      ii <- ii + 1L
+      l_extracted[[ii]] <- 
+        list(Datum = c_fileDate[ii])
+
+      # extract Verkauf
+      m_Kiosk <- 
+        l_extracted[[1]][["Verkaufsartikel"]]$Verkaufartikel_string |>
+        str_split(pattern = "\t", simplify = T)
+      m_Kiosk
+      
+      c_suisanummer <- l_extracted |>
+        lapply(function(x) {
+          x[["Suisanummer"]]
+        })|>
+        unlist()
+      c_suisanummer
+      
+      # Wie viele Spalten
+      c_lenght <- ncol(m_Kiosk)
+      c_lenght
+      
+      # extract according to nrow(m_Kiosk), not all files have the same number of columns
+      if(c_lenght == 7){ # mit Korrekturbuchungen
+        m_Kiosk <- m_Kiosk[,c(1:2,4:5,7)]
+        x <- m_Kiosk[,2:ncol(m_Kiosk)]|>
+          apply(2, as.numeric)
+        colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+        
+        x <- x|>
+          as_tibble()|>
+          mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
+          select(-Korrektur)
+        
+        m_Kiosk <- 
+          bind_cols(
+            Verkaufsartikel = m_Kiosk[,1], x, 
+            tibble(Datum = c_fileDate)
             )
-    })|>
-    bind_rows()|>
-    as_tibble()|>
-    mutate(Datum = lubridate::dmy(Datum))
-  
-  
-  # Error handling, compare filename date and date in file 
-  p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-  
-  file_datum <- l_raw|>
-    lapply( function(x){
-      temp <- str_extract(x,p1)  
-      temp[!is.na(temp)]
-    })|>
-    unlist()|>
-    dmy()
-  
-  file_datum
-  
-  c_test <- dmy(c_fileDate)%in%file_datum
-  c_test
-  
-  if(length(c_test)>sum(c_test)){
-    warning(  
-      paste0("\nFür das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], 
-             " stimmt das Datum im Dateinamen nicht überein mit dem Datum das im File gefunden wurde.\n\n")|>
-        paste0(collapse = "\n")|>
-        writeLines()
-    )
-  }
-  
-  return(l_return)
+        
+      }else if(c_lenght == 5){ # keine Korrekturbuchungen
+        m_Kiosk <- m_Kiosk[,c(1:3,5)]
+        x <- m_Kiosk[,2:ncol(m_Kiosk)]|>
+          apply(2, as.numeric)
+        colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
+        
+        m_Kiosk <- 
+          bind_cols(
+            Verkaufsartikel = m_Kiosk[,1], x, 
+            tibble(Datum = c_fileDate)
+            )
+      }else if(c_lenght == 0){ # Keine Kioskverkäufe
+        m_Kiosk <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
+                          Einzelpreis = 0,
+                          Anzahl = 0,                                
+                          Betrag = 0,
+                          Datum = c_fileDate
+                          )
+      } else {
+        stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(m_Kiosk)[ii],".txt", 
+                    "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
+      }
+
+      m_Kiosk
+
+      # Data returned by function
+      l_return <- list()
+      l_return[["df_Kiosk"]] <- m_Kiosk|>
+        mutate(Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+               Betrag = if_else(Anzahl == 0, 0, Betrag))
+      
+      # Extrakt Überschuss / Manko
+      l_return[["Überschuss / Manko"]] <- l_extracted[[2]]$`Überschuss / Manko`
+      return(l_return)
+    })
+  names(l_temp) <- fileName
+  return(l_temp)
 }
 
 ################## Einnahmen und Ausgaben einlesen ##################
@@ -466,10 +478,11 @@ if(is_empty(c_files)) {
               "\nBitte herunterladen ","<https://www.advance-ticket.ch/decomptefilms?lang=de> und abspeichern:",
               "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"\n\n")
        )
-  }
+}
+
 # read and convert Eintritte
 tryCatch({
-  l_Eintritt <- convert_data_Film_txt(c_files)
+  l_temp <- convert_data_Film_txt(c_files, l_data$Programm)
 }, error = function(e) {
   stop(
     paste0(
@@ -481,7 +494,7 @@ tryCatch({
 
 
 # create data frame
-df_Eintritt <- l_Eintritt|>
+df_Eintritt <- l_temp|>
   bind_rows()|>
   mutate(Verkaufspreis = Preis ,
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
@@ -524,35 +537,8 @@ c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = T
 c_files
 
 # Extrakt Verkäufe  und Überschuss / Manko
-
-# calculate_warnings <- ""
-# ausgabe_text <- ""
-# tryCatch({
-#   # Fehler abfangen
-#   ausgabe_text <<- capture.output({
-#     withCallingHandlers(
-#       {
-#         l_temp <- convert_data_kiosk_txt(c_files)
-#       },
-#       warning = function(w) {
-#         # Capture warnings and store them in calculate_warnings
-#         calculate_warnings <<- w$message
-#         invokeRestart("muffleWarning")  # Suppress the warning from being printed
-#       }
-#     )
-#   }, type = "message")
-# }, error = function(e) {
-#   stop(
-#     paste0(
-#       ausgabe_text,
-#       "Error: ", e$message,
-#       "Warning",calculate_warnings,
-#       collapse = "\n"
-#     ))
-# })
-
 tryCatch({
-  l_temp <- convert_data_kiosk_txt(c_files)
+  l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm)
 }, error = function(e) {
   stop(
     paste0(
@@ -561,21 +547,26 @@ tryCatch({
     ))
 })
 
-df_Kiosk <- l_temp$df_Kiosk
+df_Kiosk <- l_temp|>
+  lapply(function(x){
+    x$df_Kiosk
+  })|>
+  bind_rows(.id = "ID_Programm")|>
+  mutate(ID_Programm = str_extract(ID_Programm, one_or_more(DGT))|>
+           as.integer()
+         )
+df_Kiosk
 
 # Manko und Überschuss Kiosk 
-df_manko_uerberschuss <- l_temp$`Überschuss / Manko`|>
-  left_join(
-    l_data$Programm|>select(1:6, -`Link ID`),
-    by = join_by(Datum, Suisanummer)
+df_manko_uerberschuss <- l_temp|>
+  lapply(function(x){
+    x$`Überschuss / Manko`
+  })|>
+  bind_rows(.id = "ID_Programm")|>
+  mutate(ID_Programm = str_extract(ID_Programm, one_or_more(DGT))|>
+           as.integer()
   )
 df_manko_uerberschuss
-
-if(sum(is.na(df_manko_uerberschuss$ID_Programm)) > 0){
-  df_temp <- df_manko_uerberschuss|>
-    filter(is.na(ID_Programm))
-  warning("\nFür den Film ", df_temp$Suisanummer, " \"Manko /Übeschuss\" gibt es keine Programm eintrag.\n Bitte Programm korrigieren!\n\n")
-}
 
 df_Kiosk <- df_Kiosk|>
   rename("Artikel-Kassensystem" = Verkaufsartikel)
@@ -672,9 +663,9 @@ df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>
 
 
 # Join Einkaufspreise 
-l_Kiosk <- list()
+m_Kiosk <- list()
 for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
-  l_Kiosk[[ii]] <- df_Kiosk|>
+  m_Kiosk[[ii]] <- df_Kiosk|>
     filter(Datum == df_Mapping_Einkaufspreise$Datum[ii])|>
     left_join(df_Einkaufspreise|>
                 # select(-ID)|>
@@ -683,9 +674,9 @@ for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
               by = c(Verkaufsartikel = "Artikelname-Kassensystem")
     )
 }
-l_Kiosk
+m_Kiosk
 
-df_Kiosk <- l_Kiosk|>
+df_Kiosk <- m_Kiosk|>
   bind_rows()
 df_Kiosk
 
@@ -725,7 +716,7 @@ if(sum(is.na(df_Kiosk$ID_Programm)) > 0){
 
 
 # remove no more needed variables
-remove(df_Mapping_Einkaufspreise,l_Kiosk, 
+remove(df_Mapping_Einkaufspreise,m_Kiosk, 
        df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
        ii,
@@ -974,7 +965,7 @@ for (ii in df_Film$Suisanummer) {
     }
   }
 }
-
+remove(df_Film)
 
 ##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
 
@@ -1025,7 +1016,7 @@ warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n\n"))
 
 
-####################################  Gemeinsame Abrechnung erstellen #################################### 
+####################################  Abrechnung erstellen #################################### 
 df_mapping <- l_data$Programm|>
   distinct(ID_Programm, .keep_all = T)|>
   select(1:5)|>
@@ -1033,51 +1024,46 @@ df_mapping <- l_data$Programm|>
   filter(Datum < Sys.Date())
 df_mapping
 
-# find all connected Filmvorführungen from Programm and remove all already connected to any gemeinsam abgerechnte
+# find all connected Filmvorführungen from Programm and remove all already connected 
 l_abrechnung <- inspect_link_ids(df_mapping)|>
   nullify_used_entries()
 l_abrechnung
 
 cnt <- 1
-ID <- "6"
+ID <- "1"
 for (ID in names(l_abrechnung)) {
-  IDs <- l_abrechnung[[ID]]
-  df_temp <- df_Abrechnung|>
-    filter(ID_Programm %in% IDs)|>
-    group_by(ID_Programm)|>
-    reframe(`Umsatz [CHF]`= sum(Umsatz),
-            `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
-    )
-  df_temp
   
-  # Sind die Eintritte daten für jede Filmvorführung vorhanden?
-  if(nrow(df_temp) !=  nrow(l_data$Programm|>filter(ID_Programm %in% IDs))){
-    temp <- l_data$Programm|>
-      filter(ID_Programm %in% IDs)
-    temp <- temp|>
-      filter(!(temp$ID_Programm %in% df_temp$ID_Programm))
-    warning(paste("\nFür den Film ", temp$Suisanummer[1], temp$Filmtitel[1], "gibt es keine Eintritte. ",
-                  # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
-                  "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
-    next
-  }
+  # Programm ID`s for the actual Abrechnung 
+  IDs <- l_abrechnung[[ID]]
   
   # Umsatzverteilprodukt berechnen für die gemeinsame Abrechnung
   df_Verteilprodukt <- df_Abrechnung|>
     filter(ID_Programm %in% IDs)|>
     group_by(ID_Programm)|>
-    reframe(`Umsatz [CHF]`= sum(Umsatz),
+    reframe(`Umsatz [CHF]`= sum(`Umsatz`),
             `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
-            )|>
+    )|>
     mutate(Verteilprodukt_1 = `Umsatz [CHF]` / sum(`Umsatz [CHF]`),
            Verteilprodukt_2 = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`)
-           )|>
+    )|>
     left_join(l_data$Programm|>select(1:6)|>select(-`Link ID`),
               by = join_by(ID_Programm)
-              )
+    )
   df_Verteilprodukt
   
-  # Eintritte
+  # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden?
+  if(nrow(df_Verteilprodukt) !=  nrow(l_data$Programm|>filter(ID_Programm %in% IDs))){
+    df_temp <- l_data$Programm|>
+      filter(ID_Programm %in% IDs)
+    df_temp <- df_temp|>
+      filter(!(df_temp$ID_Programm %in% df_Verteilprodukt$ID_Programm))
+    warning(paste("\nFür den Film ", df_temp$Suisanummer[1], df_temp$Filmtitel[1], "gibt es keine Eintritte. ",
+                  # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
+                  "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
+    next
+  }
+  
+  # Eintritte 
   df_Eintritte <- df_Abrechnung|>
     filter(ID_Programm %in% IDs)
   df_Eintritte
@@ -1107,12 +1093,13 @@ for (ID in names(l_abrechnung)) {
   Abrechnung <- 
     bind_cols(Abrechnung,
               `SUISA-Vorabzug [%]` = df_Eintritt$`SUISA-Vorabzug`[1])
-
+  Abrechnung
   Abrechnung$`Kinoförderer gratis?`
   Abrechnung$`SUISA-Vorabzug [%]`  
-  Abrechnung$`Umsatz für Netto3 [CHF]`
   Abrechnung$`Umsatz [CHF]`
+  Abrechnung$`Umsatz für Netto3 [CHF]`
   
+  # Verteilprodukt for the actual ID_Programm
   df_temp <- df_Verteilprodukt|>
     filter(ID_Programm == as.integer(ID))
   df_temp
@@ -1188,6 +1175,7 @@ for (ID in names(l_abrechnung)) {
                      `Umsatz [CHF]` - ((`SUISA-Vorabzug [CHF]` + `Verleiherrechnungsbetrag [CHF]`) * Verteilprodukt))
            )
   Abrechnung
+  Abrechnung$`Gewinn/Verlust Tickets [CHF]`
   
   # Verteilen der Eventeinnahmen
   df_Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
@@ -1211,7 +1199,8 @@ for (ID in names(l_abrechnung)) {
             Gewinn = sum(Gewinn, na.rm = T))
   df_KioskGewinn
   
-  # Update results 
+  # Results 
+  
   l_abrechnung[[ID]] <- list(
     Eintritte = df_Eintritt|>
       filter(ID_Programm == as.integer(ID))|>
@@ -1228,14 +1217,15 @@ for (ID in names(l_abrechnung)) {
       filter(ID_Programm == as.integer(ID))|>
       select(`Überschuss / Manko`)|>
       pull()
-    )
+  )
   
   l_abrechnung[[ID]] <-
     list(Eintritte = df_Eintritt|>
-           filter(ID_Programm == as.integer(ID))|>
+           filter(ID_Programm %in% IDs)|> # Die Eintritte werden gemeinsam abgerechnet
            select(-`SUISA-Vorabzug`),
          Kiosk = df_Kiosk|>
-           filter(ID_Programm %in% IDs),
+           filter(ID_Programm == as.character(ID))|> # Kioskeinnahmen 
+           arrange((ID_Programm)),
          Verteilprodukt = df_Verteilprodukt,
          Abrechnung = Abrechnung,
          `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
@@ -1252,11 +1242,12 @@ for (ID in names(l_abrechnung)) {
               sum(l_abrechnung[[ID]]$`Eventausgaben [CHF]`))
          )
 }
-remove(df_Verteilprodukt, df_Film, df_KioskGewinn, temp, l_data_sql, df_mapping, df_Eintritte, df_temp)
+remove(df_Verteilprodukt, df_Einnahmen, Abrechnung, df_KioskGewinn, df_mapping, df_Eintritte, df_temp)
 
 l_abrechnung
 warnings()
 length(l_abrechnung)
+
 l_abrechnung[["1"]]
 l_abrechnung[["2"]]
 l_abrechnung[["3"]]

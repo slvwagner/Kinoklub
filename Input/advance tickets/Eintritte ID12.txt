@@ -1,0 +1,35 @@
+
+KW 2025-06
+
+06.02.2025
+
+12.02.2025
+
+
+AtelierKino
+
+AtelierKino OV/d Der Vierer
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+DCM Film Distribution
+Kreuzstrasse 2
+8008	Zürich
+1020.652	DER VIERER
+OV/d	AtelierKino - Reinach
+1. Woche von 06.02.2025 bis 12.02.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Fr	07.02.2025	1	10	1	154.00
+Gesamt	1	10	1	154.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	8	128.00
+Ermässigt	13.00	0.0000	2	26.00
+Kinoklub-Mitglieder	0.00	0.0000	1	0.00
+Gesamt	11	154.00
+Brutto	154.00
+Tax	-0.00
+Netto 1	154.00
+Netto 0.00%	-0.00
+Netto 2	154.00
+1.48% SUISA-Vorabzug	-2.28
+Netto 3	151.72

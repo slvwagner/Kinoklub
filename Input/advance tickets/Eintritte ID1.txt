@@ -1,0 +1,37 @@
+
+KW 2025-02
+
+09.01.2025
+
+15.01.2025
+
+
+AtelierKino
+
+AtelierKino OV Typisch Emil
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Filmcoopi Zürich AG
+Postfach 1366
+8031	Zürich
+1020.828	TYPISCH EMIL
+OV	AtelierKino - Reinach
+1. Woche von 09.01.2025 bis 15.01.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Fr	10.01.2025	1	22	4	286.00
+Gesamt	1	22	4	286.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	13	208.00
+Ermässigt	13.00	0.0000	6	78.00
+Kinofördererkarte	0.00	0.0000	3	0.00
+Kinoklub-Mitglieder	0.00	0.0000	2	0.00
+Mitarbeiter*in	0.00	0.0000	2	0.00
+Gesamt	26	286.00
+Brutto	286.00
+Tax	-0.00
+Netto 1	286.00
+Netto 0.00%	-0.00
+Netto 2	286.00
+1.48% SUISA-Vorabzug	-4.23
+Netto 3	281.77
