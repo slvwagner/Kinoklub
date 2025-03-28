@@ -45,7 +45,7 @@ tryCatch({
 l_data$Programm <- l_data$Programm|>
   rename(ID_Programm = ID)
 
-# Eintritte aus Advanced Tickets files
+##### Eintritte aus Advanced Tickets files ##### 
 convert_data_Film_txt <- function(fileName) {
   l_Eintritt <- fileName|>
     lapply(function(fileName){
@@ -72,7 +72,7 @@ convert_data_Film_txt <- function(fileName) {
       ii <- 1
       
       if(c_temp[1] != c_suisa) {
-        warning("In der Datei: .../Kinoklub/", fileName, " wurde einen andere Suisanummer gefunden als im Dateinamen angegeben wurde: ", c_temp[1])
+        warning("\nIn der Datei: .../Kinoklub/", fileName, " wurde einen andere Suisanummer gefunden als im Dateinamen angegeben wurde: ", c_temp[1],"\n\n")
       }
       
       l_temp[[ii]] <- c_temp[1]
@@ -96,7 +96,7 @@ convert_data_Film_txt <- function(fileName) {
       c_temp
       
       if(dmy(c_temp[2]) != c_datum) {
-        warning("In der Datei: .../Kinoklub/", fileName, " wurde einen anderes Datum gefunden als im Dateinamen angegeben wurde: ", c_temp[2] )
+        warning("\nIn der Datei: .../Kinoklub/", fileName, " wurde einen anderes Datum gefunden als im Dateinamen angegeben wurde: ", c_temp[2],"\n\n" )
       }
       
       l_temp[[ii]] <- c_temp[2]
@@ -175,7 +175,7 @@ convert_data_Film_txt <- function(fileName) {
   return(l_Eintritt)
 }
 
-# Extrakt Verkäufe  und Überschuss / Manko
+##### Extrakt Verkäufe  und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(c_files) {
   
   l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
@@ -321,8 +321,9 @@ convert_data_kiosk_txt <- function(c_files) {
   c_test
   
   if(length(c_test)>sum(c_test)){
-    stop(  
-      paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum im Dateinamen nicht mit dem Datum welches im File gefunden wurde überein.")|>
+    warning(  
+      paste0("\nFür das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], 
+             " stimmt das Datum im Dateinamen nicht überein mit dem Datum das im File gefunden wurde.\n\n")|>
         paste0(collapse = "\n")|>
         writeLines()
     )
@@ -356,12 +357,16 @@ df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-                   "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
-                   "\n",df_temp$Kategorie[ii],
-                   "\t\t", df_temp$Spieldatum[ii], 
-                   "\t\t", df_temp$Suisanummer[ii], 
-                   "\t\t", df_temp$Bezeichnung[ii])))
+    warning(
+      paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
+            "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
+            "\n",df_temp$Kategorie[ii],
+            "\t\t", df_temp$Spieldatum[ii], 
+            "\t\t", df_temp$Suisanummer[ii], 
+            "\t\t", df_temp$Bezeichnung[ii],
+            "\n\n"
+            )
+      )
   }
 }
 
@@ -373,12 +378,17 @@ df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-                   "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
-                   "\n",df_temp$Kategorie[ii],
-                   "\t\t", df_temp$Spieldatum[ii], 
-                   "\t\t", df_temp$Suisanummer[ii], 
-                   "\t\t", df_temp$Bezeichnung[ii])))
+    warning(
+      paste(
+        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
+        "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
+        "\n",df_temp$Kategorie[ii],
+        "\t\t", df_temp$Spieldatum[ii], 
+        "\t\t", df_temp$Suisanummer[ii], 
+        "\t\t", df_temp$Bezeichnung[ii],
+        "\n\n"
+        )
+      )
   }
 }
 
@@ -390,12 +400,17 @@ df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-                   "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
-                   "\n",df_temp$Kategorie[ii],
-                   "\t\t", df_temp$Spieldatum[ii], 
-                   "\t\t", df_temp$Suisanummer[ii], 
-                   "\t\t", df_temp$Bezeichnung[ii])))
+    warning((
+      paste(
+        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
+        "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
+        "\n", df_temp$Kategorie[ii],
+        "\t\t", df_temp$Spieldatum[ii],
+        "\t\t",df_temp$Suisanummer[ii],
+        "\t\t", df_temp$Bezeichnung[ii],
+        "\n\n"
+      )
+    ))
   }
 }
 
@@ -407,12 +422,17 @@ df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
 
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-                   "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
-                   "\n",df_temp$Kategorie[ii],
-                   "\t\t", df_temp$Spieldatum[ii], 
-                   "\t\t", df_temp$Suisanummer[ii], 
-                   "\t\t", df_temp$Bezeichnung[ii])))
+    warning(
+      paste(
+        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
+        "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
+        "\n",df_temp$Kategorie[ii],
+        "\t\t", df_temp$Spieldatum[ii], 
+        "\t\t", df_temp$Suisanummer[ii], 
+        "\t\t", df_temp$Bezeichnung[ii],
+        "\n\n"
+        )
+      )
   }
 }
 
@@ -444,13 +464,10 @@ c_files <- list.files(pattern = "Eintritte", recursive = T)
 if(is_empty(c_files)) {
   stop(paste0("\nEs gibt keinen Dateien im Verzeichniss: \".../Kinoklub/Input/advance tickets\"",
               "\nBitte herunterladen ","<https://www.advance-ticket.ch/decomptefilms?lang=de> und abspeichern:",
-              "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"")
+              "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"\n\n")
        )
   }
 # read and convert Eintritte
-l_Eintritt <- convert_data_Film_txt(c_files)
-l_Eintritt
-
 tryCatch({
   l_Eintritt <- convert_data_Film_txt(c_files)
 }, error = function(e) {
@@ -494,7 +511,7 @@ c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 c_file
 
 # error handling
-if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
+if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de\n\n")
 
 df_verkaufsartikel <- l_data$`Einkauf Kiosk`
 df_verkaufsartikel
@@ -507,19 +524,44 @@ c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = T
 c_files
 
 # Extrakt Verkäufe  und Überschuss / Manko
+
+# calculate_warnings <- ""
+# ausgabe_text <- ""
+# tryCatch({
+#   # Fehler abfangen
+#   ausgabe_text <<- capture.output({
+#     withCallingHandlers(
+#       {
+#         l_temp <- convert_data_kiosk_txt(c_files)
+#       },
+#       warning = function(w) {
+#         # Capture warnings and store them in calculate_warnings
+#         calculate_warnings <<- w$message
+#         invokeRestart("muffleWarning")  # Suppress the warning from being printed
+#       }
+#     )
+#   }, type = "message")
+# }, error = function(e) {
+#   stop(
+#     paste0(
+#       ausgabe_text,
+#       "Error: ", e$message,
+#       "Warning",calculate_warnings,
+#       collapse = "\n"
+#     ))
+# })
+
 tryCatch({
   l_temp <- convert_data_kiosk_txt(c_files)
 }, error = function(e) {
   stop(
     paste0(
-      "\nFehler in der Funktion convert_data_kiosk_txt(). \nBitte Fehler der Entwicklung melden!\n",
-      e$message
-    )
-  )
+      "Error: ", e$message,
+      collapse = "\n"
+    ))
 })
 
 df_Kiosk <- l_temp$df_Kiosk
-
 
 # Manko und Überschuss Kiosk 
 df_manko_uerberschuss <- l_temp$`Überschuss / Manko`|>
@@ -532,7 +574,7 @@ df_manko_uerberschuss
 if(sum(is.na(df_manko_uerberschuss$ID_Programm)) > 0){
   df_temp <- df_manko_uerberschuss|>
     filter(is.na(ID_Programm))
-  warning("\nFür den Film ", df_temp$Suisanummer, " \"Manko /Übeschuss\" gibt es keine Programm eintrag.\n Bitte Programm korrigieren!\n")
+  warning("\nFür den Film ", df_temp$Suisanummer, " \"Manko /Übeschuss\" gibt es keine Programm eintrag.\n Bitte Programm korrigieren!\n\n")
 }
 
 df_Kiosk <- df_Kiosk|>
@@ -545,7 +587,7 @@ Spezialpreisekiosk <- l_data$Spezialpreisekiosk
 Spezialpreisekiosk
 
 # error handling
-if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern in Spezialpreisekiosk definiert. \nBitte korrigieren!")
+if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern in Spezialpreisekiosk definiert. \nBitte korrigieren!\n\n")
 
 # error handling
 # Sind alle Spezialpreise pro Datum und Suisanummer definiert?  
@@ -570,7 +612,7 @@ if(nrow(df_spez_preis_na) > 0) {
       "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum),
       " / ", df_spez_preis_na$Suisanummer,
       "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
-      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
+      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n\n"
     )
   )
 }
@@ -702,7 +744,7 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
     select(Datum)
   
   warning(paste0("\nEs fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
-              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de\n"
+              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de\n\n"
   )
   )
 }else if(df_Kiosk|>distinct(Datum)|>nrow() < df_Eintritt|>distinct(Datum)|>nrow()){
@@ -711,7 +753,7 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
     select(1:3)
   warning(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n", 
               df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
-              "\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de\n"
+              "\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de\n\n"
   ))
 }
 remove(n_kiosk, n_Film)
@@ -719,7 +761,7 @@ remove(n_kiosk, n_Film)
 ######### Abos und Kinogutscheine ######### 
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
   warning(paste0("\nDie Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
-       "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
+       "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n\n"))
   }
 atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
                               delim = "\t", escape_double = FALSE, 
@@ -731,7 +773,7 @@ atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
 
 if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
   warning(paste("\nDie Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
-         "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
+         "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n\n"))
   }
 atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -743,7 +785,7 @@ atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer
 
 if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) {
   warning(paste("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.",
-             "\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de"))
+             "\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de\n\n"))
   }
 atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -774,7 +816,7 @@ df_temp <- df_temp|>
 
 if(nrow(df_temp)>0){
   warning(paste0("\nEs gibt keinen Verleiher für den Film, ",df_temp$Filmtitel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
-              "\nBitte das Programm korrigieren!\n"))
+              "\nBitte das Programm korrigieren!\n\n"))
 }
 
 
@@ -810,7 +852,7 @@ df_temp <- df_Abrechnung|>
 if(nrow(df_temp) > 0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                  " wurde kein Programm eintrag gefunden.",
-                 "\nBitte im Programm korrigieren!"
+                 "\nBitte im Programm korrigieren!\n\n"
                  )
           )
 }
@@ -826,7 +868,7 @@ if(nrow(df_temp)>0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
-              "\nBitte im Programm korrigieren!\n"
+              "\nBitte im Programm korrigieren!\n\n"
               )
   )
 }
@@ -839,7 +881,7 @@ df_temp
 
 if(nrow(df_temp)>0) warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
-                                "\nBitte im Programm korrigieren!\n"
+                                "\nBitte im Programm korrigieren!\n\n"
                                 )
 )
 
@@ -852,7 +894,7 @@ df_temp
 if(nrow(df_temp)>0){ 
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein Prozentualer und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im Programm korrigieren!\n"
+              "\nBitte im Programm korrigieren!\n\n"
               )
   )
 }
@@ -866,7 +908,7 @@ df_temp
 if(nrow(df_temp)>0){
   warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               "\nwurde ein minimal Abzug und ein Fixer Abzug definiert, nur eine Definition ist möglich!",
-              "\nBitte im Programm korrigieren!\n"
+              "\nBitte im Programm korrigieren!\n\n"
               )
   )
 }
@@ -891,7 +933,7 @@ df_temp <- df_Abrechnung|>
 if(nrow(df_temp) > 0) {
   warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                  "\nist der Verleiherrechnungsbetrag kleiner als die Mindestgarantie.",
-                 "\nBitte im Programm korrigieren!\n"
+                 "\nBitte im Programm korrigieren!\n\n"
   )
   )  
 }
@@ -977,7 +1019,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("Achtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
+warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                "\nmit der Suisanummer ", df_temp$Suisanummer,
                " gibt es keine Verleiherrechnung.",
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n\n"))
@@ -1014,7 +1056,7 @@ for (ID in names(l_abrechnung)) {
       filter(ID_Programm %in% IDs)
     temp <- temp|>
       filter(!(temp$ID_Programm %in% df_temp$ID_Programm))
-    warning(paste("Für den Film ", temp$Suisanummer[1], temp$Filmtitel[1], "gibt es keine Eintritte. ",
+    warning(paste("\nFür den Film ", temp$Suisanummer[1], temp$Filmtitel[1], "gibt es keine Eintritte. ",
                   # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
                   "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
     next
