@@ -13,18 +13,21 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-l_data
+# update template 
+l_template <- l_data|>
+  lapply(function(df){
+    df|>
+      slice(1)
+  })
 
-# # update template
-# l_template <- readRDS("source/SQL/template.Rds")
-# l_template$Spezialpreise <- l_template$Spezialpreise|>
-#   mutate(ID_Programm = 1L,
-#          Datum = NULL, 
-#          Suisanummer = NULL
-#         )|>
-#   select(ID, ID_Programm, Spezialpreis, Artikelname)
-# saveRDS(l_template, "source/SQL/template.Rds")
-# 
+# read template 
+l_template <- saveRDS(l_template, "source/SQL/template.Rds")
+
+# Data base user password from system variables 
+pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+# Data base user 
+user <- "ch367079_flo"
+
 # # update data
 # l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
 #   mutate(ID_Programm = 1L,
