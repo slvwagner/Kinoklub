@@ -451,6 +451,18 @@ if(is_empty(c_files)) {
 l_Eintritt <- convert_data_Film_txt(c_files)
 l_Eintritt
 
+tryCatch({
+  l_Eintritt <- convert_data_Film_txt(c_files)
+}, error = function(e) {
+  stop(
+    paste0(
+      "\nFehler in der Funktion convert_data_Film_txt(). \nBitte Fehler der Entwicklung melden!\n",
+      e$message
+    )
+  )
+})
+
+
 # create data frame
 df_Eintritt <- l_Eintritt|>
   bind_rows()|>
@@ -495,8 +507,16 @@ c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = T
 c_files
 
 # Extrakt Verkäufe  und Überschuss / Manko
-l_temp <- convert_data_kiosk_txt(c_files)
-l_temp
+tryCatch({
+  l_temp <- convert_data_kiosk_txt(c_files)
+}, error = function(e) {
+  stop(
+    paste0(
+      "\nFehler in der Funktion convert_data_kiosk_txt(). \nBitte Fehler der Entwicklung melden!\n",
+      e$message
+    )
+  )
+})
 
 df_Kiosk <- l_temp$df_Kiosk
 
