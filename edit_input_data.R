@@ -15,7 +15,7 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# fuction to update all drop down menus choices 
+#### fuction to update all drop down menus choices ####
 update_choices <- function(l_data) {
   # Mitgliederauswahl für die Einsatzplanung
   Verantwortlich <- l_data$Kinoklubmitglieder|>
@@ -68,7 +68,7 @@ update_choices <- function(l_data) {
   )
 }
 
-# Floating tool box function 
+#### Floating tool box function ####
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
       tags$div(
@@ -135,14 +135,14 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
   }
 }
 
-# Regex validation function for Suisanummer
+#### Regex validation function for Suisanummer ####
 validate_suisanummer <- function(input) {
   p <- "^\\d{4}\\.\\d{3}$"
   grepl(p, input)
 }
 validate_suisanummer(c("1234.562","123.25"))
 
-# factor handling Einsatzplan 
+#### factor handling Einsatzplan ####
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(df_temp|>
@@ -165,7 +165,7 @@ convert_Einsatzplan <- function(df_temp, convert_to){
   }
 }
 
-# factor handling Programm 
+#### factor handling Programm ####
 convert_Programm <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(
@@ -181,7 +181,7 @@ convert_Programm <- function(df_temp, convert_to){
   }
 }
 
-# Update Einsatzpan 
+#### Update Einsatzpan ####
 Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
   # If the Programm changes Einsatzplan must be updated too
   if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
@@ -322,7 +322,7 @@ DB_con <- reactiveVal(NULL)
 # System messages 
 sys_msg <- reactiveVal("")
 
-###################### server logic #############################
+###################### server logic for shiny app #############################
 server <- function(input, output, session) {
   
   #### Data set type selection ####
