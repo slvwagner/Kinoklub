@@ -30,8 +30,10 @@ source("source/SQL/SQL_Functions.R")
 # read template 
 l_template <- readRDS("source/SQL/template.Rds")
 
+# Data base user password from system variables 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-pw
+# Data base user 
+user <- "ch367079_flo"
 
 tryCatch({
   # Connect to data base 
@@ -84,9 +86,11 @@ convert_data_Film_txt <- function(fileName, Programm) {
       
       if(c_temp[1] != df_temp$Suisanummer) {
         warning("\nIn der Datei: .../Kinoklub/", fileName, 
-                "\nwurde die Suisanummer ",c_suisa," gefunden.","\nIm Program wurde aber die Suisanummer ",df_temp$Suisanummer, " definiert.\n\n")
+                "\nwurde die Suisanummer ",c_suisa," gefunden.",
+                "\nIm Program wurde aber die Suisanummer ",df_temp$Suisanummer, " für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n\n" )
       }
-      
+  
+  
       # Save Suisa
       ii <- 1
       l_temp[[ii]] <- c_temp[1]
@@ -112,9 +116,9 @@ convert_data_Film_txt <- function(fileName, Programm) {
       c_temp
       
       if(dmy(c_temp[2]) != df_temp$Datum) {
-        warning("\nIn der Datei: .../Kinoklub/", fileName, 
-                "\nwurde das Datum ",c_temp[2]," gefunden",
-                "\nIm Programm wurde aber das Datum ",df_temp$Datum," definiert\n\n" )
+        stop("\nIn der Datei: .../Kinoklub/", fileName, 
+                "\nwurde das Datum ",c_temp[2]," gefunden.",
+                "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n\n" )
       }
       
       l_temp[[ii]] <- c_temp[2]
@@ -222,9 +226,9 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
       c_fileDate
       
       if(c_fileDate != df_temp$Datum) {
-        warning("\nIn der Datei: .../Kinoklub/", fileName, 
-                "\nwurde das Datum ",c_fileDate," gefunden",
-                "\nIm Programm wurde aber das Datum ",df_temp$Datum," definiert\n\n" )
+        stop("\nIn der Datei: .../Kinoklub/", fileName, 
+                "\nwurde das Datum ",c_fileDate," gefunden.",
+                "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n\n" )
       }
       
       # detect Verkaufarikel in string
@@ -463,9 +467,9 @@ df_temp
 
 if(nrow(df_temp) != 0) {
   warning(paste0(
-    "Für den Film: ",df_temp$Filmtitel, " am ", 
+    "Für den Film ID ",df_temp$ID_Programm ," / ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
-    " ist keine Suisanummer vorhanden oder das Format stimmmt nicht.")
+    " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.")
   )}
 
 ################## Eintritt aus Advanced Tickets ##################
@@ -578,30 +582,36 @@ Spezialpreisekiosk <- l_data$Spezialpreisekiosk
 Spezialpreisekiosk
 
 # error handling
-if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern in Spezialpreisekiosk definiert. \nBitte korrigieren!\n\n")
-
-# error handling
 # Sind alle Spezialpreise pro Datum und Suisanummer definiert?  
-df_spez_preis_na <- df_Kiosk|>
-  filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
-  left_join( # look up Spezialpreise
-    Spezialpreisekiosk, 
-    by = c(Datum = "Datum", Suisanummer = "Suisanummer", "Artikel-Kassensystem" = "Spezialpreis")
-  )|>
-  filter(is.na(Artikelname))
 
-df_spez_preis_na <- df_spez_preis_na|>
-  left_join(df_Eintritt|> # look up Filmtitel
-              distinct(Filmtitel,.keep_all = T),
-            by = c("Datum", "Suisanummer")
+# Spezpreise in Kiosk daten finden 
+df_spez_preis <- df_Kiosk|>
+  filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
+  arrange(ID_Programm)
+df_spez_preis
+
+# Add Filmtitel 
+df_spez_preis <- df_spez_preis|>
+  left_join(l_data$Programm|>
+              select(ID_Programm,Filmtitel),
+            by = join_by(ID_Programm)
             )
-df_spez_preis_na
+df_spez_preis
+
+df_spez_preis|>
+  left_join(Spezialpreisekiosk,
+            by = join_by(ID_Programm)
+            )
+  
+
+
+
+
 
 if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum),
-      " / ", df_spez_preis_na$Suisanummer,
+      "\nFür die Filmvorführung ID ",df_spez_preis_na$ID_Programm," / ", df_spez_preis_na$Filmtitel, " am ", format(df_temp$Datum, "%d.%m.%Y"),
       "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n\n"
     )
@@ -714,14 +724,13 @@ if(sum(is.na(df_Kiosk$ID_Programm)) > 0){
   stop("\nFür den Film mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " gibt es keinen Programmeintrag.\nBitte das Programm korrigieren!")
 }
 
-
 # remove no more needed variables
 remove(df_Mapping_Einkaufspreise,m_Kiosk, 
        df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
        ii,
-       c_path, c_files, l_temp, l_Eintritt)
-
+       c_path, c_files, l_temp, l_Eintritt
+       )
 
 ################  Gibt es gleich viele Kiosk wie Filmabrechungen? ##############
 # Bericht mapping
