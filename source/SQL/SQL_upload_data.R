@@ -13,18 +13,25 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
+l_data
+
 # # update template
-# l_temp <- readRDS("source/SQL/template.Rds")
-# l_temp$Programm <- l_temp$Programm|>
-#   rename(`Link ID` = `Link Datum`)|>
-#   mutate(`Link ID` = as.integer(`Link ID`))
-# 
-# saveRDS(l_temp, "source/SQL/template.Rds")
+# l_template <- readRDS("source/SQL/template.Rds")
+# l_template$Spezialpreise <- l_template$Spezialpreise|>
+#   mutate(ID_Programm = 1L,
+#          Datum = NULL, 
+#          Suisanummer = NULL
+#         )|>
+#   select(ID, ID_Programm, Spezialpreis, Artikelname)
+# saveRDS(l_template, "source/SQL/template.Rds")
 # 
 # # update data
-# l_data$Programm <- l_data$Programm|>
-#   rename(`Link ID` = `Link Datum`)|>
-#   mutate(`Link ID` = as.integer(`Link ID`))
+# l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
+#   mutate(ID_Programm = 1L,
+#          Datum = NULL, 
+#          Suisanummer = NULL
+#   )|>
+#   select(ID, ID_Programm, Spezialpreis, Artikelname)
 # saveRDS(l_data, c_file)
 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
@@ -37,4 +44,4 @@ DB_update_all(l_data ,con)
 # Disconnect from DB
 dbDisconnect(con)
 
-writeLines("Script run done")
+writeLines("Script run done: data base is now up to date")
