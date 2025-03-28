@@ -33,11 +33,11 @@ WordPress_env <- new.env()
 # Functions
 source("source/functions.R")
 
-# Erstellen von Verzeichnissen
+#### Erstellen von Verzeichnissen ####
 dir.create("output/") |> suppressWarnings()
 dir.create("output/data/") |> suppressWarnings()
 
-# Function to create icons for the site map
+#### Function to create icons for the site map ####
 create_icons <- function(m_Film, c_path, c_url) {
   library(furrr)
   library(webshot)  # Ensure webshot is loaded
@@ -77,7 +77,7 @@ create_icons <- function(m_Film, c_path, c_url) {
   )
 }
 
-# Function to render a single RMarkdown file
+#### Function to render a single RMarkdown file ####
 render_single_file <- function(input, output, envir) {
   rmarkdown::render(
     input = input,        # input file name
@@ -88,7 +88,7 @@ render_single_file <- function(input, output, envir) {
   )
 }
 
-# Index pro Suisa-Nummer und Datum erstellen
+#### Index pro Suisa-Nummer und Datum erstellen ####
 Abrechnung_mapping <- function(data_env, start, end) {
   df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
     mutate(user_Datum = format(Datum, "%d.%m.%Y"),
@@ -117,7 +117,7 @@ Abrechnung_mapping <- function(data_env, start, end) {
   return(df_mapping)
 }
 
-# Erstellen der Abrechnung pro Filmvorführung
+#### Erstellen der Abrechnung pro Filmvorführung ####
 AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Template der Abrechnung einlesen
@@ -252,7 +252,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   return(NULL)
 }
 
-# Erstellen der Verleiherabrechnung pro Filmvorführung
+#### Erstellen der Verleiherabrechnung pro Filmvorführung ####
 VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Create Verleiherabrechnung
@@ -324,7 +324,7 @@ VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   return(NULL)
 }
 
-# Statistik-Bericht erstellen
+#### Statistik-Bericht erstellen ####
 StatistikErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
@@ -343,7 +343,7 @@ StatistikErstellen <- function(toc) {
   render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
 }
 
-# Filmvorschlag erstellen
+#### Filmvorschlag erstellen ####
 FilmvorschlagErstellen <- function(toc, data_env) {
   # Einlesen
   c_raw <- readLines("source/Archiv.Rmd")
@@ -362,7 +362,7 @@ FilmvorschlagErstellen <- function(toc, data_env) {
   render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
 }
 
-# Jahresrechnung-Bericht erstellen
+#### Jahresrechnung-Bericht erstellen ####
 JahresrechnungErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
@@ -381,7 +381,7 @@ JahresrechnungErstellen <- function(toc) {
   render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
 }
 
-# function to edit Site-Map: insert pictures
+#### function to edit Site-Map: insert pictures ####
 instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   # create link to pict and link to file
   if (length(raw_rmd) == index) {
@@ -463,7 +463,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   return(raw_rmd)
 }
 
-# function to create a site-map
+#### function to create a site-map ####
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
   if (dir.exists("output/pict")) {
@@ -966,13 +966,14 @@ webserver <- function() {
   
 }
 
-# Error if calculation not executing 
+#### Error if calculation not executing ####
 error_calculate <-  paste0(
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
   "! Es konnten nicht alle Daten einlesen werden. !\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
   )
-# Envirnoment for Data to create Plots
+
+#### Envirnoment for calculate.R ####
 data_env <- new.env()
 # read data
 calculate_warnings <- ""
@@ -1003,7 +1004,7 @@ tryCatch({
   startup_error <<- TRUE
 })
 
-# concatenate feedback
+# concatenate feedback 
 ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
 ausgabe_text
 
@@ -1011,7 +1012,7 @@ ausgabe_text
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
 
-# Shiny reactive variables
+#### Shiny reactive variables ####
 calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
 ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 
@@ -1048,7 +1049,7 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-# UI-Definition fluid page
+#### UI-Definition fluid page ####
 ui <- function(){
   shiny::fluidPage(
     shiny::tags$head(
@@ -1069,7 +1070,7 @@ ui <- function(){
   )
 }
 
-# # UI-Definition bs4Dash
+# #### UI-Definition bs4Dash ####
 # library(bs4Dash)
 # ui <- dashboardPage(
 #   help = TRUE,
