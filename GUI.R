@@ -1282,8 +1282,8 @@ server <- function(input, output, session) {
       # })
       
       # Initialize variables
-      calculate_warnings <- character()  # Store warnings
-      error_message <- character()       # Store errors 
+      calculate_warnings <- ""  # Store warnings
+      error_message <- ""       # Store errors 
       
       # Try executing the source file
       tryCatch({
@@ -1316,11 +1316,11 @@ server <- function(input, output, session) {
       
       # Combine all results
       final_output <- paste(
-        if (error_message != "") error_message else "No Errors.",
-        if (warnings_text != "") warnings_text else "No Warnings.",
-        if (output_text != "") output_text else "No Output.",
+        if (nchar(error_message) > 0) error_message else "No Errors.",
+        if (nchar(warnings_text) > 0) warnings_text else "No Warnings.",
+        if (nchar(output_text) > 0) output_text else "No Output.",
         sep = "\n"
-      ) 
+      )
       
 
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
