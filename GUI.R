@@ -1019,9 +1019,6 @@ ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
-# # Ausgabeformate
-# c_render_option <- shiny::reactiveVal("1")
-
 # Vektor mit Datumseinträgen
 if (exists("df_show", envir = data_env))  {
   datum_vektor <- data_env$df_show$Datum
