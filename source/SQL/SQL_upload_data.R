@@ -14,9 +14,11 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# Change columns
+# # Change columns
 # l_data$Programm <- l_data$Programm|>
-#    rename(`Event ID` = ID)
+#   select("Event ID","Suisanummer","Filmtitel","Datum","Zeit","Link ID","Verleiher","Verleiher Angefragt?","Abzug [%]",
+#          "Minimal Abzug [CHF]","Abzug fix [CHF]","Verleihervertrag abgelegt","Anzahl bestellter Poster und Flyer",
+#          "Poster und Flyer erhalten?","Art der Filmlieferung","Besucherzahlen an Verleiher gesendet","Rechnung bezahlt und abgelegt","KDM ja oder nein")
 
 # update template
 l_template <- l_data|>
