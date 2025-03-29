@@ -13,32 +13,35 @@ if(file.exists(c_file)){
   l_data <- readRDS(c_file)
   c_file <- "Input/Data.Rds"
 }
-# update template 
-l_template <- l_data|>
-  lapply(function(df){
-    df|>
-      slice(1)
-  })
 
-# read template 
-l_template <- saveRDS(l_template, "source/SQL/template.Rds")
+# # Change columns 
+# l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk|>
+#   rename(`Event ID` = ID_Programm)
+# 
+# l_data$Einnahmen <- l_data$Einnahmen|>
+#   rename(`Event ID` = Datum)|>
+#   mutate(`Event ID` = as.integer(NA),
+#          Suisanummer = NULL)
+# 
+# l_data$Ausgaben <- l_data$Ausgaben|>
+#   rename(`Event ID` = Spieldatum)|>
+#   mutate(`Event ID` = as.integer(NA),
+#          Suisanummer = NULL)
+# 
+# # update template 
+# l_template <- l_data|>
+#   lapply(function(df){
+#     df|>
+#       slice(1)
+#   })
+# 
+# # Update  
+# saveRDS(l_template,"source/SQL/template.Rds")
+# saveRDS(l_data, c_file)
 
 # Data base user password from system variables 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# Data base user 
-user <- "ch367079_flo"
 
-# # update data
-# l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
-#   mutate(ID_Programm = 1L,
-#          Datum = NULL, 
-#          Suisanummer = NULL
-#   )|>
-#   select(ID, ID_Programm, Spezialpreis, Artikelname)
-# saveRDS(l_data, c_file)
-
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-pw
 con <- DB_connect(pw, "ch367079_flo")
 
 DB_update_all(l_data ,con)
