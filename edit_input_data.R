@@ -1145,15 +1145,19 @@ server <- function(input, output, session) {
       row <- current_data()[input$table_rows_selected, ]
       
       # Update data
-      updated_data <- current_data()|>
-        filter(ID != row$ID)
+      updated_data <- current_data()
+      updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
       current_data(updated_data)
       
       # Update SQL
-      DB_delete_row(DB_con(), lastEdited_data_set_name(), "ID", row$ID)
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
       if(lastEdited_data_set_name() == "Programm"){
-        DB_delete_row(DB_con(), "Einsatzplan", "ID", row$ID)
+        df_temp <- DB_get_table("Einsatzplan",DB_con())
+        DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
       }
+      last_selected_row(NA)
+      dataTableProxy("table")|>
+        selectPage(last_selected_page())
       removeModal()
     }
   })
