@@ -832,13 +832,15 @@ server <- function(input, output, session) {
       df_updated <- 
         bind_cols(
           current_data()[input$table_rows_selected,1:(min(c_select)-1)], 
-          df_updated
+          df_updated[,2:ncol(df_updated)]
         )|>
         convert_Einsatzplan(convert_to = "char")
+      df_updated
       df_temp <- current_data()|>
         convert_Einsatzplan(convert_to = "char")
       df_temp[input$table_rows_selected,] <- df_updated
       df_temp <- convert_Einsatzplan(df_temp, "fact")
+      df_temp
     } else if (lastEdited_data_set_name() == "Programm"){
       df_temp <- convert_Programm(df_temp, "char")
       df_temp[input$table_rows_selected,] <- df_updated
