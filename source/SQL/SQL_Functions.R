@@ -328,7 +328,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   }
   
   # Get the table's column names
-  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  table_info <- dbGetQuery(con, paste0("DESCRIBE ","`", table_name, "`"))
   col_names <- table_info$Field
   
   # Validate the primary key column
