@@ -724,7 +724,7 @@ server <- function(input, output, session) {
   
   #### Edit row value action button ####
   observeEvent(input$edit_row_value, {
-    # filter for selected data by user
+    # get actual data 
     df_temp <- current_data()
     df_temp_ <- current_data()
     

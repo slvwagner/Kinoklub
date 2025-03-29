@@ -253,6 +253,11 @@ DB_add_row <- function(con, table_name, new_row) {
   message("Row ",new_row$ID ," added successfully to table '", table_name, "'.")
 }
 
+# 
+DB_describe_table <- function(con, table_name){
+  dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
+}
+
 # Function to edit a row in table
 DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values) {
   # Validate inputs
@@ -264,7 +269,7 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   }
   
   # Get the table's column names and types
-  table_info <- dbGetQuery(con, paste("DESCRIBE", table_name))
+  table_info <- DB_describe_table(con, table_name)
   col_names <- table_info$Field
   col_types <- table_info$Type
   
@@ -305,7 +310,7 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
   
   # Construct the SQL query
   sql_query <- paste0(
-    "UPDATE ", table_name, " SET ", set_clause, " WHERE ", where_clause
+    "UPDATE ","`", table_name,"`", " SET ", set_clause, " WHERE ", where_clause
   )
   
   # Print the SQL query for debugging
@@ -328,7 +333,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   }
   
   # Get the table's column names
-  table_info <- dbGetQuery(con, paste0("DESCRIBE ","`", table_name, "`"))
+  table_info <- DB_describe_table(con, table_name)
   col_names <- table_info$Field
   
   # Validate the primary key column
