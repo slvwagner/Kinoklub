@@ -360,11 +360,11 @@ server <- function(input, output, session) {
     # data handling for Programm / Einsatzplan (joined tables)
     if (c_input_dataset %in% c("Programm", "Einsatzplan")){
       l_temp$Einsatzplan <- left_join(df_temp|>
-                                        select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
+                                        select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
                                       DB_get_table("Einsatzplan",DB_con())|>
                                         convert_to_template_types(l_template[[c_input_dataset]])|>
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
-                                      by = join_by(ID)
+                                      by = join_by(`Event ID`)
                                       )
     } 
     

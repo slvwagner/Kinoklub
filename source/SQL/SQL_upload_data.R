@@ -15,11 +15,9 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-# l_data$Programm <- l_data$Programm|>
-#   select("Event ID","Suisanummer","Filmtitel","Datum","Zeit","Link ID","Verleiher","Verleiher Angefragt?","Abzug [%]",
-#          "Minimal Abzug [CHF]","Abzug fix [CHF]","Verleihervertrag abgelegt","Anzahl bestellter Poster und Flyer",
-#          "Poster und Flyer erhalten?","Art der Filmlieferung","Besucherzahlen an Verleiher gesendet","Rechnung bezahlt und abgelegt","KDM ja oder nein")
-
+# l_data$Einsatzplan <- l_data$Einsatzplan|>
+#   rename(`Event ID` = ID)
+  
 # update template
 l_template <- l_data|>
   lapply(function(df){
