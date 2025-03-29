@@ -1169,9 +1169,19 @@ server <- function(input, output, session) {
       page_length_var(input$page_length)
     }
     
-    # find page
-    if(lastEdited_data_set_name() == "Einsatzplan") page <-  round(row / page_length_var()) # don`t know why I need to calculate it differently for Einsatzplan 
-    else page <-  ceiling(row / page_length_var())
+    # Calculate page
+    if(lastEdited_data_set_name() == "Einsatzplan"){
+      df_temp <- current_data()|>
+        filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+        mutate(index = row_number())|>
+        filter(`Event ID` == row)
+      page <-  ceiling(df_temp$index / page_length_var())
+    }else {
+      page <-  ceiling(row / page_length_var())  
+    }
+    current_data()|>
+      filter()
+    
     writeLines(paste0("page ", page, " in table: ", input$dataset))
     
     if(page == 0) page <- 1
