@@ -197,7 +197,7 @@ DB_add_row <- function(con, table_name, new_row) {
     table_name <- paste0("`",table_name,"`")
   }
   
-  table_info <- dbGetQuery(con, paste0("DESCRIBE ", table_name))
+  table_info <- DB_describe_table(con, table_name)
   
   col_names <- table_info$Field
   col_types <- table_info$Type

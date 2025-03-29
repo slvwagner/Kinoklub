@@ -1007,9 +1007,10 @@ server <- function(input, output, session) {
       } else { 
         # Create duplicate row and add to table
         new_row <- current_data()[input$table_rows_selected, ] |> 
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
-          mutate(ID = max(current_data()$ID) + 1L)
-
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        new_row
+        new_row[1,1] <- max(current_data()[,1]) + 1L
+        
         # Update "Gültig ab Datum" to the current system date
         if ("Gültig ab Datum" %in% colnames(new_row)) {
           new_row <- new_row |>
@@ -1050,8 +1051,8 @@ server <- function(input, output, session) {
     if(!is.null(input$table_rows_selected)){
       req(input$table_rows_selected) # Ensure a row is selected
       new_row <- current_data()[input$table_rows_selected, ] |>
-        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])|>
-        mutate(ID = max(current_data()$ID) + 1L)
+        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
+      new_row[1,1] <- max(current_data()[,1]) + 1L
       
       if(nrow(current_data()) == 0){ 
         # Create an empty row
