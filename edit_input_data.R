@@ -1109,13 +1109,22 @@ server <- function(input, output, session) {
   
   #### User interaction Delete selected row(s) ####
   observeEvent(input$delete_row, {
-    showModal(modalDialog(
-      title = "Selektierten Zeile löschen?",
-      footer = tagList(
-        modalButton("Abbrechen"),
-        actionButton("confirm_delete", "Löschen")
-      )
-    ))
+    if(is.null(input$table_rows_selected)){
+      print("here")
+      showModal(modalDialog(
+        title = "Bitte eine Zeile markieren!",
+        footer = tagList(
+          modalButton("Abbrechen"))
+      ))
+    }else{
+      showModal(modalDialog(
+        title = "Selektierten Zeile löschen?",
+        footer = tagList(
+          modalButton("Abbrechen"),
+          actionButton("confirm_delete", "Löschen")
+        )
+      ))
+    }
   })
   
   #### Delete selected row ####
