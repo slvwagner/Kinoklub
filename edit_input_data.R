@@ -187,18 +187,18 @@ Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
   if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
   
   df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
-    filter(ID %in% df_updated$ID)|>
-    select(-ID, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
+    filter(`Event ID` %in% df_updated$`Event ID`)|>
+    select(-`Event ID`, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
   
   if(nrow(df_temp) >= 1){
     df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
-                            select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
-                            filter(ID %in% df_updated$ID),
+                            select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                            filter(`Event ID` %in% df_updated$`Event ID`),
                           df_temp
                           )
   }else{
     df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
-      select(-ID, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)|>
+      select(-`Event ID`, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)|>
       slice(1)|>
       mutate(Verantwortlich = "", 
              `Operateur*in` = "",
@@ -209,8 +209,8 @@ Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
              Trailer = "")
     
     df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
-                           select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
-                           filter(ID %in% df_updated$ID),
+                           select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                           filter(`Event ID` %in% df_updated$`Event ID`),
                          df_temp
     )
   }
@@ -218,7 +218,7 @@ Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
     DB_add_row(DB_con(), "Einsatzplan", df_temp)
   }
   else {
-    DB_edit_row_in_table(DB_con(), "Einsatzplan", "ID", df_updated$ID, df_temp)
+    DB_edit_row_in_table(DB_con(), "Einsatzplan", names(df_updated[,1]), df_updated[,1], df_temp)
   }
 }
 
@@ -860,7 +860,7 @@ server <- function(input, output, session) {
       )
     }else{
       # update data base 
-      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), "ID", df_updated$ID, df_updated)
+      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), names(df_updated[,1]), df_updated[,1], df_updated)
       
       # update joined data sets 
       if(input$dataset == "Programm"){
