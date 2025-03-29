@@ -234,6 +234,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 c_select_input_data <- c(1:3,5,16,14)
 c_select_dropdown_data <- c(6:13, 15, 17)
 
+# Data table in german
 DT_language <- list(
   lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
   search = "Suchen:", # Text für das Suchfeld
@@ -344,6 +345,7 @@ server <- function(input, output, session) {
     print("Data set selection")
     req(input$dataset)
     req(input$data_selection)
+
     c_input_dataset <- input$dataset
     paste0("change data set to \"", c_input_dataset, "\"")|>
       writeLines()
@@ -1352,16 +1354,15 @@ server <- function(input, output, session) {
             filter(column == TRUE)|>
             select(index)|>
             pull()
-          # offset needed becaus datatable starts at index 0
-          c_select <- c(FALSE,c_select)
-          l_filter <- list(NULL)
+          
+          l_filter <- list()
           # create filters for data table
           for (ii in 1:(length(c_select))) {
             if(c_select[ii]) {
               l_filter[[ii]] <- list(search = c_choices)
               } 
             else {
-              l_filter[[ii + 1]] <- NULL
+              l_filter[[ii]] <- NULL
               }
           }
           
