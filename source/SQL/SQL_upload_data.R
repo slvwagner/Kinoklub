@@ -14,30 +14,20 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-# # Change columns 
-# l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk|>
-#   rename(`Event ID` = ID_Programm)
-# 
-# l_data$Einnahmen <- l_data$Einnahmen|>
-#   rename(`Event ID` = Datum)|>
-#   mutate(`Event ID` = as.integer(NA),
-#          Suisanummer = NULL)
-# 
-# l_data$Ausgaben <- l_data$Ausgaben|>
-#   rename(`Event ID` = Spieldatum)|>
-#   mutate(`Event ID` = as.integer(NA),
-#          Suisanummer = NULL)
-# 
-# # update template 
-# l_template <- l_data|>
-#   lapply(function(df){
-#     df|>
-#       slice(1)
-#   })
-# 
-# # Update  
-# saveRDS(l_template,"source/SQL/template.Rds")
-# saveRDS(l_data, c_file)
+# Change columns
+# l_data$Programm <- l_data$Programm|>
+#    rename(`Event ID` = ID)
+
+# update template
+l_template <- l_data|>
+  lapply(function(df){
+    df|>
+      slice(1)
+  })
+
+# Update
+saveRDS(l_template,"source/SQL/template.Rds")
+saveRDS(l_data, c_file)
 
 # Data base user password from system variables 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
