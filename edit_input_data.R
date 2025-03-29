@@ -232,7 +232,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown
 c_select_input_data <- c(1:3,5,16,14)
-c_select_dropdown_data <- c(6:13, 15, 17)
+c_select_dropdown_data <- c(17, 6:13, 15)
 
 # Data table in german
 DT_language <- list(
@@ -330,8 +330,8 @@ server <- function(input, output, session) {
   observeEvent(input$data_selection,{
     data_selection_(input$data_selection)
     if(input$data_selection == "Dropdowns"){
-      current_data(l_data()[["Verleiher"]])
-      lastEdited_data_set_name("Verleiher")
+      current_data(l_data()[["Kinoklubmitglieder"]])
+      lastEdited_data_set_name("Kinoklubmitglieder")
     }else{
       current_data(l_data()[["Ausgaben"]])
       lastEdited_data_set_name("Ausgaben")
@@ -1042,7 +1042,7 @@ server <- function(input, output, session) {
     
   })
   
-  #### Duplicate Film and archive ####
+  #### Duplicate Film and archive (Filmtitel ändern)####
   observeEvent(input$archive_row,{
     print("here")
     if(!is.null(input$table_rows_selected)){
