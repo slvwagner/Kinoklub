@@ -231,17 +231,34 @@ DB_add_row <- function(con, table_name, new_row) {
   # Debug: Print new_row values
   # message("Values in new_row: ", paste(new_row, collapse = ", "))
   
+  library(hms)
+  
+  is_time <- function(x) {
+    # Apply tryCatch on each element to handle errors
+    check_each <- sapply(x, function(val) {
+      tryCatch({
+        !is.na(as_hms(val))  # Returns TRUE if valid, FALSE if NA
+      }, error = function(e) FALSE)  # Catch errors and return FALSE
+    })
+    
+    check_each  # Ensure all elements are valid times
+  }
+  
   # Prepare the SQL query
   sql_cols <- paste(paste0("`", names(new_row), "`"), collapse = ", ")
-  sql_vals <- paste(sapply(new_row, function(x) {
-    if (is.null(x)) "NULL"
-    else if (is.character(x)) paste0("'", x, "'")
-    else if (is.Date(x)) paste0("'", x, "'")
-    else if (is.factor(x)) paste0("'", as.character(x), "'")
-    else x
-  }), collapse = ", ")
+  sql_vals <- 
+    paste(
+      sapply(new_row, function(x) {
+        if (is.null(x)) "NULL"
+        else if (is.character(x)) paste0("'", x, "'")
+        else if (is.Date(x)) paste0("'", as.character(x), "'")
+        else if (is_time(x)) paste0("'", as.character(x), "'")
+        else if (is.factor(x)) paste0("'", as.character(x), "'")
+        else x
+        }), 
+      collapse = ", ")
   sql_query <- paste0(
-    "INSERT INTO ", table_name, " (", sql_cols, ") VALUES (", sql_vals, ")"
+    "INSERT INTO ", "`",table_name, "`"," (", sql_cols, ") VALUES (", sql_vals, ")"
   )
   
   # # Debug: Print SQL query
@@ -250,7 +267,7 @@ DB_add_row <- function(con, table_name, new_row) {
   # Execute the query
   dbExecute(con, sql_query)
   
-  message("Row ",new_row$ID ," added successfully to table '", table_name, "'.")
+  message("Row ",new_row[[1]][1] ," added successfully to table '","`", table_name,"`", "'.")
 }
 
 # 
