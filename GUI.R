@@ -1,4 +1,4 @@
-# Graphical user interface für den Kinoklub
+#### Graphical user interface für den Kinoklub ####
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
 # Vorbereiten / Installieren
@@ -10,11 +10,13 @@ packages <- c(
   "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
   "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
 )
+
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
+
 # Packages loading
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
@@ -1047,7 +1049,7 @@ shiny::addResourcePath("reports", "output/webserver")
 
 
 #### UI-Definition fluid page ####
-ui <- function(){
+ui <- 
   shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
@@ -1065,7 +1067,6 @@ ui <- function(){
       )
     )
   )
-}
 
 # #### UI-Definition bs4Dash ####
 # library(bs4Dash)

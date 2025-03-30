@@ -48,11 +48,6 @@ tryCatch({
   stop(e$message)
 })
 
-# rename ID from Programm to be unique
-l_data$Programm <- l_data$Programm|>
-  rename(ID_Programm = ID)
-
-Programm <- l_data$Programm
 
 ##### Eintritte aus Advanced Tickets files ##### 
 convert_data_Film_txt <- function(fileName, Programm) {
@@ -81,7 +76,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
       
       # Error handling: Suisa from Programm vs Suisa from Programm
       df_temp <- Programm|>
-        filter(ID_Programm == ID)
+        filter(`Event ID` == ID)
       df_temp$Suisanummer
       
       if(c_temp[1] != df_temp$Suisanummer) {
@@ -209,7 +204,7 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
 
       # find ID_Program 
       df_temp <- Programm|>
-        filter(ID_Programm == ID)
+        filter(`Event ID` == ID)
       
       # Extract Datum from file 
       p <- or(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT, # format 01.01.2025
@@ -264,10 +259,10 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
                  )|>
           mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`), 0, `Überschuss / Manko`))
           )
-      # ID_Programm
+      # `Event ID`
       ii <- ii + 1L
       l_extracted[[ii]] <- 
-        list(ID_Programm =  ID)
+        list(`Event ID` =  ID)
       
       # File date 
       ii <- ii + 1L
@@ -352,111 +347,12 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
                                Ausgaben = l_data$Ausgaben)
 
-# error handling
-# suisa nummer automatisch korrigieren 
-Einnahmen_und_Ausgaben$Ausgaben$Suisanummer <- Einnahmen_und_Ausgaben$Ausgaben$Suisanummer|>
-  str_squish()|>
-  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
-Einnahmen_und_Ausgaben$Ausgaben$Suisanummer
-
-Einnahmen_und_Ausgaben$Einnahmen$Suisanummer <- Einnahmen_und_Ausgaben$Einnahmen$Suisanummer|>
-  str_squish()|>
-  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
-Einnahmen_und_Ausgaben
-
-# Error handling 
-# Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben 
-df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie %in% c("Event","Verleiher"))|>
-  mutate(error = is.na(Suisanummer))|>
-  filter(error)
-
-if(nrow(df_temp)>0) { 
-  for (ii in 1:nrow(df_temp)) {
-    warning(
-      paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-            "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
-            "\n",df_temp$Kategorie[ii],
-            "\t\t", df_temp$Spieldatum[ii], 
-            "\t\t", df_temp$Suisanummer[ii], 
-            "\t\t", df_temp$Bezeichnung[ii],
-            "\n\n"
-            )
-      )
-  }
-}
-
-# Spieldatum  vorhanden für Kategorie Verleiher / Event in den Ausgaben 
-df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie %in% c("Event","Verleiher"))|>
-  mutate(error = is.na(Spieldatum))|>
-  filter(error)
-
-if(nrow(df_temp)>0) { 
-  for (ii in 1:nrow(df_temp)) {
-    warning(
-      paste(
-        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-        "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
-        "\n",df_temp$Kategorie[ii],
-        "\t\t", df_temp$Spieldatum[ii], 
-        "\t\t", df_temp$Suisanummer[ii], 
-        "\t\t", df_temp$Bezeichnung[ii],
-        "\n\n"
-        )
-      )
-  }
-}
-
-#  Datum  vorhanden für Kategorie Verleiher / Event in den Ausgaben 
-df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie %in% c("Event"))|>
-  mutate(error = is.na(Datum))|>
-  filter(error)
-
-if(nrow(df_temp)>0) { 
-  for (ii in 1:nrow(df_temp)) {
-    warning((
-      paste(
-        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-        "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
-        "\n", df_temp$Kategorie[ii],
-        "\t\t", df_temp$Spieldatum[ii],
-        "\t\t",df_temp$Suisanummer[ii],
-        "\t\t", df_temp$Bezeichnung[ii],
-        "\n\n"
-      )
-    ))
-  }
-}
-
-# Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben  
-df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  filter(Kategorie %in% c("Event"))|>
-  mutate(error = is.na(Suisanummer))|>
-  filter(error)
-
-if(nrow(df_temp)>0) { 
-  for (ii in 1:nrow(df_temp)) {
-    warning(
-      paste(
-        "\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
-        "\n\nKategorie\t\tDatum\t\tSuisanummer\t\tBezeichnung",
-        "\n",df_temp$Kategorie[ii],
-        "\t\t", df_temp$Spieldatum[ii], 
-        "\t\t", df_temp$Suisanummer[ii], 
-        "\t\t", df_temp$Bezeichnung[ii],
-        "\n\n"
-        )
-      )
-  }
-}
 
 ################## show times ##################
 # read in shows 
 df_show <- l_data$Programm|>
   filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-  select(ID_Programm, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)
+  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)
 df_show
 
 ## error handling 
@@ -467,7 +363,7 @@ df_temp
 
 if(nrow(df_temp) != 0) {
   warning(paste0(
-    "Für den Film ID ",df_temp$ID_Programm ," / ",df_temp$Filmtitel, " am ", 
+    "Für den Film ID ",df_temp$`Event ID` ," / ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
     " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.")
   )}
@@ -485,17 +381,7 @@ if(is_empty(c_files)) {
 }
 
 # read and convert Eintritte
-tryCatch({
-  l_temp <- convert_data_Film_txt(c_files, l_data$Programm)
-}, error = function(e) {
-  stop(
-    paste0(
-      "\nFehler in der Funktion convert_data_Film_txt(). \nBitte Fehler der Entwicklung melden!\n",
-      e$message
-    )
-  )
-})
-
+l_temp <- convert_data_Film_txt(c_files, l_data$Programm)
 
 # create data frame
 df_Eintritt <- l_temp|>
@@ -505,16 +391,16 @@ df_Eintritt <- l_temp|>
   select(Datum, Suisanummer, Filmtitel, Platzkategorie, Zahlend, Verkaufspreis, Anzahl, Umsatz,`SUISA-Vorabzug`)
 df_Eintritt
 
-# join ID_Programm 
+# join `Event ID` 
 df_Eintritt <- df_Eintritt|>
   left_join(l_data$Programm|>
-              select(ID_Programm, Datum, Suisanummer),
+              select(`Event ID`, Datum, Suisanummer),
             by = join_by(Datum, Suisanummer)
             )
 
-if(sum(is.na(df_Eintritt$ID_Programm)) > 0){
+if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
   df_temp <- df_Eintritt|>
-    filter(is.na(ID_Programm))|>
+    filter(is.na(`Event ID`))|>
     distinct(Datum, Suisanummer,.keep_all = TRUE)
   stop("\nFür den Film ", df_temp$Filmtitel, " mit Suisanummer ", df_temp$Suisanummer, " am ", 
        paste0(format(df_temp$Datum, "%d.%m.%Y"), collapse = ", "), " existiert kein Programmeintrag\nBitte das Programm korrigieren!\n"
@@ -541,22 +427,14 @@ c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = T
 c_files
 
 # Extrakt Verkäufe  und Überschuss / Manko
-tryCatch({
-  l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm)
-}, error = function(e) {
-  stop(
-    paste0(
-      "Error: ", e$message,
-      collapse = "\n"
-    ))
-})
+l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm)
 
 df_Kiosk <- l_temp|>
   lapply(function(x){
     x$df_Kiosk
   })|>
-  bind_rows(.id = "ID_Programm")|>
-  mutate(ID_Programm = str_extract(ID_Programm, one_or_more(DGT))|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
            as.integer()
          )
 df_Kiosk
@@ -566,8 +444,8 @@ df_manko_uerberschuss <- l_temp|>
   lapply(function(x){
     x$`Überschuss / Manko`
   })|>
-  bind_rows(.id = "ID_Programm")|>
-  mutate(ID_Programm = str_extract(ID_Programm, one_or_more(DGT))|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
            as.integer()
   )
 df_manko_uerberschuss
@@ -587,43 +465,50 @@ Spezialpreisekiosk
 # Spezpreise in Kiosk daten finden 
 df_spez_preis <- df_Kiosk|>
   filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
-  arrange(ID_Programm)
+  arrange(`Event ID`)
 df_spez_preis
 
 # Add Filmtitel 
 df_spez_preis <- df_spez_preis|>
   left_join(l_data$Programm|>
-              select(ID_Programm,Filmtitel),
-            by = join_by(ID_Programm)
+              select(`Event ID`,Filmtitel),
+            by = join_by(`Event ID`)
             )
 df_spez_preis
 
-df_spez_preis|>
-  left_join(Spezialpreisekiosk,
-            by = join_by(ID_Programm)
-            )
-  
+# error handling
+# Sind alle Spezialpreise pro `Event ID` definiert?  
+df_spez_preis_na <- df_Kiosk|>
+  filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
+  arrange(`Event ID`, `Artikel-Kassensystem`)
 
+df_spez_preis_na
+Spezialpreisekiosk|>
+  arrange(`Event ID`, Spezialpreis)
 
-
-
+df_spez_preis_na <- df_spez_preis_na|>
+  left_join( # look up Spezialpreise
+    Spezialpreisekiosk,
+    by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
+  )|>
+  filter(is.na(Artikelname))
+df_spez_preis_na
 
 if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ID ",df_spez_preis_na$ID_Programm," / ", df_spez_preis_na$Filmtitel, " am ", format(df_temp$Datum, "%d.%m.%Y"),
+      "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`," / ", df_spez_preis_na$Filmtitel, " am ", format(df_temp$Datum, "%d.%m.%Y"),
       "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
-      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n\n"
+      "\nBitte korrigieren in Spezialpreisekiosk\n\n"
     )
   )
 }
 
-
 # join Spezpreise mit Verkaufsartikel
 df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk|>
-              select(-ID), 
-            by = c(Datum ="Datum", Suisanummer = "Suisanummer", `Artikel-Kassensystem` = "Spezialpreis")
+              select(-ID),
+            by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), `Artikel-Kassensystem`, Artikelname))|>
   select(-Artikelname)
@@ -634,7 +519,19 @@ df_Einkaufspreise <- l_data$`Einkauf Kiosk`|>
   rename(ID_Kioskartikel = ID)
 df_Einkaufspreise
 
-c_Date_Kiosk <- l_temp$`Überschuss / Manko`$Datum
+df_mapping <- l_temp|>
+  lapply(function(x){
+    tibble(
+      Datum =
+        x$df_Kiosk|>
+        distinct(Datum)|>
+        pull()|>
+        as.Date()
+    )
+  })|>
+  bind_rows(.id = "fileName")
+
+c_Date_Kiosk <- df_mapping$Datum
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, `Gültig ab Datum`)|>pull()
 
 
@@ -711,15 +608,18 @@ df_Kiosk <- df_Kiosk|>
 # join Program ID
 df_Kiosk <- 
   df_Kiosk|>
+  select(-Datum)|>
   left_join(l_data$Programm|>
-              select(ID_Programm, Datum, Suisanummer),
-            by = join_by(Suisanummer, Datum)
+              select(`Event ID`, Datum, Suisanummer, Filmtitel),
+            by = join_by(`Event ID`)
             )
-# check if all Kiosk entry can be joined by ID_Programm 
-if(sum(is.na(df_Kiosk$ID_Programm)) > 0){
+df_Kiosk
+
+# check if all Kiosk entry can be joined by `Event ID` 
+if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
   df_temp <- df_Kiosk|>
-    filter(is.na(ID_Programm))|>
-    distinct(ID_Programm, .keep_all = TRUE )
+    filter(is.na(`Event ID`))|>
+    distinct(`Event ID`, .keep_all = TRUE )
   df_temp
   stop("\nFür den Film mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " gibt es keinen Programmeintrag.\nBitte das Programm korrigieren!")
 }
@@ -729,7 +629,7 @@ remove(df_Mapping_Einkaufspreise,m_Kiosk,
        df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
        ii,
-       c_path, c_files, l_temp, l_Eintritt
+       c_path, c_files, l_temp 
        )
 
 ################  Gibt es gleich viele Kiosk wie Filmabrechungen? ##############
@@ -824,7 +724,7 @@ if(nrow(df_temp)>0){
 df_Abrechnung <- l_data$Programm|>
   select(1:11)|>
   left_join(l_data$Verleiher|>
-              select(-ID, -Kontakt, -Adresse, -PLZ, -Ort), 
+              select(-ID, -`E-Mail`, -Adresse, -PLZ, -Ort), 
             by = c(Verleiher = "Verleihername")
             )|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
@@ -836,7 +736,7 @@ df_Abrechnung <-
               filter(Kategorie == "Verleiher")|>
               select(1:7,-ID, -Datum, -Kategorie)|>
               rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
-            by = join_by(Suisanummer)
+            by = join_by( `Event ID`)
   )
 df_Abrechnung
 
@@ -846,7 +746,7 @@ df_Abrechnung
 
 # error handling 
 df_temp <- df_Abrechnung|>
-  filter(is.na(ID_Programm))|>
+  filter(is.na(`Event ID`))|>
   slice(1)
 
 if(nrow(df_temp) > 0){
@@ -980,7 +880,7 @@ remove(df_Film)
 
 df_temp <- df_Eintritt|>
   left_join(df_Abrechnung,
-            by = "ID_Programm"
+            by = "Event ID"
             )|>
   select(-Filmtitel.y, -Suisanummer.y, -Datum.y)|>
   rename(Filmtitel = Filmtitel.x,
@@ -1001,7 +901,7 @@ df_temp <- df_temp|>
 df_temp
 
 df_Abrechnung <- df_temp|>
-  select(c("ID_Programm",-"Spieldatum","Datum", "Zeit","Link ID", "Suisanummer",
+  select(c("Event ID","Datum", "Zeit","Link ID", "Suisanummer",
            "Platzkategorie","Zahlend","Verkaufspreis","Anzahl","Umsatz",
            "SUISA-Vorabzug","Filmtitel",
            "Verleiher",
@@ -1015,7 +915,7 @@ df_Abrechnung <- df_temp|>
 # error handlin Verleiherrechnung nicht vorhanden
 df_temp <- df_Abrechnung|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))|>
-  distinct(ID_Programm, .keep_all = T)
+  distinct(`Event ID`, .keep_all = T)
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
@@ -1027,14 +927,49 @@ warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_
 
 ####################################  Abrechnung erstellen #################################### 
 df_mapping <- l_data$Programm|>
-  distinct(ID_Programm, .keep_all = T)|>
-  select(1:5)|>
-  filter(!is.na(ID_Programm))|>
+  select(1:6)|>
+  filter(!is.na(`Link to Event ID`))|>
   filter(Datum < Sys.Date())
 df_mapping
 
+inspect_link <- function(df_mapping, ID){
+  link <- df_mapping|>
+    filter(`Event ID` == ID)|>
+    pull()
+  
+  if(length(link) > 0) return(link)
+  else return(NULL)
+}
+
+inspect_link_ids <- function(df_mapping) {
+  result <- vector("list", nrow(df_mapping))  # Initialize an empty list
+  names(result) <- df_mapping[,1]  # Set names to ID
+  
+  for (ii in seq_len(nrow(df_mapping))) {
+    link_ids <- c(df_mapping[ii, 1]|>pull())  # Store all consecutive Link IDs for this row
+    link <- df_mapping[ii, 1]|>pull()
+    run <- TRUE
+    if (!is.na(link)){
+      link_ids <- c(link_ids, link)
+      while (run) {
+        link <- inspect_link(df_mapping, link)
+        if (!is.na(link)){
+          link_ids <- c(link_ids, link)
+        }else {
+          run <- FALSE
+        }
+      }
+    }
+    result[[ii]] <- link_ids
+  }
+  return(result)
+}
+
+
 # find all connected Filmvorführungen from Programm and remove all already connected 
-l_abrechnung <- inspect_link_ids(df_mapping)|>
+l_abrechnung <- inspect_link_ids(df_mapping)
+
+l_abrechnung <- l_abrechnung|>
   nullify_used_entries()
 l_abrechnung
 
@@ -1047,8 +982,8 @@ for (ID in names(l_abrechnung)) {
   
   # Umsatzverteilprodukt berechnen für die gemeinsame Abrechnung
   df_Verteilprodukt <- df_Abrechnung|>
-    filter(ID_Programm %in% IDs)|>
-    group_by(ID_Programm)|>
+    filter(`Event ID` %in% IDs)|>
+    group_by(`Event ID`)|>
     reframe(`Umsatz [CHF]`= sum(`Umsatz`),
             `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
     )|>
@@ -1056,16 +991,16 @@ for (ID in names(l_abrechnung)) {
            Verteilprodukt_2 = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`)
     )|>
     left_join(l_data$Programm|>select(1:6)|>select(-`Link ID`),
-              by = join_by(ID_Programm)
+              by = join_by(`Event ID`)
     )
   df_Verteilprodukt
   
   # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden?
-  if(nrow(df_Verteilprodukt) !=  nrow(l_data$Programm|>filter(ID_Programm %in% IDs))){
+  if(nrow(df_Verteilprodukt) !=  nrow(l_data$Programm|>filter(`Event ID` %in% IDs))){
     df_temp <- l_data$Programm|>
-      filter(ID_Programm %in% IDs)
+      filter(`Event ID` %in% IDs)
     df_temp <- df_temp|>
-      filter(!(df_temp$ID_Programm %in% df_Verteilprodukt$ID_Programm))
+      filter(!(df_temp$`Event ID` %in% df_Verteilprodukt$`Event ID`))
     warning(paste("\nFür den Film ", df_temp$Suisanummer[1], df_temp$Filmtitel[1], "gibt es keine Eintritte. ",
                   # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
                   "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
@@ -1074,7 +1009,7 @@ for (ID in names(l_abrechnung)) {
   
   # Eintritte 
   df_Eintritte <- df_Abrechnung|>
-    filter(ID_Programm %in% IDs)
+    filter(`Event ID` %in% IDs)
   df_Eintritte
   
   # Umsatz 
@@ -1084,7 +1019,7 @@ for (ID in names(l_abrechnung)) {
         select(1:11)|>
         slice(as.integer(ID)),
       df_Abrechnung |>
-        filter(ID_Programm %in% IDs) |>
+        filter(`Event ID` %in% IDs) |>
         reframe(
           `Umsatz [CHF]` = sum(Umsatz),
           `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
@@ -1108,9 +1043,9 @@ for (ID in names(l_abrechnung)) {
   Abrechnung$`Umsatz [CHF]`
   Abrechnung$`Umsatz für Netto3 [CHF]`
   
-  # Verteilprodukt for the actual ID_Programm
+  # Verteilprodukt for the actual `Event ID`
   df_temp <- df_Verteilprodukt|>
-    filter(ID_Programm == as.integer(ID))
+    filter(`Event ID` == as.integer(ID))
   df_temp
   
   if(nrow(df_temp) == 0) stop("Kein Verteilprodukt vorhanden")
@@ -1126,7 +1061,7 @@ for (ID in names(l_abrechnung)) {
       )
     )
   
-  if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$ID_Programm, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
+  if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$`Event ID`, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
   
   # Verleiherrechung
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
@@ -1188,14 +1123,14 @@ for (ID in names(l_abrechnung)) {
   
   # Verteilen der Eventeinnahmen
   df_Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
-    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Einnahmen$Datum %in% (l_data$Programm|>filter(ID_Programm %in% IDs)|>select(Datum)|>pull())))|>
+    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Einnahmen$Datum %in% (l_data$Programm|>filter(`Event ID` %in% IDs)|>select(Datum)|>pull())))|>
     mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   df_Einnahmen  
   
   # Verteilen der Eventausgaben
   df_Ausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Ausgaben$Datum %in% (l_data$Programm|>filter(ID_Programm %in% IDs)|>select(Datum)|>pull())))|>
+    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Ausgaben$Datum %in% (l_data$Programm|>filter(`Event ID` %in% IDs)|>select(Datum)|>pull())))|>
     mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   df_Ausgaben 
@@ -1203,7 +1138,7 @@ for (ID in names(l_abrechnung)) {
   # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
   df_KioskGewinn <- 
     df_Kiosk|>
-    filter(ID_Programm == as.integer(ID))|>
+    filter(`Event ID` == as.integer(ID))|>
     reframe(Kassiert = sum(Kassiert, na.rm = T),
             Gewinn = sum(Gewinn, na.rm = T))
   df_KioskGewinn
@@ -1212,10 +1147,10 @@ for (ID in names(l_abrechnung)) {
   
   l_abrechnung[[ID]] <- list(
     Eintritte = df_Eintritt|>
-      filter(ID_Programm == as.integer(ID))|>
+      filter(`Event ID` == as.integer(ID))|>
       select(-`SUISA-Vorabzug`),
     Kiosk = df_Kiosk|>
-      filter(ID_Programm %in% IDs),
+      filter(`Event ID` %in% IDs),
     Verteilprodukt = df_Verteilprodukt,
     Abrechnung = Abrechnung,
     `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
@@ -1223,18 +1158,18 @@ for (ID in names(l_abrechnung)) {
     `Eventausgaben [CHF]` = df_Ausgaben$`Betrag [CHF]`,
     `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn$Gewinn,
     `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
-      filter(ID_Programm == as.integer(ID))|>
+      filter(`Event ID` == as.integer(ID))|>
       select(`Überschuss / Manko`)|>
       pull()
   )
   
   l_abrechnung[[ID]] <-
     list(Eintritte = df_Eintritt|>
-           filter(ID_Programm %in% IDs)|> # Die Eintritte werden gemeinsam abgerechnet
+           filter(`Event ID` %in% IDs)|> # Die Eintritte werden gemeinsam abgerechnet
            select(-`SUISA-Vorabzug`),
          Kiosk = df_Kiosk|>
-           filter(ID_Programm == as.character(ID))|> # Kioskeinnahmen 
-           arrange((ID_Programm)),
+           filter(`Event ID` == as.character(ID))|> # Kioskeinnahmen 
+           arrange((`Event ID`)),
          Verteilprodukt = df_Verteilprodukt,
          Abrechnung = Abrechnung,
          `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
@@ -1242,7 +1177,7 @@ for (ID in names(l_abrechnung)) {
          `Eventausgaben [CHF]` = df_Ausgaben$`Betrag [CHF]`,
          `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn$Gewinn,
          `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
-           filter(ID_Programm == as.integer(ID))|>
+           filter(`Event ID` == as.integer(ID))|>
            select(`Überschuss / Manko`)|>
            pull(),
          `Gewinn/Verlust Filmvorführungen [CHF]` = 
@@ -1290,7 +1225,7 @@ df_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
     x$Eintritte
   })|>
-  bind_rows(.id = "ID_Programm")
+  bind_rows(.id = "`Event ID`")
 df_Abrechnung_tickes
 
 
@@ -1299,7 +1234,7 @@ df_Abrechnung_kiosk <- l_abrechnung|>
   lapply(function(x){
     x$Kiosk
   })|>
-  bind_rows(.id = "ID_Programm")
+  bind_rows(.id = "`Event ID`")
 df_Abrechnung_kiosk
 
 
@@ -1308,14 +1243,14 @@ df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
   lapply(function(x){
     x$`Eventeinnahmen [CHF]`
   })|>
-  bind_rows(.id = "ID_Programm")
+  bind_rows(.id = "`Event ID`")
 df_Abrechnung_Eventeinnahmen
 
 df_Abrechnung_Eventausgaben <- l_abrechnung|>
   lapply(function(x){
     x$`Eventausgaben [CHF]`
   })|>
-  bind_rows(.id = "ID_Programm")
+  bind_rows(.id = "`Event ID`")
 df_Abrechnung_Eventausgaben
 
 
