@@ -1105,7 +1105,8 @@ server <- function(input, output, session) {
         title = "Die letzte Zeile kannn nicht gelöscht werden",
         footer = tagList(
           modalButton("Abbrechen")
-        )
+        ),
+        easyClose = TRUE
       ))
     }
     else {
