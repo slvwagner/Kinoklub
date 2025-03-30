@@ -14,9 +14,10 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
+
 # # Change columns
-# l_data$Einsatzplan <- l_data$Einsatzplan|>
-#   rename(`Event ID` = ID)
+# l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
+#   rename(`Operateurin` = `Operateur*in`)
   
 # update template
 l_template <- l_data|>
