@@ -465,8 +465,6 @@ server <- function(input, output, session) {
     })
   })
   
-
-  
   #### Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
