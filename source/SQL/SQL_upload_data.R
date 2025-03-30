@@ -14,11 +14,10 @@ if(file.exists(c_file)){
   c_file <- "Input/Data.Rds"
 }
 
-
 # # Change columns
-# l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-#   rename(`Operateurin` = `Operateur*in`)
-  
+# l_data$Verleiher <- l_data$Verleiher|>
+#   mutate(PLZ = as.integer(PLZ))
+
 # update template
 l_template <- l_data|>
   lapply(function(df){
