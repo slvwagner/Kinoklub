@@ -15,8 +15,8 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-# l_data$Verleiher <- l_data$Verleiher|>
-#   mutate(PLZ = as.integer(PLZ))
+l_data$Ausgaben <- l_data$Ausgaben|>
+  mutate(Buchungskonto = as.factor(Buchungskonto))
 
 # update template
 l_template <- l_data|>
