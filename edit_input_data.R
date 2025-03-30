@@ -232,7 +232,7 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown
-c_select_input_data <- c(1:3,5,16,14)
+c_select_input_data <- c(16,14,1:3,5)
 c_select_dropdown_data <- c(17, 6:13, 15)
 
 # Data table in german
@@ -338,8 +338,8 @@ server <- function(input, output, session) {
         lastEdited_data_set_name("Kinoklubmitglieder")
         
       }else{
-        current_data(l_data()[["Ausgaben"]])
-        lastEdited_data_set_name("Ausgaben")
+        current_data(l_data()[["Programm"]])
+        lastEdited_data_set_name("Programm")
       }
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
@@ -451,8 +451,8 @@ server <- function(input, output, session) {
         l_data()[c_select_dropdown_data]|>
           l_data_choices()
         
-        current_data(l_data()[["Ausgaben"]])
-        lastEdited_data_set_name("Ausgaben")
+        current_data(l_data()[["Programm"]])
+        lastEdited_data_set_name("Programm")
         data_selection_("Inputdaten")
         c_connected_to_db(TRUE)
         
