@@ -15,11 +15,9 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-l_data$Verleiher <- l_data$Verleiher|>
-  rename(`E-Mail` = `E-mail`)
+# l_data$Programm <- l_data$Programm|>
+#   rename(`Link to Event ID` = `Link ID`)
 
-l_data$Kinoklubmitglieder <- l_data$Kinoklubmitglieder|>
-  rename(`E-Mail` = Email)
 
 # update template
 l_template <- l_data|>
