@@ -136,13 +136,6 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
   }
 }
 
-#### Regex validation function for Suisanummer ####
-validate_suisanummer <- function(input) {
-  p <- "^\\d{4}\\.\\d{3}$"
-  grepl(p, input)
-}
-validate_suisanummer(c("1234.562","123.25"))
-
 #### factor handling Einsatzplan ####
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
@@ -520,7 +513,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  #### Edit row ####
+  #### Edit row modal Dialog ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling
@@ -767,7 +760,7 @@ server <- function(input, output, session) {
     
     # check input E-Mail if correct 
     df_Email <- df_updated[,names(df_temp) == "E-Mail"]
-    if(nrow(df_Email) > 0){
+    if(ncol(df_Email) > 0){
       if(!is.na(df_Email$`E-Mail`)){
         # E-Mail regex pattern
         p <- "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}"
@@ -786,6 +779,31 @@ server <- function(input, output, session) {
                         footer = tagList(
                           actionButton("abort","Abbrechen")
                           )
+            )
+          )
+        }
+      }
+    }
+    
+    # check input Suisanummer if correct 
+    df_suisa <- df_updated[,names(df_temp) == "Suisanummer"]
+    if(ncol(df_suisa) > 0){
+      if(!is.na(df_suisa$Suisanummer)){
+        # Suisanummer regex pattern
+        p <- "^\\d{4}\\.\\d{3}$"
+
+        c_select <- df_suisa$Suisanummer|>
+          str_detect(pattern = p)
+        
+        if(!c_select){
+          # User interaction 
+          showModal(
+            modalDialog(title = "Suisanummer korrekt?",
+                        renderText(df_suisa$Suisanummer),
+                        easyClose = FALSE, 
+                        footer = tagList(
+                          actionButton("abort","Abbrechen")
+                        )
             )
           )
         }
