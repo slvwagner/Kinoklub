@@ -329,37 +329,44 @@ server <- function(input, output, session) {
   
   #### Data set type selection ####
   observeEvent(input$data_selection,{
-    data_selection_(input$data_selection)
-    if(input$data_selection == "Dropdowns"){
-      current_data(l_data()[["Kinoklubmitglieder"]])
-      lastEdited_data_set_name("Kinoklubmitglieder")
-
-    }else{
-      current_data(l_data()[["Ausgaben"]])
-      lastEdited_data_set_name("Ausgaben")
-    }
-    # get all data as defined in the template l_data
-    l_data_sql <- DB_get_Data(l_template, DB_con())
+    shiny::withProgress(message = "login... ", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("SQL login", 1, "of 2"))
+      
+      data_selection_(input$data_selection)
+      if(input$data_selection == "Dropdowns"){
+        current_data(l_data()[["Kinoklubmitglieder"]])
+        lastEdited_data_set_name("Kinoklubmitglieder")
+        
+      }else{
+        current_data(l_data()[["Ausgaben"]])
+        lastEdited_data_set_name("Ausgaben")
+      }
+      # get all data as defined in the template l_data
+      l_data_sql <- DB_get_Data(l_template, DB_con())
+      
+      shiny::incProgress(1 / 2, detail = paste("SQL login", 1, "of 2"))
+      
+      # Convert data types for each table
+      convert_DB_to_R(l_data_sql,l_template)|>
+        l_data()
+      
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      
+      # Input data set
+      l_data()[c_select_input_data]|>
+        l_data_input()
+      
+      # Drop down data set
+      l_data()[c_select_dropdown_data]|>
+        l_data_choices()
+      
+      # remove row and page selection 
+      last_selected_page(NA)
+      last_selected_row(NA)
     
-    # Convert data types for each table
-    convert_DB_to_R(l_data_sql,l_template)|>
-      l_data()
-    
-    # update choices
-    update_choices(l_data())|>
-      column_choices()
-    
-    # Input data set
-    l_data()[c_select_input_data]|>
-      l_data_input()
-  
-    # Drop down data set
-    l_data()[c_select_dropdown_data]|>
-      l_data_choices()
-    
-    # remove row and page selection 
-    last_selected_page(NA)
-    last_selected_row(NA)
+      })
   })
   
   #### Data set selection ####
