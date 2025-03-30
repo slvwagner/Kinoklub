@@ -699,7 +699,7 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
 
 ################## Verleiherabgaben einlesen ################## 
 df_temp <- l_data$Programm|>
-  select(1:11,-`Link ID`)|>
+  select(1:11,-`Link to Event ID`)|>
   left_join(l_data$Verleiher|>
               select(-ID),
             by = c("Verleiher" = "Verleihername"))
@@ -901,7 +901,7 @@ df_temp <- df_temp|>
 df_temp
 
 df_Abrechnung <- df_temp|>
-  select(c("Event ID","Datum", "Zeit","Link ID", "Suisanummer",
+  select(c("Event ID","Datum", "Zeit","Link to Event ID", "Suisanummer",
            "Platzkategorie","Zahlend","Verkaufspreis","Anzahl","Umsatz",
            "SUISA-Vorabzug","Filmtitel",
            "Verleiher",
@@ -928,47 +928,11 @@ warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_
 ####################################  Abrechnung erstellen #################################### 
 df_mapping <- l_data$Programm|>
   select(1:6)|>
-  filter(!is.na(`Link to Event ID`))|>
   filter(Datum < Sys.Date())
 df_mapping
 
-inspect_link <- function(df_mapping, ID){
-  link <- df_mapping|>
-    filter(`Event ID` == ID)|>
-    pull()
-  
-  if(length(link) > 0) return(link)
-  else return(NULL)
-}
-
-inspect_link_ids <- function(df_mapping) {
-  result <- vector("list", nrow(df_mapping))  # Initialize an empty list
-  names(result) <- df_mapping[,1]  # Set names to ID
-  
-  for (ii in seq_len(nrow(df_mapping))) {
-    link_ids <- c(df_mapping[ii, 1]|>pull())  # Store all consecutive Link IDs for this row
-    link <- df_mapping[ii, 1]|>pull()
-    run <- TRUE
-    if (!is.na(link)){
-      link_ids <- c(link_ids, link)
-      while (run) {
-        link <- inspect_link(df_mapping, link)
-        if (!is.na(link)){
-          link_ids <- c(link_ids, link)
-        }else {
-          run <- FALSE
-        }
-      }
-    }
-    result[[ii]] <- link_ids
-  }
-  return(result)
-}
-
-
 # find all connected Filmvorführungen from Programm and remove all already connected 
 l_abrechnung <- inspect_link_ids(df_mapping)
-
 l_abrechnung <- l_abrechnung|>
   nullify_used_entries()
 l_abrechnung
@@ -990,7 +954,7 @@ for (ID in names(l_abrechnung)) {
     mutate(Verteilprodukt_1 = `Umsatz [CHF]` / sum(`Umsatz [CHF]`),
            Verteilprodukt_2 = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`)
     )|>
-    left_join(l_data$Programm|>select(1:6)|>select(-`Link ID`),
+    left_join(l_data$Programm|>select(1:6)|>select(-`Link to Event ID`),
               by = join_by(`Event ID`)
     )
   df_Verteilprodukt
@@ -1065,7 +1029,7 @@ for (ID in names(l_abrechnung)) {
   
   # Verleiherrechung
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Verleiher", Suisanummer == Abrechnung$Suisanummer)
+    filter(Kategorie == "Verleiher")
   df_temp
   
   if(nrow(df_temp) > 0){
@@ -1123,14 +1087,18 @@ for (ID in names(l_abrechnung)) {
   
   # Verteilen der Eventeinnahmen
   df_Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
-    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Einnahmen$Datum %in% (l_data$Programm|>filter(`Event ID` %in% IDs)|>select(Datum)|>pull())))|>
+    filter(Kategorie == "Event", 
+           `Event ID` == df_Verteilprodukt$`Event ID`
+           )|>
     mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   df_Einnahmen  
   
   # Verteilen der Eventausgaben
   df_Ausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Event" & (Einnahmen_und_Ausgaben$Ausgaben$Datum %in% (l_data$Programm|>filter(`Event ID` %in% IDs)|>select(Datum)|>pull())))|>
+    filter(Kategorie == "Event", 
+           `Event ID` == df_Verteilprodukt$`Event ID`
+    )|>
     mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   df_Ausgaben 

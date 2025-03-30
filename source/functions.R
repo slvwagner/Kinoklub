@@ -397,7 +397,7 @@ r_signif <- function (x, significant_digits = 3)
 
 inspect_link <- function(df_mapping, ID){
   link <- df_mapping|>
-    filter(ID_Programm == ID)|>
+    filter(`Event ID` == ID)|>
     pull()
   if(length(link) > 0) return(link)
   else return(NULL)
@@ -405,11 +405,11 @@ inspect_link <- function(df_mapping, ID){
 
 inspect_link_ids <- function(df_mapping) {
   result <- vector("list", nrow(df_mapping))  # Initialize an empty list
-  names(result) <- df_mapping$ID_Programm  # Set names to ID_Programm
+  names(result) <- df_mapping$`Event ID`  # Set names to ID_Programm
   
   for (ii in seq_len(nrow(df_mapping))) {
-    link_ids <- c(df_mapping[ii,"ID_Programm"]|>pull())  # Store all consecutive Link IDs for this row
-    link <- df_mapping[ii,"Link ID"]|>pull()
+    link_ids <- c(df_mapping[ii,"Event ID"]|>pull())  # Store all consecutive Link IDs for this row
+    link <- df_mapping[ii,"Link to Event ID"]|>pull()
     run <- TRUE
     if (!is.na(link)){
       link_ids <- c(link_ids, link)
