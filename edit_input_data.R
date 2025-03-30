@@ -516,7 +516,7 @@ server <- function(input, output, session) {
   #### Edit row modal Dialog ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
-      # Joined table handling
+      # Joined table handling 
       if (lastEdited_data_set_name() %in% c("Einsatzplan")) {
         # Store HTML elements
         l_temp <- list()
@@ -532,7 +532,6 @@ server <- function(input, output, session) {
           )
         })
       } else {
-        
         # Store HTML elements
         l_temp <- list()
         # only display
@@ -546,9 +545,6 @@ server <- function(input, output, session) {
             column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[input$table_rows_selected, ii]))
           )
         })
-        
-        # # Get actual data
-        # df_row <- current_data()
       }
       
       if(r_is.defined(l_temp)) {
@@ -658,7 +654,7 @@ server <- function(input, output, session) {
     df_temp <- current_data()
     df_temp_ <- current_data()
     
-    # Special user input handling
+    ##### Special user input handling #####
     if(lastEdited_data_set_name() == "Einsatzplan"){
       # select columns to be updated 
       c_select <- 7:ncol(df_temp)
@@ -671,7 +667,7 @@ server <- function(input, output, session) {
       names(c_input) <- NULL
       c_input
     } 
-    # standard handling user input
+    #### standard handling user input ####
     else{
       # get the user input
       generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
@@ -683,7 +679,7 @@ server <- function(input, output, session) {
     }
     removeModal()
     
-    # Coerce user input to correct data type 
+    #### Coerce user input to correct data type ####
     l_input <- list()
 
     for (ii in 1:ncol(df_temp)) {
@@ -754,11 +750,11 @@ server <- function(input, output, session) {
     df_updated <- l_input|>
       as_tibble()
     
-    # Handel ID`s
+    #### Handel ID`s ####
     df_updated <- bind_cols(current_data()[input$table_rows_selected,1],df_updated)
     df_temp <- bind_cols(current_data()[,1],df_temp)
     
-    # check input E-Mail if correct 
+    #### check input E-Mail if correct #####
     df_Email <- df_updated[,names(df_temp) == "E-Mail"]
     if(ncol(df_Email) > 0){
       if(!is.na(df_Email$`E-Mail`)){
@@ -785,7 +781,7 @@ server <- function(input, output, session) {
       }
     }
     
-    # check input Suisanummer if correct 
+    #### check input Suisanummer if correct #####
     df_suisa <- df_updated[,names(df_temp) == "Suisanummer"]
     if(ncol(df_suisa) > 0){
       if(!is.na(df_suisa$Suisanummer)){
@@ -810,7 +806,7 @@ server <- function(input, output, session) {
       }
     }
     
-    # handle factors 
+    #### handle factors #####
     if(lastEdited_data_set_name() == "Einsatzplan"){
       df_updated <- 
         bind_cols(
@@ -859,7 +855,7 @@ server <- function(input, output, session) {
       df_temp[input$table_rows_selected,] <- df_updated
     }
 
-    # check for changed data 
+    #### check for changed data #####
     if(is.logical(all.equal(df_temp[input$table_rows_selected,], df_temp_[input$table_rows_selected,]))){
       # User interaction 
       showModal(
@@ -1552,12 +1548,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
 
-#### Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# #### Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
