@@ -15,8 +15,8 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-l_data$Ausgaben <- l_data$Ausgaben|>
-  mutate(Buchungskonto = as.factor(Buchungskonto))
+# l_data$Verleiher <- l_data$Verleiher|>
+#   rename(`E-mail` = Kontakt)
 
 # update template
 l_template <- l_data|>
