@@ -1082,7 +1082,8 @@ server <- function(input, output, session) {
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
-          modalButton("Abbrechen"))
+          modalButton("Abbrechen")),
+        easyClose = TRUE
       ))
     }else{
       showModal(modalDialog(
@@ -1090,7 +1091,8 @@ server <- function(input, output, session) {
         footer = tagList(
           modalButton("Abbrechen"),
           actionButton("confirm_delete", "Löschen")
-        )
+        ),
+        easyClose = TRUE
       ))
     }
   })
