@@ -26,7 +26,7 @@ update_choices <- function(l_data) {
     pull()
   
   `Operateur*in` <- l_data$Kinoklubmitglieder|>
-    filter(`Operateur*in` == pull(l_data$JaNein)[2])|>
+    filter(`Operateurin` == pull(l_data$JaNein)[2])|>
     mutate(Mitglied = paste(Vorname, Nachname))|>
     select(Mitglied)
   `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
@@ -64,7 +64,8 @@ update_choices <- function(l_data) {
     "Marketing" = l_data$JaNein$Auswahl,
     "Finanzen" = l_data$JaNein$Auswahl,
     "Sponsoring" = l_data$JaNein$Auswahl,
-    "Koordination" = l_data$JaNein$Auswahl
+    "Koordination" = l_data$JaNein$Auswahl,
+    "Operateurin" = l_data$JaNein$Auswahl
   )
 }
 
@@ -432,7 +433,8 @@ server <- function(input, output, session) {
           l_data()
         
         # update choices
-        update_choices(l_data())|>
+        df_temp <- update_choices(l_data())
+        df_temp |>
           column_choices()
         
         # Input data set
