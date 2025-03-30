@@ -470,10 +470,7 @@ server <- function(input, output, session) {
     })
   })
   
-  #### Abort ####
-  observeEvent(input$abort,{
-    removeModal()
-  })
+
   
   #### Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
@@ -691,6 +688,7 @@ server <- function(input, output, session) {
       
       df_temp <- current_data()[,2:ncol(current_data())]
     }
+    removeModal()
     
     # Coerce user input to correct data type 
     l_input <- list()
@@ -767,6 +765,33 @@ server <- function(input, output, session) {
     df_updated <- bind_cols(current_data()[input$table_rows_selected,1],df_updated)
     df_temp <- bind_cols(current_data()[,1],df_temp)
     
+    # check input E-Mail if correct 
+    df_Email <- df_updated[,names(df_temp) == "E-Mail"]
+    if(nrow(df_Email) > 0){
+      if(!is.na(df_Email$`E-Mail`)){
+        # E-Mail regex pattern
+        p <- "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}"
+        p <- "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
+        
+        c_select <- df_Email$`E-Mail`|>
+          str_detect(pattern = p)
+        
+        if(!c_select){
+          # User interaction 
+          removeModal()
+          showModal(
+            modalDialog(title = "E-Mail korrekt?",
+                        renderText(df_Email$`E-Mail`),
+                        easyClose = FALSE, 
+                        footer = tagList(
+                          actionButton("abort","Abbrechen")
+                          )
+            )
+          )
+        }
+      }
+    }
+    
     # handle factors 
     if(lastEdited_data_set_name() == "Einsatzplan"){
       df_updated <- 
@@ -835,7 +860,7 @@ server <- function(input, output, session) {
       }
       # update data 
       current_data(df_temp)
-      removeModal()
+      
     }
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
