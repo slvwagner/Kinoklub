@@ -39,7 +39,7 @@ update_choices <- function(l_data) {
   `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
     pull()
   
-  # choices list
+  # return updated choices list
   list(
     "Lieferant" = l_data$Lieferanten$Lieferantenname,
     "Kategorie" = l_data$Kategorie$Auswahl,
@@ -332,10 +332,31 @@ server <- function(input, output, session) {
     if(input$data_selection == "Dropdowns"){
       current_data(l_data()[["Kinoklubmitglieder"]])
       lastEdited_data_set_name("Kinoklubmitglieder")
+
     }else{
       current_data(l_data()[["Ausgaben"]])
       lastEdited_data_set_name("Ausgaben")
     }
+    # get all data as defined in the template l_data
+    l_data_sql <- DB_get_Data(l_template, DB_con())
+    
+    # Convert data types for each table
+    convert_DB_to_R(l_data_sql,l_template)|>
+      l_data()
+    
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
+    # Input data set
+    l_data()[c_select_input_data]|>
+      l_data_input()
+  
+    # Drop down data set
+    l_data()[c_select_dropdown_data]|>
+      l_data_choices()
+    
+    # remove row and page selection 
     last_selected_page(NA)
     last_selected_row(NA)
   })
@@ -377,7 +398,7 @@ server <- function(input, output, session) {
     # update choices
     update_choices(l_data())|>
       column_choices()
-    
+
     if(lastEdited_data_set_name() == c_input_dataset & data_selection_() == input$data_selection){
       dataTableProxy("table")|>
         selectPage(last_selected_page())|>
@@ -414,8 +435,10 @@ server <- function(input, output, session) {
         update_choices(l_data())|>
           column_choices()
         
+        # Input data set
         l_data()[c_select_input_data]|>
           l_data_input()
+        # Drop down data set
         l_data()[c_select_dropdown_data]|>
           l_data_choices()
         
@@ -491,98 +514,6 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  #### Update changes ####
-  observeEvent(input$save_edit, {
-    l_temp <- l_data() # get data list
-    # joined tables 
-    # specific data handling Programm / Einsatzplan
-    if (lastEdited_data_set_name() == "Programm"){
-      df_temp <- current_data()
-      # Update the list with current edits
-      l_temp[[lastEdited_data_set_name()]] <- df_temp 
-      l_temp$Einsatzplan <- left_join(df_temp|>
-                  select(ID, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
-                l_temp[["Einsatzplan"]]|>
-                  select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
-                )
-    } # anything else
-    else { 
-      l_temp[[lastEdited_data_set_name()]] <- current_data() # Update the list with current edits
-
-    }
-    # create and update tables on SQL
-    update_DB_all(l_temp, DB_con())
-    
-    # get all data as defined in the template l_data
-    l_data_sql <- get_Data(l_template, DB_con())
-    
-    # Convert data types for each table
-    l_temp <- convert_DB_to_R(l_data_sql,l_template)
-    
-    # update data
-    l_data(l_temp) 
-    
-    # update choices
-    Verantwortlich <- l_data()$Kinoklubmitglieder|>
-      filter(Koordination == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    Verantwortlich <- bind_rows(tibble(Mitglied = "..."),Verantwortlich)|>
-      pull()
-    
-    `Operateur*in` <- l_data()$Kinoklubmitglieder|>
-      filter(`Operateur*in` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Operateur*in`  <- bind_rows(tibble(Mitglied = "..."),`Operateur*in` )|>
-      pull()
-    
-    `Kasse/Bar` <- l_data()$Kinoklubmitglieder|>
-      filter(`Kasse / Bar` == pull(l_data()$JaNein)[2])|>
-      select(Mitglied)
-    `Kasse/Bar`   <- bind_rows(tibble(Mitglied = "..."),`Kasse/Bar`  )|>
-      pull()
-    
-    list(  
-      "Lieferant" = l_data()$Lieferanten$Lieferantenname,
-      "Kategorie" = l_data()$Kategorie$Auswahl,
-      "Buchungskonto" = l_data()$Buchhaltungskonten$Buchungskontoname,
-      "Verleiher" = l_data()$Verleiher$Verleihername,
-      "Kinoförderer gratis?" = l_data()$JaNein$Auswahl,
-      "Spezialpreis" = l_data()$Spezialpreis$Spezialpreisname,
-      "KDM ja oder nein" = l_data()$JaNein$Auswahl,
-      "Besucherzahlen an Verleiher gesendet" = l_data()$JaNein$Auswahl,
-      "Verleihervertrag abgelegt" = l_data()$JaNein$Auswahl,
-      "Verleiher Angefragt?" = l_data()$`Status Filmliste`$`Status Filmliste`,
-      "Verantwortlich" = Verantwortlich,
-      "Operateur*in" = `Operateur*in`,
-      "Kasse/Bar 1" = `Kasse/Bar`,
-      "Kasse/Bar 2" = `Kasse/Bar`,
-      "Back-up" = `Kasse/Bar`,
-      "Allgemeine Infos erhalten" = l_data()$JaNein$Auswahl,
-      "Kasse / Bar" = l_data()$JaNein$Auswahl,
-      "Programm" = l_data()$JaNein$Auswahl,
-      "Sonderevents" = l_data()$JaNein$Auswahl,
-      "Marketing" = l_data()$JaNein$Auswahl,
-      "Finanzen" = l_data()$JaNein$Auswahl,
-      "Sponsoring" = l_data()$JaNein$Auswahl,
-      "Koordination" = l_data()$JaNein$Auswahl
-    )|>
-      column_choices()
-    showNotification("Changes saved successfully!", type = "message")
-    
-    lastEdited_data_set_name(input$dataset)
-    current_data(l_data()[[input$dataset]])
-    removeModal()
-    if(lastEdited_data_set_name() == input$dataset){
-        dataTableProxy("table")|>
-        selectPage(last_selected_page())|>
-        selectRows(last_selected_row())
-    }else{
-      last_selected_page(NA)
-      last_selected_row(NA)
-    }
-
-  })
-
   #### Edit row ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
