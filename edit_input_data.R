@@ -581,6 +581,7 @@ server <- function(input, output, session) {
             inputId = as.character(ii),
             label = col_name,
             value = ifelse(is.na(col_value), NA, col_value),
+            min = 0,
             step = 0.01
           )
         } else if (col_data_type %in% c("integer")) {
@@ -588,6 +589,7 @@ server <- function(input, output, session) {
             inputId = as.character(ii),
             label = col_name,
             value = ifelse(is.na(col_value), NA, col_value),
+            min = 0,
             step = 1
           )
         } else if (col_data_type == "factor") {
