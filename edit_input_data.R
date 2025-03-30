@@ -845,6 +845,33 @@ server <- function(input, output, session) {
       df_temp <- convert_Programm(df_temp, "char")
       df_temp[input$table_rows_selected,] <- df_updated
       df_temp <- convert_Programm(df_temp, "fact")
+    } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      # find class of column
+      c_class <- 
+        1:ncol(df_temp)|>
+        lapply(function(ii){
+          c_temp <- df_temp|>
+            select(ii)|>
+            pull()
+          class(c_temp)
+        })|>
+        unlist()
+      c_class  
+      # convert to character
+      for (ii in 1:length(c_class)) {
+        if(c_class[ii] == "factor"){
+          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
+        }
+      }
+      # Update data 
+      df_temp[input$table_rows_selected,] <- df_updated
+        
+      # convert to factor
+      for (ii in 1:length(c_class)) {
+        if(c_class[ii] == "factor"){
+          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
+        }
+      }
     } else { # anything else 
       df_temp[input$table_rows_selected,] <- df_updated
     }
@@ -903,8 +930,8 @@ server <- function(input, output, session) {
         # Create an empty row
         new_row <- current_data()[1, ] |> 
           mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
-          mutate(ID = max(current_data()$ID) + 1L)
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        new_row[1,1] <- max(current_data()[,1]) + 1L
 
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
@@ -953,8 +980,8 @@ server <- function(input, output, session) {
         # Create an empty row
         new_row <- current_data()[1, ] |> 
           mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
-          mutate(ID = max(current_data()$ID) + 1L)
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        new_row[1,1] <- max(current_data()[,1]) + 1L
         
         # updata SQL DB
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
