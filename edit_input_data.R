@@ -873,7 +873,6 @@ server <- function(input, output, session) {
                         as.character(`Link to Event ID`))|>
                  factor()
         )
-      
       df_updated <- df_updated|>
         mutate(`Link to Event ID` = 
                  ifelse(`Link to Event ID` == "NA", 
@@ -881,7 +880,6 @@ server <- function(input, output, session) {
                         as.character(`Link to Event ID`)
                         )
                )
-      
     } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
       # find class of column
       c_class <- 
