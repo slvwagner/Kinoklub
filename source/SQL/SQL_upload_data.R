@@ -15,8 +15,8 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-l_data$Programm <- l_data$Programm|>
-  mutate(`Link to Event ID` = factor(`Link to Event ID`))
+# l_data$Programm <- l_data$Programm|>
+#   mutate(`Link to Event ID` = factor(`Link to Event ID`))
 
 # update template
 l_template <- l_data|>

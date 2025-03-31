@@ -867,17 +867,19 @@ server <- function(input, output, session) {
       df_temp <- df_temp|>
         mutate(Verleiher = factor(Verleiher),
                `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
-               `Link to Event ID` = ifelse(`Link to Event ID` == "NA", 
-                                           NA, 
-                                           as.character(`Link to Event ID`))|>
+               `Link to Event ID` = 
+                 ifelse(`Link to Event ID` == "NA", 
+                        NA, 
+                        as.character(`Link to Event ID`))|>
                  factor()
         )
       
       df_updated <- df_updated|>
-        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", 
-                                           NA, 
-                                           as.character(`Link to Event ID`)
-                                           )
+        mutate(`Link to Event ID` = 
+                 ifelse(`Link to Event ID` == "NA", 
+                        NA, 
+                        as.character(`Link to Event ID`)
+                        )
                )
       
     } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
