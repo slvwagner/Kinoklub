@@ -93,8 +93,6 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
         actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-        # shiny::tags$hr(),
-        # actionButton("save_edit", "Speichern", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
       )
@@ -109,8 +107,6 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
         ),
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-        # shiny::tags$hr(),
-        # actionButton("save_edit", "Speichern", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
       )
@@ -131,8 +127,6 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
       actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
       shiny::tags$hr(),
       actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-      # shiny::tags$hr(),
-      # actionButton("save_edit", "Speichern", class = "btn-success"),
       shiny::tags$hr(),
       actionButton("get_email", "Email-Verteiler", class = "btn-info"),
     )
