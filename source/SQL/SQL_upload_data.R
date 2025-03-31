@@ -15,9 +15,14 @@ if(file.exists(c_file)){
 }
 
 # # Change columns
-# l_data$Programm <- l_data$Programm|>
-#   rename(`Link to Event ID` = `Link ID`)
+l_data$Ausgaben <- l_data$Ausgaben|>
+  mutate(`Event ID` = factor(`Event ID`))
+  
+l_data$Einnahmen <- l_data$Einnahmen|>
+  mutate(`Event ID` = factor(`Event ID`))
 
+l_data$Spezialpreisekiosk <- l_data$Spezialpreisekiosk|>
+  mutate(`Event ID` = factor(`Event ID`))
 
 # update template
 l_template <- l_data|>

@@ -65,7 +65,8 @@ update_choices <- function(l_data) {
     "Finanzen" = l_data$JaNein$Auswahl,
     "Sponsoring" = l_data$JaNein$Auswahl,
     "Koordination" = l_data$JaNein$Auswahl,
-    "Operateurin" = l_data$JaNein$Auswahl
+    "Operateurin" = l_data$JaNein$Auswahl,
+    "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel))
   )
 }
 
@@ -594,15 +595,30 @@ server <- function(input, output, session) {
           )
         } else if (col_data_type == "factor") {
           col_value <- as.character(col_value)
-          c_choices <- unlist(column_choices()[names(column_choices()) == col_name])
-          names(c_choices) <- NULL
-          
-          if (col_name %in% names(column_choices())) {
+          c_choices <- (column_choices()[names(column_choices()) == col_name])|>
+            as_tibble()|>
+            pull()
+
+          if(col_name %in% c("Event ID")){
+            c_select <- str_split(c_choices,":", simplify = T)[,1]|>
+              as.integer()|>
+              suppressWarnings()
+            names(c_select) <- c_choices
+            
+            l_temp[[ii + cnt]]  <- selectInput(
+              inputId = as.character(ii),
+              label = col_name,
+              choices = c_select,
+              selected = ifelse(is.na(col_value), NA, col_value),
+              selectize = TRUE
+            )
+          } else if (col_name %in% names(column_choices())) {
             l_temp[[ii + cnt]]  <- selectInput(
               inputId = as.character(ii),
               label = col_name,
               choices = c_choices,
-              selected = ifelse(is.na(col_value), NA, col_value)
+              selected = ifelse(is.na(col_value), NA, col_value),
+              selectize = TRUE
             )
           } else {
             stop("You should not end here: factor else")
@@ -686,6 +702,7 @@ server <- function(input, output, session) {
 
     for (ii in 1:ncol(df_temp)) {
       c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
+      c_table_name <- names(df_temp[,ii])
 
       if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
       
@@ -712,11 +729,27 @@ server <- function(input, output, session) {
       } # factor or choices inputs
       else if (c_input_class == "factor"){
         c_input[ii] <- as.character(c_input[ii])
-        if (c_input[ii] == "" | c_input[ii] == "..."){
-          l_input[[ii]] <- as.character(NA)
-        } else {
-          l_input[[ii]] <- as.character(c_input[ii])
+        if(names(df_temp[,ii]) == "Event ID"){
+          if (c_input[ii] == "" | c_input[ii] == "..."){
+            l_input[[ii]] <- as.integer(NA)
+          } else {
+            c_temp <- str_split(c_input[ii], ":")|>
+              lapply(function(x){
+                x[[1]]
+              })|>
+              unlist()|>
+              as.integer()
+            
+            l_input[[ii]] <- as.integer(c_temp)
+          }
+        }else{
+          if (c_input[ii] == "" | c_input[ii] == "..."){
+            l_input[[ii]] <- as.character(NA)
+          } else {
+            l_input[[ii]] <- as.character(c_input[ii])
+          }
         }
+        
       } # time inputs h:m 00:00
       else if(c_input_class == "hms"){
         c_input[ii] <- as.character(c_input[ii])
@@ -853,6 +886,14 @@ server <- function(input, output, session) {
           df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
         }
       }
+    } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben", "Spezialpreisekiosk")){
+      df_updated <- df_updated|>
+        mutate(`Event ID` = as.character(`Event ID`))
+      df_temp <- df_temp|>
+        mutate(`Event ID` = as.character(`Event ID`))
+      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`))
     } else { # anything else 
       df_temp[input$table_rows_selected,] <- df_updated
     }
@@ -1315,9 +1356,8 @@ server <- function(input, output, session) {
             })
           df_Date_user <- df_Date_user|>
               as_tibble()
-  
-
           names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
+          
           # Insert user readable Datum 
           run <- TRUE
           ii <- 1
