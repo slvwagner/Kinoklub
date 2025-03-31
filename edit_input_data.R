@@ -71,6 +71,7 @@ update_choices <- function(l_data) {
   )
 }
 
+
 #### Floating tool box function ####
 tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
@@ -869,7 +870,7 @@ server <- function(input, output, session) {
                `Link to Event ID` = factor(`Link to Event ID`)
         )
       df_updated <- df_updated|>
-        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", NA,as.character(`Link to Event ID`)))
+        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", NA, factor(`Link to Event ID`)))
     } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
       # find class of column
       c_class <- 
@@ -926,7 +927,7 @@ server <- function(input, output, session) {
       if(input$dataset == "Programm"){
         # Update the list
         l_temp <- l_data()
-        l_temp[[lastEdited_data_set_name()]] <- df_temp 
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
         
         # update all data
         l_data(l_temp)
@@ -996,6 +997,17 @@ server <- function(input, output, session) {
           current_data(updated_data)
         }
       }
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      
+      # update all data
+      l_data(l_temp)
+      
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      
       dataTableProxy("table") |>
         selectRows(last_selected_row() + 1) |>
         selectPage(last_selected_page())
@@ -1052,6 +1064,18 @@ server <- function(input, output, session) {
         current_data(updated_data)
       }
     }
+    
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+    
+    # update all data
+    l_data(l_temp)
+    
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
     dataTableProxy("table")|>
       selectPage(last_selected_page())|>
       selectRows(last_selected_row())
@@ -1110,6 +1134,15 @@ server <- function(input, output, session) {
         current_data(updated_data)
       }
     }
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
     dataTableProxy("table")|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
@@ -1164,6 +1197,17 @@ server <- function(input, output, session) {
         
         current_data(updated_data)
       } 
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+      
+      # update all data
+      l_data(l_temp)
+      
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      
       dataTableProxy("table")|>
         selectRows(last_selected_row())|>
         selectPage(last_selected_page())
