@@ -66,7 +66,8 @@ update_choices <- function(l_data) {
     "Sponsoring" = l_data$JaNein$Auswahl,
     "Koordination" = l_data$JaNein$Auswahl,
     "Operateurin" = l_data$JaNein$Auswahl,
-    "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel))
+    "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
+    "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel))
   )
 }
 
@@ -599,7 +600,7 @@ server <- function(input, output, session) {
             as_tibble()|>
             pull()
 
-          if(col_name %in% c("Event ID")){
+          if(col_name %in% c("Event ID","Link to Event ID")){
             c_select <- str_split(c_choices,":", simplify = T)[,1]|>
               as.integer()|>
               suppressWarnings()
@@ -856,9 +857,19 @@ server <- function(input, output, session) {
       df_temp <- convert_Einsatzplan(df_temp, "fact")
       df_temp
     } else if (lastEdited_data_set_name() == "Programm"){
-      df_temp <- convert_Programm(df_temp, "char")
+      df_temp <- df_temp|>
+        mutate(Verleiher = as.character(Verleiher),
+               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`),
+               `Link to Event ID` = as.character(`Link to Event ID`)
+               )
       df_temp[input$table_rows_selected,] <- df_updated
-      df_temp <- convert_Programm(df_temp, "fact")
+      df_temp <- df_temp|>
+        mutate(Verleiher = factor(Verleiher),
+               `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
+               `Link to Event ID` = factor(`Link to Event ID`)
+        )
+      df_updated <- df_updated|>
+        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", NA,as.character(`Link to Event ID`)))
     } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
       # find class of column
       c_class <- 
@@ -911,8 +922,19 @@ server <- function(input, output, session) {
       # update data base 
       DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), names(df_updated[,1]), df_updated[,1], df_updated)
       
-      # update joined data sets 
+      # update joined data sets and choices 
       if(input$dataset == "Programm"){
+        # Update the list
+        l_temp <- l_data()
+        l_temp[[lastEdited_data_set_name()]] <- df_temp 
+        
+        # update all data
+        l_data(l_temp)
+        
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        
         Update_Einsatzplan(df_updated)
       }
       # update data 
