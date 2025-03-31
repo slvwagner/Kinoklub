@@ -969,7 +969,7 @@ webserver <- function() {
 }
 
 #### Error if calculation not executing ####
-error_calculate <-  paste0(
+error_calculate <-  paste0("\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
   "! Es konnten nicht alle Daten einlesen werden. !\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
@@ -990,7 +990,7 @@ tryCatch({
       },
       warning = function(w) {
         # Capture warnings and store them in calculate_warnings
-        calculate_warnings <<- paste(calculate_warnings, "Warning:", w$message, sep = "")
+        calculate_warnings <<- paste("Warning:", w$message, sep = "")
         invokeRestart("muffleWarning")  # Suppress the warning from being printed
       }
     )

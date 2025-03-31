@@ -13,20 +13,7 @@ rm(list = ls())
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-###### read in data ###### 
-# # Einlesen Input daten
-# c_file <- "Input/Data.Rds"
-# if(file.exists(c_file)){
-#   l_data <- readRDS(c_file)
-#   c_backup_number <- length(list.files(path = "Input/backup", pattern = "backup"))
-#   if(!dir.exists("Input/backup")) dir.create("Input/backup")
-#   saveRDS(l_data, paste0("Input/backup/Data_backup",c_backup_number + 1,".Rds")) # Save the updated list to the file
-# }else{ # or load template date 
-#   c_file <- "Input/template.Rds"
-#   l_data <- readRDS(c_file)
-#   c_file <- "Input/Data.Rds"
-# }
-
+###### read template data ###### 
 # read template 
 l_template <- readRDS("source/SQL/template.Rds")
 
@@ -34,20 +21,16 @@ l_template <- readRDS("source/SQL/template.Rds")
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 # Data base user 
 user <- "ch367079_flo"
-
+con <- ""
 tryCatch({
   # Connect to data base 
-  con <- DB_connect(pw, "ch367079_flo")
+  con <<- DB_connect(pw, "ch367079_flo")
   # get all data as defined in the template l_template
   # Convert data types for each table
   l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
-  # Disconnect from DB
-  dbDisconnect(con)
-  remove(con)
 },error =  function(e){
   stop(e$message)
 })
-
 
 ##### Eintritte aus Advanced Tickets files ##### 
 convert_data_Film_txt <- function(fileName, Programm) {
@@ -344,8 +327,11 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
 }
 
 ################## Einnahmen und Ausgaben einlesen ##################
-Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen,
-                               Ausgaben = l_data$Ausgaben)
+Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
+                                 mutate(`Event ID` = as.integer(`Event ID`)),
+                               Ausgaben = l_data$Ausgaben|>
+                                 mutate(`Event ID` = as.integer(`Event ID`))
+                                 )
 
 
 ################## show times ##################
@@ -454,9 +440,13 @@ df_Kiosk <- df_Kiosk|>
   rename("Artikel-Kassensystem" = Verkaufsartikel)
 df_Kiosk
 
-# Spez Verkaufsartikel / Spezialpreise einlesen
+
+
+
+#### Spez Verkaufsartikel / Spezialpreise einlesen ####
 # Spezialpreise einlesen
-Spezialpreisekiosk <- l_data$Spezialpreisekiosk
+Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk", con)|>
+  mutate(`Event ID` = as.integer(`Event ID`))
 Spezialpreisekiosk
 
 # error handling
@@ -481,8 +471,8 @@ df_spez_preis
 df_spez_preis_na <- df_Kiosk|>
   filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
   arrange(`Event ID`, `Artikel-Kassensystem`)
-
 df_spez_preis_na
+
 Spezialpreisekiosk|>
   arrange(`Event ID`, Spezialpreis)
 
@@ -497,7 +487,7 @@ df_spez_preis_na
 if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`," / ", df_spez_preis_na$Filmtitel, " am ", format(df_temp$Datum, "%d.%m.%Y"),
+      "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`," / ", df_spez_preis_na$Filmtitel, " am ", format(df_spez_preis_na$Datum, "%d.%m.%Y"),
       "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
       "\nBitte korrigieren in Spezialpreisekiosk\n\n"
     )
@@ -1006,6 +996,7 @@ for (ID in names(l_abrechnung)) {
   Abrechnung$`SUISA-Vorabzug [%]`  
   Abrechnung$`Umsatz [CHF]`
   Abrechnung$`Umsatz für Netto3 [CHF]`
+  Abrechnung
   
   # Verteilprodukt for the actual `Event ID`
   df_temp <- df_Verteilprodukt|>
@@ -1024,12 +1015,13 @@ for (ID in names(l_abrechnung)) {
                                (`Umsatz für Netto3 [CHF]` - sum(`Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100))) * df_temp$Verteilprodukt_2
       )
     )
+  Abrechnung
   
   if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$`Event ID`, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
   
   # Verleiherrechung
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Verleiher")
+    filter(Kategorie == "Verleiher", `Event ID` == ID)
   df_temp
   
   if(nrow(df_temp) > 0){
@@ -1248,6 +1240,9 @@ remove(c_file,
        ii,
        c_filePath
        )
+
+# Disconnect from DB
+dbDisconnect(con)
 
 # user interaction
 writeLines("Good ... Berechnungen erfolgt")
