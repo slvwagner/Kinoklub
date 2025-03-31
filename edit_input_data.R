@@ -867,10 +867,19 @@ server <- function(input, output, session) {
       df_temp <- df_temp|>
         mutate(Verleiher = factor(Verleiher),
                `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
-               `Link to Event ID` = factor(`Link to Event ID`)
+               `Link to Event ID` = ifelse(`Link to Event ID` == "NA", 
+                                           NA, 
+                                           as.character(`Link to Event ID`))|>
+                 factor()
         )
+      
       df_updated <- df_updated|>
-        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", NA, factor(`Link to Event ID`)))
+        mutate(`Link to Event ID` = ifelse(`Link to Event ID` == "NA", 
+                                           NA, 
+                                           as.character(`Link to Event ID`)
+                                           )
+               )
+      
     } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
       # find class of column
       c_class <- 
@@ -928,14 +937,12 @@ server <- function(input, output, session) {
         # Update the list
         l_temp <- l_data()
         l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-        
         # update all data
         l_data(l_temp)
-        
         # update choices
         update_choices(l_data())|>
           column_choices()
-        
+        # update Einsatzplan
         Update_Einsatzplan(df_updated)
       }
       # update data 
