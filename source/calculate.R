@@ -747,7 +747,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 if(nrow(df_temp)>0){
-  warning(paste0("\nFür den Film ",df_temp$`Event ID`," / ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+  warning(paste0("\nFür den Film ID",df_temp$`Event ID`," / ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
               "\nBitte im Programm korrigieren!\n"
@@ -761,7 +761,7 @@ df_temp <- df_Abrechnung|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_temp)>0) warning(paste0("\nFür den Film ", df_temp$`Event ID`," / ", df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+if(nrow(df_temp)>0) warning(paste0("\nFür den Film ID ", df_temp$`Event ID`," / ", df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
                                 "\nBitte im Programm korrigieren!\n"
                                 )
@@ -812,7 +812,7 @@ df_temp <- df_Abrechnung|>
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_temp) > 0) {
-  warning(paste0("\nAchtung für den Film ", df_temp$`Event ID`, " / ", df_temp$Filmtitel," am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
+  warning(paste0("\nAchtung für den Film ID ", df_temp$`Event ID`, " / ", df_temp$Filmtitel," am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                  "\nist der Verleiherrechnungsbetrag kleiner als die Mindestgarantie.",
                  "\nBitte im Programm korrigieren!\n"
   )
@@ -900,7 +900,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("\nAchtung für den Film ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
+warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
                "\nmit der Suisanummer ", df_temp$Suisanummer,
                " gibt es keine Verleiherrechnung.",
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
@@ -919,7 +919,7 @@ l_abrechnung <- l_abrechnung|>
 l_abrechnung
 
 cnt <- 1
-ID <- "1"
+ID <- "2"
 for (ID in names(l_abrechnung)) {
 
   # Programm ID`s for the actual Abrechnung
@@ -946,7 +946,7 @@ for (ID in names(l_abrechnung)) {
       filter(`Event ID` %in% IDs)
     df_temp <- df_temp|>
       filter(!(df_temp$`Event ID` %in% df_Verteilprodukt$`Event ID`))
-    warning(paste("\nFür den Film ", df_temp$Suisanummer[1], df_temp$Filmtitel[1], "gibt es keine Eintritte. ",
+    warning(paste0("\nFür den Film ID ", df_temp$`Event ID`," / ", df_temp$Filmtitel[1], " gibt es keine Eintritte. ",
                   # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
                   "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
     next
@@ -999,14 +999,27 @@ for (ID in names(l_abrechnung)) {
   # Netto 3
   Abrechnung <- Abrechnung|>
     mutate(
-      Verteilprodukt =  if_else(`Kinoförderer gratis?`, df_Verteilprodukt$Verteilprodukt_1[as.integer(ID)],df_Verteilprodukt$Verteilprodukt_2[as.integer(ID)]), # Umsatzverteilprodukt
+      Verteilprodukt =  if_else(`Kinoförderer gratis?`, 
+                                df_Verteilprodukt|>
+                                  filter(`Event ID` == as.integer(ID))|>
+                                  select(Verteilprodukt_1)|>
+                                  pull(),
+                                df_Verteilprodukt|>
+                                  filter(`Event ID` == as.integer(ID))|>
+                                  select(Verteilprodukt_2)|>
+                                  pull()
+                                ), # Umsatzverteilprodukt
       `SUISA-Vorabzug [CHF]` = sum(`Umsatz [CHF]`) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt,
       `Netto3 [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                                (`Umsatz [CHF]` - sum(`Umsatz [CHF]` * (`SUISA-Vorabzug [%]` /100))) * df_temp$Verteilprodukt_1,
                                (`Umsatz für Netto3 [CHF]` - sum(`Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100))) * df_temp$Verteilprodukt_2
       )
     )
-  Abrechnung
+  Abrechnung$Verteilprodukt
+  Abrechnung$`SUISA-Vorabzug [CHF]`
+  Abrechnung$`Netto3 [CHF]`
+  Abrechnung|>
+    select(10:ncol(Abrechnung))
 
   if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$`Event ID`, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
 
@@ -1018,7 +1031,7 @@ for (ID in names(l_abrechnung)) {
   if(nrow(df_temp) > 0){
     Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = df_temp$`Betrag [CHF]`)
   }else{
-    Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = NA)
+    Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = as.numeric(NA))
   }
   Abrechnung$`Verleiherrechnungsbetrag [CHF]`
 
