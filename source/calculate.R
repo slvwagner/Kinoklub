@@ -7,7 +7,7 @@ library(tidyverse)
 writeLines("Daten werden einlesen und berechnet...")
 
 # clean
-rm(list = ls())
+# rm(list = ls())
 
 # load user settings
 source("source/functions.R")
@@ -1253,7 +1253,7 @@ df_Abrechnung_kiosk
 
 # summary Eintritt (für Berichte verwendet)
 df_Besucherzahlen <- df_Eintritt|>
-  group_by(Datum, Filmtitel, Suisanummer)|>
+  group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
