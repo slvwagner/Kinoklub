@@ -82,10 +82,10 @@ df_temp2|>
 ```{r}
 df_temp <- df_Abrechnung|>
   arrange(desc(Datum))|>
- mutate(Datum_display = format(Datum, "%d.%m.%Y"),
-        Anfang = paste0(lubridate::hour(Anfang), ":", 
-                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                        )
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Anfang = paste0(lubridate::hour(Zeit), ":", 
+                         lubridate::minute(Zeit) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                         )
         )|>
   select(Datum, Datum_display, Filmtitel, `SUISA-Vorabzug [CHF]`)
 ```
@@ -116,13 +116,16 @@ df_temp|>
 ```{r}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == l_data$Kategorie$Auswahl[6])|>
-  arrange(desc(Spieldatum))
+  arrange(desc(Datum))
 
 df_temp1 <- df_temp1|>
-  left_join(df_show, by = c("Spieldatum" = "Datum"))
+  left_join(df_Abrechnung_tickes, by = c("Datum" = "Datum"))
+```
 
+
+```{r}
 df_temp1 <- df_temp1|>
-  mutate(Datum = Spieldatum)|>
+  mutate(Datum = Datum)|>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   select(Datum, Datum_display, `Suisanummer`,Bezeichnung, `Betrag [CHF]`)|>
   rename(`Betrag [CHF]` = `Betrag [CHF]`)
@@ -185,8 +188,7 @@ Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 
 ```{r}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[2])|>
-  arrange((Datum))
+  filter(Kategorie == l_data$Kategorie$Auswahl[2])
 
 if(nrow(df_temp) > 0) {
   df_temp <- df_temp|>
@@ -213,17 +215,22 @@ df_temp|>
 ### Eventausgaben
 Alle Ausgaben für den Event, z.B. Werbung, Esswaren, Spesen, ...
 ```{r}
-
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == l_data$Kategorie$Auswahl[2])|>
   arrange((Datum))
+```
 
+
+```{r}
 if(nrow(df_temp) > 0) {
   df_temp1 <- df_temp1|>
-    left_join(df_show |> rename(Suisanummer = `Suisa Nummer`),
-              by = join_by(Datum, Suisanummer)) |>
-    mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) |>
-    select(Datum, Filmtitel, Bezeichnung, `Betrag [CHF]`)
+    left_join(df_Abrechnung|>
+                mutate(`Event ID` = as.character(`Event ID`)|>
+                         as.integer()
+                         ),
+              by = join_by(`Event ID`)) |>
+    # mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) |>
+    select(`Event ID`, Filmtitel, Bezeichnung, `Betrag [CHF]`)
   
   df_temp1 |>
     knitr::kable()
@@ -332,37 +339,25 @@ EinkaufKino|>
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
 
 ```{r}
-df_temp <- df_manko_uerberschuss|>
-  left_join(df_show, by = c("Datum", "Suisanummer" = "Suisa Nummer")
-            ) |>
-  arrange(Datum)|>
-  select(Datum, Suisanummer, Filmtitel, `Überschuss / Manko`) |>
-  rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
-  arrange((Datum))|>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y")
-         )
-
-df_temp <- df_temp|>
-  select(Datum, Datum_display, Suisanummer, Filmtitel, `Überschuss / Manko [CHF]`)
+df_temp <- df_manko_uerberschuss
 ```
 
 ```{r}
 DT::datatable(df_temp,
-          options = list(
-            columnDefs = list(
-              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
+          # options = list(
+          #   columnDefs = list(
+          #     list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+          #     list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+          #   )
+          # ),
+          # colnames = c(Datum = "Datum_display")
 )
 ```
 
 
 ```{r}
 Kasse <- df_temp|>
-  select(-Datum)|>
-  reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`, na.rm = T))
+  reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko`, na.rm = T))
 
 Kasse|>
   knitr::kable(digits = 2)
@@ -396,7 +391,7 @@ Kiosk|>
 ## Kurzfristiges zinsloses Fremdkapital
 ### 6er Abos
 ```{r}
-df_temp <- atelierkino_abo|>
+df_temp <- df_atelierkino_abo|>
   filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
