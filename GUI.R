@@ -96,12 +96,16 @@ Abrechnung_mapping <- function(data_env, start, end) {
   df_mapping <- data_env$df_Abrechnung |>
     select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
     mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
-    filter(between(Datum, as.Date(start), as.Date(end)))|>
-    mutate(fileName_RMD            = paste0("source/Abrechnung ",`Event ID`,".Rmd"),
-           fileName_html           = paste0("source/Abrechnung ",`Event ID`,".html"),
-           fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",`Event ID`,".Rmd"),
-           fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",`Event ID`,".html")
-    )
+    filter(between(Datum, as.Date(start), as.Date(end)))
+  
+  if(nrow(df_mapping) > 0){
+    df_mapping <- df_mapping|>
+      mutate(fileName_RMD            = paste0("source/Abrechnung ",`Event ID`,".Rmd"),
+             fileName_html           = paste0("source/Abrechnung ",`Event ID`,".html"),
+             fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",`Event ID`,".Rmd"),
+             fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",`Event ID`,".html")
+      )
+  }else stop("Mapping not possible")
   return(df_mapping)
 }
 
@@ -172,12 +176,6 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     }
   }
   
-  render_single_file(
-    df_mapping$fileName_RMD[1],
-    df_mapping$fileName_html[1],
-    data_env
-  )
-  
   library(furrr)
   # Determine the number of cores to use
   num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
@@ -199,80 +197,14 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   })
   file.remove(df_mapping$fileName_RMD)
   
-  # Render in parallel Verleiherabrechnung
-  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung |> sum()
   
-  if (create_verleiherabrechnung > 0) {
-    # Determine the number of cores to use
-    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-    if (num_cores > 4) num_cores <- 5
-    
-    # Adjust cores based on workload
-    if (create_verleiherabrechnung < num_cores) {
-      num_cores <- create_verleiherabrechnung
-    }
-    
-    # Select files to render
-    c_select <- df_mapping |>
-      filter(CreateReportVerleiherabrechnung == TRUE) |>
-      select(index) |>
-      pull() |>
-      as.integer()
-    
-    # File names to render
-    input  <- df_mapping |> filter(index %in% c_select) |> pull(fileName_RMD_Verleiher)
-    output <- df_mapping |> filter(index %in% c_select) |> pull(fileName_html_Verleiher)
-    
-    # Render in parallel Verleiherabrechnung
-    library(future)
-    plan(multisession, workers = num_cores)
-    
-    # Render files in parallel
-    library(furrr)
-    future_walk(1:length(c_select), function(ii) {
-      tryCatch({
-        render_single_file(
-          input[ii],
-          output[ii],
-          data_env
-        )
-      }, error = function(e) {
-        message("Error rendering file at index ", ii, ": ", e$message)
-      })
-    })
-    
-    # Delete selected files
-    if (all(file.exists(input))) {
-      file.remove(input)
-    } else {
-      warning("Some files to delete do not exist.")
-    }
-  }
   return(NULL)
 }
 
 #### Erstellen der Verleiherabrechnung pro Filmvorführung ####
-VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
-  for (ii in df_mapping$index) {
-    # Create Verleiherabrechnung
-    do_it <- df_mapping|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull()
-    if(do_it){
-      # Template der Abrechnung einlesen
-      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-      
-      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
-      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
-      
-      # neues file schreiben ohne toc
-      c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD_Verleiher)|>pull()
-      c_raw |>
-        writeLines(c_fileName)
-    }
-  }
-  
+VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung) {
   # Render in parallel Verleiherabrechnung
-  create_verleiherabrechnung <- df_mapping$CreateReportVerleiherabrechnung |> sum()
+  create_verleiherabrechnung <- df_mapping$`Kinoförderer gratis?` |> sum()
   
   if (create_verleiherabrechnung > 0) {
     # Determine the number of cores to use
@@ -286,14 +218,13 @@ VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     
     # Select files to render
     c_select <- df_mapping |>
-      filter(CreateReportVerleiherabrechnung == TRUE) |>
-      select(index) |>
+      select(`Event ID`) |>
       pull() |>
       as.integer()
     
     # File names to render
-    input  <- df_mapping |> filter(index %in% c_select) |> pull(fileName_RMD_Verleiher)
-    output <- df_mapping |> filter(index %in% c_select) |> pull(fileName_html_Verleiher)
+    input  <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_RMD_Verleiher)
+    output <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_html_Verleiher)
     
     # Render in parallel Verleiherabrechnung
     library(future)
@@ -302,15 +233,11 @@ VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     # Render files in parallel
     library(furrr)
     future_walk(1:length(c_select), function(ii) {
-      tryCatch({
-        render_single_file(
-          input[ii],
-          output[ii],
-          data_env
-        )
-      }, error = function(e) {
-        message("Error rendering file at index ", ii, ": ", e$message)
-      })
+      render_single_file(
+        input[ii],
+        output[ii],
+        data_env
+      )
     })
     
     # Delete selected files
@@ -1020,7 +947,7 @@ ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 toc <- shiny::reactiveVal(TRUE)
 
 # Vektor mit Datumseinträgen
-if (exists("df_show", envir = data_env))  {
+if (exists("df_Besucherzahlen", envir = data_env))  {
   datum_vektor <- data_env$df_Besucherzahlen$Datum
 } else {
   datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
@@ -1167,18 +1094,17 @@ server <- function(input, output, session) {
                 data_env,
                 start_datum, end_datum
               )
+            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung erstellen: ", 2, "of 4"))
             AbrechnungErstellen(
               df_mapping__,
               data_env$df_Abrechnung,
               toc = toc()
             )
-            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung erstellen: ", 2, "of 4"))
+            shiny::incProgress(1 / 4, detail = paste("Site-map erstellen: ", 3, "of 4"))
             VerleiherabrechnungErstellen(
               df_mapping__,
-              data_env$df_Abrechnung,
-              toc = toc()
+              data_env$df_Abrechnung
             )
-            shiny::incProgress(1 / 4, detail = paste("Site-map erstellen: ", 3, "of 4"))
             webserver()
             
           }, error = function(e) {

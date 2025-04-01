@@ -19,30 +19,9 @@ ii <- 1
 
 ```{r echo=FALSE}
 c_verteilprodukt <- df_Abrechnung|>
-  filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
+  filter(`Event ID` == ii)|>
   select(Verteilprodukt)|>
   pull()
-
-c_Datum <- df_Abrechnung|>
-  filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
-  select(Datum)|>
-  pull()
-
-c_linkDatum <- df_Abrechnung|>
-  filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
-   select(`Link Datum`)|>
-   pull()
-
-c_suisa <- df_Abrechnung|>
-  filter(Datum == df_mapping$Datum[ii],
-         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
-  select(`Suisa Nummer`)|>
-  rename(Suisanummer = `Suisa Nummer`)|>
-  pull()
-  
 
 ```
 
@@ -76,11 +55,19 @@ Tunaustrasse 5 \
 
 
 ```{r}
-df_temp <- df_verleiherabgaben|>
-  filter(Datum %in% c(c_Datum, c_linkDatum),
-         Suisanummer == c_suisa
-         )
+df_temp <- l_data$Programm|>
+  filter(`Event ID` == ii)
 ```
+
+```{r}
+df_temp <- left_join(
+  df_temp, 
+  l_data$Verleiher, 
+  by = c("Verleiher"="Verleihername")
+  )|>
+  filter(`Event ID` ==df_temp$`Event ID`)
+```
+
 
 `r df_temp$Verleiher[1]` \
 `r df_temp$Adresse[1]` \
@@ -94,13 +81,10 @@ Reinach , `r act_date`
 
 ## Verleiherabrechnung
 ```{r}
-df_temp1 <- df_show|>
-  filter(Datum %in% c(c_Datum, c_linkDatum))|>
-  select(`Suisa Nummer`, Filmtitel, Datum, Anfang, Ende, Saal)|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
-         Ende = paste0(lubridate::hour(Ende),":", lubridate::minute(Ende)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
-         Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-         )
+df_temp1 <- l_data$Ausgaben|>
+  filter(`Event ID` == ii, 
+         Kategorie == "Verleiher")|>
+  mutate(Datum = format(Datum,"%d.%m.%Y"))
 
 df_temp1|>
   knitr::kable()
@@ -109,7 +93,7 @@ df_temp1|>
 ### Eintritte und Umsatz
 ```{r}
 df_temp <- df_Abrechnung|>
-  filter(Datum %in%c(c_Datum))
+  filter(`Event ID` == ii)
 ```
 
 
@@ -119,7 +103,7 @@ c_suisa_prozent <- df_temp|>
   pull()
 
 df_temp <- df_Abrechnung_tickes|>
-  filter(Datum %in%c(c_Datum, c_linkDatum),
+  filter(`Event ID` == ii
          )
 
 ```
@@ -128,10 +112,13 @@ df_temp <- df_Abrechnung_tickes|>
 ```{r}
 df_temp <- df_temp|>
   slice(1:(nrow(df_temp)/2))|>
-  select(Datum, Platzkategorie, `Verkaufspreis [CHF]`, Anzahl,`Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)|>
-  rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-         )
+         )|>
+  select("Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz")
+df_temp <- df_temp|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
+         `Umsatz [CHF]` = Umsatz)
+
 
 ```
 
@@ -148,7 +135,7 @@ df_temp1 <- df_temp|>
 ```{r}
 df_temp1 <- df_temp|>
   distinct(Platzkategorie, .keep_all = T)|>
-  select(Platzkategorie, `Verkaufspreis Abgerechnet [CHF]`)|>
+  select(Platzkategorie, `Verkaufspreis [CHF]`)|>
   left_join(df_temp1,
             by = join_by(Platzkategorie))|>
   arrange(desc(`Umsatz [CHF]`))

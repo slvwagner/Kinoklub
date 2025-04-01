@@ -333,16 +333,12 @@ Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
                                  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
                                  )
 
-################## show times ##################
-# read in shows
-df_show <- l_data$Programm|>
-  filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)
-df_show
-
+################## check suisanummer  ##################
 ## error handling
 p <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
-df_temp <- df_show|>
+df_temp <- l_data$Programm|>
+  filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)|>
   filter(!str_detect(Suisanummer,p))
 df_temp
 
@@ -352,6 +348,7 @@ if(nrow(df_temp) != 0) {
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum),
     " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.")
   )}
+
 
 ################## Eintritt aus Advanced Tickets ##################
 # files to read in
@@ -1222,16 +1219,11 @@ df_Abrechnung_kiosk <- l_abrechnung|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_kiosk
 
-
 # summary Eintritt (für Berichte verwendet)
 df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-
-
-remove(l_data)
-
 
 ################## write to Excel ##################
 c_filePath <- "output/data/"

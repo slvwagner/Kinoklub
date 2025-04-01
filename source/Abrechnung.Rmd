@@ -20,15 +20,21 @@ ii <- 1
 ```
 
 
+```{r echo=FALSE}
+c_verteilprodukt <- df_Abrechnung|>
+  filter(`Event ID` == ii)|>
+  select(Verteilprodukt)|>
+  pull()
+
+```
+
 ## Übersicht
 
 ```{r echo=FALSE}
-df_temp <- df_show|>
+df_temp <- df_Abrechnung|>
   filter(`Event ID` == ii)|>
-  mutate(Anfang = paste0(lubridate::hour(Zeit),":", 
-                         lubridate::minute(Zeit)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
-         Datum = format(Datum, "%d.%m.%Y"))|>
-  select(-`Verleiher Angefragt?`)
+  mutate(Datum = format(Datum, "%d.%m.%Y"))|>
+  select(`Event ID`,Datum,Zeit, Suisanummer, Filmtitel )
 ```
 
 ```{r echo=FALSE}
@@ -422,7 +428,8 @@ df_temp <- bind_cols(
               reframe(`Summe [CHF]` = -sum(`Betrag [CHF]`, na.rm = T)),
             Manko)
   )|>
-  rename(`Betrag [CHF]` = `Summe [CHF]`)
+  rename(`Betrag [CHF]` = `Summe [CHF]`)|>
+  select(-`Event ID`)
 
 df_temp|>
   knitr::kable()
