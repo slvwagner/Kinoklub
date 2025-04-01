@@ -975,7 +975,7 @@ error_calculate <-  paste0("\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
   )
 
-#### Envirnoment for calculate.R ####
+#### calculate.R ####
 data_env <- new.env()
 # read data
 calculate_warnings <- ""
@@ -990,7 +990,7 @@ tryCatch({
       },
       warning = function(w) {
         # Capture warnings and store them in calculate_warnings
-        calculate_warnings <<- paste("Warning:", w$message, sep = "")
+        calculate_warnings <<- paste(ausgabe_text,"Warning:", w$message, sep = "")
         invokeRestart("muffleWarning")  # Suppress the warning from being printed
       }
     )

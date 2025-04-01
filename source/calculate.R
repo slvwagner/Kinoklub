@@ -31,6 +31,9 @@ l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
 dbDisconnect(con)
 remove(l_template)
 
+
+l_data$Spezialpreisekiosk
+
 ##### Eintritte aus Advanced Tickets files #####
 convert_data_Film_txt <- function(fileName, Programm) {
   print("convert_data_Film_txt")
@@ -432,17 +435,23 @@ df_Kiosk
 
 #### Spez Verkaufsartikel / Spezialpreise einlesen ####
 # Spezialpreise einlesen
+l_data$Spezialpreisekiosk|>
+  arrange(`Event ID`, Spezialpreis)
+
 Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
-  mutate(`Event ID` = as.integer(`Event ID`))
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+         Spezialpreis = as.character(Spezialpreis)
+         )|>
+  arrange(`Event ID`, Spezialpreis)
 Spezialpreisekiosk
  
-# Spezpreise in Kiosk daten finden
+# Spezialpreise in Kiosk daten finden
 df_spez_preis <- df_Kiosk|>
   filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
   arrange(`Event ID`)
 df_spez_preis
 
-# Add Filmtitel
+# join Filmtitel
 df_spez_preis <- df_spez_preis|>
   left_join(l_data$Programm|>
               select(`Event ID`,Filmtitel),
@@ -450,28 +459,27 @@ df_spez_preis <- df_spez_preis|>
             )
 df_spez_preis
 
-
 # Sind alle Spezialpreise pro `Event ID` definiert?
-df_spez_preis_na <- df_Kiosk|>
+df_spez_preis_na <- df_spez_preis|>
   filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
   arrange(`Event ID`, `Artikel-Kassensystem`)
 df_spez_preis_na
-
-Spezialpreisekiosk|>
-  arrange(`Event ID`, Spezialpreis)
 
 df_spez_preis_na <- df_spez_preis_na|>
   left_join( # look up Spezialpreise
     Spezialpreisekiosk,
     by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
-  )|>
+  )
+df_spez_preis_na
+
+df_spez_preis_na <- df_spez_preis_na|>
   filter(is.na(Artikelname))
 df_spez_preis_na
 
 if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
-      "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`, " am ", format(df_spez_preis_na$Datum, "%d.%m.%Y"),
+      "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`, " / ", df_spez_preis_na$Filmtitel," am ", format(df_spez_preis_na$Datum, "%d.%m.%Y"),
       "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
       "\nBitte korrigieren in Spezialpreisekiosk\n"
     )
@@ -739,7 +747,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 if(nrow(df_temp)>0){
-  warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+  warning(paste0("\nFür den Film ",df_temp$`Event ID`," / ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
               "\nBitte im Programm korrigieren!\n"
@@ -753,7 +761,7 @@ df_temp <- df_Abrechnung|>
   distinct(Filmtitel,.keep_all = T)
 df_temp
 
-if(nrow(df_temp)>0) warning(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+if(nrow(df_temp)>0) warning(paste0("\nFür den Film ", df_temp$`Event ID`," / ", df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
                                 "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
                                 "\nBitte im Programm korrigieren!\n"
                                 )
@@ -800,12 +808,11 @@ df_temp <- df_Abrechnung|>
   mutate(`Minimal Abzug unterschritten` = `Minimal Abzug [CHF]`> `Verleiherrechnungsbetrag [CHF]`,
          `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
   )|>
-  select(Datum, Filmtitel, `Minimal Abzug unterschritten`)|>
   filter(`Minimal Abzug unterschritten`)
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_temp) > 0) {
-  warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
+  warning(paste0("\nAchtung für den Film ", df_temp$`Event ID`, " / ", df_temp$Filmtitel," am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                  "\nist der Verleiherrechnungsbetrag kleiner als die Mindestgarantie.",
                  "\nBitte im Programm korrigieren!\n"
   )
@@ -893,7 +900,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", format(df_temp$Datum, "%d.%m.%Y"),
+warning(paste0("\nAchtung für den Film ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
                "\nmit der Suisanummer ", df_temp$Suisanummer,
                " gibt es keine Verleiherrechnung.",
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
