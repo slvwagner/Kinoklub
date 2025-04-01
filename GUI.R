@@ -92,36 +92,22 @@ render_single_file <- function(input, output, envir) {
 
 #### Index pro Suisa-Nummer und Datum erstellen ####
 Abrechnung_mapping <- function(data_env, start, end) {
-  df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
-    mutate(user_Datum = format(Datum, "%d.%m.%Y"),
-           index = row_number())
-  
   # Soll die Verleiherabrechnung erzeugt werden?
-  df_mapping <- data_env$df_verleiherabgaben |>
-    select(Datum, Suisanummer, `Kinoförderer gratis?`) |>
-    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
-    mutate(
-      CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
-      `Kinoförderer gratis?` = NULL
-    ) |>
+  df_mapping <- data_env$df_Abrechnung |>
+    select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
+    mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
     filter(between(Datum, as.Date(start), as.Date(end)))|>
-    mutate(fileName_RMD            = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".Rmd"),
-           fileName_html           = paste0("source/Abrechnung ",user_Datum," ", Suisanummer,".html"),
-           fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".Rmd"),
-           fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",user_Datum," ", Suisanummer,".html")
-    )|>
-    left_join(data_env$df_show|>
-                distinct(`Suisa Nummer`,.keep_all = T)|>
-                select(`Suisa Nummer`, Filmtitel),
-              by = c(Suisanummer = "Suisa Nummer")
-    )|>
-    arrange(index)
+    mutate(fileName_RMD            = paste0("source/Abrechnung ",`Event ID`,".Rmd"),
+           fileName_html           = paste0("source/Abrechnung ",`Event ID`,".html"),
+           fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",`Event ID`,".Rmd"),
+           fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",`Event ID`,".html")
+    )
   return(df_mapping)
 }
 
-#### Erstellen der Abrechnung pro Filmvorführung ####
+#### Erstellen der Abrechnung pro `Event ID` ####
 AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
-  for (ii in df_mapping$index) {
+  for (ii in df_mapping$`Event ID`) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
     
@@ -131,27 +117,25 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
-    c_temp1 <- df_Abrechnung |>
-      filter(
-        Datum == (df_mapping |> filter(index == ii) |> select(Datum) |> pull()),
-        Suisanummer == (df_mapping |> filter(index == ii) |> select(Suisanummer) |> pull())
-      ) |>
-      mutate(Zeit = paste0(lubridate::hour(Zeit),":",lubridate::minute(Zeit) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
-             Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
-      ) |>
-      rename(`Total Gewinn [CHF]` = `Gewinn/Verlust Filmvorführungen [CHF]`) |>
+    c_temp1 <- df_mapping|>
+      filter(`Event ID` == ii)|>
       select(Filmtitel) |>
       pull()
-    
     c_temp <- c_raw[(index)] |> str_split("\"", simplify = T) |> as.vector()
     c_temp <- c_temp[1:2]
     c_temp <- paste0(c(c_temp), collapse = "\"")
     c_temp <- paste0(c(c_temp, " "), collapse = "")
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
+    c_temp <- paste(c_temp, "/ Event ID", ii)
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
     
+    
     # Create Abrechnung
-    c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD)|>pull()
+    c_fileName <- df_mapping|>
+      filter(`Event ID` == ii)|>
+      select(fileName_RMD)|>
+      pull()
+    
     if (toc) {
       # neues file schreiben mit toc
       c_raw |>
@@ -164,7 +148,10 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
     }
     
     # Create Verleiherabrechnung
-    do_it <- df_mapping|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull()
+    do_it <- df_mapping|>
+      filter(`Event ID` == ii)|>
+      select(`Kinoförderer gratis?`)|>
+      pull()
     if(is.na(do_it)) do_it <- FALSE
     if(do_it){
       # Template der Abrechnung einlesen
@@ -172,14 +159,24 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
       
       # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
       index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> 
+        str_replace(one_or_more(DGT), paste0(ii))
       
       # neues file schreiben ohne toc
-      c_fileName <- df_mapping|>filter(index == ii)|>select(fileName_RMD_Verleiher)|>pull()
+      c_fileName <- df_mapping|>
+        filter(`Event ID` == ii)|>
+        select(fileName_RMD_Verleiher)|>
+        pull()
       c_raw |>
         writeLines(c_fileName)
     }
   }
+  
+  render_single_file(
+    df_mapping$fileName_RMD[1],
+    df_mapping$fileName_html[1],
+    data_env
+  )
   
   library(furrr)
   # Determine the number of cores to use
@@ -1024,7 +1021,7 @@ toc <- shiny::reactiveVal(TRUE)
 
 # Vektor mit Datumseinträgen
 if (exists("df_show", envir = data_env))  {
-  datum_vektor <- data_env$df_show$Datum
+  datum_vektor <- data_env$df_Besucherzahlen$Datum
 } else {
   datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
 }
@@ -1133,7 +1130,7 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",calculate_warnings(),ausgabe_text())|>
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n\n",calculate_warnings())|>
         ausgabe_text()
     })
   })
@@ -1612,6 +1609,7 @@ server <- function(input, output, session) {
       end_datum <- input$dateRange |> max()
       
       get("df_Abrechnung", envir = data_env) |>
+        distinct(`Event ID`, .keep_all = T)|>
         filter(between(Datum, start_datum, end_datum)) |>
         arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
@@ -1731,30 +1729,7 @@ server <- function(input, output, session) {
         label = "Inhaltsverzeichnis erstellen?",
         choices = list("Ja" = TRUE, "Nein" = FALSE),
         selected = TRUE # Default value
-      ),
-      
-      # # Ausgabeformat
-      # shiny::selectInput(
-      #   inputId = "render_option",
-      #   label = "Ausgabeformat wählen:",
-      #   choices = list(
-      #     "HTML" = "1",
-      #     "DOCX" = "2",
-      #     "PDF" = "3",
-      #     "HTML and DOCX" = "4",
-      #     "HTML and PDF" = "5",
-      #     "DOCX and PDF" = "6",
-      #     "HTML, DOCX, and PDF" = "7"
-      #   ),
-      #   selected = "1" # Default value
-      # ),
-      # Add tooltips using shinyBS
-      # shinyBS::bsTooltip(
-      #   id = "render_option",
-      #   title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
-      #   placement = "right",
-      #   trigger = "hover"
-      # ),
+      )
     )
   })
   

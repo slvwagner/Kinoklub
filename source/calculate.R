@@ -477,7 +477,7 @@ if(nrow(df_spez_preis_na) > 0) {
     )
   )
 }
-remove(df_spez_preis, df_spez_preis_na)
+remove(df_spez_preis)
 
 # join Spezpreise mit Verkaufsartikel
 df_Kiosk <- df_Kiosk|>
@@ -883,12 +883,12 @@ df_Abrechnung <- df_temp|>
            )
          )|>
   rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`)|>
-  arrange(Datum)
+  arrange(Datum)|>
+  distinct(`Event ID`,.keep_all = T)
 
-# error handlin Verleiherrechnung nicht vorhanden
+# error handling Verleiherrechnung nicht vorhanden
 df_temp <- df_Abrechnung|>
-  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))|>
-  distinct(`Event ID`, .keep_all = T)
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_temp
 
 # Error handling: Keine Verleiherrechnung vorhanden
@@ -944,12 +944,7 @@ for (ID in names(l_abrechnung)) {
     next
   }
 
-  # Eintritte
-  df_Eintritte <- df_Abrechnung|>
-    filter(`Event ID` %in% IDs)
-  df_Eintritte
-
-  # Umsatz
+  # Eintritte Umsatz
   Abrechnung <-
     bind_cols(
       l_data$Programm|>
@@ -1007,6 +1002,7 @@ for (ID in names(l_abrechnung)) {
                                (`Umsatz für Netto3 [CHF]` - sum(`Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100))) * df_temp$Verteilprodukt_2
       )
     )
+  Abrechnung
   Abrechnung$Verteilprodukt
   Abrechnung$`SUISA-Vorabzug [CHF]`
   Abrechnung$`Netto3 [CHF]`
@@ -1017,7 +1013,7 @@ for (ID in names(l_abrechnung)) {
 
   # Verleiherrechung
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Verleiher", `Event ID` == ID)
+    filter(Kategorie == "Verleiher", `Event ID` == as.character(ID))
   df_temp
 
   if(nrow(df_temp) > 0){
@@ -1139,9 +1135,9 @@ for (ID in names(l_abrechnung)) {
               sum(l_abrechnung[[ID]]$`Eventausgaben [CHF]`$`Betrag [CHF]`))
          )
 }
-remove(Verteilprodukt, Einnahmen, Abrechnung, Ausgaben, df_KioskGewinn, df_mapping, df_Eintritte, df_temp)
+remove(Verteilprodukt, Einnahmen, Abrechnung, Ausgaben, df_KioskGewinn, df_mapping,  df_temp)
 
-l_abrechnung[["1"]]
+l_abrechnung[["1"]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`
 l_abrechnung[["2"]]
 l_abrechnung[["3"]]
 l_abrechnung[["4"]]
@@ -1173,7 +1169,6 @@ df_Abrechnung <- l_abrechnung|>
   bind_rows(.id = "Event ID")
 df_Abrechnung
 
-
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 df_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
@@ -1190,7 +1185,6 @@ df_Abrechnung_kiosk <- l_abrechnung|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_kiosk
 
-
 # Abrechnung Events erstellen (für Berichte verwendet)
 df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
   lapply(function(x){
@@ -1205,6 +1199,23 @@ df_Abrechnung_Eventausgaben <- l_abrechnung|>
   })|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_Eventausgaben
+
+# Keine Verleiherrechnung
+df_keine_Rechnung <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows(.id = "Event ID")|>
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
+df_keine_Rechnung$`Verleiherrechnungsbetrag [CHF]`
+
+# Abrechnung Kiosk erstellen  (für Berichte verwendet)
+df_Abrechnung_kiosk <- l_abrechnung|>
+  lapply(function(x){
+    x$Kiosk
+  })|>
+  bind_rows(.id = "Event ID")
+df_Abrechnung_kiosk
 
 
 # summary Eintritt (für Berichte verwendet)
