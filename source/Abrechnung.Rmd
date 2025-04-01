@@ -113,17 +113,17 @@ if(r_is.defined(df_keine_Rechnung)){
       writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
     } else{
       df_temp <- df_Abrechnung |>
-        filter(Datum %in% c(df_mapping$Datum[ii]))
-  
-      if (!is.na(df_temp$`Link Datum`)) {
+        filter(`Event ID` == ii)
+      
+      if (!is.na(df_temp$`Link to Event ID`)) {
         paste(
           "Dieser Film wird zusammen mit diesem Datum",
           paste0(
-            lubridate::day(df_temp$`Link Datum`),
+            lubridate::day(df_temp$`Link to Event ID`),
             ".",
-            lubridate::month(df_temp$`Link Datum`),
+            lubridate::month(df_temp$`Link to Event ID`),
             ".",
-            lubridate::year(df_temp$`Link Datum`)
+            lubridate::year(df_temp$`Link to Event ID`)
           ),
           "abgerechnet."
         ) |>

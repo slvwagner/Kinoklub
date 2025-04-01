@@ -327,9 +327,10 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
 
 ################## Einnahmen und Ausgaben einlesen ##################
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
-                                 mutate(`Event ID` = as.integer(`Event ID`)),
+                                 mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
+                               ,
                                Ausgaben = l_data$Ausgaben|>
-                                 mutate(`Event ID` = as.integer(`Event ID`))
+                                 mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
                                  )
 
 ################## show times ##################
@@ -911,7 +912,7 @@ l_abrechnung <- l_abrechnung|>
 l_abrechnung
 
 cnt <- 1
-ID <- "1"
+ID <- "13"
 for (ID in names(l_abrechnung)) {
 
   # Programm ID`s for the actual Abrechnung
@@ -1012,16 +1013,20 @@ for (ID in names(l_abrechnung)) {
   if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$`Event ID`, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
 
   # Verleiherrechung
+  c_filter = as.integer(ID)
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Verleiher", `Event ID` == as.character(ID))
+    filter(Kategorie == "Verleiher",
+           `Event ID` == c_filter)
   df_temp
-
+  
   if(nrow(df_temp) > 0){
     Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = df_temp$`Betrag [CHF]`)
   }else{
     Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = as.numeric(NA))
   }
   Abrechnung$`Verleiherrechnungsbetrag [CHF]`
+  Abrechnung|>
+    select(15:ncol(Abrechnung))
 
   # Je nach dem ob ein fixer betrag oder Prozentualeabgaben mit dem Verleiher vereinbart wurden muss anders gerechnet werden.
   if((!is.na(Abrechnung$`Abzug fix [CHF]`[1])) > 0){
