@@ -847,8 +847,9 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
-##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
 
+
+##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
 df_temp <- df_Eintritt|>
   left_join(df_Abrechnung,
             by = "Event ID"
@@ -894,6 +895,10 @@ warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$F
                "\nmit der Suisanummer ", df_temp$Suisanummer,
                " gibt es keine Verleiherrechnung.",
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+
+
+
+
 
 
 ####################################  Abrechnung erstellen ####################################
@@ -967,11 +972,6 @@ for (ID in names(l_abrechnung)) {
   Abrechnung <-
     bind_cols(Abrechnung,
               `SUISA-Vorabzug [%]` = df_Eintritt$`SUISA-Vorabzug`[1])
-  Abrechnung
-  Abrechnung$`Kinoförderer gratis?`
-  Abrechnung$`SUISA-Vorabzug [%]`
-  Abrechnung$`Umsatz [CHF]`
-  Abrechnung$`Umsatz für Netto3 [CHF]`
   Abrechnung
 
   # Verteilprodukt for the actual `Event ID`
@@ -1058,7 +1058,10 @@ for (ID in names(l_abrechnung)) {
         )
       )
   }
-  Abrechnung
+  Abrechnung|>
+    select(1:12)
+  Abrechnung|>
+    select(12:ncol(Abrechnung))
 
   # Gewinn/Verlust Tickets
   Abrechnung <-
@@ -1069,14 +1072,31 @@ for (ID in names(l_abrechnung)) {
                      `Umsatz [CHF]` - ((`SUISA-Vorabzug [CHF]` + `Verleiherrechnungsbetrag [CHF]`) * Verteilprodukt))
            )
   Abrechnung
-  Abrechnung$`Gewinn/Verlust Tickets [CHF]`
-
+  Abrechnung|>
+    select(1:12)
+  Abrechnung|>
+    select(12:ncol(Abrechnung))
+  
+  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
+  df_KioskGewinn <-
+    df_Kiosk|>
+    filter(`Event ID` == as.integer(ID))|>
+    reframe(Kassiert = sum(Kassiert, na.rm = T))
+  df_KioskGewinn
+  
+  #
+  Abrechnung <- bind_cols(Abrechnung, `Kioskgewinn [CHF]` = df_KioskGewinn$Kassiert)
+  Abrechnung|>
+    select(20:ncol(Abrechnung))
+  
   # Verteilen der Eventeinnahmen
   Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
+    select(1:5)|>
     filter(Kategorie == "Event",
            `Event ID` == Abrechnung$`Event ID`
-           )|>
-    mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
+    )|>
+    mutate(Verteilprodukt = Abrechnung$Verteilprodukt, 
+           `Einnahmen [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   Einnahmen
 
@@ -1085,17 +1105,29 @@ for (ID in names(l_abrechnung)) {
     filter(Kategorie == "Event",
            `Event ID` == Abrechnung$`Event ID`
     )|>
-    mutate(`Betrag [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
+    select(1:6)|>
+    mutate(Verteilprodukt = Abrechnung$Verteilprodukt, 
+           `Ausgaben [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
     )
   Ausgaben
-
-  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
-  df_KioskGewinn <-
-    df_Kiosk|>
-    filter(`Event ID` == as.integer(ID))|>
-    reframe(Kassiert = sum(Kassiert, na.rm = T),
-            Gewinn = sum(Gewinn, na.rm = T))
-  df_KioskGewinn
+  
+  Abrechnung <- bind_cols(Abrechnung, 
+                         `Einnahmen [CHF]`= sum(Einnahmen$`Einnahmen [CHF]`),
+                         `Ausgaben [CHF]`= sum(Ausgaben$`Ausgaben [CHF]`),
+                         df_manko_uerberschuss|>
+                           filter(`Event ID` == as.integer(ID))|>
+                           select(`Überschuss / Manko`)
+                         )
+  Abrechnung|>
+    select(22:ncol(Abrechnung))
+  
+  Abrechnung <- Abrechnung|>
+    mutate(`Gewinn/Verlust Filmvorführungen [CHF]` = 
+             `Gewinn/Verlust Tickets [CHF]` + `Kioskgewinn [CHF]`+ `Überschuss / Manko` + `Einnahmen [CHF]` - `Ausgaben [CHF]`
+           )
+  
+  Abrechnung|>
+    select(22:ncol(Abrechnung))
 
   # Results
   l_abrechnung[[ID]] <- list(
@@ -1109,7 +1141,7 @@ for (ID in names(l_abrechnung)) {
     `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
     `Eventeinnahmen [CHF]` = Einnahmen,
     `Eventausgaben [CHF]` = Ausgaben,
-    `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn$Gewinn,
+    `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn,
     `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
       filter(`Event ID` == as.integer(ID))|>
       select(`Überschuss / Manko`)
@@ -1127,7 +1159,7 @@ for (ID in names(l_abrechnung)) {
          `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
          `Eventeinnahmen [CHF]` = Einnahmen,
          `Eventausgaben [CHF]` = Ausgaben,
-         `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn$Gewinn,
+         `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn,
          `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
            filter(`Event ID` == as.integer(ID))|>
            select(`Überschuss / Manko`),

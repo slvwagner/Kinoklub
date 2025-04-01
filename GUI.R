@@ -1178,11 +1178,18 @@ server <- function(input, output, session) {
         tryCatch({
           StatistikErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        }, error = function(e) {
+          ausgabe_text(paste(
+            "Statistik, Fehler beim Bericht erstellen:\n",
+            e$message
+          ))
+        })
+        tryCatch({
           webserver()
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
-            "Statistik, Fehler beim Bericht erstellen:\n",
+            "Statistik, Fehler beim webserver erstellen:\n",
             e$message
           ))
         })
