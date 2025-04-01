@@ -990,7 +990,7 @@ tryCatch({
       },
       warning = function(w) {
         # Capture warnings and store them in calculate_warnings
-        calculate_warnings <<- paste(ausgabe_text,"Warning:", w$message, sep = "")
+        calculate_warnings <<- paste(calculate_warnings,"Warning:\n", w$message, sep = "")
         invokeRestart("muffleWarning")  # Suppress the warning from being printed
       }
     )
@@ -999,8 +999,9 @@ tryCatch({
   ausgabe_text <<-
     paste0(
       error_calculate,
-      e$message,
       calculate_warnings,
+      ausgabe_text,
+      "Error:\n",e$message,
       collapse = ""
     )
   startup_error <<- TRUE
