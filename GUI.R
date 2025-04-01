@@ -100,10 +100,10 @@ Abrechnung_mapping <- function(data_env, start, end) {
   
   if(nrow(df_mapping) > 0){
     df_mapping <- df_mapping|>
-      mutate(fileName_RMD            = paste0("source/Abrechnung ",`Event ID`,".Rmd"),
-             fileName_html           = paste0("source/Abrechnung ",`Event ID`,".html"),
-             fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ",`Event ID`,".Rmd"),
-             fileName_html_Verleiher = paste0("source/Verleiherabrechnung ",`Event ID`,".html")
+      mutate(fileName_RMD            = paste0("source/Abrechnung ID",`Event ID`,".Rmd"),
+             fileName_html           = paste0("source/Abrechnung ID",`Event ID`,".html"),
+             fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ID",`Event ID`,".Rmd"),
+             fileName_html_Verleiher = paste0("source/Verleiherabrechnung ID",`Event ID`,".html")
       )
   }else stop("Mapping not possible")
   return(df_mapping)
@@ -419,6 +419,7 @@ webserver <- function() {
   # Abrechnungen suchen
   df_temp1 <- df_reports |>
     filter(str_detect(FileName, "Abrechnung"))
+  x <- df_temp1$FileName[1]
   
   df_temp1 <- df_temp1 |>
     pull() |>
@@ -446,16 +447,16 @@ webserver <- function() {
         c_raw <- element[3] |>
           xml_text() |>
           str_split("\n") |>
-          unlist() |>
+          unlist()|>
           str_remove("\r")
         c_raw
         
         # Create data to return
         # Create data to return
         tibble(
-          `Suisa-Nummer` = c_raw[14],
-          Filmtitel = c_raw[11],
-          Datum = c_raw[8],
+          `Suisa-Nummer` = c_raw[9],
+          Filmtitel = c_raw[10],
+          Datum = c_raw[9],
           typ = "Abrechnung Filmvorführungen",
           FileName = x
         )
@@ -493,6 +494,7 @@ webserver <- function() {
       }
     }) |>
     bind_rows()
+  df_temp1
   
   # Verleiher suchen
   df_temp2 <- df_reports |>
@@ -561,13 +563,9 @@ webserver <- function() {
       FileName = "Archiv.html"
     )
   }, )
+
   m_Film
-  
-  m_Film <- m_Film |>
-    mutate(Datum = dmy(Datum)) |>
-    arrange(Datum) |>
-    mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
-  m_Film
+
   
   # create site map
   if (TRUE) {
@@ -1100,17 +1098,41 @@ server <- function(input, output, session) {
               data_env$df_Abrechnung,
               toc = toc()
             )
+          }, error = function(e) {
+            ausgabe_text(
+              paste0(
+                "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+                e$message
+              )
+            )
+          })
+          # Filmabrechnungen erstellen mit dateRange user input
+          tryCatch({
+            df_mapping__ <- 
+              Abrechnung_mapping(
+                data_env,
+                start_datum, end_datum
+              )
             shiny::incProgress(1 / 4, detail = paste("Site-map erstellen: ", 3, "of 4"))
             VerleiherabrechnungErstellen(
               df_mapping__,
               data_env$df_Abrechnung
             )
-            webserver()
-            
           }, error = function(e) {
             ausgabe_text(
               paste0(
-                "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+                "Verleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
+                e$message
+              )
+            )
+          })
+          # webserver
+          tryCatch({
+            webserver()
+          }, error = function(e) {
+            ausgabe_text(
+              paste0(
+                "Webserver erstellen, Fehler:\n",
                 e$message
               )
             )
