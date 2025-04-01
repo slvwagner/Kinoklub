@@ -29,10 +29,7 @@ con <- DB_connect(pw, "ch367079_flo")
 l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
 # Disconnect from DB
 dbDisconnect(con)
-remove(l_template)
-
-
-l_data$Spezialpreisekiosk
+remove(l_template, con, pw, user)
 
 ##### Eintritte aus Advanced Tickets files #####
 convert_data_Film_txt <- function(fileName, Programm) {
@@ -178,7 +175,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
 }
 
 ##### Extrakt Kioskverkauf und Überschuss / Manko #####
-convert_data_kiosk_txt <- function(fileName, Programm) {
+convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   l_temp <- fileName|>
     lapply(function(fileName){
       c_raw <- suppressWarnings(readLines(fileName))
@@ -212,7 +209,7 @@ convert_data_kiosk_txt <- function(fileName, Programm) {
       }
 
       # detect Verkaufarikel in string
-      p1 <- or1(paste0(df_verkaufsartikel$`Artikelname-Kassensystem`))
+      p1 <- or1(paste0(df_Einkauf$`Artikelname-Kassensystem`))
 
       # detect Spez Preise
       p2 <- or1(paste0("Spez"%R%SPC, 1:4))
@@ -396,15 +393,10 @@ if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
 
 
 #### Kioskeinkauf ####
-df_verkaufsartikel <- l_data$`Einkauf Kiosk`
-df_verkaufsartikel
-
-
-#### Extrakt Kioskverkauf ####
 # Advace tickets Kiosk
 c_path <- "input/advance tickets"
-c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
-l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm)
+c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
+l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
 
 df_Kiosk <- l_temp|>
   lapply(function(x){
@@ -438,12 +430,12 @@ df_Kiosk
 l_data$Spezialpreisekiosk|>
   arrange(`Event ID`, Spezialpreis)
 
-Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
+df_Spezialpreisekiosk <- l_data$Spezialpreisekiosk |>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Spezialpreis = as.character(Spezialpreis)
          )|>
   arrange(`Event ID`, Spezialpreis)
-Spezialpreisekiosk
+df_Spezialpreisekiosk
  
 # Spezialpreise in Kiosk daten finden
 df_spez_preis <- df_Kiosk|>
@@ -467,7 +459,7 @@ df_spez_preis_na
 
 df_spez_preis_na <- df_spez_preis_na|>
   left_join( # look up Spezialpreise
-    Spezialpreisekiosk,
+    df_Spezialpreisekiosk,
     by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
   )
 df_spez_preis_na
@@ -485,10 +477,11 @@ if(nrow(df_spez_preis_na) > 0) {
     )
   )
 }
+remove(df_spez_preis, df_spez_preis_na)
 
 # join Spezpreise mit Verkaufsartikel
 df_Kiosk <- df_Kiosk|>
-  left_join(Spezialpreisekiosk|>
+  left_join(df_Spezialpreisekiosk|>
               select(-ID),
             by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
   )|>
@@ -608,7 +601,6 @@ if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
 
 # remove no more needed variables
 remove(df_Mapping_Einkaufspreise,m_Kiosk,
-       df_verkaufsartikel,
        c_Date_Kiosk, c_Einkaufslistendatum,
        ii,
        c_path, c_files, l_temp
@@ -645,7 +637,7 @@ if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
   warning(paste0("\nDie Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
        "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
   }
-atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
+df_atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
                               delim = "\t", escape_double = FALSE,
                               col_types = cols(creation = col_date(format = "%Y-%m-%d"),
                                                first_use = col_date(format = "%Y-%m-%d"),
@@ -657,7 +649,7 @@ if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
   warning(paste("\nDie Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
          "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
   }
-atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt",
+df_atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt",
                                     delim = "\t", escape_double = FALSE,
                                     col_types = cols(creation = col_date(format = "%Y-%m-%d"),
                                                      first_use = col_date(format = "%Y-%m-%d"),
@@ -669,7 +661,7 @@ if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) {
   warning(paste("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.",
              "\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de\n"))
   }
-atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt",
+df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt",
                                     delim = "\t", escape_double = FALSE,
                                     col_types = cols(creation = col_date(format = "%Y-%m-%d"),
                                                      first_use = col_date(format = "%Y-%m-%d"),
@@ -1108,7 +1100,6 @@ for (ID in names(l_abrechnung)) {
   df_KioskGewinn
 
   # Results
-
   l_abrechnung[[ID]] <- list(
     Eintritte = df_Eintritt|>
       filter(`Event ID` == as.character(ID)|>as.integer())|>
@@ -1148,7 +1139,7 @@ for (ID in names(l_abrechnung)) {
               sum(l_abrechnung[[ID]]$`Eventausgaben [CHF]`$`Betrag [CHF]`))
          )
 }
-remove(Verteilprodukt, Einnahmen, Abrechnung, df_KioskGewinn, df_mapping, df_Eintritte, df_temp)
+remove(Verteilprodukt, Einnahmen, Abrechnung, Ausgaben, df_KioskGewinn, df_mapping, df_Eintritte, df_temp)
 
 l_abrechnung[["1"]]
 l_abrechnung[["2"]]
@@ -1171,8 +1162,17 @@ remove_nulls <- function(lst) {
 l_abrechnung <-  remove_nulls(l_abrechnung)
 l_abrechnung
 
-
+l_abrechnung$`1`
 ##################  Abrechnung Filmvorführung erstellen (für Berichte verwendet) ##################
+
+# Abrechnung Tickets erstellen (für Berichte verwendet)
+df_Abrechnung <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows(.id = "Event ID")
+df_Abrechnung
+
 
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 df_Abrechnung_tickes <- l_abrechnung|>
@@ -1192,9 +1192,6 @@ df_Abrechnung_kiosk
 
 
 # Abrechnung Events erstellen (für Berichte verwendet)
-
-l_abrechnung$`1`$`Eventeinnahmen [CHF]`
-
 df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
   lapply(function(x){
     x$`Eventeinnahmen [CHF]`
@@ -1215,6 +1212,10 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
+
+
+remove(l_data)
+
 
 ################## write to Excel ##################
 c_filePath <- "output/data/"
