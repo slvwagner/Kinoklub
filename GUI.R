@@ -1092,7 +1092,7 @@ server <- function(input, output, session) {
                 data_env,
                 start_datum, end_datum
               )
-            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung erstellen: ", 2, "of 4"))
+            shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
             AbrechnungErstellen(
               df_mapping__,
               data_env$df_Abrechnung,
@@ -1113,7 +1113,7 @@ server <- function(input, output, session) {
                 data_env,
                 start_datum, end_datum
               )
-            shiny::incProgress(1 / 4, detail = paste("Site-map erstellen: ", 3, "of 4"))
+            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 3, "of 4"))
             VerleiherabrechnungErstellen(
               df_mapping__,
               data_env$df_Abrechnung
@@ -1176,7 +1176,6 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          
           StatistikErstellen(toc())
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
           webserver()
