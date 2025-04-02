@@ -820,7 +820,7 @@ df_temp <- df_Abrechnung|>
 # error handling, keine Verleiherrechnung
 if(nrow(df_temp) > 0) {
   warning(paste0("\nAchtung für den Film ID ", df_temp$`Event ID`, " / ", df_temp$Filmtitel," am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
-                 "\nist der Verleiherrechnungsbetrag ",df_temp$`Verleiherrechnungsbetrag [CHF]`," kleiner als die Mindestgarantie ",df_temp$`Minimal Abzug [CHF]`,".",
+                 "\nist der Verleiherrechnungsbetrag ",df_temp$`Verleiherrechnungsbetrag [CHF]`,"[CHF] kleiner als die Mindestgarantie ",df_temp$`Minimal Abzug [CHF]`,"[CHF].",
                  "\nBitte im Programm korrigieren!\n"
   )
   )
