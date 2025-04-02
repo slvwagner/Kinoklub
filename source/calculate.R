@@ -554,6 +554,7 @@ for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
               by = c(Verkaufsartikel = "Artikelname-Kassensystem")
     )
 }
+remove(df_Einkaufspreise)
 m_Kiosk
 
 df_Kiosk <- m_Kiosk|>
@@ -586,6 +587,20 @@ df_Kiosk <-
               select(`Event ID`, Datum, Suisanummer, Filmtitel),
             by = join_by(`Event ID`)
             )
+
+df_Kiosk <- df_Kiosk|>
+  select("Event ID", "ID_Kioskartikel","Verkaufsartikel", "Lieferant",
+         "Verkaufspreis", "Anzahl", "Kassiert",  
+         #"Artikel", "Verkaufspreis [CHF]", "Menge", 
+         "Einkaufspreis [CHF]", 
+         # "Gewinn", "Datum", "Suisanummer", "Filmtitel"
+  )|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
+         `Kassiert [CHF]` = Kassiert)
+
+df_Kiosk <- df_Kiosk|>
+  mutate(`Gewinn` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]` ))
+
 df_Kiosk
 
 # check if all Kiosk entry can be joined by `Event ID`
@@ -606,23 +621,28 @@ remove(df_Mapping_Einkaufspreise,m_Kiosk,
 
 ################  Gibt es gleich viele Kiosk wie Filmabrechungen? ##############
 # Bericht mapping
-n_kiosk <- df_Kiosk|>distinct(Datum, .keep_all = T)
-n_Film <- df_Eintritt|>distinct(Datum, .keep_all = T )
+n_kiosk <- df_Kiosk|>distinct(`Event ID`, .keep_all = T)
+n_Film <- df_Eintritt|>distinct(`Event ID`, .keep_all = T )
 
 
 # Error handling
 if(n_kiosk|>nrow() > n_Film|>nrow()){
-  df_temp <- anti_join(n_kiosk,n_Film, by = "Datum")|>
-    select(Datum)
+  df_temp <- anti_join(n_kiosk,n_Film, by = join_by(`Event ID`))|>
+    select(`Event ID`)
+  df_temp <- df_temp|>
+    left_join(l_data$Programm)
 
   warning(paste0("\nEs fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
               "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de\n"
   )
   )
-}else if(df_Kiosk|>distinct(Datum)|>nrow() < df_Eintritt|>distinct(Datum)|>nrow()){
+}else if(df_Kiosk|>distinct(`Event ID`)|>nrow() < df_Eintritt|>distinct(`Event ID`)|>nrow()){
 
-  df_temp <- anti_join(n_Film, n_kiosk, by = "Datum")|>
+  df_temp <- anti_join(n_Film, n_kiosk, by = join_by(`Event ID`))|>
     select(1:3)
+  df_temp <- df_temp|>
+    left_join(l_data$Programm)
+  
   warning(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n",
               df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
               "\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de\n"
@@ -692,7 +712,9 @@ if(nrow(df_temp)>0){
 }
 
 
-################ Abrechnung ################
+################ Abrechnung check ################
+
+# Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?)
 df_Abrechnung <- l_data$Programm|>
   select(1:11)|>
   left_join(l_data$Verleiher|>
@@ -702,15 +724,17 @@ df_Abrechnung <- l_data$Programm|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
 df_Abrechnung
 
+# Verleiherrechnung
 df_Abrechnung <-
   df_Abrechnung|>
   left_join(Einnahmen_und_Ausgaben$Ausgaben|>
               filter(Kategorie == "Verleiher")|>
-              select(1:7,-ID, -Datum, -Kategorie)|>
+              select(1:7,-ID, -Datum, -Kategorie, -Firmennamen)|>
               rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
             by = join_by( `Event ID`)
   )
 df_Abrechnung
+
 
 # paste0("\"",names(df_Abrechnung),"\"")|>
 #   paste0(collapse = ",")|>
@@ -785,13 +809,6 @@ if(nrow(df_temp)>0){
   )
 }
 
-
-##################  Ticketabrechnung vorbereiten ##################
-
-df_Abrechnung <- df_Abrechnung|>
-  filter(Datum <= Sys.Date()) # Nur Filme abrechnen welche bereits vorgeführt wurden
-df_Abrechnung
-
 # error handling
 # Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
 df_temp <- df_Abrechnung|>
@@ -809,6 +826,17 @@ if(nrow(df_temp) > 0) {
   )
 }
 
+# error handling Verleiherrechnung nicht vorhanden
+df_temp <- df_Abrechnung|>
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
+df_temp
+
+# Error handling: Keine Verleiherrechnung vorhanden
+warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
+               "\nmit der Suisanummer ", df_temp$Suisanummer,
+               " gibt es keine Verleiherrechnung.",
+               "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+
 #### Programm check ####
 df_Film <- l_data$Programm|>
   group_by(Suisanummer)|>
@@ -821,6 +849,7 @@ df_Film <- l_data$Programm|>
             )
 
 df_Film
+
 ii <- "1020.828"
 for (ii in df_Film$Suisanummer) {
   df_temp <- l_data$Programm|>
@@ -847,10 +876,17 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
+##################  Ticketabrechnung vorbereiten ##################
+
+df_Abrechnung <- df_Abrechnung|>
+  filter(Datum <= Sys.Date(),
+         `Verleiher Angefragt?` == "Bestätigt") # Nur Filme abrechnen welche bereits vorgeführt wurden
+df_Abrechnung <- df_Abrechnung|>
+  select(-`Verleiher Angefragt?`,-Bezeichnung)
 
 
 ##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
-df_temp <- df_Eintritt|>
+df_Tickets <- df_Eintritt|>
   left_join(df_Abrechnung,
             by = "Event ID"
             )|>
@@ -858,53 +894,131 @@ df_temp <- df_Eintritt|>
   rename(Filmtitel = Filmtitel.x,
          Suisanummer = Suisanummer.x,
          Datum = Datum.x
-         )
-df_temp
-
-df_temp <- df_temp|>
+         )|>
   mutate(
-    `Verkaufspreis Abgerechnet [CHF]` =
+    `Verkaufspreis für Netto3 [CHF]` =
       if_else(((Platzkategorie %in% l_data$`Platzkategorien zum Verrechnen`$Kinoförderer) & (!`Kinoförderer gratis?`)),
               l_data$`Platzkategorien zum Verrechnen`$Verkaufspreis[1],
               Verkaufspreis
       ),
-    `Umsatz für Netto3 [CHF]` = Anzahl * `Verkaufspreis Abgerechnet [CHF]`)|>
-  arrange(desc(Datum))
-df_temp
-
-df_Abrechnung <- df_temp|>
-  select(c("Event ID","Datum", "Zeit","Link to Event ID", "Suisanummer",
-           "Platzkategorie","Zahlend","Verkaufspreis","Anzahl","Umsatz",
-           "SUISA-Vorabzug","Filmtitel",
+    `Umsatz für Netto3 [CHF]` = Anzahl * `Verkaufspreis für Netto3 [CHF]`)|>
+  arrange(desc(Datum))|>
+  select(c("Event ID","Link to Event ID", "Datum", "Zeit","Suisanummer","Filmtitel",
+           "Platzkategorie","Zahlend","Verkaufspreis","Verkaufspreis für Netto3 [CHF]","Anzahl","Umsatz","Umsatz für Netto3 [CHF]",
+           "SUISA-Vorabzug",
            "Verleiher",
            "Abzug [%]","Minimal Abzug [CHF]","Abzug fix [CHF]","Kinoförderer gratis?",
-           "Bezeichnung","Verleiherrechnungsbetrag [CHF]","Umsatz für Netto3 [CHF]","Verkaufspreis Abgerechnet [CHF]"
+           "Verleiherrechnungsbetrag [CHF]",
            )
          )|>
-  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`)|>
-  arrange(Datum)|>
-  distinct(`Event ID`,.keep_all = T)
+  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
+         `Umsatz [CHF]` = Umsatz)|>
+  arrange(Datum)
 
-# error handling Verleiherrechnung nicht vorhanden
-df_temp <- df_Abrechnung|>
-  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
+
+#### Umsatz aus Tickets zu Abrechnung hinzufügen ####
+
+df_temp <- df_Tickets|>
+  group_by(`Event ID`)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T),
+          `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`, na.rm = T))
 df_temp
+df_Abrechnung <-left_join(df_Abrechnung, 
+                          df_temp,
+                          by = join_by(`Event ID`)
+                          )
 
-# Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
-               "\nmit der Suisanummer ", df_temp$Suisanummer,
-               " gibt es keine Verleiherrechnung.",
-               "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+#### Suisavorabzug der Abrechnung hinzufügen ####
+df_temp <- df_Tickets|>
+  group_by(`Event ID`)|>
+  distinct(`SUISA-Vorabzug [%]`)
+df_Abrechnung <-left_join(df_Abrechnung, 
+                          df_temp,
+                          by = join_by(`Event ID`)
+)
+remove(df_Tickets)
 
 
+#### Umsatz und Verleiherabzug und Ticketgewinn #####
+names(df_Abrechnung)
 
+df_Abrechnung <- df_Abrechnung|>
+  mutate(`Suisavorabzug [CHF]` = 
+           if_else(`Kinoförderer gratis?`,
+                   `Umsatz [CHF]` * (`SUISA-Vorabzug [%]` / 100),
+                   `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100)
+                   ),
+         `Umsatz Netto 3 [CHF]` = 
+           if_else(`Kinoförderer gratis?`,
+                   `Umsatz [CHF]` - `Suisavorabzug [CHF]`,
+                   `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`
+                   ),
+         `Verleiherabzug [CHF]` = 
+           if_else(is.na(`Abzug fix [CHF]`),
+                   `Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100),
+                   `Umsatz für Netto3 [CHF]` - `Abzug fix [CHF]`
+                   ),
+         # Verleiherrechnung verwenden falls vorhanden
+         `Verleiherabzug [CHF]` = 
+           if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
+                   `Verleiherabzug [CHF]`,
+                   `Verleiherrechnungsbetrag [CHF]`
+                   ),
+         `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`
+          )
 
+#### Kioskgewinn der Abrechnung hinzufügen 
+df_temp <- df_Kiosk|>
+  group_by(`Event ID`)|>
+  reframe(`Kioskgewinn [CHF]` = sum(Gewinn, na.rm = T))
+df_temp  
+df_Abrechnung <- left_join(df_Abrechnung, 
+                           df_temp,
+                           by = join_by(`Event ID`)
+                           )  
 
+#### Manko / Überschuss Kasse der Abrechnung hinzufügen ####
+df_Abrechnung <- left_join(df_Abrechnung, 
+                           df_manko_uerberschuss,
+                           by = join_by(`Event ID`)
+                           )  
+#### Eventeinnahmen der Abrechnung hinzufügen ####
+df_temp <- l_data$Einnahmen|>
+  filter(Kategorie == "Event")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe( `Eventeinnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
 
-####################################  Abrechnung erstellen ####################################
-df_mapping <- l_data$Programm|>
-  select(1:6)|>
-  filter(Datum < Sys.Date())
+df_Abrechnung <- left_join(df_Abrechnung, 
+                           df_temp,
+                           by = join_by(`Event ID`)
+)  
+
+#### Eventeinnahmen der Abrechnung hinzufügen ####
+df_temp <- l_data$Ausgaben|>
+  filter(Kategorie == "Event")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe( `Eventausgaben [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+df_temp
+df_Abrechnung <- left_join(df_Abrechnung, 
+                           df_temp,
+                           by = join_by(`Event ID`)
+)
+
+#### Gewinn aus Filmvorführungen 
+df_temp <- df_Abrechnung|>
+  group_by(`Event ID`)|>
+  reframe(`Gewinn aus Fimvorführung [CHF]` = 
+           sum(`Ticketgewinn [CHF]`,`Kioskgewinn [CHF]`,`Überschuss / Manko`, `Eventeinnahmen [CHF]`, -`Eventausgaben [CHF]`,
+               na.rm = T)
+         )
+df_temp
+df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
+
+##### Verteilprodukt über mehrere Event IDs erstellen ########
+df_mapping <- df_Abrechnung|>
+  select(1:6)
 df_mapping
 
 # find all connected Filmvorführungen from Programm and remove all already connected
@@ -913,28 +1027,27 @@ l_abrechnung <- l_abrechnung|>
   nullify_used_entries()
 l_abrechnung
 
-cnt <- 1
-ID <- "13"
-for (ID in names(l_abrechnung)) {
 
-  # Programm ID`s for the actual Abrechnung
+ID <- "1"
+cnt <- 1
+for (ID in names(l_abrechnung)) {
+  # Event ID`s 
   IDs <- l_abrechnung[[ID]]
 
   # Umsatzverteilprodukt berechnen für die gemeinsame Abrechnung
   Verteilprodukt <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
     group_by(`Event ID`)|>
-    reframe(`Umsatz [CHF]`= sum(`Umsatz`),
+    reframe(`Umsatz [CHF]`= sum(`Umsatz [CHF]`),
             `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
     )|>
-    mutate(Verteilprodukt_1 = `Umsatz [CHF]` / sum(`Umsatz [CHF]`),
-           Verteilprodukt_2 = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`)
+    # Umsatz für Netto 3 wurde bereit je nach Verleiher anders berechntet! (Kinoförderer gratis)
+    mutate(Verteilprodukt = `Umsatz für Netto3 [CHF]` / sum(`Umsatz für Netto3 [CHF]`) 
     )|>
     left_join(l_data$Programm|>select(1:6)|>select(-`Link to Event ID`),
               by = join_by(`Event ID`)
     )
-  Verteilprodukt
-
+  
   # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden?
   if(nrow(Verteilprodukt) !=  nrow(l_data$Programm|>filter(`Event ID` %in% IDs))){
     df_temp <- l_data$Programm|>
@@ -942,258 +1055,93 @@ for (ID in names(l_abrechnung)) {
     df_temp <- df_temp|>
       filter(!(df_temp$`Event ID` %in% Verteilprodukt$`Event ID`))
     warning(paste0("\nFür den Film ID ", df_temp$`Event ID`," / ", df_temp$Filmtitel[1], " gibt es keine Eintritte. ",
-                  # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
-                  "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
+                   # "\nDie gemeinsame Abrechnung über mehrere Spieldaten wird nicht korrekt berechnet.",
+                   "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
     next
   }
-
-  # Eintritte Umsatz
-  Abrechnung <-
-    bind_cols(
-      l_data$Programm|>
-        select(1:11)|>
-        slice(as.integer(ID)),
-      df_Abrechnung |>
-        filter(`Event ID` %in% IDs) |>
-        reframe(
-          `Umsatz [CHF]` = sum(Umsatz),
-          `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`)
-        )
-    )|> # Kinoförderer
-    left_join(l_data$Verleiher|>
-                select(Verleihername,`Kinoförderer gratis?`)|>
-                mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "ja",
-                                                        T,F)),
-              by = c(Verleiher = "Verleihername")
-              )
+  Verteilprodukt <- Verteilprodukt|>
+    select(`Event ID`, Verteilprodukt)
+  Verteilprodukt
+  
+  # Verteilen der Abrechnung 
+  Abrechnung <- df_Abrechnung|>
+    filter(`Event ID` %in% IDs)|>
+    left_join(Verteilprodukt,
+              by = join_by(`Event ID`)
+    )
   Abrechnung
-
-  # Suisavorabzug
-  Abrechnung <-
-    bind_cols(Abrechnung,
-              `SUISA-Vorabzug [%]` = df_Eintritt$`SUISA-Vorabzug`[1])
-  Abrechnung
-
-  # Verteilprodukt for the actual `Event ID`
-  df_temp <- Verteilprodukt|>
-    filter(`Event ID` == as.integer(ID))
-  df_temp
-
-  if(nrow(df_temp) == 0) stop("Kein Verteilprodukt vorhanden")
-
-  # Netto 3
   Abrechnung <- Abrechnung|>
-    mutate(
-      Verteilprodukt =  if_else(`Kinoförderer gratis?`, 
-                                Verteilprodukt|>
-                                  filter(`Event ID` == as.integer(ID))|>
-                                  select(Verteilprodukt_1)|>
-                                  pull(),
-                                Verteilprodukt|>
-                                  filter(`Event ID` == as.integer(ID))|>
-                                  select(Verteilprodukt_2)|>
-                                  pull()
-                                ), # Umsatzverteilprodukt
-      `SUISA-Vorabzug [CHF]` = sum(`Umsatz [CHF]`) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt,
-      `Netto3 [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
-                               (`Umsatz [CHF]` - sum(`Umsatz [CHF]` * (`SUISA-Vorabzug [%]` /100))) * df_temp$Verteilprodukt_1,
-                               (`Umsatz für Netto3 [CHF]` - sum(`Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100))) * df_temp$Verteilprodukt_2
-      )
+    mutate(`Gewinn per Event ID [CHF]` = `Gewinn aus Fimvorführung [CHF]` * Verteilprodukt
     )
-  Abrechnung
-  Abrechnung$Verteilprodukt
-  Abrechnung$`SUISA-Vorabzug [CHF]`
-  Abrechnung$`Netto3 [CHF]`
-  Abrechnung|>
-    select(10:ncol(Abrechnung))
-
-  if(is.na(Abrechnung$`Netto3 [CHF]`)) stop("Could not calculate Nett3 [CHF] for ", Abrechnung$`Event ID`, Abrechnung$Filmtitel, Abrechnung$Suisanummer)
-
-  # Verleiherrechung
-  c_filter = as.integer(ID)
-  df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Verleiher",
-           `Event ID` == c_filter)
-  df_temp
   
-  if(nrow(df_temp) > 0){
-    Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = df_temp$`Betrag [CHF]`)
-  }else{
-    Abrechnung <- bind_cols(Abrechnung, `Verleiherrechnungsbetrag [CHF]` = as.numeric(NA))
-  }
-  Abrechnung$`Verleiherrechnungsbetrag [CHF]`
-  Abrechnung|>
-    select(15:ncol(Abrechnung))
-
-  # Je nach dem ob ein fixer betrag oder Prozentualeabgaben mit dem Verleiher vereinbart wurden muss anders gerechnet werden.
-  if((!is.na(Abrechnung$`Abzug fix [CHF]`[1])) > 0){
-    # fixer Betrag inklusive Mehrwertsteuer mit dem Verleiher vereinbart!
-    Abrechnung <-
-      Abrechnung|>
-      mutate(
-        `Verleiherabzug [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                                         `Abzug fix [CHF]`[1] * Verteilprodukt,     # keine Verleiherrechnung vorhanden
-                                         `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt),  # Verleiherrechnung ist vorhanden
-        `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                               sum(`Verleiherabzug [CHF]`) * (l_data$MWST$MWST / 100) * Verteilprodukt,
-                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(l_data$MWST$MWST/100)))) * Verteilprodukt
-                               )
-        )
-  }else{
-    # Prozentualerabzug mit dem Verleiher vereinbart!
-    Abrechnung<-
-      Abrechnung|>
-      mutate(
-        `Verleiherabzug [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                                         sum(`Netto3 [CHF]`) * (`Abzug [%]`[1] / 100) * Verteilprodukt, # keine Verleiherrechnung vorhanden
-                                         `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt              # Verleiherrechnung ist vorhanden
-        ),
-        `Verleiherabzug [CHF]` = if_else(`Verleiherabzug [CHF]` > (`Minimal Abzug [CHF]`[1] * Verteilprodukt),
-                                         sum(`Verleiherabzug [CHF]`) * Verteilprodukt,
-                                         `Minimal Abzug [CHF]`[1] * Verteilprodukt
-        ),
-        `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                               sum(`Verleiherabzug [CHF]`) * (l_data$MWST$MWST / 100) * Verteilprodukt,
-                               (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(l_data$MWST$MWST/100)))) * Verteilprodukt
-        )
-      )
-  }
-  Abrechnung|>
-    select(1:12)
-  Abrechnung|>
-    select(12:ncol(Abrechnung))
-
-  # Gewinn/Verlust Tickets
-  Abrechnung <-
-    Abrechnung|>
-    mutate(`Gewinn/Verlust Tickets [CHF]` =
-             if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                     `Umsatz [CHF]` - ((`SUISA-Vorabzug [CHF]` + `Verleiherabzug [CHF]` + `MWST [CHF]`) * Verteilprodukt) ,
-                     `Umsatz [CHF]` - ((`SUISA-Vorabzug [CHF]` + `Verleiherrechnungsbetrag [CHF]`) * Verteilprodukt))
-           )
-  Abrechnung
-  Abrechnung|>
-    select(1:12)
-  Abrechnung|>
-    select(12:ncol(Abrechnung))
+  # Verteilen der Eintritte 
+  Eintritte <- df_Eintritt|> 
+    filter(`Event ID` %in% IDs)|>
+    select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
+    left_join(Verteilprodukt, 
+              by = join_by(`Event ID`)
+              )
+  Eintritte <- Eintritte|>
+    mutate(`Ticketumsatz [CHF]` = Umsatz * Verteilprodukt)
+  Eintritte
   
-  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
-  df_KioskGewinn <-
-    df_Kiosk|>
-    filter(`Event ID` == as.integer(ID))|>
-    reframe(Kassiert = sum(Kassiert, na.rm = T))
-  df_KioskGewinn
-  
-  #
-  Abrechnung <- bind_cols(Abrechnung, `Kioskgewinn [CHF]` = df_KioskGewinn$Kassiert)
-  Abrechnung|>
-    select(20:ncol(Abrechnung))
-  
-  # Verteilen der Eventeinnahmen
+  # Verteilen der Einnahmen 
   Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
-    select(1:5)|>
-    filter(Kategorie == "Event",
-           `Event ID` == Abrechnung$`Event ID`
-    )|>
-    mutate(Verteilprodukt = Abrechnung$Verteilprodukt, 
-           `Einnahmen [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
-    )
+    select(`Event ID`, Kategorie, Bezeichnung, `Betrag [CHF]`)|>
+    filter(`Event ID` %in% IDs)|>
+    left_join(Verteilprodukt,
+              by = join_by(`Event ID`)
+              )
+  Einnahmen <- Einnahmen|>
+    mutate(`Betrag verteilt [CHF]` = Verteilprodukt * `Betrag [CHF]`)
   Einnahmen
-
-  # Verteilen der Eventausgaben
+  
+  # Verteilen der Ausgaben 
   Ausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
-    filter(Kategorie == "Event",
-           `Event ID` == Abrechnung$`Event ID`
-    )|>
-    select(1:6)|>
-    mutate(Verteilprodukt = Abrechnung$Verteilprodukt, 
-           `Ausgaben [CHF]` = Abrechnung$Verteilprodukt * `Betrag [CHF]`
+    select(`Event ID`, Kategorie, Datum, Bezeichnung, `Betrag [CHF]`)|>
+    filter(`Event ID` %in% IDs)|>
+    left_join(Verteilprodukt,
+              by = join_by(`Event ID`)
     )
+  Ausgaben <- Ausgaben|>
+    mutate(`Betrag verteilt [CHF]` = Verteilprodukt * `Betrag [CHF]`)
   Ausgaben
   
-  Abrechnung <- bind_cols(Abrechnung, 
-                         `Einnahmen [CHF]`= sum(Einnahmen$`Einnahmen [CHF]`),
-                         `Ausgaben [CHF]`= sum(Ausgaben$`Ausgaben [CHF]`),
-                         df_manko_uerberschuss|>
-                           filter(`Event ID` == as.integer(ID))|>
-                           select(`Überschuss / Manko`)
-                         )
-  Abrechnung|>
-    select(22:ncol(Abrechnung))
+  # Der Kioskgewinn wird nicht verteilt 
+  Kiosk <- df_Kiosk|>
+    filter(`Event ID` %in% IDs)
   
-  Abrechnung <- Abrechnung|>
-    mutate(`Gewinn/Verlust Filmvorführungen [CHF]` = 
-             `Gewinn/Verlust Tickets [CHF]` + `Kioskgewinn [CHF]`+ `Überschuss / Manko` + `Einnahmen [CHF]` - `Ausgaben [CHF]`
-           )
+  # Überschuss und Manko wird nicht verteilt 
+  Manko <- df_manko_uerberschuss|>
+    filter(`Event ID` %in% IDs)
   
-  Abrechnung|>
-    select(22:ncol(Abrechnung))
-
-  # Results
-  l_abrechnung[[ID]] <- list(
-    Eintritte = df_Eintritt|>
-      filter(`Event ID` == as.character(ID)|>as.integer())|>
-      select(-`SUISA-Vorabzug`),
-    Kiosk = df_Kiosk|>
-      filter(`Event ID` %in% IDs),
-    Verteilprodukt = Verteilprodukt,
-    Abrechnung = Abrechnung,
-    `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
-    `Eventeinnahmen [CHF]` = Einnahmen,
-    `Eventausgaben [CHF]` = Ausgaben,
-    `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn,
-    `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
-      filter(`Event ID` == as.integer(ID))|>
-      select(`Überschuss / Manko`)
-  )
-
-  l_abrechnung[[ID]] <-
-    list(Eintritte = df_Eintritt|>
-           filter(`Event ID` %in% IDs)|> # Die Eintritte werden gemeinsam abgerechnet
-           select(-`SUISA-Vorabzug`),
-         Kiosk = df_Kiosk|>
-           filter(`Event ID` == as.character(ID))|> # Kioskeinnahmen
-           arrange((`Event ID`)),
-         Verteilprodukt = Verteilprodukt,
-         Abrechnung = Abrechnung,
-         `Gewinn/Verlust Tickets [CHF]` = Abrechnung$`Gewinn/Verlust Tickets [CHF]`,
-         `Eventeinnahmen [CHF]` = Einnahmen,
-         `Eventausgaben [CHF]` = Ausgaben,
-         `Gewinn/Verlust Kiosk [CHF]` = df_KioskGewinn,
-         `Überschuss / Manko Kiosk [CHF]`= df_manko_uerberschuss|>
-           filter(`Event ID` == as.integer(ID))|>
-           select(`Überschuss / Manko`),
-         `Gewinn/Verlust Filmvorführungen [CHF]` =
-           (l_abrechnung[[ID]]$`Gewinn/Verlust Tickets [CHF]` + l_abrechnung[[ID]]$`Gewinn/Verlust Kiosk [CHF]`+
-              pull(l_abrechnung[[ID]]$`Überschuss / Manko Kiosk [CHF]`) + sum(l_abrechnung[[ID]]$`Eventeinnahmen [CHF]`$`Betrag [CHF]`) -
-              sum(l_abrechnung[[ID]]$`Eventausgaben [CHF]`$`Betrag [CHF]`))
-         )
+  # return
+  l_abrechnung[[cnt]] <- 
+    list(
+      Verteilprodukt = Verteilprodukt,
+      Eintritte = Eintritte,
+      Eventeinnahmen = Einnahmen,
+      Eventausgaben = Ausgaben,
+      Kiosk = Kiosk,
+      `Manko / Überschuss` = Manko,
+      Abrechnung = Abrechnung
+    )
+  cnt <- cnt + 1
 }
-remove(Verteilprodukt, Einnahmen, Abrechnung, Ausgaben, df_KioskGewinn, df_mapping,  df_temp)
+remove(Verteilprodukt, Eintritte, Einnahmen, Ausgaben, Kiosk, Manko, Abrechnung,
+       df_mapping, df_Abrechnung,
+       df_manko_uerberschuss, df_Spezialpreisekiosk, df_temp
+       )
+l_abrechnung
 
-l_abrechnung[["1"]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`
+l_abrechnung[["1"]]
 l_abrechnung[["2"]]
 l_abrechnung[["3"]]
 l_abrechnung[["4"]]
 l_abrechnung[["5"]]
 l_abrechnung[["6"]]
 
-# Abrechnungen entfehrnen die nich vaild sind
-l_abrechnung <- l_abrechnung|>
-  lapply(function(x){
-    if(length(names(x)) > 0) x
-    else NULL
-  })
-l_abrechnung
-
-remove_nulls <- function(lst) {
-  Filter(Negate(is.null), lst)
-}
-l_abrechnung <-  remove_nulls(l_abrechnung)
-l_abrechnung
-
-l_abrechnung$`1`
-##################  Abrechnung Filmvorführung erstellen (für Berichte verwendet) ##################
+##################  Data frames für Berichte erstellen ##################
 
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 df_Abrechnung <- l_abrechnung|>
@@ -1208,7 +1156,9 @@ df_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
     x$Eintritte
   })|>
-  bind_rows(.id = "Event ID")
+  bind_rows(.id = "Event ID")|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
+         `Umsatz [CHF]` = Umsatz)
 df_Abrechnung_tickes
 
 # Abrechnung Kiosk erstellen  (für Berichte verwendet)
@@ -1222,14 +1172,14 @@ df_Abrechnung_kiosk
 # Abrechnung Events erstellen (für Berichte verwendet)
 df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
   lapply(function(x){
-    x$`Eventeinnahmen [CHF]`
+    x$`Eventeinnahmen`
   })|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_Eventeinnahmen
 
 df_Abrechnung_Eventausgaben <- l_abrechnung|>
   lapply(function(x){
-    x$`Eventausgaben [CHF]`
+    x$`Eventausgaben`
   })|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_Eventausgaben
@@ -1242,14 +1192,6 @@ df_keine_Rechnung <- l_abrechnung|>
   bind_rows(.id = "Event ID")|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_keine_Rechnung$`Verleiherrechnungsbetrag [CHF]`
-
-# Abrechnung Kiosk erstellen  (für Berichte verwendet)
-df_Abrechnung_kiosk <- l_abrechnung|>
-  lapply(function(x){
-    x$Kiosk
-  })|>
-  bind_rows(.id = "Event ID")
-df_Abrechnung_kiosk
 
 # summary Eintritt (für Berichte verwendet)
 df_Besucherzahlen <- df_Eintritt|>
@@ -1266,7 +1208,6 @@ list(`Werbung` = df_Besucherzahlen,
      `Kiosk` = df_Abrechnung_kiosk,
      `Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
      `Eventausgaben` = df_Abrechnung_Eventausgaben,
-     `Überschuss Manko` = df_manko_uerberschuss,
      `Filmvorführung` = df_Abrechnung
        )|>
   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
