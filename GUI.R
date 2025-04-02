@@ -1731,7 +1731,7 @@ server <- function(input, output, session) {
       }else{
         print("Starting second app...")
         proc <- processx::process$new("Rscript", 
-                                      args = c("-e", paste0("shiny::runApp('", second_app_path, "', launch.browser = TRUE)")), 
+                                      args = c("-e", paste0("shiny::runApp('", second_app_path, "', port = 5001, launch.browser = TRUE)")), 
                                       stdout = "|", stderr = "|"
         )
         shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
