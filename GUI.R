@@ -1121,7 +1121,8 @@ server <- function(input, output, session) {
           }, error = function(e) {
             ausgabe_text(
               paste0(
-                "Verleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
+                ausgabe_text(),
+                "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
                 e$message
               )
             )
@@ -1132,7 +1133,8 @@ server <- function(input, output, session) {
           }, error = function(e) {
             ausgabe_text(
               paste0(
-                "Webserver erstellen, Fehler:\n",
+                ausgabe_text(),
+                "\nWebserver erstellen, Fehler:\n",
                 e$message
               )
             )
