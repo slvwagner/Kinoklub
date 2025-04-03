@@ -513,6 +513,11 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  #### Abort: do nothing! ####
+  observeEvent(input$abort,{
+    removeModal()
+  })
+
   #### Edit row modal Dialog ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
@@ -803,10 +808,15 @@ server <- function(input, output, session) {
           # User interaction 
           removeModal()
           showModal(
-            modalDialog(title = "E-Mail korrekt?",
-                        renderText(df_Email$`E-Mail`),
+            modalDialog(title = "Die E-Mailadresse ist nicht korrekt, bitte korrigieren!",
+                        tagList(
+                          renderText(df_Email$`E-Mail`),
+                          hr(),
+                          shiny::textInput("email","E-Mail korrigieren!",value = df_Email$`E-Mail`)
+                        ),
                         easyClose = FALSE, 
                         footer = tagList(
+                          actionButton("check_email","Speichern"),
                           actionButton("abort","Abbrechen")
                           )
             )
@@ -828,10 +838,15 @@ server <- function(input, output, session) {
         if(!c_select){
           # User interaction 
           showModal(
-            modalDialog(title = "Suisanummer korrekt?",
-                        renderText(df_suisa$Suisanummer),
+            modalDialog(title = "Suisanummer nicht korrekt, bitte korrigieren!",
+                        tagList(
+                          renderText(df_suisa$Suisanummer),
+                          hr(),
+                          shiny::textInput("suisa", "Suisanummer korrigieren!", value = df_suisa$Suisanummer)
+                        ),
                         easyClose = FALSE, 
                         footer = tagList(
+                          actionButton("check_suisa","Speichern"),
                           actionButton("abort","Abbrechen")
                         )
             )
@@ -951,10 +966,32 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
   })
   
-  #### Abort: Es wurde nichts geändert! ####
-  observeEvent(input$abort,{
+  #### Check E-Mail Modal ####
+  observeEvent(input$check_email,{
+    print(input$email)
+    DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "E-Mail", input$email)
+    df_temp <- current_data()
+    df_temp[last_selected_row(),"E-Mail"] <- input$email
+    current_data(df_temp)
+    dataTableProxy("table") |>
+      selectRows(last_selected_row()) |>
+      selectPage(last_selected_page())
     removeModal()
   })
+
+  #### Check Suisanummer Modal ####
+  observeEvent(input$check_suisa,{
+    print(input$suisa)
+    DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+    df_temp <- current_data()
+    df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
+    current_data(df_temp)
+    dataTableProxy("table") |>
+      selectRows(last_selected_row()) |>
+      selectPage(last_selected_page())
+    removeModal()
+  })
+  
   
   #### Add a new row top of selected ####
   observeEvent(input$add_row_top, {
