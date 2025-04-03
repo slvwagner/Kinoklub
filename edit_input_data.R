@@ -437,7 +437,7 @@ DB_con <- reactiveVal(NULL)
 # System messages 
 sys_msg <- reactiveVal("")
 
-###################### server logic for shiny app #############################
+### server logic for shiny app ###
 server <- function(input, output, session) {
   
   #### Data set type selection ####
@@ -860,7 +860,7 @@ server <- function(input, output, session) {
     df_temp <- bind_cols(current_data()[,1],
                          df_temp
                          )
-    
+
     #### check input E-Mail if correct #####
     df_Email <- df_updated[,names(df_temp) == "E-Mail"]
     if(ncol(df_Email) > 0){
@@ -979,7 +979,7 @@ server <- function(input, output, session) {
         }
       }
       # Update data 
-      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp[select_row,] <- df_updated
         
       # convert to factor
       for (ii in 1:length(c_class)) {
@@ -987,6 +987,7 @@ server <- function(input, output, session) {
           df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
         }
       }
+      print("here")
     } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben", "Spezialpreisekiosk")){
       df_updated <- df_updated|>
         mutate(`Event ID` = as.character(`Event ID`))
@@ -1000,7 +1001,9 @@ server <- function(input, output, session) {
     }
 
     #### check for changed data #####
-    if(is.logical(all.equal(df_updated, df_temp_[select_row,]))){
+    x <- is.logical(all.equal(df_updated, df_temp_[select_row,]))
+    y <- is.logical(all.equal(df_temp[select_row,], df_temp_[select_row,]))
+    if( x & y ){
       # User interaction 
       showModal(
         modalDialog(title = "Es wurde nichts geändert!",
@@ -1117,7 +1120,7 @@ server <- function(input, output, session) {
           Update_Einsatzplan(new_row, new_row = TRUE)
         }
         
-        ##### Handling uniqueness checks for Dropdowns ####
+        ##### Handling uniqueness checks for Dropdowns #####
         if (data_selection_() == "Dropdowns") {
           # Find duplicates (keeping only duplicate rows)
           df_temp <- updated_data |>
@@ -1129,30 +1132,31 @@ server <- function(input, output, session) {
           
           df_temp_to_render(df_temp)
           
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-          
-          showModal(
-            modalDialog(
-              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
-              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
-              tagList(
-                renderText("Die kombination aus Namen und Vorname musse eindeutig sein. Bitte anpassen!"),
-                hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
-                )
-              ),
-              easyClose = FALSE, 
-              footer = tagList(
-                actionButton("modal_select_row", "Zeile editieren"),
-                actionButton("abort", "Abbrechen")
+          if(nrow(df_temp) > 1){
+            # Calculate modal size based on number of columns
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
+            showModal(
+              modalDialog(
+                title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+                size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+                tagList(
+                  renderText("Bitte Zeile selektieren und anpassen!"),
+                  hr(),
+                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                      dataTableOutput("modal_table")
+                  )
+                ),
+                easyClose = FALSE, 
+                footer = tagList(
+                  actionButton("modal_select_row", "Zeile editieren"),
+                  actionButton("abort", "Abbrechen")
                 )
               )
             )
-          req(FALSE)
+          }
         }
       }
       # Update the list
@@ -1261,6 +1265,43 @@ server <- function(input, output, session) {
                       current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
             )
           
+        }
+        ##### Handling uniqueness checks for Dropdowns #####
+        if (data_selection_() == "Dropdowns") {
+          # Find duplicates (keeping only duplicate rows)
+          df_temp <- updated_data |>
+            group_by(across(-ID)) |>
+            mutate(duplicate_flag = n() > 1) |>
+            ungroup() |>
+            filter(duplicate_flag)|>
+            select(-duplicate_flag)
+          
+          df_temp_to_render(df_temp)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Die kombination aus Namen und Vorname musse eindeutig sein. Bitte anpassen!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("modal_select_row", "Zeile editieren"),
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+          req(FALSE)
         }
         current_data(updated_data)
       }
@@ -1476,7 +1517,9 @@ server <- function(input, output, session) {
       }
       last_selected_row(NA)
       dataTableProxy("table")|>
-        selectPage(last_selected_page())
+        selectPage(last_selected_page()
+                   )
+      
       removeModal()
     }
   })
