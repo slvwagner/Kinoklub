@@ -193,10 +193,6 @@ DB_add_row <- function(con, table_name, new_row) {
   p <- "\\s"
   
   # handle column names correctly
-  if(str_detect(table_name, p)) {
-    table_name <- paste0("`",table_name,"`")
-  }
-  
   table_info <- DB_describe_table(con, table_name)
   
   col_names <- table_info$Field
@@ -375,6 +371,57 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   if(test)  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }
+
+
+DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
+  # Validate inputs
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  if (!dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
+  
+  # Get the table's column names
+  table_info <- DB_describe_table(con, table_name)
+  col_names <- table_info$Field
+  
+  # Validate column names
+  if (!primary_key_col %in% col_names) {
+    stop(paste("Primary key column '", primary_key_col, "' does not exist in the table."))
+  }
+  if (!target_col %in% col_names) {
+    stop(paste("Target column '", target_col, "' does not exist in the table."))
+  }
+  
+  # Format the new value for SQL
+  formatted_value <- if (is.null(new_value) || is.na(new_value)) {
+    "NULL"
+  } else if (is.character(new_value)) {
+    paste0("'", gsub("'", "''", new_value), "'")  # Escape single quotes in strings
+  } else if (inherits(new_value, "POSIXt") || inherits(new_value, "Date")) {
+    paste0("'", format(new_value, "%Y-%m-%d"), "'")
+  } else {
+    new_value
+  }
+  
+  # Prepare the WHERE clause for the SQL query
+  where_clause <- paste0("`", primary_key_col, "` = ", 
+                         if (is.character(primary_key_value)) paste0("'", primary_key_value, "'") else primary_key_value)
+  
+  # Construct the SQL query
+  sql_query <- paste0(
+    "UPDATE `", table_name, "` SET `", target_col, "` = ", formatted_value, 
+    " WHERE ", where_clause
+  )
+  
+  # Execute the query
+  dbExecute(con, sql_query)
+  
+  message("Cell in table '", table_name, "' updated successfully: ", target_col, " = ", new_value, 
+          " (Row where ", primary_key_col, " = ", primary_key_value, ").")
+}
+
 
 # Conversion template
 convert_to_template_types <- function(df_sql, df_template) {
