@@ -1069,9 +1069,17 @@ for (ID in names(l_abrechnung)) {
     left_join(Verteilprodukt,
               by = join_by(`Event ID`)
     )
-  Abrechnung
+  Abrechnung|>select(22:ncol(Abrechnung))
   Abrechnung <- Abrechnung|>
-    mutate(`Gewinn per Event ID [CHF]` = `Gewinn aus Fimvorführung [CHF]` * Verteilprodukt
+    mutate(`Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt,
+           `Umsatz [CHF]` = `Umsatz [CHF]` *Verteilprodukt,
+           `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3 [CHF]` * Verteilprodukt,
+           `Suisavorabzug [CHF]` = `Suisavorabzug [CHF]` * Verteilprodukt,
+           `Verleiherabzug [CHF]` = `Verleiherabzug [CHF]` * Verteilprodukt,
+           `Ticketgewinn [CHF]` = `Ticketgewinn [CHF]` *  Verteilprodukt,
+           `Eventeinnahmen [CHF]` = `Eventeinnahmen [CHF]` * Verteilprodukt,
+           `Eventausgaben [CHF]` = `Eventausgaben [CHF]` * Verteilprodukt,
+           `Gewinn aus Fimvorführung [CHF]` = `Gewinn aus Fimvorführung [CHF]` * Verteilprodukt
     )
   
   # Verteilen der Eintritte 
@@ -1148,7 +1156,8 @@ df_Abrechnung <- l_abrechnung|>
   lapply(function(x){
     x$Abrechnung
   })|>
-  bind_rows(.id = "Event ID")
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.integer(`Event ID`))
 df_Abrechnung
 
 # Abrechnung Tickets erstellen (für Berichte verwendet)

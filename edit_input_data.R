@@ -73,7 +73,7 @@ update_choices <- function(l_data) {
 
 
 #### Floating tool box function ####
-tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
+tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
       tags$div(
         id = "floating-panel",
@@ -110,7 +110,25 @@ tool_box <- function(l_data_input, data_set_select , choices_select = 1, choices
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
       )
-  }else {
+  } else if(data_set_select %in% names(l_data_choices())){
+    tags$div(
+      id = "floating-panel",
+      tags$div(id = "floating-panel-header", "Werkzeuge"),
+      selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
+      # Function selection
+      shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                          choices = choices, selected = choices[choices_select]
+      ),
+      shiny::tags$hr(),
+      actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+      shiny::tags$hr(),
+      actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+      actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+      # actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+      shiny::tags$hr(),
+      actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+    )
+  } else {
     tags$div(
       id = "floating-panel",
       tags$div(id = "floating-panel-header", "Werkzeuge"),
@@ -1385,53 +1403,70 @@ server <- function(input, output, session) {
       if(c_connected_to_db())  {
         DTOutput("table")
       },
-      # Dynamically change Floating tool box to edit data
-      if (c_connected_to_db() && data_selection_() == "Inputdaten") {
-        if (lastEdited_data_set_name() == "Programm") {
-          tool_box(l_data_input(), "Programm")
-        } else if (lastEdited_data_set_name() == "Einsatzplan") {
-          tool_box(l_data_input(), "Einsatzplan")
-        } else if (lastEdited_data_set_name() == "Einnahmen") {
-          tool_box(l_data_input(), "Einnahmen")
-        } else if (lastEdited_data_set_name() == "Ausgaben") {
-          tool_box(l_data_input(), "Ausgaben")
-        } else if (lastEdited_data_set_name() == "Spezialpreisekiosk") {
-          tool_box(l_data_input(), "Spezialpreisekiosk")
-        } else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
-          tool_box(l_data_input(), "Einkauf Kiosk")
-        } else if (lastEdited_data_set_name() == "Ausgaben") {
-          tool_box(l_data_input(), "Ausgaben")
-        }else {
-          stop("tool_box not yet implemented")
-        }
-      } else if (c_connected_to_db() && data_selection_() == "Dropdowns") {
-        if(lastEdited_data_set_name() == "Verleiher"){
-          tool_box(l_data_choices(), "Verleiher",2)
-        } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-          tool_box(l_data_choices(), "Buchhaltungskonten",2)
-        } else if (lastEdited_data_set_name() == "Kategorie"){
-          tool_box(l_data_choices(), "Kategorie",2)
-        } else if (lastEdited_data_set_name() == "Spezialpreis"){
-          tool_box(l_data_choices(), "Spezialpreis", 2)
-        } else if (lastEdited_data_set_name() == "JaNein"){
-          tool_box(l_data_choices(), "JaNein",2)
-        } else if (lastEdited_data_set_name() == "Lieferanten"){
-          tool_box(l_data_choices(), "Lieferanten",2)
-        } else if (lastEdited_data_set_name() == "Platzkategorien zum Verrechnen"){
-          tool_box(l_data_choices(), "Platzkategorien zum Verrechnen",2)
-        } else if (lastEdited_data_set_name() == "MWST"){
-          tool_box(l_data_choices(), "MWST",2)
-        } else if (lastEdited_data_set_name() == "Status Filmliste"){
-          tool_box(l_data_choices(), "Status Filmliste",2)
-        } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-          tool_box(l_data_choices(), "Kinoklubmitglieder",2)
+      if(c_connected_to_db()){
+        # Dynamically change Floating tool box to edit data
+        if (c_connected_to_db() && data_selection_() == "Inputdaten") {
+          if (lastEdited_data_set_name() == "Programm") {
+            tool_box(l_data_input(), "Programm",
+                     c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Einsatzplan") {
+            tool_box(l_data_input(), "Einsatzplan",
+                     c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Einnahmen") {
+            tool_box(l_data_input(), "Einnahmen",
+                     c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Ausgaben") {
+            tool_box(l_data_input(), "Ausgaben",c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Spezialpreisekiosk") {
+            tool_box(l_data_input(), "Spezialpreisekiosk",
+                     c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
+            tool_box(l_data_input(), "Einkauf Kiosk",
+                     c_select_dropdown_data)
+          } else if (lastEdited_data_set_name() == "Ausgaben") {
+            tool_box(l_data_input(), "Ausgaben",
+                     c_select_dropdown_data)
+          }else {
+            stop("tool_box not yet implemented")
+          }
+        } else if (c_connected_to_db() && data_selection_() == "Dropdowns") {
+          if(lastEdited_data_set_name() == "Verleiher"){
+            tool_box(l_data_choices(), "Verleiher",
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
+            tool_box(l_data_choices(), "Buchhaltungskonten",
+                     c_select_dropdown_data,2)
+          } else if (lastEdited_data_set_name() == "Kategorie"){
+            tool_box(l_data_choices(), "Kategorie",
+                     c_select_dropdown_data,2)
+          } else if (lastEdited_data_set_name() == "Spezialpreis"){
+            tool_box(l_data_choices(), "Spezialpreis", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "JaNein"){
+            tool_box(l_data_choices(), "JaNein", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "Lieferanten"){
+            tool_box(l_data_choices(), "Lieferanten", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "Platzkategorien zum Verrechnen"){
+            tool_box(l_data_choices(), "Platzkategorien zum Verrechnen", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "MWST"){
+            tool_box(l_data_choices(), "MWST", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "Status Filmliste"){
+            tool_box(l_data_choices(), "Status Filmliste", 
+                     c_select_dropdown_data, 2)
+          } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
+            tool_box(l_data_choices(), "Kinoklubmitglieder", 
+                     c_select_dropdown_data, 2)
+          } else {
+            stop("tool_box not yet implemented dataset")
+          }
         } else {
-          stop("tool_box not yet implemented dataset")
+          
         }
-      } else {
-        
       },
-      
       # JavaScript to make the floating panel draggable
       tags$script(HTML("
         $(function() {
