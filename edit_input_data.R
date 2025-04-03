@@ -386,11 +386,15 @@ server <- function(input, output, session) {
                                         convert_to_template_types(l_template[[c_input_dataset]])|>
                                         select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
                                       by = join_by(`Event ID`)
-                                      )
-    } 
-    
-    # Update the list
-    l_temp[[c_input_dataset]] <- df_temp
+                                      )|>
+        arrange(desc(Datum))
+      l_temp$Programm <- l_temp$Programm|>
+        arrange(desc(Datum))
+      
+    } else{
+      # Update the list
+      l_temp[[c_input_dataset]] <- df_temp
+    }
     
     # update all data
     l_data(l_temp)
