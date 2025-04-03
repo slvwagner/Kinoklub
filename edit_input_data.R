@@ -485,13 +485,13 @@ server <- function(input, output, session) {
       )
     ))
   })
-  
+
   #### Select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
         filter(\`",input$Verteiler,"\` == \"ja\")|>
-        distinct(Email)|>
+        distinct(`E-Mail`)|>
         pull()", collapse =  "")
     
     C_verteiler <- sapply(generated_code, function(x) eval(parse(text = x)))|>
