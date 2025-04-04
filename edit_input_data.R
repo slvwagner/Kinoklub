@@ -110,7 +110,8 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
       )
-  } else if(data_set_select %in% names(l_data_choices())){
+  } # Menue for drop downs 
+  else if(data_set_select %in% names(l_data_choices())){
     tags$div(
       id = "floating-panel",
       tags$div(id = "floating-panel-header", "Werkzeuge"),
@@ -124,7 +125,8 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
       shiny::tags$hr(),
       actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
       actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-      # actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+      shiny::tags$hr(),
+      actionButton("check_unique", "Prüfen", class = "btn-success"),
       shiny::tags$hr(),
       actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
       shiny::tags$hr(),
@@ -927,14 +929,14 @@ server <- function(input, output, session) {
     if(lastEdited_data_set_name() == "Einsatzplan"){
       df_updated <- 
         bind_cols(
-          current_data()[input$table_rows_selected,1:(min(c_select)-1)], 
+          current_data()[select_row,1:(min(c_select)-1)], 
           df_updated[,2:ncol(df_updated)]
         )|>
         convert_Einsatzplan(convert_to = "char")
       df_updated
       df_temp <- current_data()|>
         convert_Einsatzplan(convert_to = "char")
-      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp[select_row,] <- df_updated
       df_temp <- convert_Einsatzplan(df_temp, "fact")
       df_temp
     } else if (lastEdited_data_set_name() == "Programm"){
@@ -943,7 +945,7 @@ server <- function(input, output, session) {
                `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`),
                `Link to Event ID` = as.character(`Link to Event ID`)
                )
-      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp[select_row,] <- df_updated
       df_temp <- df_temp|>
         mutate(Verleiher = factor(Verleiher),
                `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
@@ -987,23 +989,51 @@ server <- function(input, output, session) {
           df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
         }
       }
-      print("here")
+
+    } else if (lastEdited_data_set_name() == "Verleiher"){
+      # find class of column
+      c_class <- 
+        1:ncol(df_temp)|>
+        lapply(function(ii){
+          c_temp <- df_temp|>
+            select(ii)|>
+            pull()
+          class(c_temp)
+        })|>
+        unlist()
+      c_class  
+      # convert to character
+      for (ii in 1:length(c_class)) {
+        if(c_class[ii] == "factor"){
+          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
+        }
+      }
+      # Update data 
+      df_temp[select_row,] <- df_updated
+      
+      # convert to factor
+      for (ii in 1:length(c_class)) {
+        if(c_class[ii] == "factor"){
+          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
+        }
+      }
+      
     } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben", "Spezialpreisekiosk")){
       df_updated <- df_updated|>
         mutate(`Event ID` = as.character(`Event ID`))
       df_temp <- df_temp|>
         mutate(`Event ID` = as.character(`Event ID`))
-      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp[select_row,] <- df_updated
       df_temp <- df_temp|>
         mutate(`Event ID` = factor(`Event ID`))
     } else { # anything else 
-      df_temp[input$table_rows_selected,] <- df_updated
+      df_temp[select_row,] <- df_updated
     }
 
     #### check for changed data #####
     x <- is.logical(all.equal(df_updated, df_temp_[select_row,]))
     y <- is.logical(all.equal(df_temp[select_row,], df_temp_[select_row,]))
-    if( x & y ){
+    if( y ){
       # User interaction 
       showModal(
         modalDialog(title = "Es wurde nichts geändert!",
@@ -1176,48 +1206,6 @@ server <- function(input, output, session) {
     }
   })
   
-  #### selected row modal data table 
-  observeEvent(input$modal_select_row, {
-    print("here")
-    df_temp <- df_temp_to_render()
-    c_ID <- df_temp[input$modal_table_rows_selected,]$ID
-    # update latest ID 
-    ID_to_edit(c_ID)
-    
-    removeModal()
-    # Store HTML elements
-    l_temp <- list()
-    # only display
-    df_info <- current_data() |> 
-      filter(ID == c_ID)|>
-      select(1)
-    # editable
-    df_row <- current_data() |> 
-      filter(ID == c_ID)|>
-      select(2:ncol(current_data()))
-    # Display the display columns (read-only)
-    l_temp <- lapply(1:ncol(df_info), function(ii) {
-      fluidRow(
-        column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
-      )
-    })
-
-    l_temp <- create_modal_input(df_row, l_temp)
-    
-    # User interaction to save
-    showModal(
-      modalDialog(
-        title = "Zeile editieren",
-        l_temp,
-        actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-        actionButton("abort_save", "Abbrechen"),
-        easyClose = FALSE,
-        footer = NULL
-      )
-    )
-    # # Trigger the edit_row button click
-    # shinyjs::click("edit_row")
-  })
 
   #### Add a new row bottom of selected ####
   observeEvent(input$add_row_bottom, {
@@ -1266,6 +1254,10 @@ server <- function(input, output, session) {
             )
           
         }
+        
+
+        current_data(updated_data)
+        
         ##### Handling uniqueness checks for Dropdowns #####
         if (data_selection_() == "Dropdowns") {
           # Find duplicates (keeping only duplicate rows)
@@ -1278,32 +1270,32 @@ server <- function(input, output, session) {
           
           df_temp_to_render(df_temp)
           
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-          
-          showModal(
-            modalDialog(
-              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
-              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
-              tagList(
-                renderText("Die kombination aus Namen und Vorname musse eindeutig sein. Bitte anpassen!"),
-                hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
+          if(nrow(df_temp) > 1){
+            # Calculate modal size based on number of columns
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
+            showModal(
+              modalDialog(
+                title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+                size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+                tagList(
+                  renderText("Bitte Zeile selektieren und anpassen!"),
+                  hr(),
+                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                      dataTableOutput("modal_table")
+                  )
+                ),
+                easyClose = FALSE, 
+                footer = tagList(
+                  actionButton("modal_select_row", "Zeile editieren"),
+                  actionButton("abort", "Abbrechen")
                 )
-              ),
-              easyClose = FALSE, 
-              footer = tagList(
-                actionButton("modal_select_row", "Zeile editieren"),
-                actionButton("abort", "Abbrechen")
               )
             )
-          )
-          req(FALSE)
+          }
         }
-        current_data(updated_data)
       }
     }
     
@@ -1390,6 +1382,117 @@ server <- function(input, output, session) {
       selectPage(last_selected_page())
     
   })
+  
+  #### Check unique ####
+  observeEvent(input$check_unique, {
+    # Find duplicates (keeping only duplicate rows)
+    df_temp <- current_data() |>
+      group_by(across(-ID)) |>
+      mutate(duplicate_flag = n() > 1) |>
+      ungroup() |>
+      filter(duplicate_flag)|>
+      select(-duplicate_flag)
+    
+    df_temp_to_render(df_temp)
+    
+    if(nrow(df_temp) > 1){
+      # Calculate modal size based on number of columns
+      num_cols <- ncol(df_temp)
+      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+      modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+      
+      showModal(
+        modalDialog(
+          title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+          size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+          tagList(
+            renderText("Bitte Zeile selektieren und anpassen!"),
+            hr(),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+            )
+          ),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("modal_select_row", "Zeile editieren"),
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    } else {
+      showModal(
+        modalDialog(
+          title = "Daten sind eindeutig.",
+          tagList(
+          ),
+          easyClose = TRUE, 
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    }
+    # # Trigger the edit_row button click
+    # shinyjs::click("check_unique")
+  })
+  
+  
+  #### selected row modal data table ####
+  observeEvent(input$modal_select_row, {
+    if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
+      print("here")
+      df_temp <- df_temp_to_render()
+      c_ID <- df_temp[input$modal_table_rows_selected,]$ID
+      # update latest ID 
+      ID_to_edit(c_ID)
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- current_data() |> 
+        filter(ID == c_ID)|>
+        select(1)
+      # editable
+      df_row <- current_data() |> 
+        filter(ID == c_ID)|>
+        select(2:ncol(current_data()))
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+        )
+      })
+      
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      removeModal()
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort_save", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } else {
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
+    
+    # # Trigger the edit_row button click
+    # shinyjs::click("edit_row")
+  })
+  
+  
   
   #### Duplicate Film and archive (Filmtitel ändern)####
   observeEvent(input$archive_row,{
