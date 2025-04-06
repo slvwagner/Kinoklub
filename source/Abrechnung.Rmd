@@ -140,20 +140,26 @@ if(r_is.defined(df_keine_Rechnung)){
 }
 ```
 
+
+
 ```{r echo=FALSE}
 if(nrow(df_Abrechnung) == 1){
   df_temp <- df_Abrechnung|>
-  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+  mutate(`Total Abgaben [CHF]` = sum(`Suisavorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 }else{
   df_temp <- df_Abrechnung|>
     filter(`Event ID` == ii)|>
-  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+  mutate(`Total Abgaben [CHF]` = sum(`Suisavorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 }
 
 ```
 
+```{r}
+names(df_Abrechnung)
+```
+
 ```{r echo=FALSE}
-Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
+Filmvorführungen <- df_temp$`Gewinn aus Fimvorführung [CHF]`
 ```
 
 #### Abgaben
@@ -178,14 +184,14 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
 
 ```{r}
 c_Umsatz <- df_Abrechnung|>
-  reframe(Umsatz = sum(`Umsatz [CHF]`))|>
+  reframe(Umsatz = sum(`Umsatz [CHF]`,na.rm = T))|>
   pull()
 
 c_Umsatz_Kinoförderer <- df_Abrechnung|>
   reframe(Umsatz = sum(`Umsatz für Netto3 [CHF]`))|>
   pull()
 
-c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]`/100
+c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 
 ```
 
@@ -194,40 +200,49 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]`/100
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
   if(df_temp$`Kinoförderer gratis?`){
-      df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
-                     Verteilprodukt = df_temp$Verteilprodukt,                        
-                     `Betrag [CHF]` = c(
-                       c_Umsatz,
-                       -(df_temp$`SUISA-Vorabzug [CHF]`) ,
-                       -(df_temp$`Verleiherabzug [CHF]`) ,
-                       -(df_temp$`MWST [CHF]`)
-                       )
-                     )
-  }else{
-      df_temp1 <- tibble(Bezeichnung = c(
-        "Umsatz",
-        "Umsatz (Kinofördere abgerechnet)",
-        "Suisa-Vorabzug",
-        "Verleiherrechnungsbetrag (Kinofördere abgerechnet)"),
-        Verteilprodukt = df_temp$Verteilprodukt, 
-        `Betrag [CHF]` = c(
-          c_Umsatz,
-          c_Umsatz_Kinoförderer,
-          c_suisa_vorabzug,
-          df_temp$`Verleiherrechnungsbetrag [CHF]`
+      df_temp1 <- 
+        tibble(
+          Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
+          Verteilprodukt = df_temp$Verteilprodukt,                        
+          `Betrag [CHF]` = 
+            c(
+              c_Umsatz,
+              -(df_temp$`Suisavorabzug [CHF]`) ,
+              -(df_temp$`Verleiherabzug [CHF]`) ,
+              -(df_temp$`MWST [CHF]`)
+              )
           )
-        )
+  }else{
+      df_temp1 <- 
+        tibble(
+          Bezeichnung = 
+            c("Umsatz",
+              "Umsatz (Kinofördere abgerechnet)",
+              "Suisa-Vorabzug",
+              "Verleiherrechnungsbetrag (Kinofördere abgerechnet)"),
+          Verteilprodukt = df_temp$Verteilprodukt, 
+          `Betrag [CHF]` = 
+            c(
+              c_Umsatz,          
+              c_Umsatz_Kinoförderer,
+              c_suisa_vorabzug,
+              df_temp$`Verleiherrechnungsbetrag [CHF]`
+              )
+          )
   }
 }else{ # Verleiherrechnung vorhanden
   if(df_temp$`Kinoförderer gratis?`){
-    df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
-                       Verteilprodukt = df_temp$Verteilprodukt, 
-                       `Betrag [CHF]` = c(
-                         c_Umsatz,
-                         -(df_temp$`SUISA-Vorabzug [CHF]`) ,
-                         -(df_temp$`Verleiherrechnungsbetrag [CHF]`)
-                         )
-                       )
+    df_temp1 <- 
+      tibble(
+        Bezeichnung = 
+          c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
+        Verteilprodukt = df_temp$Verteilprodukt, 
+        `Betrag [CHF]` = 
+          c(c_Umsatz,
+            -(df_temp$`Suisavorabzug [CHF]`) ,
+            -(df_temp$`Verleiherrechnungsbetrag [CHF]`)
+            )
+        )
   }else{
       df_temp1 <- tibble(Bezeichnung = c(
         "Umsatz",
@@ -247,17 +262,7 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
 ```
 
 
-```{r}
-# # Wird über ein Link-Datum abgerechnet dann muss verteilt werden!
-# if(!is.na(df_temp$`Link Datum`)){
-#   df_temp1 <- df_temp1|>
-#   mutate(`Verteilt [CHF]` = `Betrag [CHF]` * Verteilprodukt)
-# }else{
-#   df_temp1 <- df_temp1|>
-#   mutate(Verteilprodukt = NULL)
-# }
 
-```
 
 ```{r}
 df_temp1|>
@@ -266,7 +271,7 @@ df_temp1|>
 
 ```{r}
 df_temp|>
-  select(`Gewinn/Verlust Tickets [CHF]`)|>
+  select(`Gewinn aus Fimvorführung [CHF]`)|>
   knitr::kable(digits = 2)
 ```
 
@@ -315,9 +320,7 @@ Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, 
 df_temp <- df_Abrechnung_kiosk|>
   filter(`Event ID` == ii,
          )|>
-  select(-Datum)|>
-  rename(`Kassiert [CHF]` = `Kassiert`,
-         `Gewinn [CHF]` = Gewinn
+  rename(`Gewinn [CHF]` = Gewinn
          )
 ```
 

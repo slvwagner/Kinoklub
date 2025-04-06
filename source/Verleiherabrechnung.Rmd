@@ -110,20 +110,6 @@ df_temp <- df_Abrechnung_tickes|>
 
 
 ```{r}
-df_temp <- df_temp|>
-  slice(1:(nrow(df_temp)/2))|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-         )|>
-  select("Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz")
-df_temp <- df_temp|>
-  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
-         `Umsatz [CHF]` = Umsatz)
-
-
-```
-
-
-```{r}
 df_temp1 <- df_temp|>
   group_by(Platzkategorie)|>
   reframe(Anzahl = sum(Anzahl),
