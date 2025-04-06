@@ -791,6 +791,29 @@ if(nrow(df_temp)>0){
               "\nBitte korrrigieren in der Exceldatei .../Kinoklub/input/Verleiherabgaben.xlsx"))
 }
 
+df_temp <- df_verleiherabgaben|>
+  select(-Titel, -Adresse, -PLZ, -Ort)|>
+  distinct(Suisanummer, Datum, .keep_all = T)
+
+for (ii in 1:nrow(df_temp)) {
+  df_temp1 <- df_verleiherabgaben|>
+    filter(Datum == df_temp$Datum[ii],
+           Suisanummer == df_temp$Suisanummer[ii])
+  
+  if(nrow(df_temp1) > 1){
+    stop(
+      paste0("\nEs gibt mehrere Verleiherabgaben für die gleiche Suisanummer und Datum" ,df_temp1$Suisanummer," ",df_temp1$Datum,
+             "\n, mit den Folgenden Filmtiteln: ",df_temp1$Titel,
+             "\nBitte die die Verleiherabgaben korrigieren!\n"
+             )
+      
+      )
+  }
+}
+
+
+
+
 # Eintrite 
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben|>
