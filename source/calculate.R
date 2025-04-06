@@ -917,7 +917,6 @@ df_Tickets <- df_Eintritt|>
 
 
 #### Umsatz aus Tickets zu Abrechnung hinzufügen ####
-
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T),
@@ -939,7 +938,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
 remove(df_Tickets)
 
 
-#### Umsatz und Verleiherabzug und Ticketgewinn #####
+#### Umsatz und Verleiherabzug MWST und Ticketgewinn #####
 names(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
@@ -953,9 +952,14 @@ df_Abrechnung <- df_Abrechnung|>
                    `Umsatz [CHF]` - `Suisavorabzug [CHF]`,
                    `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`
                    ),
+         `MWST [CHF]` = if_else(
+           is.na(`Verleiherrechnungsbetrag [CHF]`),
+           `Umsatz für Netto3 [CHF]` * (l_data$MWST$MWST / 100),
+           `Verleiherrechnungsbetrag [CHF]` / (1 + (l_data$MWST$MWST / 100)) 
+           ),
          `Verleiherabzug [CHF]` = 
            if_else(is.na(`Abzug fix [CHF]`),
-                   `Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100),
+                   (`Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100)) + `MWST [CHF]`,
                    `Umsatz für Netto3 [CHF]` - `Abzug fix [CHF]`
                    ),
          # Verleiherrechnung verwenden falls vorhanden
@@ -966,6 +970,10 @@ df_Abrechnung <- df_Abrechnung|>
                    ),
          `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`
           )
+
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`,`Verleiherrechnungsbetrag [CHF]`, 15:ncol(df_Abrechnung))
+
 
 #### Kioskgewinn der Abrechnung hinzufügen 
 df_temp <- df_Kiosk|>
@@ -1201,6 +1209,14 @@ df_keine_Rechnung <- l_abrechnung|>
   bind_rows(.id = "Event ID")|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_keine_Rechnung$`Verleiherrechnungsbetrag [CHF]`
+
+# Manko / Überschuss
+df_manko_uerberschuss <- l_abrechnung|>
+  lapply(function(x){
+    x$`Manko / Überschuss`
+  })|>
+  bind_rows(.id = "Event ID")
+df_manko_uerberschuss
 
 # summary Eintritt (für Berichte verwendet)
 df_Besucherzahlen <- df_Eintritt|>
