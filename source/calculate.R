@@ -667,8 +667,9 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
 
   df_temp <- anti_join(n_Film, n_kiosk, by = join_by(`Event ID`))|>
     select(1:3)
+  df_temp
   df_temp <- df_temp|>
-    left_join(l_data$Programm)
+    left_join(l_data$Programm, by = join_by(Datum, Suisanummer, Filmtitel))
   
   warning(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n",
               df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
