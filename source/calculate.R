@@ -351,6 +351,25 @@ if(sum(c_test) != length(c_test)){
   c_Kiosk[c_index]
 } 
 
+#### Programm check ####
+df_temp <- l_data$Programm|>
+  distinct(Datum, Suisanummer, .keep_all = TRUE)
+df_temp
+
+if(nrow(df_temp) != nrow(l_data$Programm)){
+  df_temp <- anti_join(l_data$Programm,
+                       df_temp,
+                       by = "Event ID"
+                       )
+  
+  df_temp <- df_temp|>
+    group_by(Suisanummer, Datum, Filmtitel)|>
+    reframe(n = n())|>
+    filter(n > 1)
+  df_temp
+  stop(paste0("\nFür den Film ", df_temp$Suisanummer, " / ", format(df_temp$Datum,"%d.%m.%Y")," gibt es mehrere Einträge im Programm.",
+              "\nEs ist aber nur einer erlaubt pro Datum und Suisanummer. Bitte das Proramm korrigieren!"))
+}
 
 ################## Einnahmen und Ausgaben einlesen ##################
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
@@ -405,8 +424,7 @@ df_Eintritt <- df_Eintritt|>
   left_join(l_data$Programm|>
               filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
               select(`Event ID`, Datum, Suisanummer),
-            by = join_by(Datum, Suisanummer),
-            relationship = "many-to-many"
+            by = join_by(Datum, Suisanummer)
   )
 # paste0("`",names(df_Eintritt), "`")|>
 #   paste0(collapse = ", ")|>
