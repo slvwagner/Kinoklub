@@ -1649,27 +1649,26 @@ server <- function(input, output, session) {
     }
     # Calculate page 
     if(lastEdited_data_set_name() == "Einsatzplan"){ # it is filtered by default therefore the page must be calculated for the filtered data 
-      df_temp <- current_data()|>
+      df_Einsatzplan <- current_data()|>
         arrange(desc(Datum))|>
         filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
         mutate(index = row_number())
-        
-      df_temp <- df_temp|>
+      df_Einsatzplan <- df_Einsatzplan|>
         filter(index == row)
-      page <-  ceiling(df_temp$index / page_length_var())
+      page <-  ceiling(df_Einsatzplan$index / page_length_var())
+      if(!is.numeric(page)| page < 1) {
+        stop("Problem to calculate page")
+        }
     }else { # calculate page 
       page <-  ceiling(row / page_length_var())  
     }
 
-    writeLines(paste0("page ", page, " in table: ", input$dataset))
+    writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
     
     if(page == 0) page <- 1
     last_selected_page(page)
-    last_selected_row(input$table_rows_selected)
-    # select last row
-    dataTableProxy("table")|>
-      selectRows(last_selected_row())|>
-      selectPage(last_selected_page())
+    last_selected_row(row)
+
   })
   
   #### Change in page length ####
