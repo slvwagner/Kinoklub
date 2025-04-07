@@ -533,8 +533,8 @@ server <- function(input, output, session) {
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }else{
-      last_selected_page(NA)
-      last_selected_row(NA)
+      last_selected_page(NULL)
+      last_selected_row(NULL)
     }
     lastEdited_data_set_name(c_input_dataset)
     current_data(l_data()[[c_input_dataset]])
@@ -1072,9 +1072,11 @@ server <- function(input, output, session) {
           current_data()
       }
     }
+    row <- last_selected_row()
+    page <- last_selected_page()
     dataTableProxy("table")|>
-      selectRows(last_selected_row())|>
-      selectPage(last_selected_page())
+      selectRows(row)|>
+      selectPage(page)
   })
   
   #### Check E-Mail Modal ####
@@ -1634,14 +1636,37 @@ server <- function(input, output, session) {
   #### Select a row and finde page and update   ####
   observeEvent(input$table_rows_selected, {
     req(input$table_rows_selected)
-    row <- input$table_rows_selected
+    row <- as.integer(input$table_rows_selected)
     writeLines(paste0("Selected row ", row, " in table: ", input$dataset))
     # update last selected ID
     df_temp <- current_data()
     pull(df_temp[input$table_rows_selected,1])|>
       ID_to_edit()
-    
     writeLines(paste("Selected ID:", ID_to_edit()))
+    
+    # handel user filters
+    column_filters = input$table_search_columns
+    column_filters <- column_filters|>
+      str_remove_all("\"")|>
+      str_remove_all("\\[")|>
+      str_remove_all("\\]")
+    column_filters <- str_split(column_filters,",")
+    column_filters[[1]] <- NULL
+    col_names <- colnames(df_temp)
+    ii <- 6
+    # apply all column filters 
+    for (ii in 1:length(column_filters)) {
+      col_filter <- column_filters[[ii]]
+      if(length(col_filter) > 1){
+        if(nchar(col_filter[1]) > 0){
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,]
+        }
+      } else {
+        if(nchar(col_filter[1]) > 0){
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,]
+        }
+      } 
+    }
     
     # has the page lenght changed? 
     if(!is.null(input$page_length)){
@@ -1649,15 +1674,15 @@ server <- function(input, output, session) {
     }
     # Calculate page 
     if(lastEdited_data_set_name() == "Einsatzplan"){ # it is filtered by default therefore the page must be calculated for the filtered data 
-      df_Einsatzplan <- current_data()|>
+      df_Einsatzplan <- df_temp|>
         arrange(desc(Datum))|>
-        filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
         mutate(index = row_number())
       df_Einsatzplan <- df_Einsatzplan|>
         filter(index == row)
-      page <-  ceiling(df_Einsatzplan$index / page_length_var())
-      if(!is.numeric(page)| page < 1) {
-        stop("Problem to calculate page")
+      page <-  ceiling(df_Einsatzplan$index / page_length_var())|>
+        as.integer()
+      if(!is.integer(page) | !is.integer(row)  | page < 1 ) {
+        stop("Problem to calculate page for Einsatzplan")
         }
     }else { # calculate page 
       page <-  ceiling(row / page_length_var())  
@@ -1907,6 +1932,7 @@ server <- function(input, output, session) {
               pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
               lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
               searchCols = l_filter, # custom filtering
+              # dom = 't',  # t = table, i = info, p = pagination; omits the search box
               # observe the page lenght from data table
               initComplete = JS(
                 "function(settings, json) {",
@@ -2019,6 +2045,7 @@ server <- function(input, output, session) {
             # columnDefs = l_columnDefs, # Spaltendefinitionen
             pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
             lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl,
+            # dom = 'ti',  # t = table, i = info, p = pagination; omits the search box
             # observe the page lenght
             initComplete = JS( 
               "function(settings, json) {",
@@ -2035,7 +2062,7 @@ server <- function(input, output, session) {
       # render dt (data table)
       dt
     }
-  })
+  }, server = TRUE)
 }
 
 # shinyApp(ui = ui, server = server)
