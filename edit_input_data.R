@@ -1639,7 +1639,8 @@ server <- function(input, output, session) {
     row <- as.integer(input$table_rows_selected)
     writeLines(paste0("Selected row ", row, " in table: ", input$dataset))
     # update last selected ID
-    df_temp <- current_data()
+    df_temp <- current_data()|>
+      mutate(index = row_number())
     pull(df_temp[input$table_rows_selected,1])|>
       ID_to_edit()
     writeLines(paste("Selected ID:", ID_to_edit()))
@@ -1651,7 +1652,7 @@ server <- function(input, output, session) {
       str_remove_all("\\[")|>
       str_remove_all("\\]")
     column_filters <- str_split(column_filters,",")
-    column_filters[[1]] <- NULL
+    column_filters[[1]] <- NULL # offset for Data tabel starting with index 0
     col_names <- colnames(df_temp)
     ii <- 6
     # apply all column filters 
@@ -1667,7 +1668,6 @@ server <- function(input, output, session) {
         }
       } 
     }
-    
     # has the page lenght changed? 
     if(!is.null(input$page_length)){
       page_length_var(input$page_length)
@@ -1675,24 +1675,31 @@ server <- function(input, output, session) {
     # Calculate page 
     if(lastEdited_data_set_name() == "Einsatzplan"){ # it is filtered by default therefore the page must be calculated for the filtered data 
       df_Einsatzplan <- df_temp|>
-        arrange(desc(Datum))|>
-        mutate(index = row_number())
+        arrange(desc(Datum))
+        
       df_Einsatzplan <- df_Einsatzplan|>
         filter(index == row)
       page <-  ceiling(df_Einsatzplan$index / page_length_var())|>
         as.integer()
-      if(!is.integer(page) | !is.integer(row)  | page < 1 ) {
+      if(is_empty(page) || !is.integer(page) || !is.integer(row)  || page < 1  ) {
         stop("Problem to calculate page for Einsatzplan")
-        }
+      }else {
+        writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
+        
+        if(page == 0) page <- 1
+        last_selected_page(page)
+        last_selected_row(row)
+      }
     }else { # calculate page 
       page <-  ceiling(row / page_length_var())  
+      writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
+      
+      if(page == 0) page <- 1
+      last_selected_page(page)
+      last_selected_row(row)
     }
 
-    writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
-    
-    if(page == 0) page <- 1
-    last_selected_page(page)
-    last_selected_row(row)
+
 
   })
   
