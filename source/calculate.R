@@ -325,6 +325,33 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   return(l_temp)
 }
 
+#### check nb of files Eintritt vs Kiosk ####
+
+c_eintritt <- list.files("Input/advance tickets",pattern = "Eintritt")
+c_Kiosk <- list.files("Input/advance tickets",pattern = "Kiosk")
+
+if(length(c_eintritt) != length(c_Kiosk)) {
+  if(length(c_eintritt) > length(c_Kiosk)){
+    stop("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.") 
+  }else {
+    stop("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.") 
+  }
+} 
+c_test <- str_extract(c_eintritt, one_or_more(DGT)) %in% str_extract(c_Kiosk, one_or_more(DGT))
+c_test
+
+if(sum(c_test) != length(c_test)){
+  c_index <- tibble(test = )|>
+    mutate(index  = row_number())|>
+    filter(!test)|>
+    select(index)|>
+    pull()
+  stop("\nEs gibt keine Datei \"Eintritt ID",str_extract(c_Kiosk[c_index], pattern = one_or_more(DGT)),".txt\" aber eine Datei \"", c_Kiosk[c_index], "\"",
+       "\nEine der Dateien muss benannt oder gelöscht werden. ", "\nBitte im Verzeichniss  .../Input/advanced tickets/ korrigieren.\n")
+  c_Kiosk[c_index]
+} 
+
+
 ################## Einnahmen und Ausgaben einlesen ##################
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
                                  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
@@ -1245,3 +1272,5 @@ remove(ii,
 
 # user interaction
 writeLines("Good ... Berechnungen erfolgt")
+
+l_abrechnung$`10`
