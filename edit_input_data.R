@@ -571,8 +571,10 @@ server <- function(input, output, session) {
         # Drop down data set
         l_data()[c_select_dropdown_data]|>
           l_data_choices()
-        
-        current_data(l_data()[["Programm"]])
+        # Update current data 
+        current_data(l_data()[["Programm"]]|>
+                       arrange(desc(Datum))
+                     )
         lastEdited_data_set_name("Programm")
         data_selection_("Inputdaten")
         c_connected_to_db(TRUE)
@@ -1105,7 +1107,6 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  
   #### Add a new row top of selected ####
   observeEvent(input$add_row_top, {
     if (nrow(current_data()) == 0) {
@@ -1212,7 +1213,6 @@ server <- function(input, output, session) {
     }
   })
   
-
   #### Add a new row bottom of selected ####
   observeEvent(input$add_row_bottom, {
     if(nrow(current_data()) == 0){ 
@@ -1442,7 +1442,6 @@ server <- function(input, output, session) {
     # shinyjs::click("check_unique")
   })
   
-  
   #### selected row modal data table ####
   observeEvent(input$modal_select_row, {
     if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
@@ -1497,8 +1496,6 @@ server <- function(input, output, session) {
     # # Trigger the edit_row button click
     # shinyjs::click("edit_row")
   })
-  
-  
   
   #### Duplicate Film and archive (Filmtitel ändern)####
   observeEvent(input$archive_row,{
