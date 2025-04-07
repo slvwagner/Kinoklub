@@ -652,21 +652,26 @@ server <- function(input, output, session) {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling 
       if (lastEdited_data_set_name() %in% c("Einsatzplan")) {
+        df_temp <- current_data()
+        # filter ID
+        df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
         # Store HTML elements
         l_temp <- list()
         # only display
-        df_info <- current_data() |> select(1:6)
+        df_info <- df_temp |> 
+          select(1:6)
         # editable
-        df_row <- current_data() |> select(-(1:6))
-        
+        df_row <- df_temp|> 
+          select(-(1:6))
         # Display the display columns (read-only)
         l_temp <- lapply(1:ncol(df_info), function(ii) {
           fluidRow(
-            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[ID_to_edit(), ii]))
+            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[, ii]))
           )
         })
       } else {
         df_temp <- current_data()
+        # filter ID
         df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
         # Store HTML elements
         l_temp <- list()
@@ -677,8 +682,6 @@ server <- function(input, output, session) {
         # editable
         df_row <- df_temp|> 
           select(2:ncol(current_data()))
-        df_row[df_row[,1] == ID_to_edit(),]
-        
         # Display the display columns (read-only)
         l_temp <- lapply(1:ncol(df_info), function(ii) {
           fluidRow(
@@ -941,6 +944,7 @@ server <- function(input, output, session) {
       df_temp
     } else if (lastEdited_data_set_name() == "Programm"){
       df_temp <- df_temp|>
+        arrange(desc(Datum))|>
         mutate(Verleiher = as.character(Verleiher),
                `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`),
                `Link to Event ID` = as.character(`Link to Event ID`)
@@ -970,7 +974,7 @@ server <- function(input, output, session) {
           c_temp <- df_temp|>
             select(ii)|>
             pull()
-          class(c_temp)
+          class(c_temp) # return class
         })|>
         unlist()
       c_class  
