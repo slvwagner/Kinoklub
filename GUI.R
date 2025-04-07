@@ -1564,7 +1564,7 @@ server <- function(input, output, session) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
       
-      get("df_Abrechnung", envir = data_env) |>
+      data_env$l_data$Programm |>
         distinct(`Event ID`, .keep_all = T)|>
         filter(between(Datum, start_datum, end_datum)) |>
         arrange(desc(Datum), desc(Zeit)) |>
