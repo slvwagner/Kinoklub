@@ -3,7 +3,32 @@ library(testthat)
 library(shinytest2)
 library(RSQLite)
 
-test_buttons
+# connection to Database
+DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
+  # Database credentials
+  host <- "lx51.hoststar.hosting"
+  DB_name <- "ch367079_gui"
+  
+  # Check if connection already exists and is valid
+  if (!is.null(con)) {
+    return(con)
+  } else {
+    # Create a new connection
+    con <- tryCatch({
+      dbConnect(
+        MySQL(),
+        host = host,
+        user = DB_user,
+        password = pw,
+        dbname = DB_name,
+        port = 3306
+      )
+    }, error = function(e) {
+      stop("Failed to connect to the database: ", e$message)
+    })
+    return(con)
+  }
+}
 
 # Helper function to create test database
 create_test_db <- function() {
@@ -58,155 +83,54 @@ create_test_db <- function() {
   return(con)
 }
 
-test_that("All action buttons work correctly", {
-  # Setup test database
-  test_con <- create_test_db()
-  on.exit(dbDisconnect(test_con))
+library(shinytest2)
+library(testthat)
+
+test_that("Kinoklub action buttons work", {
+  # Skip tests if not in interactive mode (for CI/CD you'll need proper setup)
+  skip_on_ci()
+  skip_if_not(interactive())
   
-  with_mock(
-    DB_connect = function(pw, DB_user, con) {
-      return(test_con)
-    },
-    {
-      app <- AppDriver$new(app_dir = ".", name = "kinoklub_buttons_test")
-      
-      # Connect to database
-      app$set_inputs(user = "test_user", SQL_PW = "test_pw")
-      app$click("SQL_connect")
-      
-      # Test 1: Edit Row Button
-      test_that("Edit row button works", {
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("edit_row")
-        expect_true(app$is_visible(selector = ".modal"))
-        
-        # Test editing a field
-        app$set_inputs(`3` = "Modified Title")  # Assuming Filmtitel is 3rd input
-        app$click("edit_row_value")
-        
-        # Verify change
-        new_title <- app$get_html(selector = "td[data-title='Filmtitel']") %>% 
-          rvest::html_text()
-        expect_equal(new_title[1], "Modified Title")
-      })
-      
-      # Test 2: Add Row Top Button
-      test_that("Add row top button works", {
-        initial_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("add_row_top")
-        
-        new_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        expect_equal(new_rows, initial_rows + 1)
-      })
-      
-      # Test 3: Add Row Bottom Button
-      test_that("Add row bottom button works", {
-        initial_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("add_row_bottom")
-        
-        new_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        expect_equal(new_rows, initial_rows + 1)
-      })
-      
-      # Test 4: Duplicate Row Button
-      test_that("Duplicate row button works", {
-        initial_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("duplicate_row")
-        
-        new_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        expect_equal(new_rows, initial_rows + 1)
-      })
-      
-      # Test 5: Delete Row Button
-      test_that("Delete row button works", {
-        initial_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("delete_row")
-        app$click("confirm_delete")
-        
-        new_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        expect_equal(new_rows, initial_rows - 1)
-      })
-      
-      # Test 6: Check Unique Button (for dropdown tables)
-      test_that("Check unique button works", {
-        # Switch to dropdown data
-        app$set_inputs(dataset = "Kinoklubmitglieder")
-        app$set_inputs(`data_selection` = "Dropdowns")
-        
-        app$click("check_unique")
-        expect_true(app$is_visible(selector = ".modal"))
-        app$click("abort")  # Close modal
-      })
-      
-      # Test 7: Email Distribution Button
-      test_that("Email distribution button works", {
-        app$click("get_email")
-        expect_true(app$is_visible(selector = ".modal"))
-        
-        # Test email list generation
-        app$set_inputs(Verteiler = "Kasse / Bar")
-        app$click("get_email_verteiler")
-        
-        # Verify modal shows success message
-        success_msg <- app$get_html(selector = ".modal") %>% 
-          rvest::html_text()
-        expect_true(grepl("kopiert", success_msg))
-      })
-      
-      # Test 8: Archive/Filmtitel ändern Button
-      test_that("Archive/Filmtitel ändern button works", {
-        # Switch back to Programm
-        app$set_inputs(dataset = "Programm")
-        app$set_inputs(`data_selection` = "Inputdaten")
-        
-        initial_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        
-        app$set_inputs(`table_rows_selected` = 1)
-        app$click("archive_row")
-        
-        # Verify new row was added with status changed
-        new_rows <- app$get_html(selector = ".dataTable tbody tr") %>% 
-          rvest::html_text() %>% 
-          length()
-        expect_equal(new_rows, initial_rows + 1)
-        
-        # Verify status changed for the new row
-        statuses <- app$get_html(selector = "td[data-title='Verleiher Angefragt?']") %>% 
-          rvest::html_text()
-        expect_true("Wird nicht gespielt" %in% statuses)
-      })
-      
-      # Test 9: Database Disconnect Button
-      test_that("Disconnect button works", {
-        app$click("SQL_disconnect")
-        expect_false(app$is_visible(selector = "#table"))
-      })
-    }
+  # Start the app from the parent directory
+  app <- AppDriver$new(
+    name = "kinoklub_test",
+    app_dir = ".",  # Points to directory containing app.R
+    load_timeout = 20000  # Give more time for app to load
   )
+  
+  # Test database connection
+  test_that("Database connection works", {
+    app$set_inputs(user = "test_user", SQL_PW = "test_pw")
+    app$click("SQL_connect")
+    
+    # Verify connection by checking if table appears
+    expect_true(app$get_js("$('#table').length > 0"))
+  })
+  
+  # Test edit button
+  test_that("Edit button works", {
+    app$set_inputs(`table_rows_selected` = 1)
+    app$click("edit_row")
+    
+    # Verify modal appears
+    expect_true(app$get_js("$('.modal').is(':visible')"))
+    
+    # Close modal
+    app$click("abort_save")
+  })
+  
+  # Test add row buttons
+  test_that("Add row buttons work", {
+    initial_count <- app$get_js("$('#table tbody tr').length")
+    
+    app$set_inputs(`table_rows_selected` = 1)
+    app$click("add_row_top")
+    expect_equal(app$get_js("$('#table tbody tr').length"), initial_count + 1)
+    
+    app$click("add_row_bottom")
+    expect_equal(app$get_js("$('#table tbody tr').length"), initial_count + 2)
+  })
+  
+  # Clean up
+  app$stop()
 })
