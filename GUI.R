@@ -1570,7 +1570,7 @@ server <- function(input, output, session) {
         arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Zeit, "%H%M")) |>
-        select(Datum, Zeit, Filmtitel, Suisanummer)
+        select(`Event ID`,Datum, Zeit, Filmtitel, Suisanummer)
     }
   })
   
