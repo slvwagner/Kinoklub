@@ -403,9 +403,18 @@ df_Eintritt
 # join `Event ID`
 df_Eintritt <- df_Eintritt|>
   left_join(l_data$Programm|>
+              filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
               select(`Event ID`, Datum, Suisanummer),
-            by = join_by(Datum, Suisanummer)
-            )
+            by = join_by(Datum, Suisanummer),
+            relationship = "many-to-many"
+  )
+# paste0("`",names(df_Eintritt), "`")|>
+#   paste0(collapse = ", ")|>
+#   writeLines()
+  
+df_Eintritt <- df_Eintritt|>
+  select(`Event ID`, `Datum`, `Suisanummer`, `Filmtitel`, `Platzkategorie`, `Zahlend`, `Verkaufspreis`, `Anzahl`, `Umsatz`, `SUISA-Vorabzug` )
+
 
 if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
   df_temp <- df_Eintritt|>
@@ -645,38 +654,6 @@ remove(df_Mapping_Einkaufspreise,m_Kiosk,
        ii,
        c_path, c_files, l_temp
        )
-
-################  Gibt es gleich viele Kiosk wie Filmabrechungen? ##############
-# Bericht mapping
-n_kiosk <- df_Kiosk|>distinct(`Event ID`, .keep_all = T)
-n_Film <- df_Eintritt|>distinct(`Event ID`, .keep_all = T )
-
-
-# Error handling
-if(n_kiosk|>nrow() > n_Film|>nrow()){
-  df_temp <- anti_join(n_kiosk,n_Film, by = join_by(`Event ID`))|>
-    select(`Event ID`)
-  df_temp <- df_temp|>
-    left_join(l_data$Programm)
-
-  warning(paste0("\nEs fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
-              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de\n"
-  )
-  )
-}else if(df_Kiosk|>distinct(`Event ID`)|>nrow() < df_Eintritt|>distinct(`Event ID`)|>nrow()){
-
-  df_temp <- anti_join(n_Film, n_kiosk, by = join_by(`Event ID`))|>
-    select(1:3)
-  df_temp
-  df_temp <- df_temp|>
-    left_join(l_data$Programm, by = join_by(Datum, Suisanummer, Filmtitel))
-  
-  warning(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n",
-              df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
-              "\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de\n"
-  ))
-}
-remove(n_kiosk, n_Film)
 
 ######### Abos und Kinogutscheine #########
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
