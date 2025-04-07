@@ -1932,7 +1932,7 @@ server <- function(input, output, session) {
               pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
               lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
               searchCols = l_filter, # custom filtering
-              # dom = 't',  # t = table, i = info, p = pagination; omits the search box
+              # dom = 'tiplbr',  # t = table, i = info, p = pagination; omits the search box
               # observe the page lenght from data table
               initComplete = JS(
                 "function(settings, json) {",
@@ -2045,7 +2045,7 @@ server <- function(input, output, session) {
             # columnDefs = l_columnDefs, # Spaltendefinitionen
             pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
             lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl,
-            # dom = 'ti',  # t = table, i = info, p = pagination; omits the search box
+            # dom = 'tiplbr',  # t = table, i = info, p = pagination; omits the search box
             # observe the page lenght
             initComplete = JS( 
               "function(settings, json) {",
