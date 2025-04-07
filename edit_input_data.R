@@ -1643,14 +1643,17 @@ server <- function(input, output, session) {
     if(!is.null(input$page_length)){
       page_length_var(input$page_length)
     }
-    # Calculate page
-    if(lastEdited_data_set_name() == "Einsatzplan"){
+    # Calculate page 
+    if(lastEdited_data_set_name() == "Einsatzplan"){ # it is filtered by default therefore the page must be calculated for the filtered data 
       df_temp <- current_data()|>
+        arrange(desc(Datum))|>
         filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-        mutate(index = row_number())|>
-        filter(`Event ID` == row)
+        mutate(index = row_number())
+        
+      df_temp <- df_temp|>
+        filter(index == row)
       page <-  ceiling(df_temp$index / page_length_var())
-    }else {
+    }else { # calculate page 
       page <-  ceiling(row / page_length_var())  
     }
 
