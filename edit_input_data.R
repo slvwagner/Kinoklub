@@ -844,7 +844,7 @@ server <- function(input, output, session) {
     df_updated <- l_input|>
       as_tibble()
     
-    #### map `ID` to row index ####
+    #### map ID to row index ####
     df_index <- current_data()|>
       select(1)
     
