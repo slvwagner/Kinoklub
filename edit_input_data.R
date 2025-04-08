@@ -1649,12 +1649,12 @@ server <- function(input, output, session) {
       if(page == 0) page <- 1
       last_selected_page(page)
       last_selected_row(row)
-      # Debug 
+      # # Debug
       # dataTableProxy("table")|>
       #   selectPage(last_selected_page())|>
       #   selectRows(last_selected_row())
     } else {
-      stop("Could not calculate page because row was empty")
+      stop("Could not calculate page because row was empty, this is a BUG")
     }
     
   })
