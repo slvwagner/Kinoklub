@@ -272,19 +272,19 @@ DB_describe_table <- function(con, table_name){
 }
 
 # Function to edit a row in table
-DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values) {
+DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values, c_class) {
   # Validate inputs
-  if (!dbIsValid(con)) {
+  if (!DBI::dbIsValid(con)) {
     stop("Invalid database connection.")
   }
-  if (!dbExistsTable(con, table_name)) {
+  
+  if (!DBI::dbExistsTable(con, table_name)) {
     stop("Table '", table_name, "' does not exist in the database.")
   }
   
   # Get the table's column names and types
   table_info <- DB_describe_table(con, table_name)
   col_names <- table_info$Field
-  col_types <- table_info$Type
   
   # Validate the primary key column
   if (!primary_key_col %in% col_names) {
@@ -296,43 +296,62 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
     stop("Updated values contain invalid column names.")
   }
   
-  # Replace NA values with NULL for SQL
-  updated_values <- lapply(updated_values, function(x) if (is.na(x)) NULL else x)
+  # Replace NA values with NULL explicitly for factors 
+  updated_values <- as.list(updated_values)
+  for (ii in 1:length(c_class)) {
+    if(c_class[ii] == "factor"){
+      if(!is.na(updated_values[[ii]])){
+        if(updated_values[[ii]] == "NA"){
+          updated_values[[ii]] <- NA
+        }
+      }
+    }
+  }
   
+  # Replace NA values with NULL explicitly
+  updated_values <- lapply(updated_values, function(x) {
+    if (is.atomic(x) && length(x) == 1 && is.na(x)) {
+      NULL
+    } else {
+      x
+    }
+  })
+
   # Prepare the SET clause for the SQL query
   set_clause <- paste(
-    sapply(names(updated_values), function(col) {
+    vapply(names(updated_values), function(col) {
       value <- updated_values[[col]]
+      
       if (is.null(value)) {
         paste0("`", col, "` = NULL")
       } else if (is.character(value)) {
-        paste0("`", col, "` = '", value, "'")
+        paste0("`", col, "` = '", gsub("'", "''", value), "'")
       } else if (inherits(value, "POSIXt") || inherits(value, "Date")) {
-        paste0("`", col, "` = '", format(value, "%Y-%m-%d"), "'")
+        paste0("`", col, "` = '", format(value, "%Y-%m-%d %H:%M:%S"), "'")
       } else if (inherits(value, "difftime")) {
         paste0("`", col, "` = '", format(as.POSIXct(value, origin = "1970-01-01"), "%H:%M:%S"), "'")
       } else {
         paste0("`", col, "` = ", value)
       }
-    }),
+    }, character(1)),
     collapse = ", "
   )
   
-  # Prepare the WHERE clause for the SQL query
-  where_clause <- paste0("`", primary_key_col, "` = ", if (is.character(primary_key_value)) paste0("'", primary_key_value, "'") else primary_key_value)
-  
-  # Construct the SQL query
-  sql_query <- paste0(
-    "UPDATE ","`", table_name,"`", " SET ", set_clause, " WHERE ", where_clause
+  # Prepare the WHERE clause
+  where_clause <- paste0(
+    "`", primary_key_col, "` = ",
+    if (is.character(primary_key_value)) paste0("'", gsub("'", "''", primary_key_value), "'") else primary_key_value
   )
   
-  # Print the SQL query for debugging
-  # message("Executing SQL query:\n", sql_query)
+  # Construct and execute the SQL query
+  sql_query <- paste0(
+    "UPDATE `", table_name, "` SET ", set_clause, " WHERE ", where_clause
+  )
   
-  # Execute the query
-  dbExecute(con, sql_query)
+  DBI::dbExecute(con, sql_query)
   
-  message("Row with ", primary_key_col, " = ", primary_key_value, " updated successfully in table '", table_name, "'.")
+  message("Row with ", primary_key_col, " = ", primary_key_value,
+          " updated successfully in table '", table_name, "'.")
 }
 
 # Function to delete a row from any table
