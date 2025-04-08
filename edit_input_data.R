@@ -1007,11 +1007,19 @@ server <- function(input, output, session) {
                            c_class
                            )
       
+      # # Convert `ID` columns to factor
+      # if(length(c_col_is_factor) > 0){
+      #   for (ii in 1:length(c_col_is_factor)) {
+      #     df_temp[,names(df_temp) == c_col_is_factor[ii]] <- factor(df_temp[,names(df_temp) == c_col_is_factor[ii]])
+      #   }
+      # }
+      
       # update joined data sets and choices 
       if(lastEdited_data_set_name() == "Programm"){
         # Update the list
         l_temp <- l_data()
         l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+
         # update all data
         l_data(l_temp)
         # update choices
@@ -1019,7 +1027,9 @@ server <- function(input, output, session) {
           column_choices()
         # update Einsatzplan
         Update_Einsatzplan(df_updated, c_class)
-      } else if (lastEdited_data_set_name() == "Einsatzplan"){
+      } 
+      
+      if (lastEdited_data_set_name() == "Einsatzplan"){
         left_join(
           l_data()$Programm|>
             select(1:8, -`Link to Event ID`,-Verleiher), 
@@ -1027,10 +1037,11 @@ server <- function(input, output, session) {
           by = join_by(`Event ID`)
         )|>
           current_data()
-      } else {
-        df_temp|>
-          current_data()
-      }
+      } 
+      
+      df_temp|>
+        current_data()
+      
     }
     row <- last_selected_row()
     page <- last_selected_page()
