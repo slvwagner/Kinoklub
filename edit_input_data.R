@@ -483,6 +483,9 @@ sys_msg <- reactiveVal("")
 ### server logic for shiny app ###
 server <- function(input, output, session) {
   
+  # data table proxy to communicate with DT
+  proxy <- dataTableProxy("table")
+  
   #### Data set type selection ####
   observeEvent(input$data_selection,{
     shiny::withProgress(message = "login... ", value = 0, {
@@ -570,7 +573,7 @@ server <- function(input, output, session) {
       column_choices()
 
     if(lastEdited_data_set_name() == c_input_dataset & data_selection_() == input$data_selection){
-      dataTableProxy("table")|>
+      proxy|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }else{
@@ -1041,7 +1044,7 @@ server <- function(input, output, session) {
     row <- last_selected_row()
     page <- last_selected_page()
     
-    dataTableProxy("table")|>
+    proxy|>
       selectPage(last_selected_page())|>
       selectRows(last_selected_row())
   })
@@ -1053,7 +1056,7 @@ server <- function(input, output, session) {
     df_temp <- current_data()
     df_temp[last_selected_row(),"E-Mail"] <- input$email
     current_data(df_temp)
-    dataTableProxy("table") |>
+    proxy |>
       selectRows(last_selected_row()) |>
       selectPage(last_selected_page())
     removeModal()
@@ -1067,7 +1070,7 @@ server <- function(input, output, session) {
     df_temp <- current_data()
     df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
     current_data(df_temp)
-    dataTableProxy("table") |>
+    proxy |>
       selectRows(last_selected_row()) |>
       selectPage(last_selected_page())
     removeModal()
@@ -1174,7 +1177,7 @@ server <- function(input, output, session) {
       update_choices(l_data())|>
         column_choices()
       
-      dataTableProxy("table") |>
+      proxy |>
         selectRows(last_selected_row() + 1) |>
         selectPage(last_selected_page())
     }
@@ -1284,7 +1287,7 @@ server <- function(input, output, session) {
     update_choices(l_data())|>
       column_choices()
     
-    dataTableProxy("table")|>
+    proxy|>
       selectPage(last_selected_page())|>
       selectRows(last_selected_row())
       
@@ -1352,7 +1355,7 @@ server <- function(input, output, session) {
     update_choices(l_data())|>
       column_choices()
     
-    dataTableProxy("table")|>
+    proxy|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
     
@@ -1527,7 +1530,7 @@ server <- function(input, output, session) {
       update_choices(l_data())|>
         column_choices()
       
-      dataTableProxy("table")|>
+      proxy|>
         selectRows(last_selected_row())|>
         selectPage(last_selected_page())
     }else{
@@ -1593,7 +1596,7 @@ server <- function(input, output, session) {
         DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
       }
       last_selected_row(NA)
-      dataTableProxy("table")|>
+      proxy|>
         selectPage(last_selected_page()
                    )
       
@@ -1650,7 +1653,7 @@ server <- function(input, output, session) {
       last_selected_page(page)
       last_selected_row(row)
       # # Debug
-      # dataTableProxy("table")|>
+      # proxy|>
       #   selectPage(last_selected_page())|>
       #   selectRows(last_selected_row())
     } else {
@@ -1672,7 +1675,7 @@ server <- function(input, output, session) {
     last_selected_page(page)
     last_selected_row(input$table_rows_selected)
     # select last row
-    dataTableProxy("table")|>
+    proxy|>
       selectRows(last_selected_row())|>
       selectPage(last_selected_page())
   })
@@ -1932,7 +1935,7 @@ server <- function(input, output, session) {
           } else if (lastEdited_data_set_name() == "Einsatzplan"){
             c_Kinoklubmitglied <- 
               l_data()[["Kinoklubmitglieder"]]|>
-              filter(!is.na(`Kasse / Bar`))|>
+              filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
               mutate(Mitglied = paste(Vorname, Nachname))|>
               select(Mitglied)|>
               pull()
@@ -2022,7 +2025,7 @@ server <- function(input, output, session) {
           )
         )
       }
-      # render dt (data table)
+      # render dt DT::datatable()
       dt
     }
   }, server = TRUE)
