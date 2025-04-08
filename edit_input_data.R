@@ -380,7 +380,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown
 c_select_input_data <- c(16,14,1:3,5)
-c_select_dropdown_data <- c(17, 6,11:12,7:10,13, 15)
+c_select_dropdown_data <- c(17, 6,11:12,7,9,13)
 
 # Data table in german
 DT_language <- list(
