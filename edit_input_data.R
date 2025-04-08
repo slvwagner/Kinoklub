@@ -483,7 +483,7 @@ sys_msg <- reactiveVal("")
 ### server logic for shiny app ###
 server <- function(input, output, session) {
   
-  # data table proxy to communicate with DT
+  # data table proxy to communicate with dt
   proxy <- dataTableProxy("table")
   
   #### Data set type selection ####
@@ -893,7 +893,7 @@ server <- function(input, output, session) {
     names(l_input) <- names(df_temp)
     df_updated <- l_input|>
       as_tibble()
-    
+
     #### Handle columns containing `ID` in the column name ####
     c_col_is_factor <- df_updated|>
       select(contains("ID"))|>
@@ -994,6 +994,45 @@ server <- function(input, output, session) {
     #### handle factors #####
     df_temp <- factor_handling(df_temp, df_updated, select_row)
     
+    #### Handling uniqueness checks for Dropdowns ####
+    if (data_selection_() == "Dropdowns") {
+      # Find duplicates (keeping only duplicate rows)
+      df_temp1 <- df_temp |>
+        group_by(across(-ID)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+      
+      df_temp_to_render(df_temp1)
+      
+      if(nrow(df_temp1) > 1){
+        # Calculate modal size based on number of columns
+        num_cols <- ncol(df_temp1)
+        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+        modal_height <- ifelse(nrow(df_temp1) <= 5, "auto", "600px")
+        
+        showModal(
+          modalDialog(
+            title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+            size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+            tagList(
+              renderText("Bitte Zeile selektieren und anpassen!"),
+              hr(),
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
+            easyClose = FALSE, 
+            footer = tagList(
+              actionButton("modal_select_row", "Zeile editieren"),
+              actionButton("abort", "Abbrechen")
+            )
+          )
+        )
+      }
+    }
+    
     #### check for changed data #####
     test <- is.logical(all.equal(df_temp, df_temp_))
     if( test ){
@@ -1044,9 +1083,9 @@ server <- function(input, output, session) {
     row <- last_selected_row()
     page <- last_selected_page()
     
-    proxy|>
-      selectPage(last_selected_page())|>
-      selectRows(last_selected_row())
+    dataTableProxy("table")|>
+      selectPage(page)|>
+      selectRows(row)
   })
   
   #### Check E-Mail Modal ####
@@ -1178,7 +1217,7 @@ server <- function(input, output, session) {
         column_choices()
       
       proxy |>
-        selectRows(last_selected_row() + 1) |>
+        selectRows(last_selected_row()) |>
         selectPage(last_selected_page())
     }
   })
