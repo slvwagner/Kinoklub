@@ -467,9 +467,11 @@ lastEdited_data_set_name <- reactiveVal("")
 # last edit 
 last_selected_row <- reactiveVal(1L)
 last_selected_page <- reactiveVal(1L)
-page_length_var <- reactiveVal(6L)
+page_length_var <- reactiveVal(5L)
 # ID to edit
 ID_to_edit <- reactiveVal(1L)
+# last user filter in data table 
+last_user_filter <-  reactiveVal(NULL)
 
 # connected to db
 c_connected_to_db <- reactiveVal(FALSE)
@@ -1006,15 +1008,8 @@ server <- function(input, output, session) {
                            lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
                            c_class
                            )
-      
-      # # Convert `ID` columns to factor
-      # if(length(c_col_is_factor) > 0){
-      #   for (ii in 1:length(c_col_is_factor)) {
-      #     df_temp[,names(df_temp) == c_col_is_factor[ii]] <- factor(df_temp[,names(df_temp) == c_col_is_factor[ii]])
-      #   }
-      # }
-      
-      # update joined data sets and choices 
+
+      ##### update joined data sets and choices ####
       if(lastEdited_data_set_name() == "Programm"){
         # Update the list
         l_temp <- l_data()
@@ -1037,17 +1032,18 @@ server <- function(input, output, session) {
           by = join_by(`Event ID`)
         )|>
           current_data()
-      } 
-      
-      df_temp|>
-        current_data()
-      
+      } else {
+        df_temp|>
+          current_data()
+        
+      }
     }
     row <- last_selected_row()
     page <- last_selected_page()
+    
     dataTableProxy("table")|>
-      selectRows(row)|>
-      selectPage(page)
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   #### Check E-Mail Modal ####
@@ -1124,7 +1120,8 @@ server <- function(input, output, session) {
         
         # update joined data sets 
         if(input$dataset == "Programm"){
-          Update_Einsatzplan(new_row, new_row = TRUE)
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
         }
         
         ##### Handling uniqueness checks for Dropdowns #####
@@ -1213,7 +1210,8 @@ server <- function(input, output, session) {
         
         # update joined data sets 
         if(input$dataset == "Programm"){
-          Update_Einsatzplan(new_row, new_row = TRUE)
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
         }
 
         if(input$table_rows_selected == nrow(current_data())){
@@ -1339,7 +1337,8 @@ server <- function(input, output, session) {
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # update joined data sets 
         if(input$dataset == "Programm"){
-          Update_Einsatzplan(new_row, new_row = TRUE)
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
         }
         current_data(updated_data)
       }
@@ -1485,7 +1484,8 @@ server <- function(input, output, session) {
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # update joined data sets 
         if(lastEdited_data_set_name() == "Programm"){
-          Update_Einsatzplan(new_row, new_row = TRUE)
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
         }
         
         # create new empty row with correct data type
@@ -1510,7 +1510,8 @@ server <- function(input, output, session) {
         DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
         # update joined data sets 
         if(lastEdited_data_set_name() == "Programm"){
-          Update_Einsatzplan(new_row, new_row = TRUE)
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
         }
         
         current_data(updated_data)
@@ -1604,14 +1605,11 @@ server <- function(input, output, session) {
   observeEvent(input$table_rows_selected, {
     req(input$table_rows_selected)
     row <- as.integer(input$table_rows_selected)
-    writeLines(paste0("Selected row ", row, " in table: ", input$dataset))
-    # update last selected ID
-    df_temp <- current_data()|>
-      mutate(index = row_number())
-    pull(df_temp[input$table_rows_selected,1])|>
+    # map selected row to ID
+    df_temp <- current_data()
+    pull(df_temp[row,1])|>
       ID_to_edit()
-    writeLines(paste("Selected ID:", ID_to_edit()))
-    
+    writeLines(paste0("Selected row: ", row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
     # handel user filters
     column_filters = input$table_search_columns
     column_filters <- column_filters|>
@@ -1620,8 +1618,8 @@ server <- function(input, output, session) {
       str_remove_all("\\]")
     column_filters <- str_split(column_filters,",")
     column_filters[[1]] <- NULL # offset for Data tabel starting with index 0
-    col_names <- colnames(df_temp)
-    ii <- 6
+    # Update last user filter
+    last_user_filter(column_filters)
     # apply all column filters 
     for (ii in 1:length(column_filters)) {
       col_filter <- column_filters[[ii]]
@@ -1635,39 +1633,30 @@ server <- function(input, output, session) {
         }
       } 
     }
+    # map ID to selected row
+    df_temp <- df_temp |>
+      mutate(index = row_number())
+    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
     # has the page lenght changed? 
     if(!is.null(input$page_length)){
       page_length_var(input$page_length)
     }
-    # Calculate page 
-    if(lastEdited_data_set_name() == "Einsatzplan"){ # it is filtered by default therefore the page must be calculated for the filtered data 
-      df_Einsatzplan <- df_temp|>
-        arrange(desc(Datum))
-        
-      df_Einsatzplan <- df_Einsatzplan|>
-        filter(index == row)
-      page <-  ceiling(df_Einsatzplan$index / page_length_var())|>
-        as.integer()
-      if(is_empty(page) || !is.integer(page) || !is.integer(row)  || page < 1  ) {
-        stop("Problem to calculate page for Einsatzplan")
-      }else {
-        writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
-        
-        if(page == 0) page <- 1
-        last_selected_page(page)
-        last_selected_row(row)
-      }
-    }else { # calculate page 
-      page <-  ceiling(row / page_length_var())  
-      writeLines(paste0("page ", page, " in table: ", input$dataset,"\n"))
+    if(!is_empty(row_filtered)){
+      # Calculate page 
+      page <-  ceiling(row_filtered / page_length_var())  
+      writeLines(paste0("Selected page ", page,"\n"))
       
       if(page == 0) page <- 1
       last_selected_page(page)
       last_selected_row(row)
+      # Debug 
+      # dataTableProxy("table")|>
+      #   selectPage(last_selected_page())|>
+      #   selectRows(last_selected_row())
+    } else {
+      stop("Could not calculate page because row was empty")
     }
-
-
-
+    
   })
   
   #### Change in page length ####
@@ -1922,7 +1911,7 @@ server <- function(input, output, session) {
           req(input$dataset)
         
           # Apply conditional formatting for different data sets
-          if (!is.null(input$dataset) && input$dataset == "Programm") {
+          if (lastEdited_data_set_name() == "Programm") {
             tryCatch({
               dt <- dt |>
                 formatStyle(
@@ -1940,7 +1929,7 @@ server <- function(input, output, session) {
               )|>sys_msg()
               
             })
-          } else if (!is.null(input$dataset) & input$dataset == "Einsatzplan"){
+          } else if (lastEdited_data_set_name() == "Einsatzplan"){
             c_Kinoklubmitglied <- 
               l_data()[["Kinoklubmitglieder"]]|>
               filter(!is.na(`Kasse / Bar`))|>
