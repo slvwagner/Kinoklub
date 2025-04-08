@@ -71,7 +71,6 @@ update_choices <- function(l_data) {
   )
 }
 
-
 #### Floating tool box function ####
 tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
@@ -155,6 +154,46 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
   }
 }
 
+#### get data type class ####
+get_data_type <- function(df){
+  1:ncol(df)|>
+    lapply(function(ii){
+      c_temp <- df|>
+        select(ii)|>
+        pull()
+      class(c_temp)[1] # only use the first class
+    })|>
+    unlist()
+}
+
+#### handle factors to update row ####
+factor_handling <- function(df_temp, df_updated, select_row){
+  # find class of column
+  c_class <- get_data_type(df_temp)
+  # convert factors to character
+  for (ii in 1:length(c_class)) {
+    if(c_class[ii] == "factor"){
+      df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
+    }
+  }
+
+  for (ii in 1:nrow(df_updated)) {
+    if(c_class[ii] == "factor"){
+      df_updated[,ii] <- ifelse(df_updated[,ii] == "NA",NA,df_temp[,ii]) 
+    }
+  }
+  # Update data 
+  df_temp[select_row,] <- df_updated
+  
+  # convert to factor
+  for (ii in 1:length(c_class)) {
+    if(c_class[ii] == "factor"){
+      df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
+    }
+  }
+  return(df_temp)
+}
+
 #### factor handling Einsatzplan ####
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
@@ -195,13 +234,14 @@ convert_Programm <- function(df_temp, convert_to){
 }
 
 #### Update Einsatzpan ####
-Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
+Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
   # If the Programm changes Einsatzplan must be updated too
   if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
   
   df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
     filter(`Event ID` %in% df_updated$`Event ID`)|>
     select(-`Event ID`, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)
+  c_type <- c_class[(length(c_class) - ncol(df_temp) + 1):length(c_class)]
   
   if(nrow(df_temp) >= 1){
     df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
@@ -231,10 +271,9 @@ Update_Einsatzplan <- function(df_updated, new_row = FALSE) {
     DB_add_row(DB_con(), "Einsatzplan", df_temp)
   }
   else {
-    DB_edit_row_in_table(DB_con(), "Einsatzplan", names(df_updated[,1]), df_updated[,1], df_temp)
+    DB_edit_row_in_table(DB_con(), "Einsatzplan", names(df_updated[,1]), df_updated[,1], df_temp, c_type)
   }
 }
-
 
 #### create modal input to edit rows ####
 create_modal_input <- function(df_row, l_temp) {
@@ -345,7 +384,7 @@ c_select_dropdown_data <- c(17, 6,11:12,7:10,13, 15)
 
 # Data table in german
 DT_language <- list(
-  lengthMenu = "Zeige _MENU_ Einträge pro Seite", # Text für das Dropdown-Menü
+  lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
   search = "Suchen:", # Text für das Suchfeld
   searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
   zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
@@ -765,27 +804,31 @@ server <- function(input, output, session) {
 
       if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
       
-      # handle characters
+      ##### handle characters ####
       if(c_input_class == "character") {
         if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- as.character(NA)
         } else {
           l_input[[ii]] <- as.character(c_input[ii])
         }
-      } # handle dates
+      } 
+      ##### handle dates ####
       else if (c_input_class == "Date") {
         if(is.na(c_input[ii])){
           l_input[[ii]] <- as.Date(NA)
         }else{
           l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
         }
-      } # numeric inputs
+      } 
+      ##### numeric inputs ####
       else if (c_input_class %in% c("double", "numeric")) {
         l_input[[ii]] <- as.numeric(c_input[ii])
-      } # integer inputs 
+      } 
+      ##### integer inputs####
       else if (c_input_class == "integer") {
         l_input[[ii]] <- as.integer(c_input[ii])
-      } # factor or choices inputs
+      } 
+      ##### factor or choices inputs ####
       else if (c_input_class == "factor"){
         c_input[ii] <- as.character(c_input[ii])
         if(names(df_temp[,ii]) == "Event ID"){
@@ -809,7 +852,8 @@ server <- function(input, output, session) {
           }
         }
         
-      } # time inputs h:m 00:00
+      } 
+      ##### time inputs h:m 00:00 ####
       else if(c_input_class == "hms"){
         c_input[ii] <- as.character(c_input[ii])
         if (c_input[ii] == "" | c_input[ii] == "..."){
@@ -836,13 +880,25 @@ server <- function(input, output, session) {
           c_time
           l_input[[ii]] <- readr::parse_time(c_time)
         }
-      } else {
+      } #### not yet implemented #### 
+      else {
         stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
       }
     }
     names(l_input) <- names(df_temp)
     df_updated <- l_input|>
       as_tibble()
+    
+    #### Handle columns containing `ID` in the column name ####
+    c_col_is_factor <- df_updated|>
+      select(contains("ID"))|>
+      names()
+    # Convert `ID` columns to character
+    if(length(c_col_is_factor) > 0){
+      for (ii in 1:length(c_col_is_factor)) {
+        df_updated[,names(df_updated) == c_col_is_factor[ii]] <- as.character(df_updated[,names(df_updated) == c_col_is_factor[ii]])
+      }    
+    }
     
     #### map ID to row index ####
     df_index <- current_data()|>
@@ -931,115 +987,11 @@ server <- function(input, output, session) {
     }
     
     #### handle factors #####
-    if(lastEdited_data_set_name() == "Einsatzplan"){
-      df_updated <- 
-        bind_cols(
-          current_data()[select_row,1:(min(c_select)-1)], 
-          df_updated[,2:ncol(df_updated)]
-        )|>
-        convert_Einsatzplan(convert_to = "char")
-      df_updated
-      df_temp <- current_data()|>
-        convert_Einsatzplan(convert_to = "char")
-      df_temp[select_row,] <- df_updated
-      df_temp <- convert_Einsatzplan(df_temp, "fact")
-      df_temp
-    } else if (lastEdited_data_set_name() == "Programm"){
-      df_temp <- df_temp|>
-        arrange(desc(Datum))|>
-        mutate(Verleiher = as.character(Verleiher),
-               `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`),
-               `Link to Event ID` = as.character(`Link to Event ID`)
-               )
-      df_temp[select_row,] <- df_updated
-      df_temp <- df_temp|>
-        mutate(Verleiher = factor(Verleiher),
-               `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`),
-               `Link to Event ID` = 
-                 ifelse(`Link to Event ID` == "NA", 
-                        NA, 
-                        as.character(`Link to Event ID`))|>
-                 factor()
-        )
-      df_updated <- df_updated|>
-        mutate(`Link to Event ID` = 
-                 ifelse(`Link to Event ID` == "NA", 
-                        NA, 
-                        as.character(`Link to Event ID`)
-                        )
-               )
-    } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-      # find class of column
-      c_class <- 
-        1:ncol(df_temp)|>
-        lapply(function(ii){
-          c_temp <- df_temp|>
-            select(ii)|>
-            pull()
-          class(c_temp) # return class
-        })|>
-        unlist()
-      c_class  
-      # convert to character
-      for (ii in 1:length(c_class)) {
-        if(c_class[ii] == "factor"){
-          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
-        }
-      }
-      # Update data 
-      df_temp[select_row,] <- df_updated
-        
-      # convert to factor
-      for (ii in 1:length(c_class)) {
-        if(c_class[ii] == "factor"){
-          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
-        }
-      }
-
-    } else if (lastEdited_data_set_name() == "Verleiher"){
-      # find class of column
-      c_class <- 
-        1:ncol(df_temp)|>
-        lapply(function(ii){
-          c_temp <- df_temp|>
-            select(ii)|>
-            pull()
-          class(c_temp)
-        })|>
-        unlist()
-      c_class  
-      # convert to character
-      for (ii in 1:length(c_class)) {
-        if(c_class[ii] == "factor"){
-          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
-        }
-      }
-      # Update data 
-      df_temp[select_row,] <- df_updated
-      
-      # convert to factor
-      for (ii in 1:length(c_class)) {
-        if(c_class[ii] == "factor"){
-          df_temp[,ii] <- df_temp[,ii]|>pull()|>as.factor() 
-        }
-      }
-      
-    } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben", "Spezialpreisekiosk")){
-      df_updated <- df_updated|>
-        mutate(`Event ID` = as.character(`Event ID`))
-      df_temp <- df_temp|>
-        mutate(`Event ID` = as.character(`Event ID`))
-      df_temp[select_row,] <- df_updated
-      df_temp <- df_temp|>
-        mutate(`Event ID` = factor(`Event ID`))
-    } else { # anything else 
-      df_temp[select_row,] <- df_updated
-    }
-
+    df_temp <- factor_handling(df_temp, df_updated, select_row)
+    
     #### check for changed data #####
-    x <- is.logical(all.equal(df_updated, df_temp_[select_row,]))
-    y <- is.logical(all.equal(df_temp[select_row,], df_temp_[select_row,]))
-    if( y ){
+    test <- is.logical(all.equal(df_temp, df_temp_))
+    if( test ){
       # User interaction 
       showModal(
         modalDialog(title = "Es wurde nichts geändert!",
@@ -1049,10 +1001,14 @@ server <- function(input, output, session) {
       )
     }else{
       # update data base 
-      DB_edit_row_in_table(DB_con(), lastEdited_data_set_name(), names(df_updated[,1]), df_updated[,1], df_updated)
+      c_class <- get_data_type(df_temp)
+      DB_edit_row_in_table(DB_con(), 
+                           lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
+                           c_class
+                           )
       
       # update joined data sets and choices 
-      if(input$dataset == "Programm"){
+      if(lastEdited_data_set_name() == "Programm"){
         # Update the list
         l_temp <- l_data()
         l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
@@ -1062,12 +1018,14 @@ server <- function(input, output, session) {
         update_choices(l_data())|>
           column_choices()
         # update Einsatzplan
-        Update_Einsatzplan(df_updated)
-      }
-      # update data 
-      if(lastEdited_data_set_name() %in% c("Programm","Einsatzplan")){
-        df_temp|>
-          arrange(desc(Datum))|>
+        Update_Einsatzplan(df_updated, c_class)
+      } else if (lastEdited_data_set_name() == "Einsatzplan"){
+        left_join(
+          l_data()$Programm|>
+            select(1:8, -`Link to Event ID`,-Verleiher), 
+          df_temp,
+          by = join_by(`Event ID`)
+        )|>
           current_data()
       } else {
         df_temp|>
@@ -1098,6 +1056,7 @@ server <- function(input, output, session) {
   observeEvent(input$check_suisa,{
     print(input$suisa)
     DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+    DB_update_cell(DB_con(), "Einsatzplan", "Event ID", last_selected_row(), "Suisanummer", input$suisa)
     df_temp <- current_data()
     df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
     current_data(df_temp)
