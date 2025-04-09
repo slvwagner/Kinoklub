@@ -1,4 +1,4 @@
-##### Edit input data for Kinoklub ######
+# Edit input data for Kinoklub ######
 # Shiny app to edit all Kinoklub input data
 # The data is stored on a SQL DB. The Password for the DB connection must be stored 
 # in a envirnonment variable: DB_PASSWORD_KINOKLUB 
@@ -15,7 +15,7 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-#### fuction to update all drop down menus choices ####
+# fuction to update all drop down menus choices ####
 update_choices <- function(l_data) {
   # Mitgliederauswahl für die Einsatzplanung
   Verantwortlich <- l_data$Kinoklubmitglieder|>
@@ -71,7 +71,7 @@ update_choices <- function(l_data) {
   )
 }
 
-#### Floating tool box function ####
+# Floating tool box function ####
 tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
   if(data_set_select == "Programm"){
       tags$div(
@@ -111,26 +111,50 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
       )
   } # Menue for drop downs 
   else if(data_set_select %in% names(l_data_choices())){
-    tags$div(
-      id = "floating-panel",
-      tags$div(id = "floating-panel-header", "Werkzeuge"),
-      selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
-      # Function selection
-      shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                          choices = choices, selected = choices[choices_select]
-      ),
-      shiny::tags$hr(),
-      actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-      shiny::tags$hr(),
-      actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-      actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-      shiny::tags$hr(),
-      actionButton("check_unique", "Prüfen", class = "btn-success"),
-      shiny::tags$hr(),
-      actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-      shiny::tags$hr(),
-      actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-    )
+    if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        actionButton("create_colors", "Farbcode neu erstellen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+      )
+    } else {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+      )
+    }
   } else {
     tags$div(
       id = "floating-panel",
@@ -154,7 +178,7 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
   }
 }
 
-#### get data type class ####
+# get data type class ####
 get_data_type <- function(df){
   1:ncol(df)|>
     lapply(function(x){
@@ -166,7 +190,7 @@ get_data_type <- function(df){
     unlist()
 }
 
-#### handle factors to update row ####
+# handle factors to update row ####
 factor_handling <- function(df_temp, df_updated, select_row){
   # find class of column
   c_class <- get_data_type(df_temp)
@@ -194,7 +218,7 @@ factor_handling <- function(df_temp, df_updated, select_row){
   return(df_temp)
 }
 
-#### factor handling Einsatzplan ####
+# factor handling Einsatzplan ####
 convert_Einsatzplan <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(df_temp|>
@@ -217,7 +241,7 @@ convert_Einsatzplan <- function(df_temp, convert_to){
   }
 }
 
-#### factor handling Programm ####
+# factor handling Programm ####
 convert_Programm <- function(df_temp, convert_to){
   if(convert_to == "char"){
     bind_cols(
@@ -233,7 +257,7 @@ convert_Programm <- function(df_temp, convert_to){
   }
 }
 
-#### Update Einsatzpan ####
+# Update Einsatzpan ####
 Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
   # If the Programm changes Einsatzplan must be updated too
   if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
@@ -275,7 +299,15 @@ Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
   }
 }
 
-#### create modal input to edit rows ####
+# Function to calculate luminance of a color ####
+get_luminance <- function(color) {
+  rgb_val <- col2rgb(color) / 255
+  luminance <- 0.2126 * rgb_val[1] + 0.7152 * rgb_val[2] + 0.0722 * rgb_val[3]
+  luminance <- luminance * 0.8
+  return(luminance)
+}
+
+# create modal input to edit rows ####
 create_modal_input <- function(df_row, l_temp) {
   cnt <- length(l_temp)
   
@@ -370,19 +402,19 @@ create_modal_input <- function(df_row, l_temp) {
   return(l_temp)
 }
 
-####################### Constants ############################
+# Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
-# read in data templates (for data type conversion)
+## read in data templates (for data type conversion) ####
 l_template <- readRDS("source/SQL/template.Rds")
 
-# Split data to input and dropdown
+## Split data to input and dropdown ####
 c_select_input_data <- c(16,14,1:3,5)
 c_select_dropdown_data <- c(17, 6,11:12,7,9,13)
 
-# Data table in german
+## Data table in german ####
 DT_language <- list(
   lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
   search = "Suchen:", # Text für das Suchfeld
@@ -399,7 +431,7 @@ DT_language <- list(
     )
   )
 
-################# Define UI ################# 
+# Define UI ####
 ui <- 
   fluidPage(
     shinyjs::useShinyjs(),
@@ -441,7 +473,7 @@ ui <-
   )
 
 
-####################### Reactive variables ############################
+# Reactive variables ####
 # Reactive lists
 l_data_input <- reactiveVal(list())
 l_data_choices <- reactiveVal(list())
@@ -482,13 +514,16 @@ DB_con <- reactiveVal(NULL)
 # System messages 
 sys_msg <- reactiveVal("")
 
-### server logic for shiny app ###
+# Generate colors
+c_colors <- reactiveVal(NULL)
+
+# server logic for shiny app ####
 server <- function(input, output, session) {
   
-  # data table proxy to communicate with dt
+  ## data table proxy to communicate with dt ####
   proxy <- dataTableProxy("table")
   
-  #### Data set type selection ####
+  ## Data set type selection ####
   observeEvent(input$data_selection,{
     shiny::withProgress(message = "login... ", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
@@ -532,7 +567,7 @@ server <- function(input, output, session) {
       })
   })
   
-  #### Data set selection ####
+  ## Data set selection ####
   observeEvent(input$dataset, {
     print("Data set selection")
     req(input$dataset)
@@ -591,7 +626,7 @@ server <- function(input, output, session) {
     last_user_filter(NULL)
   })
 
-  #### Connect to Datea base ####
+  ## Connect to Datea base ####
   observeEvent(input$SQL_connect,{
     print("SQL_connect")
     shiny::withProgress(message = "login... ", value = 0, {
@@ -639,11 +674,38 @@ server <- function(input, output, session) {
           )
         ))
       })
+      c_Kinoklubmitglied <- 
+        l_data()[["Kinoklubmitglieder"]]|>
+        mutate(Mitglied = paste(Vorname, Nachname))|>
+        select(Mitglied)|>
+        pull()
+      
+      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+      
+      # genaerat Kinoklubmitglieder colors 
+      viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
+        colorspace::lighten(amount = 0.3)|>
+        c_colors()
+      
+      c("#FFFFFFFF", c_colors())|>
+        c_colors()
+      c_Kinoklubmitglied <- c("",c_Kinoklubmitglied)
+      
+      # Before applying formatStyle, make sure:
+      if(length(c_Kinoklubmitglied) != length(c_colors())) {
+        stop("not the same lenght this is a Bug")
+      }
+      
+      # Determine text color based on luminance
+      text_color <- lapply(c_colors(), get_luminance)|>
+        unlist()
+      text_color <- ifelse(text_color < 0.5, "white", "black")
       shiny::incProgress(1 , detail = paste("SQL login", 3, "of 3"))
     })
   })
   
-  #### Disconnect from DB ####
+  ## Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
     dbDisconnect(DB_con())
@@ -654,7 +716,7 @@ server <- function(input, output, session) {
     last_selected_row(NA)
   })
   
-  #### Get email list ####
+  ## Get email list ####
   observeEvent(input$get_email,{
     showModal(modalDialog(
       shiny::radioButtons("Verteiler", "Verteiler", 
@@ -667,7 +729,7 @@ server <- function(input, output, session) {
     ))
   })
 
-  #### Select email verteiler and copy emails to clipboard ####
+  ## Select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("yes")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
@@ -687,19 +749,19 @@ server <- function(input, output, session) {
     ))
   })
 
-  #### Abort changes and update ####
+  ## Abort changes and update ####
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
     lastEdited_data_set_name(input$dataset)
     removeModal()
   })
   
-  #### Abort: do nothing! ####
+  ## Abort: do nothing! ####
   observeEvent(input$abort,{
     removeModal()
   })
 
-  #### Edit row modal Dialog ####
+  ## Edit row modal Dialog ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling 
@@ -775,13 +837,13 @@ server <- function(input, output, session) {
     }
   })
   
-  #### Edit row value action button ####
+  ## Edit row value action button ####
   observeEvent(input$edit_row_value, {
     # get actual data 
     df_temp <- current_data()
     df_temp_ <- current_data()
     
-    ##### Special user input handling #####
+    #### Special user input handling #####
     if(lastEdited_data_set_name() == "Einsatzplan"){
       # select columns to be updated 
       c_select <- 7:ncol(df_temp)
@@ -794,7 +856,7 @@ server <- function(input, output, session) {
       names(c_input) <- NULL
       c_input
     } 
-    #### standard handling user input ####
+    ### standard handling user input ####
     else{
       # get the user input
       generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
@@ -806,7 +868,7 @@ server <- function(input, output, session) {
     }
     removeModal()
     
-    #### Coerce user input to correct data type ####
+    ### Coerce user input to correct data type ####
     l_input <- list()
 
     for (ii in 1:ncol(df_temp)) {
@@ -815,7 +877,7 @@ server <- function(input, output, session) {
 
       if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
       
-      ##### handle characters ####
+      #### handle characters ####
       if(c_input_class == "character") {
         if (c_input[ii] == "" | c_input[ii] == "..."){
           l_input[[ii]] <- as.character(NA)
@@ -823,7 +885,7 @@ server <- function(input, output, session) {
           l_input[[ii]] <- as.character(c_input[ii])
         }
       } 
-      ##### handle dates ####
+      #### handle dates ####
       else if (c_input_class == "Date") {
         if(is.na(c_input[ii])){
           l_input[[ii]] <- as.Date(NA)
@@ -831,15 +893,15 @@ server <- function(input, output, session) {
           l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
         }
       } 
-      ##### numeric inputs ####
+      #### numeric inputs ####
       else if (c_input_class %in% c("double", "numeric")) {
         l_input[[ii]] <- as.numeric(c_input[ii])
       } 
-      ##### integer inputs####
+      #### integer inputs####
       else if (c_input_class == "integer") {
         l_input[[ii]] <- as.integer(c_input[ii])
       } 
-      ##### factor or choices inputs ####
+      #### factor or choices inputs ####
       else if (c_input_class == "factor"){
         c_input[ii] <- as.character(c_input[ii])
         if(names(df_temp[,ii]) == "Event ID"){
@@ -864,7 +926,7 @@ server <- function(input, output, session) {
         }
         
       } 
-      ##### time inputs h:m 00:00 ####
+      #### time inputs h:m 00:00 ####
       else if(c_input_class == "hms"){
         c_input[ii] <- as.character(c_input[ii])
         if (c_input[ii] == "" | c_input[ii] == "..."){
@@ -900,7 +962,7 @@ server <- function(input, output, session) {
     df_updated <- l_input|>
       as_tibble()
 
-    #### Handle columns containing `ID` in the column name ####
+    ### Handle columns containing `ID` in the column name ####
     c_col_is_factor <- df_updated|>
       select(contains("ID"))|>
       names()
@@ -911,7 +973,7 @@ server <- function(input, output, session) {
       }    
     }
     
-    #### map ID to row index ####
+    ### map ID to row index ####
     df_index <- current_data()|>
       select(1)
     
@@ -927,7 +989,7 @@ server <- function(input, output, session) {
       pull()
     select_row
     
-    #### Handel ID`s ####
+    ### Handel ID`s ####
     df_updated <- bind_cols(current_data()[select_row,1],
                             df_updated
                             )
@@ -935,7 +997,7 @@ server <- function(input, output, session) {
                          df_temp
                          )
 
-    #### check input E-Mail if correct #####
+    ### check input E-Mail if correct #####
     df_Email <- df_updated[,names(df_temp) == "E-Mail"]
     if(ncol(df_Email) > 0){
       if(!is.na(df_Email$`E-Mail`)){
@@ -967,7 +1029,7 @@ server <- function(input, output, session) {
       }
     }
     
-    #### check input Suisanummer if correct #####
+    ### check input Suisanummer if correct #####
     df_suisa <- df_updated[select_row,names(df_temp) == "Suisanummer"]
     if(ncol(df_suisa) > 0){
       if(!is.na(df_suisa$Suisanummer)){
@@ -997,10 +1059,10 @@ server <- function(input, output, session) {
       }
     }
     
-    #### handle factors #####
+    ### handle factors #####
     df_temp <- factor_handling(df_temp, df_updated, select_row)
     
-    #### Handling uniqueness checks for Dropdowns ####
+    ### Handling uniqueness checks for Dropdowns ####
     if (data_selection_() == "Dropdowns") {
       # Find duplicates (keeping only duplicate rows)
       df_temp1 <- df_temp |>
@@ -1039,7 +1101,7 @@ server <- function(input, output, session) {
       }
     }
     
-    #### check for changed data #####
+    ### check for changed data #####
     test <- is.logical(all.equal(df_temp, df_temp_))
     if( test ){
       # User interaction 
@@ -1057,7 +1119,7 @@ server <- function(input, output, session) {
                            c_class
                            )
 
-      ##### update joined data sets and choices ####
+      #### update joined data sets and choices ####
       if(lastEdited_data_set_name() == "Programm"){
         # Update the list
         l_temp <- l_data()
@@ -2044,61 +2106,90 @@ server <- function(input, output, session) {
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           c_Kinoklubmitglied <- 
             l_data()[["Kinoklubmitglieder"]]|>
-            # filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
             mutate(Mitglied = paste(Vorname, Nachname))|>
             select(Mitglied)|>
-              pull()
-            
+            pull()
+          
           c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
           c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-          # Generate the magma color palette s
-          magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
           
-          # Lighten the colors to create a pastel effect
-          pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
+          # genaerat Kinoklubmitglieder colors 
+          viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
+            colorspace::lighten(amount = 0.3)|>
+            c_colors()
           
+          # Before applying formatStyle, make sure:
+          if(length(c_Kinoklubmitglied) != length(c_colors())) {
+            stop("not the same lenght this is a Bug")
+          }
+          
+          # Determine text color based on luminance
+          text_color <- lapply(c_colors(), get_luminance)|>
+            unlist()
+          text_color <- ifelse(text_color < 0.5, "white", "black")
+
           # Apply conditional formatting to columns
           tryCatch({
             dt <- dt |>
               formatStyle(
                 "Verantwortlich",  # Ensure this column name matches exactly
+                target = "cell",
                 backgroundColor = styleEqual(
                   levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Kasse/Bar 1",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
-              )|>
-              formatStyle(
-                "Kasse/Bar 2",  # Ensure this column name matches exactly
-                backgroundColor = styleEqual(
-                  levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
+                  values = c_colors(),  # Corresponding colors
+                ),
+                color = styleEqual(
+                  levels = c_Kinoklubmitglied, 
+                  values = text_color)  # Set text color
               )|>
               formatStyle(
                 "Operateur*in",  # Ensure this column name matches exactly
+                target = "cell",
                 backgroundColor = styleEqual(
                   levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
+                  values = c_colors()  # Corresponding colors
+                ),
+                color = styleEqual(
+                  levels = c_Kinoklubmitglied, 
+                  values = text_color)  # Set text color
+              )|>
+              formatStyle(
+                "Kasse/Bar 1",  # Ensure this column name matches exactly
+                target = "cell",
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = c_colors()  # Corresponding colors
+                ),
+                color = styleEqual(
+                  levels = c_Kinoklubmitglied, 
+                  values = text_color)  # Set text color
+              )|>
+              formatStyle(
+                "Kasse/Bar 2",  # Ensure this column name matches exactly
+                target = "cell",
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = c_colors()  # Corresponding colors
+                ),
+                color = styleEqual(
+                  levels = c_Kinoklubmitglied, 
+                  values = text_color)  # Set text color
               )|>
               formatStyle(
                 "Back-up",  # Ensure this column name matches exactly
+                target = "cell",
                 backgroundColor = styleEqual(
                   levels = c_Kinoklubmitglied,  # Exact values from your column
-                  values = pastel_magma  # Corresponding colors
-                )
+                  values = c_colors()  # Corresponding colors
+                ),
+                color = styleEqual(
+                  levels = c_Kinoklubmitglied, 
+                  values = text_color)  # Set text color
               )
             
           }, error = function(e) {
             showModal(modalDialog(
-              title = "Fehler beim Verbinden mit der Datenbank",
+              title = "Fehler beim Formatieren",
               renderText(e$message),
               footer = tagList(
                 actionButton("abort","Abbrechen")
@@ -2135,11 +2226,62 @@ server <- function(input, output, session) {
             language = DT_language
           )
         )
+        #####  Apply conditional formatting ####
+        if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
+          # genaerat Kinoklubmitglieder colors 
+          df_temp <- current_data()
+          for (ii in 1:nrow(current_data())) {
+            # Back ground color
+            bg_color <- c_colors()[ii]
+            # Determine text color based on luminance
+            text_color <- ifelse(get_luminance(bg_color) < 0.5, "white", "black")
+            
+            # Apply background color and text color to rows
+            dt <- dt |>
+              formatStyle(
+                columns = 1:nrow(current_data()),  # Apply to all columns
+                target = "row",
+                backgroundColor = styleEqual(ii, bg_color),
+                color = styleEqual(ii, text_color)  # Set text color
+              )
+          }
+        }
       }
       # render dt DT::datatable()
       dt
     }
   }, server = TRUE)
+  
+  ### color code generator ####
+  observeEvent(input$create_colors,{
+    c_Kinoklubmitglied <- 
+      l_data()[["Kinoklubmitglieder"]]|>
+      mutate(Mitglied = paste(Vorname, Nachname))|>
+      select(Mitglied)|>
+      pull()
+    
+    c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+    c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+    
+    # genaerat Kinoklubmitglieder colors 
+    viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
+      colorspace::lighten(amount = 0.3)|>
+      c_colors()
+    
+    c("#FFFFFFFF", c_colors())|>
+      c_colors()
+    c_Kinoklubmitglied <- c("",c_Kinoklubmitglied)
+    
+    # Before applying formatStyle, make sure:
+    if(length(c_Kinoklubmitglied) != length(c_colors())) {
+      stop("not the same lenght this is a Bug")
+    }
+
+    # Determine text color based on luminance
+    text_color <- lapply(c_colors(), get_luminance)|>
+      unlist()
+    text_color <- ifelse(text_color < 0.5, "white", "black")
+  })
 }
 
 # shinyApp(ui = ui, server = server)
