@@ -2044,7 +2044,7 @@ server <- function(input, output, session) {
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           c_Kinoklubmitglied <- 
             l_data()[["Kinoklubmitglieder"]]|>
-            filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
+            # filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
             mutate(Mitglied = paste(Vorname, Nachname))|>
             select(Mitglied)|>
               pull()
@@ -2055,7 +2055,7 @@ server <- function(input, output, session) {
           magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
           
           # Lighten the colors to create a pastel effect
-          pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
+          pastel_magma <- lighten(magma_colors, amount = 0.5)  # Adjust `amount` for more/less pastel effect
           
           # Apply conditional formatting to columns
           tryCatch({
