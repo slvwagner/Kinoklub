@@ -2105,7 +2105,7 @@ server <- function(input, output, session) {
           })
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           c_Kinoklubmitglied <- 
-            l_data()[["Kinoklubmitglieder"]]|>
+            l_data()$Kinoklubmitglieder|>
             mutate(Mitglied = paste(Vorname, Nachname))|>
             select(Mitglied)|>
             pull()
