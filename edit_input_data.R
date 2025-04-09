@@ -1085,7 +1085,7 @@ server <- function(input, output, session) {
     row <- last_selected_row()
     page <- last_selected_page()
     
-    dataTableProxy("table")|>
+    proxy|>
       selectPage(page)|>
       selectRows(row)
   })
@@ -1725,10 +1725,10 @@ server <- function(input, output, session) {
     } else {
       stop("Could not calculate page because row was empty, this is a BUG")
     }
-    # Debug
-    proxy|>
-      selectPage(last_selected_page())|>
-      selectRows(last_selected_row())
+    # # Debug
+    # proxy|>
+    #   selectPage(last_selected_page())|>
+    #   selectRows(last_selected_row())
   })
   
   #### Change in page length ####
