@@ -157,9 +157,9 @@ tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, cho
 #### get data type class ####
 get_data_type <- function(df){
   1:ncol(df)|>
-    lapply(function(ii){
+    lapply(function(x){
       c_temp <- df|>
-        select(ii)|>
+        select(all_of(x))|>
         pull()
       class(c_temp)[1] # only use the first class
     })|>
@@ -472,6 +472,8 @@ page_length_var <- reactiveVal(5L)
 ID_to_edit <- reactiveVal(1L)
 # last user filter in data table 
 last_user_filter <-  reactiveVal(NULL)
+# last rendered datatable 
+last_rendered_DT <- reactiveVal(NULL)
 
 # connected to db
 c_connected_to_db <- reactiveVal(FALSE)
@@ -1646,12 +1648,12 @@ server <- function(input, output, session) {
   #### Select a row and finde page and update   ####
   observeEvent(input$table_rows_selected, {
     req(input$table_rows_selected)
-    row <- as.integer(input$table_rows_selected)
+    c_row <- as.integer(input$table_rows_selected)
     # map selected row to ID
-    df_temp <- current_data()
-    pull(df_temp[row,1])|>
+    df_temp <- last_rendered_DT()
+    pull(df_temp[c_row,1])|>
       ID_to_edit()
-    writeLines(paste0("Selected row: ", row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
+    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
     # handel user filters
     column_filters = input$table_search_columns
     column_filters <- column_filters|>
@@ -1659,21 +1661,49 @@ server <- function(input, output, session) {
       str_remove_all("\\[")|>
       str_remove_all("\\]")
     column_filters <- str_split(column_filters,",")
-    column_filters[[1]] <- NULL # offset for Data tabel starting with index 0
+    # column_filters[[1]] <- NULL # offset for Data tabel starting with index 0
     # Update last user filter
     last_user_filter(column_filters)
+    # get column data type
+    c_class <- get_data_type(df_temp)
     # apply all column filters 
     for (ii in 1:length(column_filters)) {
       col_filter <- column_filters[[ii]]
-      if(length(col_filter) > 1){
-        if(nchar(col_filter[1]) > 0){
-          df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,]
+      if(nchar(col_filter[1]) > 0){
+        if(c_class[ii] %in% c("Date", "hms")){
+          c_date <- pull(df_temp[,ii])|>
+            as.character()
+          df_temp <- df_temp[str_detect(c_date, col_filter),]
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+        } 
+        else if(c_class[ii] == "integer"){
+          # library(rebus)
+          # p1 <- START%R%one_or_more(DGT)
+          # p2 <- one_or_more(DGT)%R%END
+          p1 <- "^[\\d]+"
+          p2 <- "[\\d]+$"
+          start <- str_extract(col_filter, p1)|>
+            as.integer()
+          end <- str_extract(col_filter, p2)|>
+            as.integer()
+          c_select <- start:end
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
+        } else if (c_class[ii] == "factor"){
+          if(length(col_filter) > 1){
+            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
+          } else {
+            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
+            c_select <- ifelse(is.na(c_select), FALSE, c_select)
+            df_temp <- df_temp[c_select,]
+          }
         }
-      } else {
-        if(nchar(col_filter[1]) > 0){
-          df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,]
+        # character 
+        else { 
+          # filters for data tabel are not case sensitive so tolower() conversion is needed 
+          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
         }
-      } 
+      }
     }
     # map ID to selected row
     df_temp <- df_temp |>
@@ -1685,20 +1715,20 @@ server <- function(input, output, session) {
     }
     if(!is_empty(row_filtered)){
       # Calculate page 
-      page <-  ceiling(row_filtered / page_length_var())  
-      writeLines(paste0("Selected page ", page,"\n"))
+      c_page <-  ceiling(row_filtered / page_length_var())  
+      writeLines(paste0("Selected page ", c_page,"\n"))
       
-      if(page == 0) page <- 1
-      last_selected_page(page)
-      last_selected_row(row)
-      # # Debug
-      # proxy|>
-      #   selectPage(last_selected_page())|>
-      #   selectRows(last_selected_row())
+      if(c_page == 0) c_page <- 1
+      last_selected_page(c_page)
+      last_selected_row(c_row)
+
     } else {
       stop("Could not calculate page because row was empty, this is a BUG")
     }
-    
+    # Debug
+    proxy|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   #### Change in page length ####
@@ -1924,7 +1954,8 @@ server <- function(input, output, session) {
           }else { # empty list if no filter needs to be applyed
             l_filter <- list()
           }
-        
+          # Used for page calculation
+          last_rendered_DT(df_temp)
           # Create the DataTable
           dt <- datatable(
             df_temp,
@@ -2039,6 +2070,7 @@ server <- function(input, output, session) {
       } 
       else {
         print("Render Dropdowns")
+        last_rendered_DT(current_data())
         # Create the DataTable for all other data sets
         dt <- datatable(
           current_data(),
