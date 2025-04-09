@@ -1931,7 +1931,8 @@ server <- function(input, output, session) {
           }else{
             c_choices <- paste0("[",paste0("\"", c_choices,"\"", collapse = ","),"]")
           }
-          writeLines(c_choices)
+          paste("Preset user filters: ",c_choices)|>
+            writeLines()
           
           c_select <- names(df_temp) == "Verleiher Angefragt?"
           c_col <- tibble(column = c_select)|>
