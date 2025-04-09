@@ -582,9 +582,13 @@ server <- function(input, output, session) {
       last_selected_page(NULL)
       last_selected_row(NULL)
     }
+    # update last edited 
     lastEdited_data_set_name(c_input_dataset)
     current_data(l_data()[[c_input_dataset]])
     print(current_data())
+    
+    # remove user filter
+    last_user_filter(NULL)
   })
 
   #### Connect to Datea base ####
@@ -1458,7 +1462,7 @@ server <- function(input, output, session) {
   #### selected row modal data table ####
   observeEvent(input$modal_select_row, {
     if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
-      print("here")
+      
       df_temp <- df_temp_to_render()
       c_ID <- df_temp[input$modal_table_rows_selected,]$ID
       # update latest ID 
@@ -1512,7 +1516,7 @@ server <- function(input, output, session) {
   
   #### Duplicate Film and archive (Filmtitel ändern)####
   observeEvent(input$archive_row,{
-    print("here")
+    
     if(!is.null(input$table_rows_selected)){
       req(input$table_rows_selected) # Ensure a row is selected
       new_row <- current_data()[input$table_rows_selected, ] |>
@@ -1589,7 +1593,7 @@ server <- function(input, output, session) {
   #### User interaction Delete selected row(s) ####
   observeEvent(input$delete_row, {
     if(is.null(input$table_rows_selected)){
-      print("here")
+      
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
@@ -1661,12 +1665,15 @@ server <- function(input, output, session) {
       str_remove_all("\\[")|>
       str_remove_all("\\]")
     column_filters <- str_split(column_filters,",")
-    # column_filters[[1]] <- NULL # offset for Data tabel starting with index 0
+
     # Update last user filter
-    last_user_filter(column_filters)
+    c_test <- lapply(column_filters, function(x){
+      nchar(x) > 0
+    })|>
+      unlist()
     # get column data type
     c_class <- get_data_type(df_temp)
-    # apply all column filters 
+    ##### apply all column filters ####
     for (ii in 1:length(column_filters)) {
       col_filter <- column_filters[[ii]]
       if(nchar(col_filter[1]) > 0){
@@ -1725,10 +1732,34 @@ server <- function(input, output, session) {
     } else {
       stop("Could not calculate page because row was empty, this is a BUG")
     }
-    # # Debug
-    # proxy|>
-    #   selectPage(last_selected_page())|>
-    #   selectRows(last_selected_row())
+    ##### if column filters are present update column filters #####
+    if(sum(!c_test) != length(column_filters)) {
+      x <- column_filters[[7]]
+      column_filters_temp <- column_filters|>
+        lapply(function(x){
+          if(length(x) > 1){
+            list(search = paste0("[",paste0("\"", x,"\"", collapse = ","),"]"))
+          } else {
+            if(nchar(x) > 0) {
+              list(search = x)
+            } 
+            else {
+              NULL
+            }
+          } 
+        })
+      # only update if changed
+      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
+      if(!test) {
+        last_user_filter(column_filters_temp)
+      }
+    } else {
+      last_user_filter(NULL)
+    }
+    # select page and row in data table
+    proxy|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   #### Change in page length ####
@@ -1843,6 +1874,8 @@ server <- function(input, output, session) {
     if(lastEdited_data_set_name() != ""){
       # rendering the datatable depens on the input data 
       # for certain input data sets other renderings may be needed
+      
+      ##### render input data ####
       if(data_selection_() == "Inputdaten") { # for all Input date change to user readable "Datum"
         print("Render Inputdaten")
         # get current data
@@ -1917,8 +1950,8 @@ server <- function(input, output, session) {
           l_columnDefs <- list()
         }
         
-        # custom search pre set 
-        if(lastEdited_data_set_name() == "Einsatzplan"){
+        ##### column filter pre set ####
+        if(lastEdited_data_set_name() == "Einsatzplan" & is.null(last_user_filter())){
           
           c_choices <- DB_get_table("Programm",DB_con())|>
             filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
@@ -1931,7 +1964,7 @@ server <- function(input, output, session) {
           }else{
             c_choices <- paste0("[",paste0("\"", c_choices,"\"", collapse = ","),"]")
           }
-          paste("Preset user filters: ",c_choices)|>
+          paste("Preset filters: ",c_choices)|>
             writeLines()
           
           c_select <- names(df_temp) == "Verleiher Angefragt?"
@@ -1949,126 +1982,132 @@ server <- function(input, output, session) {
               } 
             else {
               l_filter[[ii]] <- NULL
-              }
+            }
           }
-          
-          }else { # empty list if no filter needs to be applyed
-            l_filter <- list()
-          }
-          # Used for page calculation
-          last_rendered_DT(df_temp)
-          # Create the DataTable
-          dt <- datatable(
-            df_temp,
-            rownames = FALSE,
-            editable = FALSE, # Nicht bearbeitbar
-            selection = "single", # only select sinle row
-            filter = "top", # Filter oben
-            options = list(
-              columnDefs = l_columnDefs, # Spaltendefinitionen
-              pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-              lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-              searchCols = l_filter, # custom filtering
-              # dom = 'tiplbr',  # t = table, i = info, p = pagination; omits the search box
-              # observe the page lenght from data table
-              initComplete = JS(
-                "function(settings, json) {",
-                "  var table = settings.oInstance.api();",
-                "  table.on('length.dt', function(e, settings, len) {",
-                "    Shiny.setInputValue('page_length', len);",
-                "  });",
-                "}"
-              ),
-              language = DT_language
-            )
-          )
-          req(input$dataset)
+          # update last user filter
+          last_user_filter(l_filter)
+        } else if(!is.null(last_user_filter())){
+          l_filter <- last_user_filter()
+        }
+        else { # empty list if no filter needs to be applyed
+          l_filter <- list()
+        }
+        # Used for page calculation
+        last_rendered_DT(df_temp)
         
-          # Apply conditional formatting for different data sets
-          if (lastEdited_data_set_name() == "Programm") {
-            tryCatch({
-              dt <- dt |>
-                formatStyle(
-                  "Verleiher Angefragt?",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
-                    values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
-                  )
+        ##### Create the DataTable ####
+        dt <- datatable(
+          df_temp,
+          rownames = FALSE,
+          editable = FALSE, # Nicht bearbeitbar
+          selection = "single", # only select sinle row
+          filter = "top", # Filter oben
+          options = list(
+            columnDefs = l_columnDefs, # Spaltendefinitionen
+            pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+            lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+            searchCols = l_filter, # custom filtering
+            # dom = 'tiplbr',  # t = table, i = info, p = pagination; omits the search box
+            # observe the page lenght from data table
+            initComplete = JS(
+              "function(settings, json) {",
+              "  var table = settings.oInstance.api();",
+              "  table.on('length.dt', function(e, settings, len) {",
+              "    Shiny.setInputValue('page_length', len);",
+              "  });",
+              "}"
+            ),
+            language = DT_language
+          )
+        )
+        req(input$dataset)
+        
+        ##### Apply conditional formatting for different data sets ####
+        if (lastEdited_data_set_name() == "Programm") {
+          tryCatch({
+            dt <- dt |>
+              formatStyle(
+                "Verleiher Angefragt?",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"),  # Exact values from your column
+                  values = c('lightgreen', '#ed716d', '#FFFF97')  # Corresponding colors
                 )
-              
-            }, error = function(e) {
-              paste0(
-                "Conditionall formating error:\n",
-                e$message
-              )|>sys_msg()
-              
-            })
-          } else if (lastEdited_data_set_name() == "Einsatzplan"){
-            c_Kinoklubmitglied <- 
-              l_data()[["Kinoklubmitglieder"]]|>
-              filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
-              mutate(Mitglied = paste(Vorname, Nachname))|>
-              select(Mitglied)|>
+              )
+            
+          }, error = function(e) {
+            paste0(
+              "Conditionall formating error:\n",
+              e$message
+            )|>sys_msg()
+            
+          })
+        } else if (lastEdited_data_set_name() == "Einsatzplan"){
+          c_Kinoklubmitglied <- 
+            l_data()[["Kinoklubmitglieder"]]|>
+            filter(!is.na(`Kasse / Bar`) & `Kasse / Bar` == "ja")|>
+            mutate(Mitglied = paste(Vorname, Nachname))|>
+            select(Mitglied)|>
               pull()
             
-            c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-            c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-            # Generate the magma color palette s
-            magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
-            
-            # Lighten the colors to create a pastel effect
-            pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
-            
-            # Apply conditional formatting to columns
-            tryCatch({
-              dt <- dt |>
-                formatStyle(
-                  "Verantwortlich",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c_Kinoklubmitglied,  # Exact values from your column
-                    values = pastel_magma  # Corresponding colors
-                  )
-                )|>
-                formatStyle(
-                  "Kasse/Bar 1",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c_Kinoklubmitglied,  # Exact values from your column
-                    values = pastel_magma  # Corresponding colors
-                  )
-                )|>
-                formatStyle(
-                  "Kasse/Bar 2",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c_Kinoklubmitglied,  # Exact values from your column
-                    values = pastel_magma  # Corresponding colors
-                  )
-                )|>
-                formatStyle(
-                  "Operateur*in",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c_Kinoklubmitglied,  # Exact values from your column
-                    values = pastel_magma  # Corresponding colors
-                  )
-                )|>
-                formatStyle(
-                  "Back-up",  # Ensure this column name matches exactly
-                  backgroundColor = styleEqual(
-                    levels = c_Kinoklubmitglied,  # Exact values from your column
-                    values = pastel_magma  # Corresponding colors
-                  )
+          c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+          c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+          # Generate the magma color palette s
+          magma_colors <- viridis(length(c_Kinoklubmitglied), option = "turbo")
+          
+          # Lighten the colors to create a pastel effect
+          pastel_magma <- lighten(magma_colors, amount = 0.6)  # Adjust `amount` for more/less pastel effect
+          
+          # Apply conditional formatting to columns
+          tryCatch({
+            dt <- dt |>
+              formatStyle(
+                "Verantwortlich",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = pastel_magma  # Corresponding colors
                 )
-              
-            }, error = function(e) {
-              showModal(modalDialog(
-                title = "Fehler beim Verbinden mit der Datenbank",
-                renderText(e$message),
-                footer = tagList(
-                  actionButton("abort","Abbrechen")
+              )|>
+              formatStyle(
+                "Kasse/Bar 1",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = pastel_magma  # Corresponding colors
                 )
-              ))
-            })
-          }
+              )|>
+              formatStyle(
+                "Kasse/Bar 2",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = pastel_magma  # Corresponding colors
+                )
+              )|>
+              formatStyle(
+                "Operateur*in",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = pastel_magma  # Corresponding colors
+                )
+              )|>
+              formatStyle(
+                "Back-up",  # Ensure this column name matches exactly
+                backgroundColor = styleEqual(
+                  levels = c_Kinoklubmitglied,  # Exact values from your column
+                  values = pastel_magma  # Corresponding colors
+                )
+              )
+            
+          }, error = function(e) {
+            showModal(modalDialog(
+              title = "Fehler beim Verbinden mit der Datenbank",
+              renderText(e$message),
+              footer = tagList(
+                actionButton("abort","Abbrechen")
+              )
+            ))
+          })
+        }
       } 
+      ##### Render Dropdowns ####
       else {
         print("Render Dropdowns")
         last_rendered_DT(current_data())
