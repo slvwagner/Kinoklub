@@ -105,6 +105,7 @@ server <- function(input, output, session) {
   c_connected_to_db <- reactiveVal(FALSE)
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
+  df_temp_to_render <- reactiveVal(NULL)
   
   ## helper functions ####
   update_choices <- function(l_data) {
@@ -545,23 +546,6 @@ server <- function(input, output, session) {
     }
   }
 
-  observeEvent(current_data(), {
-    req(current_data())
-    tryCatch({
-      replaceData(
-        dt_proxy,
-        data = current_data(),
-        resetPaging = FALSE,
-        clearSelection = "none"
-      )
-      
-      # Reapply formatting after data update
-      apply_conditional_formatting()
-    }, error = function(e) {
-      message("Error updating table: ", e$message)
-    })
-  })
-  
   load_initial_data <- function() {
     shiny::withProgress(message = "Loading data...", value = 0, {
       shiny::incProgress(1/3, detail = "Fetching from database")
@@ -610,7 +594,24 @@ server <- function(input, output, session) {
       data_selection_("Inputdaten")
     })
   }
+
   
+  ## replace data if current_data() has changed ####
+  observeEvent(current_data(), {
+    req(current_data())
+    tryCatch({
+      replaceData(
+        dt_proxy,
+        data = current_data(),
+        resetPaging = FALSE,
+        clearSelection = "none"
+      )
+      # Reapply formatting after data update
+      # apply_conditional_formatting()
+    }, error = function(e) {
+      message("Error updating table: ", e$message)
+    })
+  })
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
     tryCatch({
@@ -637,7 +638,7 @@ server <- function(input, output, session) {
   ## DataTable Proxy Setup ####
   dt_proxy <- dataTableProxy('table')
   
-  ## render data table ####
+  ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
     
@@ -1297,6 +1298,10 @@ server <- function(input, output, session) {
         
       }
     }
+    # Maintain selection
+    Sys.sleep(0.2)
+    dt_proxy |>
+      selectRows(input$table_rows_selected)
   })
   
   ## Check E-Mail Modal ####
@@ -1325,6 +1330,99 @@ server <- function(input, output, session) {
   # Modify all these to update current_data() and let the proxy handle the table update
   
   observeEvent(input$add_row_top, {
+    if (is.null(input$table_rows_selected)) {
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    } else {
+      # Create an empty row
+      new_row <- current_data()[1, ] |> 
+        mutate(across(everything(), ~ NA))|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      new_row[1,1] <- max(current_data()[,1]) + 1L
+      
+      pull(new_row[1,1])|>
+        ID_to_edit()
+      
+      if (input$table_rows_selected == 1) {
+        # add row on top
+        updated_data <-
+          bind_rows(new_row, current_data()[(input$table_rows_selected):nrow(current_data()), ])
+      } else{
+        updated_data <-
+          bind_rows(current_data()[1:(input$table_rows_selected - 1), ], 
+                    new_row, 
+                    current_data()[(input$table_rows_selected):nrow(current_data()), ]
+          )
+      }
+      
+      # updata SQL DB and current data 
+      current_data(updated_data)
+      DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+      
+      # update joined data sets 
+      if(input$dataset == "Programm"){
+        c_class <- get_data_type(current_data())
+        Update_Einsatzplan(new_row, c_class, new_row = TRUE)
+      }
+      
+      ##### Handling uniqueness checks for Dropdowns #####
+      if (data_selection_() == "Dropdowns") {
+        # Find duplicates (keeping only duplicate rows)
+        df_temp <- updated_data |>
+          group_by(across(-ID)) |>
+          mutate(duplicate_flag = n() > 1) |>
+          ungroup() |>
+          filter(duplicate_flag)|>
+          select(-duplicate_flag)
+        
+        df_temp_to_render(df_temp)
+        
+        if(nrow(df_temp) > 1){
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Bitte Zeile selektieren und anpassen!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("modal_select_row", "Zeile editieren"),
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        }
+      }
+    
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      
+      # update all data
+      l_data(l_temp)
+      
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      
+    }
+    
     # Your existing logic, but just update current_data()
     # ...
     current_data(updated_data)
