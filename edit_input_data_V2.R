@@ -877,8 +877,6 @@ server <- function(input, output, session) {
     })
   })
   
-
-  
   ## selected row modal data table ####
   observeEvent(input$modal_select_row, {
     if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
@@ -977,7 +975,7 @@ server <- function(input, output, session) {
       easyClose = TRUE,
     ))
   })
-  
+
   ## Abort changes and update ####
   observeEvent(input$abort_save, {
     current_data(l_data()[[input$dataset]])
@@ -1383,17 +1381,8 @@ server <- function(input, output, session) {
       selectRows(input$table_rows_selected)
   })
   
-  ## Check E-Mail Modal ####
-  observeEvent(input$check_email,{
-    print(input$email)
-    DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "E-Mail", input$email)
-    df_temp <- current_data()
-    df_temp[last_selected_row(),"E-Mail"] <- input$email
-    current_data(df_temp)
-    removeModal()
-  })
-  
-  ## Check Suisanummer Modal ####
+  ## Data checks ####
+  ### Check Suisanummer Modal ####
   observeEvent(input$check_suisa,{
     print(input$suisa)
     DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
@@ -1404,8 +1393,17 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  ### Check E-Mail Modal ####
+  observeEvent(input$check_email,{
+    print(input$email)
+    DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "E-Mail", input$email)
+    df_temp <- current_data()
+    df_temp[last_selected_row(),"E-Mail"] <- input$email
+    current_data(df_temp)
+    removeModal()
+  })
 
-  ## Row Operations (Add/Delete/Duplicate) ####
+  ## Row Operations (Add/Delete/Duplicate/change title) ####
   
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
