@@ -686,18 +686,18 @@ server <- function(input, output, session) {
       names(df_datum_user) <- as.character(seq_len(ncol(df_datum_user)))
       
       # Insert formatted columns into the original data, right after the original ones
-      for (i in seq_along(df_temp)) {
-        col_name <- names(df_temp)[i]
+      for (ii in seq_along(df_temp)) {
+        col_name <- names(df_temp)[ii]
         match_idx <- match(col_name, names(df_datum))
         
         if (!is.na(match_idx)) {
           formatted_col <- df_datum_user[[match_idx]]
           df_temp <- bind_cols(
-            df_temp[, 1:i],
-            tibble(!!paste0(col_name, "_display") := formatted_col),
-            df_temp[, (i + 1):ncol(df_temp)]
+            df_temp[, 1:ii],
+            tibble(!!paste0(ii) := formatted_col),
+            df_temp[, (ii + 1):ncol(df_temp)]
           )
-          i <- i + 1  # Skip next column (just added)
+          i <- ii + 1  # Skip next column (just added)
         }
       }
       
