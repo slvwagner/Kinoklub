@@ -15,8 +15,6 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-
-
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
@@ -392,6 +390,7 @@ server <- function(input, output, session) {
     return(luminance)
   }
   
+  # Helper function to crate modla to edit a row
   create_modal_input <- function(df_row, l_temp) {
     cnt <- length(l_temp)
     
@@ -636,6 +635,7 @@ server <- function(input, output, session) {
       message("Error updating table: ", e$message)
     })
   })
+  
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
     tryCatch({
@@ -853,9 +853,9 @@ server <- function(input, output, session) {
       ID_to_edit(selected_id)
       
       # Debug message
-      # message(paste0("Selected row: ", c_row, 
-      #                " ID: ", selected_id,
-      #                " in table: ", lastEdited_data_set_name()))
+      message(paste0("Selected row: ", c_row,
+                     " ID: ", selected_id,
+                     " in table: ", lastEdited_data_set_name()))
       
       # Handle user filters if they exist
       if (!is.null(input$table_search_columns)) {
@@ -867,10 +867,10 @@ server <- function(input, output, session) {
         page_length_var(input$page_length)
       }
       
-      # Maintain selection through proxy
-      dt_proxy |> 
-        selectRows(c_row) |> 
-        selectPage(ceiling(c_row / page_length_var()))
+      # # Maintain selection through proxy
+      # dt_proxy |> 
+      #   selectRows(c_row) |> 
+      #   selectPage(ceiling(c_row / page_length_var()))
       
     }, error = function(e) {
       message("Error in row selection: ", e$message)
