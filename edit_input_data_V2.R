@@ -104,6 +104,9 @@ server <- function(input, output, session) {
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
+  ### DataTable Proxy ####
+  dt_proxy <- reactiveVal(dataTableProxy('table'))
+  last_rendered_DT <- reactiveVal(NULL)
   
   ## helper functions ####
   update_choices <- function(l_data) {
@@ -490,7 +493,7 @@ server <- function(input, output, session) {
     req(lastEdited_data_set_name())
     
     if (lastEdited_data_set_name() == "Programm") {
-      dt_proxy |> 
+      dt_proxy() |> 
         formatStyle(
           "Verleiher Angefragt?", 
           backgroundColor = styleEqual(
@@ -499,8 +502,7 @@ server <- function(input, output, session) {
           )
         )
     }
-    
-    if (lastEdited_data_set_name() == "Einsatzplan") {
+    else if (lastEdited_data_set_name() == "Einsatzplan") {
       c_Kinoklubmitglied <- l_data()$Kinoklubmitglieder |>
         mutate(Mitglied = paste(Vorname, Nachname)) |>
         select(Mitglied) |>
@@ -511,7 +513,7 @@ server <- function(input, output, session) {
       
       text_color <- ifelse(get_luminance(c_colors()) < 0.5, "white", "black")
       
-      dt_proxy |>
+      dt_proxy() |>
         formatStyle(
           "Verantwortlich",
           target = "cell",
@@ -594,7 +596,6 @@ server <- function(input, output, session) {
     })
   }
 
-  # Helper function to process column filters
   process_column_filters <- function(df) {
     column_filters <- input$table_search_columns |>
       str_remove_all('["\\[\\]]') |>
@@ -619,77 +620,54 @@ server <- function(input, output, session) {
     }
   }
   
-  ## replace data if current_data() has changed ####
-  observeEvent(current_data(), {
-    req(current_data())
-    tryCatch({
-      replaceData(
-        dt_proxy,
-        data = current_data(),
-        resetPaging = FALSE,
-        clearSelection = "none"
-      )
-      # Reapply formatting after data update
-      # apply_conditional_formatting()
-    }, error = function(e) {
-      message("Error updating table: ", e$message)
-    })
-  })
-  
-  ## Database Connection ####
-  observeEvent(input$SQL_connect, {
-    tryCatch({
-      # Connect to data base 
-      DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
-        DB_con()
-      
-    }, error = function(e) {
-      showNotification(paste("Connection to data base failed:", e$message), type = "error")
-    })
-    
-    tryCatch({
-      # After successful connection
-      c_connected_to_db(TRUE)
-      
-      # Initial data load
-      load_initial_data()
-      
-    }, error = function(e) {
-      showNotification(paste("load data from data base failed:", e$message), type = "error")
-    })
-  })
-  
-  ## DataTable Proxy Setup ####
-  dt_proxy <- dataTableProxy('table')
-  
+  # ## DataTable Proxy Setup ####
+  # dt_proxy <- dataTableProxy('table')
+  # 
+  # ## replace data if current_data() has changed ####
+  # observeEvent(current_data(), {
+  #   req(current_data())
+  #   tryCatch({
+  #     replaceData(
+  #       dt_proxy,
+  #       data = current_data(),
+  #       resetPaging = FALSE,
+  #       clearSelection = "none"
+  #     )
+  #     # Reapply formatting after data update
+  #     apply_conditional_formatting()
+  #   }, error = function(e) {
+  #     message("Error updating table: ", e$message)
+  #   })
+  # })
+
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
     
-    ### Create User-Readable "Datum" Columns ###
+    ### Create User-Readable "Datum" Columns ####
     df_temp <- current_data()
-    
+
     # Select columns containing "datum"
     df_datum <- df_temp |> select(contains("datum"))
-    
+
     # Initialize empty list for column definitions
     l_columnDefs <- list()
-    
+
     if (ncol(df_datum) > 0) {
       # Format datum columns into user-readable format (dd.mm.yyyy)
       df_datum_user <- df_datum |>
         as.matrix() |>
         apply(2, function(x) format(as.Date(x), "%d.%m.%Y")) |>
         as_tibble()
-      
+
       # Assign temporary numeric names to formatted columns
       names(df_datum_user) <- as.character(seq_len(ncol(df_datum_user)))
-      
+
       # Insert formatted columns into the original data, right after the original ones
       for (ii in seq_along(df_temp)) {
         col_name <- names(df_temp)[ii]
         match_idx <- match(col_name, names(df_datum))
-        
+
         if (!is.na(match_idx)) {
           formatted_col <- df_datum_user[[match_idx]]
           df_temp <- bind_cols(
@@ -700,26 +678,27 @@ server <- function(input, output, session) {
           i <- ii + 1  # Skip next column (just added)
         }
       }
-      
+
       # Identify inserted display columns by checking if column names are numeric
       c_display_cols <- suppressWarnings(as.integer(names(df_temp)))
-      for (i in seq_along(c_display_cols)) {
-        if (!is.na(c_display_cols[i])) {
-          display_idx <- i
-          original_idx <- i - 1
-          
+      for (ii in seq_along(c_display_cols)) {
+        if (!is.na(c_display_cols[ii])) {
+          display_idx <- ii
+          original_idx <- ii - 1
+
           # Hide original column and sort by it
           l_columnDefs <- append(l_columnDefs, list(
             list(targets = original_idx - 1, visible = FALSE),
             list(targets = display_idx - 1, orderData = original_idx - 1)
           ))
-          
+
           # Swap column names for clarity
           names(df_temp)[c(original_idx, display_idx)] <- names(df_temp)[c(display_idx, original_idx)]
         }
       }
     }
-    
+    last_rendered_DT(df_temp)
+    ### render ####
     datatable(
       df_temp,
       rownames = FALSE,
@@ -742,27 +721,29 @@ server <- function(input, output, session) {
         language = DT_language
       )
     )
+  }, server = TRUE)
+  
+  ## Database Connection ####
+  observeEvent(input$SQL_connect, {
+    tryCatch({
+      # Connect to data base 
+      DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
+        DB_con()
+      
+    }, error = function(e) {
+      showNotification(paste("Connection to data base failed:", e$message), type = "error")
+    })
     
-    
-    # datatable(
-    #   current_data(),
-    #   rownames = FALSE,
-    #   selection = "single",
-    #   filter = "top",
-    #   options = list(
-    #     pageLength = page_length_var(),
-    #     lengthMenu = c_lengthMenu,
-    #     language = DT_language,
-    #     initComplete = JS(
-    #       "function(settings, json) {
-    #         var table = settings.oInstance.api();
-    #         table.on('length.dt', function(e, settings, len) {
-    #           Shiny.setInputValue('page_length', len);
-    #         });
-    #       }"
-    #     )
-    #   )
-    # )
+    tryCatch({
+      # After successful connection
+      c_connected_to_db(TRUE)
+      
+      # Initial data load
+      load_initial_data()
+      
+    }, error = function(e) {
+      showNotification(paste("load data from data base failed:", e$message), type = "error")
+    })
   })
   
   ## Data set type selection ####
@@ -840,41 +821,154 @@ server <- function(input, output, session) {
     current_data(l_temp[[input$dataset]])
   })
   
-  ## Select a row ####
+  # ## Select a row ####
+  # observeEvent(input$table_rows_selected, {
+  #   req(input$table_rows_selected, current_data())
+  #   
+  #   tryCatch({
+  #     # Get the selected row index
+  #     c_row <- as.integer(input$table_rows_selected)
+  #     
+  #     # Map selected row to ID
+  #     selected_id <- current_data()[c_row, 1] |> pull()
+  #     ID_to_edit(selected_id)
+  #     
+  #     # Debug message
+  #     message(paste0("Selected row: ", c_row,
+  #                    " ID: ", selected_id,
+  #                    " in table: ", lastEdited_data_set_name()))
+  #     
+  #     # Handle user filters if they exist
+  #     if (!is.null(input$table_search_columns)) {
+  #       process_column_filters(current_data())
+  #     }
+  #     
+  #     # Calculate page position
+  #     if (!is.null(input$page_length)) {
+  #       page_length_var(input$page_length)
+  #     }
+  #     
+  #     # # Maintain selection through proxy
+  #     # dt_proxy() |> 
+  #     #   selectRows(c_row) |> 
+  #     #   selectPage(ceiling(c_row / page_length_var()))
+  #     
+  #   }, error = function(e) {
+  #     message("Error in row selection: ", e$message)
+  #   })
+  # })
+  
+  ## Select a row and finde page and update   ####
   observeEvent(input$table_rows_selected, {
-    req(input$table_rows_selected, current_data())
+    req(input$table_rows_selected)
+    c_row <- as.integer(input$table_rows_selected)
+    # map selected row to ID
+    df_temp <- last_rendered_DT()
+    pull(df_temp[c_row,1])|>
+      ID_to_edit()
+    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
+    # handel user filters
+    column_filters = input$table_search_columns
+    column_filters <- column_filters|>
+      str_remove_all("\"")|>
+      str_remove_all("\\[")|>
+      str_remove_all("\\]")
+    column_filters <- str_split(column_filters,",")
     
-    tryCatch({
-      # Get the selected row index
-      c_row <- as.integer(input$table_rows_selected)
-      
-      # Map selected row to ID
-      selected_id <- current_data()[c_row, 1] |> pull()
-      ID_to_edit(selected_id)
-      
-      # Debug message
-      message(paste0("Selected row: ", c_row,
-                     " ID: ", selected_id,
-                     " in table: ", lastEdited_data_set_name()))
-      
-      # Handle user filters if they exist
-      if (!is.null(input$table_search_columns)) {
-        process_column_filters(current_data())
+    # Update last user filter
+    c_test <- lapply(column_filters, function(x){
+      nchar(x) > 0
+    })|>
+      unlist()
+    # get column data type
+    c_class <- get_data_type(df_temp)
+    ##### apply all column filters ####
+    for (ii in 1:length(column_filters)) {
+      col_filter <- column_filters[[ii]]
+      if(nchar(col_filter[1]) > 0){
+        if(c_class[ii] %in% c("Date", "hms")){
+          c_date <- pull(df_temp[,ii])|>
+            as.character()
+          df_temp <- df_temp[str_detect(c_date, col_filter),]
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+        } 
+        else if(c_class[ii] == "integer"){
+          # library(rebus)
+          # p1 <- START%R%one_or_more(DGT)
+          # p2 <- one_or_more(DGT)%R%END
+          p1 <- "^[\\d]+"
+          p2 <- "[\\d]+$"
+          start <- str_extract(col_filter, p1)|>
+            as.integer()
+          end <- str_extract(col_filter, p2)|>
+            as.integer()
+          c_select <- start:end
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
+        } else if (c_class[ii] == "factor"){
+          if(length(col_filter) > 1){
+            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
+          } else {
+            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
+            c_select <- ifelse(is.na(c_select), FALSE, c_select)
+            df_temp <- df_temp[c_select,]
+          }
+        }
+        # character 
+        else { 
+          # filters for data tabel are not case sensitive so tolower() conversion is needed 
+          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+        }
       }
+    }
+    # map ID to selected row
+    df_temp <- df_temp |>
+      mutate(index = row_number())
+    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
+    # has the page lenght changed? 
+    if(!is.null(input$page_length)){
+      page_length_var(input$page_length)
+    }
+    if(!is_empty(row_filtered)){
+      # Calculate page 
+      c_page <-  ceiling(row_filtered / page_length_var())  
+      writeLines(paste0("Selected page ", c_page,"\n"))
       
-      # Calculate page position
-      if (!is.null(input$page_length)) {
-        page_length_var(input$page_length)
+      if(c_page == 0) c_page <- 1
+      last_selected_page(c_page)
+      last_selected_row(c_row)
+      
+    } else {
+      stop("Could not calculate page because row was empty, this is a BUG")
+    }
+    ##### if column filters are present update column filters #####
+    if(sum(!c_test) != length(column_filters)) {
+      x <- column_filters[[7]]
+      column_filters_temp <- column_filters|>
+        lapply(function(x){
+          if(length(x) > 1){
+            list(search = paste0("[",paste0("\"", x,"\"", collapse = ","),"]"))
+          } else {
+            if(nchar(x) > 0) {
+              list(search = x)
+            } 
+            else {
+              NULL
+            }
+          } 
+        })
+      # only update if changed
+      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
+      if(!test) {
+        last_user_filter(column_filters_temp)
       }
-      
-      # # Maintain selection through proxy
-      # dt_proxy |> 
-      #   selectRows(c_row) |> 
-      #   selectPage(ceiling(c_row / page_length_var()))
-      
-    }, error = function(e) {
-      message("Error in row selection: ", e$message)
-    })
+    } else {
+      last_user_filter(NULL)
+    }
+    # select page and row in data table
+    dt_proxy()|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   ## selected row modal data table ####
@@ -927,9 +1021,6 @@ server <- function(input, output, session) {
         )
       )
     }
-    
-    # # Trigger the edit_row button click
-    # shinyjs::click("edit_row")
   })
   
   ## Disconnect from DB ####
@@ -988,7 +1079,8 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ## Edit row modal Dialog ####
+  ## Edit row ####
+  ### Edit row modal Dialog ####
   observeEvent(input$edit_row, {
     if (!is.null(input$table_rows_selected)) {
       # Joined table handling 
@@ -1064,7 +1156,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Edit row value action button ####
+  ### Edit row value action button ####
   observeEvent(input$edit_row_value, {
     # get actual data 
     df_temp <- current_data()
@@ -1377,7 +1469,7 @@ server <- function(input, output, session) {
     }
     # Maintain selection
     Sys.sleep(0.2)
-    dt_proxy |>
+    dt_proxy() |>
       selectRows(input$table_rows_selected)
   })
   
@@ -1404,7 +1496,6 @@ server <- function(input, output, session) {
   })
 
   ## Row Operations (Add/Delete/Duplicate/change title) ####
-  
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     if (is.null(input$table_rows_selected)) {
@@ -1484,7 +1575,6 @@ server <- function(input, output, session) {
             )
           )
         }
-
       }
       # Update the list
       l_temp <- l_data()
@@ -1496,10 +1586,16 @@ server <- function(input, output, session) {
         column_choices()
       # update to render 
       current_data(updated_data)
+      
+      #### select last edited row and page ####
+      last_selected_row(last_selected_row() + 1)
+      dt_proxy()|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
     }
   })
   
-  ### add row below selected row 
+  ### add row below selected row ####
   observeEvent(input$add_row_bottom, {
     if(is.null(input$table_rows_selected)){ # add row on bottom 
       # User interaction 
@@ -1587,6 +1683,11 @@ server <- function(input, output, session) {
         column_choices()
       # update to render 
       current_data(updated_data)
+      
+      #### select last edited row and page ####
+      dt_proxy()|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
     }
   })
   
@@ -1643,8 +1744,12 @@ server <- function(input, output, session) {
         column_choices()
       # update to render
       current_data(updated_data)
+      
+      #### select last edited row and page ####
+      dt_proxy()|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
     }
-    
   })
   
   ### Duplicate Film and archive (Filmtitel ändern) ####
@@ -1695,14 +1800,19 @@ server <- function(input, output, session) {
         }
         # Update the list
         l_temp <- l_data()
-        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
         # update all data
         l_data(l_temp)
         # update choices
         update_choices(l_data())|>
           column_choices()
-        # update to render
+        # update to render 
         current_data(updated_data)
+        
+        #### select last edited row and page ####
+        dt_proxy()|>
+          selectPage(last_selected_page())|>
+          selectRows(last_selected_row())
       } 
     }else{
       # User interaction
@@ -1717,6 +1827,7 @@ server <- function(input, output, session) {
   })
   
   ### User interaction Delete selected row(s) ####
+  #### Modal to delet row ####
   observeEvent(input$delete_row, {
     if(is.null(input$table_rows_selected)){
       
@@ -1766,7 +1877,17 @@ server <- function(input, output, session) {
         df_temp <- DB_get_table("Einsatzplan",DB_con())
         DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
       }
-      last_selected_row(NULL)
+
+      ##### select last edited page ####
+      last_selected_row(last_selected_row() - 1)
+      if(nrow(current_data()) == last_selected_row()) last_selected_row(last_selected_row() - 1)
+      tryCatch({      
+        dt_proxy()|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+        }, error = function(e) {
+          message("Error in row selection delete row: ", e$message)
+        })
       removeModal()
     }
   })
