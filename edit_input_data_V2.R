@@ -578,64 +578,28 @@ server <- function(input, output, session) {
     }
     else if (lastEdited_data_set_name() == "Einsatzplan") {
       c_Kinoklubmitglied <- 
-        l_data()[["Kinoklubmitglieder"]]|>
-        mutate(Mitglied = paste(Vorname, Nachname))|>
-        select(Mitglied)|>
+        l_data()[["Kinoklubmitglieder"]] |>
+        mutate(Mitglied = paste(Vorname, Nachname)) |>
+        select(Mitglied) |>
         pull()
       
-      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+      # Remove NA values and empty strings
+      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied) & c_Kinoklubmitglied != "NA NA"]
       
-      # genaerat Kinoklubmitglieder colors 
-      viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
-        colorspace::lighten(amount = 0.2)|>
-        c_colors()
+      # Generate colors only for actual members (without the initial white color)
+      member_colors <- viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
+        colorspace::lighten(amount = 0.2)
       
-      # Determine text color based on luminance
-      text_color <- lapply(c_colors(), get_luminance)|>
-        unlist()
-      text_color <- ifelse(text_color < 0.5, "white", "black")
+      # Calculate text colors based on luminance
+      text_colors <- ifelse(sapply(member_colors, get_luminance) < 0.5, "white", "black")
       
-      print(tibble(c_Kinoklubmitglied,
-                   c_colors(),
-                   text_color
-                   )
-            )
-      
-      if(length(text_color) != length(c_Kinoklubmitglied)) {
-        stop("This is a Bug in conditinal formating Einsatzplan")
-      }
-      
-      df <- dt |>
+      # Apply formatting to each relevant column
+      dt <- dt |>
         formatStyle(
-          "Verantwortlich",
+          c("Verantwortlich", "Operateur*in", "Kasse/Bar 1", "Kasse/Bar 2", "Back-up"),
           target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Operateur*in",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Kasse/Bar 1",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Kasse/Bar 2",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Back-up",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
+          backgroundColor = styleEqual(c_Kinoklubmitglied, member_colors),
+          color = styleEqual(c_Kinoklubmitglied, text_colors)
         )
     } else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
       
@@ -1521,7 +1485,7 @@ server <- function(input, output, session) {
       }
     }
     # Maintain selection 
-    Sys.sleep(0.4) # this is needed because it may not be rendered already
+    Sys.sleep(1) # this is needed because it may not be rendered already
     dt_proxy()|>
       selectPage(last_selected_page())|>
       selectRows(last_selected_row())
