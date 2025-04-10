@@ -487,65 +487,6 @@ server <- function(input, output, session) {
     l_temp <- base::Filter(function(x) !is.null(x) && length(x) > 0, l_temp)
     return(l_temp)
   }
-  
-  apply_conditional_formatting <- function() {
-    req(current_data())
-    req(lastEdited_data_set_name())
-    
-    if (lastEdited_data_set_name() == "Programm") {
-      dt_proxy() |> 
-        formatStyle(
-          "Verleiher Angefragt?", 
-          backgroundColor = styleEqual(
-            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
-            c('lightgreen', '#ed716d', '#FFFF97')
-          )
-        )
-    }
-    else if (lastEdited_data_set_name() == "Einsatzplan") {
-      c_Kinoklubmitglied <- l_data()$Kinoklubmitglieder |>
-        mutate(Mitglied = paste(Vorname, Nachname)) |>
-        select(Mitglied) |>
-        pull()
-      
-      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-      
-      text_color <- ifelse(get_luminance(c_colors()) < 0.5, "white", "black")
-      
-      dt_proxy() |>
-        formatStyle(
-          "Verantwortlich",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Operateur*in",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Kasse/Bar 1",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Kasse/Bar 2",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        ) |>
-        formatStyle(
-          "Back-up",
-          target = "cell",
-          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
-          color = styleEqual(c_Kinoklubmitglied, text_color)
-        )
-    }
-  }
 
   load_initial_data <- function() {
     shiny::withProgress(message = "Loading data...", value = 0, {
@@ -621,6 +562,102 @@ server <- function(input, output, session) {
     }
   }
   
+  apply_conditional_formatting <- function(dt) {
+    req(current_data())
+    req(lastEdited_data_set_name())
+    
+    if (lastEdited_data_set_name() == "Programm") {
+      dt <- dt |> 
+        formatStyle(
+          "Verleiher Angefragt?", 
+          backgroundColor = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('lightgreen', '#ed716d', '#FFFF97')
+          )
+        )
+    }
+    else if (lastEdited_data_set_name() == "Einsatzplan") {
+      c_Kinoklubmitglied <- 
+        l_data()[["Kinoklubmitglieder"]]|>
+        mutate(Mitglied = paste(Vorname, Nachname))|>
+        select(Mitglied)|>
+        pull()
+      
+      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+      
+      # genaerat Kinoklubmitglieder colors 
+      viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
+        colorspace::lighten(amount = 0.2)|>
+        c_colors()
+      
+      # Determine text color based on luminance
+      text_color <- lapply(c_colors(), get_luminance)|>
+        unlist()
+      text_color <- ifelse(text_color < 0.5, "white", "black")
+      
+      print(tibble(c_Kinoklubmitglied,
+                   c_colors(),
+                   text_color
+                   )
+            )
+      
+      if(length(text_color) != length(c_Kinoklubmitglied)) {
+        stop("This is a Bug in conditinal formating Einsatzplan")
+      }
+      
+      df <- dt |>
+        formatStyle(
+          "Verantwortlich",
+          target = "cell",
+          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
+          color = styleEqual(c_Kinoklubmitglied, text_color)
+        ) |>
+        formatStyle(
+          "Operateur*in",
+          target = "cell",
+          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
+          color = styleEqual(c_Kinoklubmitglied, text_color)
+        ) |>
+        formatStyle(
+          "Kasse/Bar 1",
+          target = "cell",
+          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
+          color = styleEqual(c_Kinoklubmitglied, text_color)
+        ) |>
+        formatStyle(
+          "Kasse/Bar 2",
+          target = "cell",
+          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
+          color = styleEqual(c_Kinoklubmitglied, text_color)
+        ) |>
+        formatStyle(
+          "Back-up",
+          target = "cell",
+          backgroundColor = styleEqual(c_Kinoklubmitglied, c_colors()),
+          color = styleEqual(c_Kinoklubmitglied, text_color)
+        )
+    } else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      
+      for (ii in 1:nrow(current_data())) {
+        # Back ground color
+        bg_color <- c_colors()[ii]
+        # Determine text color based on luminance
+        text_color <- ifelse(get_luminance(bg_color) < 0.5, "white", "black")
+        
+        # Apply background color and text color to rows
+        dt <- dt |>
+          formatStyle(
+            columns = 1:nrow(current_data()),  # Apply to all columns
+            target = "row",
+            backgroundColor = styleEqual(ii, bg_color),
+            color = styleEqual(ii, text_color)  # Set text color
+          )
+      }
+    }
+    return(dt)
+  }
+  
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
@@ -679,49 +716,6 @@ server <- function(input, output, session) {
       }
     }
     
-    # ##### column filter pre set ####
-    # if(lastEdited_data_set_name() == "Einsatzplan" & is.null(last_user_filter())){
-    #   
-    #   c_choices <- DB_get_table("Programm",DB_con())|>
-    #     filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-    #     distinct(`Verleiher Angefragt?`)|>
-    #     pull()
-    #   c_choices
-    #   
-    #   if(length(c_choices) == 1){
-    #     c_choices <- paste0("[\"",c_choices,"\"]")
-    #   }else{
-    #     c_choices <- paste0("[",paste0("\"", c_choices,"\"", collapse = ","),"]")
-    #   }
-    #   paste("Preset filters: ",c_choices)|>
-    #     writeLines()
-    #   
-    #   c_select <- names(df_temp) == "Verleiher Angefragt?"
-    #   c_col <- tibble(column = c_select)|>
-    #     mutate(index = row_number())|>
-    #     filter(column == TRUE)|>
-    #     select(index)|>
-    #     pull()
-    #   
-    #   l_filter <- list()
-    #   # create filters for data table
-    #   for (ii in 1:(length(c_select))) {
-    #     if(c_select[ii]) {
-    #       l_filter[[ii]] <- list(search = c_choices)
-    #     } 
-    #     else {
-    #       l_filter[[ii]] <- NULL
-    #     }
-    #   }
-    #   # update last user filter
-    #   last_user_filter(l_filter)
-    # } else if(!is.null(last_user_filter())){
-    #   l_filter <- last_user_filter()
-    # }
-    # else { # empty list if no filter needs to be applyed
-    #   l_filter <- list()
-    # }
-    
     # Used for page calculation
     last_rendered_DT(df_temp)
     
@@ -747,7 +741,9 @@ server <- function(input, output, session) {
         ),
         language = DT_language
       )
-    )
+    )|>
+      apply_conditional_formatting()
+    
   }, server = TRUE)
   
   ## Database Connection ####
