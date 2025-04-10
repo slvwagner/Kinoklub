@@ -642,25 +642,123 @@ server <- function(input, output, session) {
   output$table <- DT::renderDT({
     req(current_data())
     
+    ### User readable Datum ####
+    # get current data
+    df_temp <- current_data()
+    # find all column names containing "Datum"
+    df_Date <- current_data()|>
+      select(contains("datum"))
+    
+    # create option list for datatable function
+    if(ncol(df_Date) > 0){
+      # create user readable Datum
+      df_Date_user <-
+        df_Date|>
+        as.matrix()|>
+        apply(2, function(x){
+          x <- as.Date(x)
+          x <- format(x, "%d.%m.%Y")
+          return(x)
+        })
+      df_Date_user <- df_Date_user|>
+        as_tibble()
+      names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
+      
+      # Insert user readable Datum 
+      run <- TRUE
+      ii <- 1
+      while(run){
+        if(names(df_temp)[ii] %in% names(df_Date)){
+          for (jj in 1:ncol(df_Date)) {
+            if(names(df_temp)[ii] == names(df_Date)[jj]){
+              if(ncol(df_temp) == ii){
+                df_temp <-
+                  bind_cols(
+                    df_temp[,1:ii],
+                    df_Date_user[, jj]
+                  )
+              }else{
+                df_temp <-
+                  bind_cols(
+                    df_temp[,1:ii],
+                    df_Date_user[, jj],
+                    df_temp[,(ii+1):ncol(df_temp)]
+                  )
+              }
+              ii <- ii + 1
+            }
+          }
+        }
+        if(ncol(df_temp) <= ii) run <- FALSE
+        ii <- ii + 1
+      }
+      # Select user readable datum columns
+      c_select <- names(df_temp)|>as.integer()|>
+        suppressWarnings()
+      c_select
+      
+      # create option list for datatable function
+      l_columnDefs <- list()
+      cnt <- 1
+      for (ii in 1:length(c_select)) {
+        if(!is.na(c_select)[ii]){
+          l_columnDefs <- append(l_columnDefs, list(
+            list(targets = ii - 2, visible =  FALSE),   # Hide the 'Datum' column
+            list(targets = ii - 1 , orderData = ii-2)     # Use the 'Datum' column for sorting 'Datum_display'
+          ))
+          names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
+          cnt <- cnt + 2
+        }
+      }
+    }else {
+      # create empty option list for datatable function
+      l_columnDefs <- list()
+    }
+    
+    
     datatable(
-      current_data(),
+      df_temp,
       rownames = FALSE,
-      selection = "single",
-      filter = "top",
+      editable = FALSE, # Nicht bearbeitbar
+      selection = "single", # only select sinle row
+      filter = "top", # Filter oben
       options = list(
-        pageLength = page_length_var(),
-        lengthMenu = c_lengthMenu,
-        language = DT_language,
+        columnDefs = l_columnDefs, # Spaltendefinitionen
+        pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+        lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+        # searchCols = l_filter, # custom filtering
         initComplete = JS(
-          "function(settings, json) {
-            var table = settings.oInstance.api();
-            table.on('length.dt', function(e, settings, len) {
-              Shiny.setInputValue('page_length', len);
-            });
-          }"
-        )
+          "function(settings, json) {",
+          "  var table = settings.oInstance.api();",
+          "  table.on('length.dt', function(e, settings, len) {",
+          "    Shiny.setInputValue('page_length', len);",
+          "  });",
+          "}"
+        ),
+        language = DT_language
       )
     )
+    
+    
+    # datatable(
+    #   current_data(),
+    #   rownames = FALSE,
+    #   selection = "single",
+    #   filter = "top",
+    #   options = list(
+    #     pageLength = page_length_var(),
+    #     lengthMenu = c_lengthMenu,
+    #     language = DT_language,
+    #     initComplete = JS(
+    #       "function(settings, json) {
+    #         var table = settings.oInstance.api();
+    #         table.on('length.dt', function(e, settings, len) {
+    #           Shiny.setInputValue('page_length', len);
+    #         });
+    #       }"
+    #     )
+    #   )
+    # )
   })
   
   ## Data set type selection ####
