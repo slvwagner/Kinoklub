@@ -104,8 +104,6 @@ server <- function(input, output, session) {
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
-  ### DataTable Proxy ####
-  dt_proxy <- reactiveVal(dataTableProxy('table'))
   last_rendered_DT <- reactiveVal(NULL)
   
   ## helper functions ####
@@ -493,7 +491,7 @@ server <- function(input, output, session) {
     req(lastEdited_data_set_name())
     
     if (lastEdited_data_set_name() == "Programm") {
-      dt_proxy() |> 
+      dataTableProxy('table')() |> 
         formatStyle(
           "Verleiher Angefragt?", 
           backgroundColor = styleEqual(
@@ -513,7 +511,7 @@ server <- function(input, output, session) {
       
       text_color <- ifelse(get_luminance(c_colors()) < 0.5, "white", "black")
       
-      dt_proxy() |>
+      dataTableProxy('table')() |>
         formatStyle(
           "Verantwortlich",
           target = "cell",
@@ -590,7 +588,8 @@ server <- function(input, output, session) {
       shiny::incProgress(1/3, detail = "Finalizing")
       
       # 6. Set initial view to Programm data
-      current_data(l_data()[["Programm"]] |> arrange(desc(Datum)))
+      current_data(l_data()[["Programm"]] |> 
+                     arrange(desc(Datum)))
       lastEdited_data_set_name("Programm")
       data_selection_("Inputdaten")
     })
@@ -620,26 +619,6 @@ server <- function(input, output, session) {
     }
   }
   
-  # ## DataTable Proxy Setup ####
-  # dt_proxy <- dataTableProxy('table')
-  # 
-  # ## replace data if current_data() has changed ####
-  # observeEvent(current_data(), {
-  #   req(current_data())
-  #   tryCatch({
-  #     replaceData(
-  #       dt_proxy,
-  #       data = current_data(),
-  #       resetPaging = FALSE,
-  #       clearSelection = "none"
-  #     )
-  #     # Reapply formatting after data update
-  #     apply_conditional_formatting()
-  #   }, error = function(e) {
-  #     message("Error updating table: ", e$message)
-  #   })
-  # })
-
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
@@ -697,7 +676,53 @@ server <- function(input, output, session) {
         }
       }
     }
+    
+    # ##### column filter pre set ####
+    # if(lastEdited_data_set_name() == "Einsatzplan" & is.null(last_user_filter())){
+    #   
+    #   c_choices <- DB_get_table("Programm",DB_con())|>
+    #     filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+    #     distinct(`Verleiher Angefragt?`)|>
+    #     pull()
+    #   c_choices
+    #   
+    #   if(length(c_choices) == 1){
+    #     c_choices <- paste0("[\"",c_choices,"\"]")
+    #   }else{
+    #     c_choices <- paste0("[",paste0("\"", c_choices,"\"", collapse = ","),"]")
+    #   }
+    #   paste("Preset filters: ",c_choices)|>
+    #     writeLines()
+    #   
+    #   c_select <- names(df_temp) == "Verleiher Angefragt?"
+    #   c_col <- tibble(column = c_select)|>
+    #     mutate(index = row_number())|>
+    #     filter(column == TRUE)|>
+    #     select(index)|>
+    #     pull()
+    #   
+    #   l_filter <- list()
+    #   # create filters for data table
+    #   for (ii in 1:(length(c_select))) {
+    #     if(c_select[ii]) {
+    #       l_filter[[ii]] <- list(search = c_choices)
+    #     } 
+    #     else {
+    #       l_filter[[ii]] <- NULL
+    #     }
+    #   }
+    #   # update last user filter
+    #   last_user_filter(l_filter)
+    # } else if(!is.null(last_user_filter())){
+    #   l_filter <- last_user_filter()
+    # }
+    # else { # empty list if no filter needs to be applyed
+    #   l_filter <- list()
+    # }
+    
+    # Used for page calculation
     last_rendered_DT(df_temp)
+    
     ### render ####
     datatable(
       df_temp,
@@ -818,45 +843,16 @@ server <- function(input, output, session) {
     l_data(l_temp)
     update_choices(l_data()) |> column_choices()
     lastEdited_data_set_name(input$dataset)
-    current_data(l_temp[[input$dataset]])
+    
+    if(input$dataset == "Einsatzplan") {
+      l_temp[[input$dataset]]|>
+        filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+        current_data()
+    }else {
+      current_data(l_temp[[input$dataset]])
+    }
+    
   })
-  
-  # ## Select a row ####
-  # observeEvent(input$table_rows_selected, {
-  #   req(input$table_rows_selected, current_data())
-  #   
-  #   tryCatch({
-  #     # Get the selected row index
-  #     c_row <- as.integer(input$table_rows_selected)
-  #     
-  #     # Map selected row to ID
-  #     selected_id <- current_data()[c_row, 1] |> pull()
-  #     ID_to_edit(selected_id)
-  #     
-  #     # Debug message
-  #     message(paste0("Selected row: ", c_row,
-  #                    " ID: ", selected_id,
-  #                    " in table: ", lastEdited_data_set_name()))
-  #     
-  #     # Handle user filters if they exist
-  #     if (!is.null(input$table_search_columns)) {
-  #       process_column_filters(current_data())
-  #     }
-  #     
-  #     # Calculate page position
-  #     if (!is.null(input$page_length)) {
-  #       page_length_var(input$page_length)
-  #     }
-  #     
-  #     # # Maintain selection through proxy
-  #     # dt_proxy() |> 
-  #     #   selectRows(c_row) |> 
-  #     #   selectPage(ceiling(c_row / page_length_var()))
-  #     
-  #   }, error = function(e) {
-  #     message("Error in row selection: ", e$message)
-  #   })
-  # })
   
   ## Select a row and finde page and update   ####
   observeEvent(input$table_rows_selected, {
@@ -965,10 +961,6 @@ server <- function(input, output, session) {
     } else {
       last_user_filter(NULL)
     }
-    # select page and row in data table
-    dt_proxy()|>
-      selectPage(last_selected_page())|>
-      selectRows(last_selected_row())
   })
   
   ## selected row modal data table ####
@@ -1467,10 +1459,10 @@ server <- function(input, output, session) {
         
       }
     }
-    # Maintain selection
-    Sys.sleep(0.2)
-    dt_proxy() |>
-      selectRows(input$table_rows_selected)
+    # Maintain selection 
+    dataTableProxy('table')()|>
+      selectPage(last_selected_page())|>
+      selectRows(last_selected_row())
   })
   
   ## Data checks ####
@@ -1589,7 +1581,7 @@ server <- function(input, output, session) {
       
       #### select last edited row and page ####
       last_selected_row(last_selected_row() + 1)
-      dt_proxy()|>
+      dataTableProxy('table')()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1685,7 +1677,7 @@ server <- function(input, output, session) {
       current_data(updated_data)
       
       #### select last edited row and page ####
-      dt_proxy()|>
+      dataTableProxy('table')()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1746,7 +1738,7 @@ server <- function(input, output, session) {
       current_data(updated_data)
       
       #### select last edited row and page ####
-      dt_proxy()|>
+      dataTableProxy('table')()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1810,7 +1802,7 @@ server <- function(input, output, session) {
         current_data(updated_data)
         
         #### select last edited row and page ####
-        dt_proxy()|>
+        dataTableProxy('table')()|>
           selectPage(last_selected_page())|>
           selectRows(last_selected_row())
       } 
@@ -1882,7 +1874,7 @@ server <- function(input, output, session) {
       last_selected_row(last_selected_row() - 1)
       if(nrow(current_data()) == last_selected_row()) last_selected_row(last_selected_row() - 1)
       tryCatch({      
-        dt_proxy()|>
+        dataTableProxy('table')()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
         }, error = function(e) {
