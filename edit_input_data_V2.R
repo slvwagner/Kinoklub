@@ -104,6 +104,8 @@ server <- function(input, output, session) {
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
+  ### DataTable Proxy ####
+  dt_proxy <- reactiveVal(dataTableProxy('table'))
   last_rendered_DT <- reactiveVal(NULL)
   
   ## helper functions ####
@@ -491,7 +493,7 @@ server <- function(input, output, session) {
     req(lastEdited_data_set_name())
     
     if (lastEdited_data_set_name() == "Programm") {
-      dataTableProxy('table')() |> 
+      dt_proxy() |> 
         formatStyle(
           "Verleiher Angefragt?", 
           backgroundColor = styleEqual(
@@ -511,7 +513,7 @@ server <- function(input, output, session) {
       
       text_color <- ifelse(get_luminance(c_colors()) < 0.5, "white", "black")
       
-      dataTableProxy('table')() |>
+      dt_proxy() |>
         formatStyle(
           "Verantwortlich",
           target = "cell",
@@ -962,59 +964,7 @@ server <- function(input, output, session) {
       last_user_filter(NULL)
     }
   })
-  
-  ## selected row modal data table ####
-  observeEvent(input$modal_select_row, {
-    if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
-      
-      df_temp <- df_temp_to_render()
-      c_ID <- df_temp[input$modal_table_rows_selected,]$ID
-      # update latest ID 
-      ID_to_edit(c_ID)
-      # Store HTML elements
-      l_temp <- list()
-      # only display
-      df_info <- current_data() |> 
-        filter(ID == c_ID)|>
-        select(1)
-      # editable
-      df_row <- current_data() |> 
-        filter(ID == c_ID)|>
-        select(2:ncol(current_data()))
-      # Display the display columns (read-only)
-      l_temp <- lapply(1:ncol(df_info), function(ii) {
-        fluidRow(
-          column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
-        )
-      })
-      
-      l_temp <- create_modal_input(df_row, l_temp)
-      
-      removeModal()
-      
-      # User interaction to save
-      showModal(
-        modalDialog(
-          title = "Zeile editieren",
-          l_temp,
-          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
-          easyClose = FALSE,
-          footer = NULL
-        )
-      )
-    } else {
-      # User interaction
-      showModal(
-        modalDialog(
-          title = "Bitte eine Zeile markieren",
-          easyClose = TRUE,
-          footer = modalButton("Abbrechen")
-        )
-      )
-    }
-  })
-  
+
   ## Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
@@ -1069,6 +1019,120 @@ server <- function(input, output, session) {
   ## Abort: do nothing! ####
   observeEvent(input$abort,{
     removeModal()
+  })
+  
+  #### Check unique ####
+  observeEvent(input$check_unique, {
+    # Find duplicates (keeping only duplicate rows)
+    df_temp <- current_data() |>
+      group_by(across(-ID)) |>
+      mutate(duplicate_flag = n() > 1) |>
+      ungroup() |>
+      filter(duplicate_flag)|>
+      select(-duplicate_flag)
+    
+    df_temp_to_render(df_temp)
+    
+    if(nrow(df_temp) > 1){
+      # Calculate modal size based on number of columns
+      num_cols <- ncol(df_temp)
+      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+      modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+      
+      showModal(
+        modalDialog(
+          title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+          size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+          tagList(
+            renderText("Bitte Zeile selektieren und anpassen!"),
+            hr(),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+            )
+          ),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("modal_select_row", "Zeile editieren"),
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    } else {
+      showModal(
+        modalDialog(
+          title = "Daten sind eindeutig.",
+          tagList(
+          ),
+          easyClose = TRUE, 
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    }
+    # # Trigger the edit_row button click
+    # shinyjs::click("check_unique")
+  })
+
+  ## selected row modal data table ####
+  observeEvent(input$modal_select_row, {
+    if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
+      
+      df_temp <- df_temp_to_render()
+      c_ID <- df_temp[input$modal_table_rows_selected,]$ID
+      # update latest ID 
+      ID_to_edit(c_ID)
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- current_data() |> 
+        filter(ID == c_ID)|>
+        select(1)
+      # editable
+      df_row <- current_data() |> 
+        filter(ID == c_ID)|>
+        select(2:ncol(current_data()))
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+        )
+      })
+      
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      removeModal()
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort_save", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } else {
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
+  })
+    
+  #### Render modal table ####
+  output$modal_table <- renderDataTable({
+    req(df_temp_to_render())  
+    datatable(df_temp_to_render(), 
+              rownames = FALSE,
+              selection = "single"
+    )
   })
   
   ## Edit row ####
@@ -1443,9 +1507,11 @@ server <- function(input, output, session) {
           column_choices()
         # update Einsatzplan
         Update_Einsatzplan(df_updated, c_class)
-      } 
-      
-      if (lastEdited_data_set_name() == "Einsatzplan"){
+        
+        df_temp|>
+          current_data()
+        
+      } else if (lastEdited_data_set_name() == "Einsatzplan"){
         left_join(
           l_data()$Programm|>
             select(1:8, -`Link to Event ID`,-Verleiher), 
@@ -1456,11 +1522,11 @@ server <- function(input, output, session) {
       } else {
         df_temp|>
           current_data()
-        
       }
     }
     # Maintain selection 
-    dataTableProxy('table')()|>
+    Sys.sleep(0.4) # this is needed because it may not be rendered already
+    dt_proxy()|>
       selectPage(last_selected_page())|>
       selectRows(last_selected_row())
   })
@@ -1581,7 +1647,7 @@ server <- function(input, output, session) {
       
       #### select last edited row and page ####
       last_selected_row(last_selected_row() + 1)
-      dataTableProxy('table')()|>
+      dt_proxy()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1677,7 +1743,7 @@ server <- function(input, output, session) {
       current_data(updated_data)
       
       #### select last edited row and page ####
-      dataTableProxy('table')()|>
+      dt_proxy()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1738,7 +1804,7 @@ server <- function(input, output, session) {
       current_data(updated_data)
       
       #### select last edited row and page ####
-      dataTableProxy('table')()|>
+      dt_proxy()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -1802,7 +1868,7 @@ server <- function(input, output, session) {
         current_data(updated_data)
         
         #### select last edited row and page ####
-        dataTableProxy('table')()|>
+        dt_proxy()|>
           selectPage(last_selected_page())|>
           selectRows(last_selected_row())
       } 
@@ -1874,7 +1940,7 @@ server <- function(input, output, session) {
       last_selected_row(last_selected_row() - 1)
       if(nrow(current_data()) == last_selected_row()) last_selected_row(last_selected_row() - 1)
       tryCatch({      
-        dataTableProxy('table')()|>
+        dt_proxy()|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
         }, error = function(e) {
