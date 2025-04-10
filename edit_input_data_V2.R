@@ -595,6 +595,30 @@ server <- function(input, output, session) {
     })
   }
 
+  # Helper function to process column filters
+  process_column_filters <- function(df) {
+    column_filters <- input$table_search_columns |>
+      str_remove_all('["\\[\\]]') |>
+      str_split(",")
+    
+    # Update last user filter state
+    filter_state <- lapply(column_filters, function(x) {
+      if (any(nchar(x) > 0)) {
+        if (length(x) > 1) {
+          list(search = paste0("[", toString(shQuote(x)), "]"))
+        } else {
+          list(search = x)
+        }
+      } else {
+        NULL
+      }
+    })
+    
+    # Only update if changed
+    if (!identical(last_user_filter(), filter_state)) {
+      last_user_filter(filter_state)
+    }
+  }
   
   ## replace data if current_data() has changed ####
   observeEvent(current_data(), {
@@ -642,79 +666,59 @@ server <- function(input, output, session) {
   output$table <- DT::renderDT({
     req(current_data())
     
-    ### User readable Datum ####
-    # get current data
+    ### Create User-Readable "Datum" Columns ###
     df_temp <- current_data()
-    # find all column names containing "Datum"
-    df_Date <- current_data()|>
-      select(contains("datum"))
     
-    # create option list for datatable function
-    if(ncol(df_Date) > 0){
-      # create user readable Datum
-      df_Date_user <-
-        df_Date|>
-        as.matrix()|>
-        apply(2, function(x){
-          x <- as.Date(x)
-          x <- format(x, "%d.%m.%Y")
-          return(x)
-        })
-      df_Date_user <- df_Date_user|>
+    # Select columns containing "datum"
+    df_datum <- df_temp |> select(contains("datum"))
+    
+    # Initialize empty list for column definitions
+    l_columnDefs <- list()
+    
+    if (ncol(df_datum) > 0) {
+      # Format datum columns into user-readable format (dd.mm.yyyy)
+      df_datum_user <- df_datum |>
+        as.matrix() |>
+        apply(2, function(x) format(as.Date(x), "%d.%m.%Y")) |>
         as_tibble()
-      names(df_Date_user) <-  paste0(as.character(1:ncol(df_Date_user)))
       
-      # Insert user readable Datum 
-      run <- TRUE
-      ii <- 1
-      while(run){
-        if(names(df_temp)[ii] %in% names(df_Date)){
-          for (jj in 1:ncol(df_Date)) {
-            if(names(df_temp)[ii] == names(df_Date)[jj]){
-              if(ncol(df_temp) == ii){
-                df_temp <-
-                  bind_cols(
-                    df_temp[,1:ii],
-                    df_Date_user[, jj]
-                  )
-              }else{
-                df_temp <-
-                  bind_cols(
-                    df_temp[,1:ii],
-                    df_Date_user[, jj],
-                    df_temp[,(ii+1):ncol(df_temp)]
-                  )
-              }
-              ii <- ii + 1
-            }
-          }
+      # Assign temporary numeric names to formatted columns
+      names(df_datum_user) <- as.character(seq_len(ncol(df_datum_user)))
+      
+      # Insert formatted columns into the original data, right after the original ones
+      for (i in seq_along(df_temp)) {
+        col_name <- names(df_temp)[i]
+        match_idx <- match(col_name, names(df_datum))
+        
+        if (!is.na(match_idx)) {
+          formatted_col <- df_datum_user[[match_idx]]
+          df_temp <- bind_cols(
+            df_temp[, 1:i],
+            tibble(!!paste0(col_name, "_display") := formatted_col),
+            df_temp[, (i + 1):ncol(df_temp)]
+          )
+          i <- i + 1  # Skip next column (just added)
         }
-        if(ncol(df_temp) <= ii) run <- FALSE
-        ii <- ii + 1
       }
-      # Select user readable datum columns
-      c_select <- names(df_temp)|>as.integer()|>
-        suppressWarnings()
-      c_select
       
-      # create option list for datatable function
-      l_columnDefs <- list()
-      cnt <- 1
-      for (ii in 1:length(c_select)) {
-        if(!is.na(c_select)[ii]){
+      # Identify inserted display columns by checking if column names are numeric
+      c_display_cols <- suppressWarnings(as.integer(names(df_temp)))
+      for (i in seq_along(c_display_cols)) {
+        if (!is.na(c_display_cols[i])) {
+          display_idx <- i
+          original_idx <- i - 1
+          
+          # Hide original column and sort by it
           l_columnDefs <- append(l_columnDefs, list(
-            list(targets = ii - 2, visible =  FALSE),   # Hide the 'Datum' column
-            list(targets = ii - 1 , orderData = ii-2)     # Use the 'Datum' column for sorting 'Datum_display'
+            list(targets = original_idx - 1, visible = FALSE),
+            list(targets = display_idx - 1, orderData = original_idx - 1)
           ))
-          names(df_temp)[c(ii - 1,ii)] <- names(df_temp)[c(ii ,ii-1)]
-          cnt <- cnt + 2
+          
+          # Swap column names for clarity
+          names(df_temp)[c(original_idx, display_idx)] <- names(df_temp)[c(display_idx, original_idx)]
         }
       }
-    }else {
-      # create empty option list for datatable function
-      l_columnDefs <- list()
     }
-    
     
     datatable(
       df_temp,
@@ -873,30 +877,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Helper function to process column filters
-  process_column_filters <- function(df) {
-    column_filters <- input$table_search_columns |>
-      str_remove_all('["\\[\\]]') |>
-      str_split(",")
-    
-    # Update last user filter state
-    filter_state <- lapply(column_filters, function(x) {
-      if (any(nchar(x) > 0)) {
-        if (length(x) > 1) {
-          list(search = paste0("[", toString(shQuote(x)), "]"))
-        } else {
-          list(search = x)
-        }
-      } else {
-        NULL
-      }
-    })
-    
-    # Only update if changed
-    if (!identical(last_user_filter(), filter_state)) {
-      last_user_filter(filter_state)
-    }
-  }
+
   
   ## selected row modal data table ####
   observeEvent(input$modal_select_row, {
@@ -1425,8 +1406,8 @@ server <- function(input, output, session) {
   
 
   ## Row Operations (Add/Delete/Duplicate) ####
-  # Modify all these to update current_data() and let the proxy handle the table update
   
+  ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     if (is.null(input$table_rows_selected)) {
       # User interaction
@@ -1460,7 +1441,6 @@ server <- function(input, output, session) {
       }
       
       # updata SQL DB and current data 
-      current_data(updated_data)
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
       
       # update joined data sets 
@@ -1506,43 +1486,294 @@ server <- function(input, output, session) {
             )
           )
         }
+
       }
-    
       # Update the list
       l_temp <- l_data()
       l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-      
       # update all data
       l_data(l_temp)
-      
       # update choices
       update_choices(l_data())|>
         column_choices()
+      # update to render 
+      current_data(updated_data)
+    }
+  })
+  
+  ### add row below selected row 
+  observeEvent(input$add_row_bottom, {
+    if(is.null(input$table_rows_selected)){ # add row on bottom 
+      # User interaction 
+      showModal(
+        modalDialog(title = "Bitte eine Zeile markieren",
+                    easyClose = TRUE, 
+                    footer = modalButton("Abbrechen")
+        )
+      )
+    } else {
+      # Create an empty row
+      new_row <- current_data()[1, ] |> 
+        mutate(across(everything(), ~ NA))|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      new_row[1,1] <- max(current_data()[,1]) + 1L
       
+      # updata SQL DB
+      DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+      
+      # update joined data sets 
+      if(input$dataset == "Programm"){
+        c_class <- get_data_type(current_data())
+        Update_Einsatzplan(new_row, c_class, new_row = TRUE)
+      }
+      
+      if(input$table_rows_selected == nrow(current_data())){
+        updated_data <- 
+          bind_rows(current_data()[1:input$table_rows_selected,],
+                    new_row
+          )
+        
+      }else {
+        updated_data <- 
+          bind_rows(current_data()[1:(input$table_rows_selected),],
+                    new_row,
+                    current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+          )
+        
+      }
+      ##### Handling uniqueness checks for Dropdowns #####
+      if (data_selection_() == "Dropdowns") {
+        # Find duplicates (keeping only duplicate rows)
+        df_temp <- updated_data |>
+          group_by(across(-ID)) |>
+          mutate(duplicate_flag = n() > 1) |>
+          ungroup() |>
+          filter(duplicate_flag)|>
+          select(-duplicate_flag)
+        
+        df_temp_to_render(df_temp)
+        
+        if(nrow(df_temp) > 1){
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Bitte Zeile selektieren und anpassen!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("modal_select_row", "Zeile editieren"),
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        }
+      }
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      # update all data
+      l_data(l_temp)
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      # update to render 
+      current_data(updated_data)
+    }
+  })
+  
+  ### Duplicate selected row ####
+  observeEvent(input$duplicate_row, {
+    if(is.null(input$table_rows_selected)){ 
+      # User interaction 
+      showModal(
+        modalDialog(title = "Bitte eine Zeile markieren",
+                    easyClose = TRUE, footer = modalButton("Abbrechen")
+        )
+      )
+    } else { 
+      # Create duplicate row and add to table
+      new_row <- current_data()[input$table_rows_selected, ] |> 
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      new_row
+      new_row[1,1] <- max(current_data()[,1]) + 1L
+      
+      # Update "Gültig ab Datum" to the current system date
+      if ("Gültig ab Datum" %in% colnames(new_row)) {
+        new_row <- new_row |>
+          mutate(`Gültig ab Datum` = Sys.Date())
+      }
+      # Add new row
+      if(input$table_rows_selected == nrow(current_data())){
+        updated_data <- 
+          bind_rows(current_data()[1:input$table_rows_selected,],
+                    new_row
+          )
+      }else {
+        updated_data <- 
+          bind_rows(current_data()[1:(input$table_rows_selected),],
+                    new_row,
+                    current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
+          )
+      }
+      
+      # updata SQL DB
+      DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+      
+      # update joined data sets 
+      if(input$dataset == "Programm"){
+        c_class <- get_data_type(current_data())
+        Update_Einsatzplan(new_row, c_class, new_row = TRUE)
+      }
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+      # update all data
+      l_data(l_temp)
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      # update to render
+      current_data(updated_data)
     }
     
-    # Your existing logic, but just update current_data()
-    # ...
-    current_data(updated_data)
   })
   
-  observeEvent(input$add_row_bottom, {
-    # ...
-    current_data(updated_data)
+  ### Duplicate Film and archive (Filmtitel ändern) ####
+  observeEvent(input$archive_row,{
+    if(!is.null(input$table_rows_selected)){
+      req(input$table_rows_selected) # Ensure a row is selected
+      new_row <- current_data()[input$table_rows_selected, ] |>
+        mutate(`Verleiher Angefragt?` = column_choices()$`Verleiher Angefragt?`[length(column_choices()$`Verleiher Angefragt?`)])
+      new_row[1,1] <- max(current_data()[,1]) + 1L
+      
+      if(nrow(current_data()) == 0){ 
+        # Create an empty row
+        new_row <- current_data()[1, ] |> 
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # updata SQL DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        # update joined data sets 
+        if(lastEdited_data_set_name() == "Programm"){
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
+        }
+        
+        # create new empty row with correct data type
+        updated_data <- new_row
+        current_data(updated_data)
+      } else { # Add row to data  
+        if(input$table_rows_selected == nrow(current_data())){
+          updated_data <- 
+            bind_rows(current_data()[1:input$table_rows_selected,],
+                      new_row
+            )|>
+            convert_to_template_types(current_data())
+        }else {
+          updated_data <- 
+            bind_rows(current_data()[1:(input$table_rows_selected),],
+                      new_row,
+                      current_data()[(input$table_rows_selected + 1L):nrow(current_data()),]
+            )|>
+            convert_to_template_types(current_data())
+        }
+        # update DB
+        DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+        # update joined data sets 
+        if(lastEdited_data_set_name() == "Programm"){
+          c_class <- get_data_type(current_data())
+          Update_Einsatzplan(new_row, c_class, new_row = TRUE)
+        }
+        # Update the list
+        l_temp <- l_data()
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+        # update all data
+        l_data(l_temp)
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        # update to render
+        current_data(updated_data)
+      } 
+    }else{
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
   })
   
-  observeEvent(input$duplicate_row, {
-    # ...
-    current_data(updated_data)
-  })
-  
+  ### User interaction Delete selected row(s) ####
   observeEvent(input$delete_row, {
-    # ...
-    current_data(updated_data)
+    if(is.null(input$table_rows_selected)){
+      
+      showModal(modalDialog(
+        title = "Bitte eine Zeile markieren!",
+        footer = tagList(
+          modalButton("Abbrechen")),
+        easyClose = TRUE
+      ))
+    }else{
+      showModal(modalDialog(
+        title = "Selektierte Zeile löschen?",
+        footer = tagList(
+          modalButton("Abbrechen"),
+          actionButton("confirm_delete", "Löschen")
+        ),
+        easyClose = TRUE
+      ))
+    }
   })
   
+  #### Delete selected row ####
+  observeEvent(input$confirm_delete, {
+    req(input$table_rows_selected)
+    if(nrow(current_data()) <= 1){
+      showModal(modalDialog(
+        title = "Die letzte Zeile kannn nicht gelöscht werden",
+        footer = tagList(
+          modalButton("Abbrechen")
+        ),
+        easyClose = TRUE
+      ))
+    }
+    else {
+      req(input$table_rows_selected)
+      # Find ID to delete
+      row <- current_data()[input$table_rows_selected, ]
+      
+      # Update data
+      updated_data <- current_data()
+      updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+      current_data(updated_data)
+      
+      # Update SQL
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
+      if(lastEdited_data_set_name() == "Programm"){
+        df_temp <- DB_get_table("Einsatzplan",DB_con())
+        DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
+      }
+      last_selected_row(NULL)
+      removeModal()
+    }
+  })
 
-  ## Dynamic UI (same as original) ####
+  ## Dynamic UI ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       hr(),
