@@ -93,18 +93,20 @@ server <- function(input, output, session) {
   l_data <- reactiveVal(list())
   column_choices <- reactiveVal(list())
   current_data <- reactiveVal(tibble())
-  lastEdited_data_set_name <- reactiveVal("")
   data_selection_ <- reactiveVal("")
-  last_selected_row <- reactiveVal(1L)
-  last_selected_page <- reactiveVal(1L)
   page_length_var <- reactiveVal(5L)
   ID_to_edit <- reactiveVal(1L)
-  last_user_filter <- reactiveVal(NULL)
   c_connected_to_db <- reactiveVal(FALSE)
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
+  
   last_rendered_DT <- reactiveVal(NULL)
+  lastEdited_data_set_name <- reactiveVal("")
+  last_selected_row <- reactiveVal(1L)
+  last_selected_page <- reactiveVal(1L)
+  last_user_filter <- reactiveVal(NULL)
+  
   
   ## helper functions ####
   update_choices <- function(l_data) {
@@ -509,22 +511,7 @@ server <- function(input, output, session) {
       
       l_data()[c_select_dropdown_data] |> 
         l_data_choices()
-      
-      # 5. Generate member colors
-      c_Kinoklubmitglied <- l_data()[["Kinoklubmitglieder"]] |>
-        mutate(Mitglied = paste(Vorname, Nachname)) |>
-        select(Mitglied) |>
-        pull()
-      
-      c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-      c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-      
-      viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
-        colorspace::lighten(amount = 0.3) |>
-        c_colors()
-      
-      c("#FFFFFFFF", c_colors()) |>
-        c_colors()
+
       
       shiny::incProgress(1/3, detail = "Finalizing")
       
@@ -623,94 +610,101 @@ server <- function(input, output, session) {
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
-    
     ### Create User-Readable "Datum" Columns ####
     df_temp <- current_data()
-
-    # Select columns containing "datum"
-    df_datum <- df_temp |> select(contains("datum"))
-
-    # Initialize empty list for column definitions
+    
+    # Step 1: Identify "datum" columns
+    datum_cols <- names(df_temp)[stringr::str_detect(names(df_temp), regex("datum", ignore_case = TRUE))]
+    
+    # Step 2: Only proceed if there are any "datum" columns
     l_columnDefs <- list()
-
-    if (ncol(df_datum) > 0) {
-      # Format datum columns into user-readable format (dd.mm.yyyy)
-      df_datum_user <- df_datum |>
-        as.matrix() |>
-        apply(2, function(x) format(as.Date(x), "%d.%m.%Y")) |>
-        as_tibble()
-
-      # Assign temporary numeric names to formatted columns
+    
+    if (length(datum_cols) > 0) {
+      # Step 3: Format them as dd.mm.yyyy
+      df_datum_user <- df_temp %>%
+        dplyr::select(all_of(datum_cols)) %>%
+        dplyr::mutate(across(everything(), ~ format(as.Date(.), "%d.%m.%Y")))
+      
+      # Step 4: Assign numeric names to the formatted columns
       names(df_datum_user) <- as.character(seq_len(ncol(df_datum_user)))
-
-      # Insert formatted columns into the original data, right after the original ones
-      for (ii in seq_along(df_temp)) {
-        col_name <- names(df_temp)[ii]
-        match_idx <- match(col_name, names(df_datum))
-
-        if (!is.na(match_idx)) {
-          formatted_col <- df_datum_user[[match_idx]]
-          df_temp <- bind_cols(
-            df_temp[, 1:ii],
-            tibble(!!paste0(ii) := formatted_col),
-            df_temp[, (ii + 1):ncol(df_temp)]
-          )
-          i <- ii + 1  # Skip next column (just added)
+      
+      # Step 5: Build new column list with formatted columns inserted
+      new_cols <- list()
+      formatted_index <- 1  # numbering the new formatted columns
+      
+      for (col_name in names(df_temp)) {
+        # Add original column
+        new_cols[[length(new_cols) + 1]] <- df_temp[[col_name]]
+        names(new_cols)[length(new_cols)] <- col_name
+        
+        # Add formatted column if applicable
+        if (col_name %in% datum_cols) {
+          formatted_col <- df_datum_user[[as.character(formatted_index)]]
+          new_cols[[length(new_cols) + 1]] <- formatted_col
+          names(new_cols)[length(new_cols)] <- as.character(formatted_index)
+          formatted_index <- formatted_index + 1
         }
       }
-
-      # Identify inserted display columns by checking if column names are numeric
-      c_display_cols <- suppressWarnings(as.integer(names(df_temp)))
-      for (ii in seq_along(c_display_cols)) {
-        if (!is.na(c_display_cols[ii])) {
-          display_idx <- ii
-          original_idx <- ii - 1
-
-          # Hide original column and sort by it
+      
+      # Step 6: Rebuild data frame
+      df_temp <- tibble::as_tibble(new_cols)
+      
+      # Step 7: Build DT column definitions (hide original date, sort via original)
+      col_names <- names(df_temp)
+      display_col_indices <- suppressWarnings(which(!is.na(as.integer(col_names))))
+      
+      for (display_idx in display_col_indices) {
+        original_idx <- display_idx - 1
+        
+        # Ensure valid indices (guarding against edge cases)
+        if (original_idx >= 1 && original_idx <= ncol(df_temp)) {
+          # Hide original and sort via it
           l_columnDefs <- append(l_columnDefs, list(
             list(targets = original_idx - 1, visible = FALSE),
             list(targets = display_idx - 1, orderData = original_idx - 1)
           ))
-
+          
           # Swap column names for clarity
           names(df_temp)[c(original_idx, display_idx)] <- names(df_temp)[c(display_idx, original_idx)]
         }
       }
     }
     
-    # Used for page calculation 
+    ### update last rendered DT, used to find selected row and calculate page ####
+    stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
-    
+
     ### render ####
-    datatable(
-      df_temp,
-      rownames = FALSE,
-      editable = FALSE, # Nicht bearbeitbar
-      selection = "single", # only select sinle row
-      filter = "top", # Filter oben
-      options = list(
-        columnDefs = l_columnDefs, # Spaltendefinitionen
-        pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-        lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-        searchCols = last_user_filter(), # custom filtering,
-        # signal that rendering is done
-        drawCallback = JS("
-          Shiny.setInputValue('table_rendered', new Date().getTime());
-        "),
-        # page lenght 
-        initComplete = JS(
-          "function(settings, json) {",
-          "  var table = settings.oInstance.api();",
-          "  table.on('length.dt', function(e, settings, len) {",
-          "    Shiny.setInputValue('page_length', len);",
-          "  });",
-          "}"
-        ),
-        language = DT_language
-      )
-    )|>
-      apply_conditional_formatting()
-    
+    return(
+      datatable(
+        df_temp,
+        rownames = FALSE,
+        editable = FALSE, # Nicht bearbeitbar
+        selection = "single", # only select sinle row
+        filter = "top", # Filter oben
+        options = list(
+          columnDefs = l_columnDefs, # Spaltendefinitionen
+          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
+          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
+          searchCols = last_user_filter(), # custom filtering,
+          # signal that rendering is done
+          drawCallback = JS("
+            Shiny.setInputValue('table_rendered', new Date().getTime());
+          "),
+          # page lenght 
+          initComplete = JS(
+            "function(settings, json) {",
+            "  var table = settings.oInstance.api();",
+            "  table.on('length.dt', function(e, settings, len) {",
+            "    Shiny.setInputValue('page_length', len);",
+            "  });",
+            "}"
+          ),
+          language = DT_language
+        )
+      )|>
+        apply_conditional_formatting()
+    )
   }, server = TRUE)
   
   # Signal: Datatable has been rendered ####
@@ -728,12 +722,7 @@ server <- function(input, output, session) {
       # Connect to data base 
       DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
         DB_con()
-      
-    }, error = function(e) {
-      showNotification(paste("Connection to data base failed:", e$message), type = "error")
-    })
-    
-    tryCatch({
+
       # After successful connection
       c_connected_to_db(TRUE)
       
@@ -748,12 +737,28 @@ server <- function(input, output, session) {
   ## Data set type selection ####
   observeEvent(input$data_selection,{
     shiny::withProgress(message = "data selection", value = 0, {
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
       
       data_selection_(input$data_selection)
       if(input$data_selection == "Dropdowns"){
         current_data(l_data()[["Kinoklubmitglieder"]])
         lastEdited_data_set_name("Kinoklubmitglieder")
+        
+        # Kinoklubmitgliederfarben
+        c_Kinoklubmitglied <- l_data()[["Kinoklubmitglieder"]] |>
+          mutate(Mitglied = paste(Vorname, Nachname)) |>
+          select(Mitglied) |>
+          pull()
+        
+        c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+        c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+        
+        viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
+          colorspace::lighten(amount = 0.2) |>
+          c_colors()
+        
+        c("#FFFFFFFF", c_colors()) |>
+          c_colors()
         
       }else{
         current_data(l_data()[["Programm"]])
@@ -762,7 +767,7 @@ server <- function(input, output, session) {
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
       
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
       
       # Convert data types for each table
       convert_DB_to_R(l_data_sql,l_template)|>
@@ -784,7 +789,7 @@ server <- function(input, output, session) {
       last_selected_page(NA)
       last_selected_row(NA)
       
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
       
     })
   })
@@ -815,7 +820,8 @@ server <- function(input, output, session) {
     }
     
     l_data(l_temp)
-    update_choices(l_data()) |> column_choices()
+    update_choices(l_data()) |> 
+      column_choices()
     lastEdited_data_set_name(input$dataset)
     
     if(input$dataset == "Einsatzplan") {
@@ -829,7 +835,8 @@ server <- function(input, output, session) {
     # remove row and page selection 
     last_selected_page(NA)
     last_selected_row(NA)
-    
+    # remove user filter 
+    last_user_filter(NULL)
   })
   
   ## Select a row and finde page and update   ####
