@@ -13,7 +13,7 @@ writeLines("Daten werden einlesen und berechnet...")
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-###### read template data ######
+# read template data ######
 # read template
 l_template <- readRDS("source/SQL/template.Rds")
 
@@ -31,7 +31,7 @@ l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
 dbDisconnect(con)
 remove(l_template, con, pw, user)
 
-##### Eintritte aus Advanced Tickets files #####
+# Eintritte aus Advanced Tickets files #####
 convert_data_Film_txt <- function(fileName, Programm) {
   print("convert_data_Film_txt")
   l_Eintritt <- fileName|>
@@ -174,7 +174,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
   return(l_Eintritt)
 }
 
-##### Extrakt Kioskverkauf und Überschuss / Manko #####
+# Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   l_temp <- fileName|>
     lapply(function(fileName){
@@ -325,7 +325,7 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   return(l_temp)
 }
 
-#### check nb of files Eintritt vs Kiosk ####
+# check nb of files Eintritt vs Kiosk ####
 
 c_eintritt <- list.files("Input/advance tickets",pattern = "Eintritt")
 c_Kiosk <- list.files("Input/advance tickets",pattern = "Kiosk")
@@ -351,7 +351,7 @@ if(sum(c_test) != length(c_test)){
   c_Kiosk[c_index]
 } 
 
-#### Programm check ####
+# Programm check ####
 df_temp <- l_data$Programm|>
   distinct(Datum, Suisanummer, .keep_all = TRUE)
 df_temp
@@ -371,7 +371,7 @@ if(nrow(df_temp) != nrow(l_data$Programm)){
               "\nEs ist aber nur einer erlaubt pro Datum und Suisanummer. Bitte das Proramm korrigieren!"))
 }
 
-################## Einnahmen und Ausgaben einlesen ##################
+# Einnahmen und Ausgaben einlesen ##################
 Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
                                  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
                                ,
@@ -379,7 +379,7 @@ Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
                                  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
                                  )
 
-################## check suisanummer  ##################
+# check suisanummer  ##################
 ## error handling
 p <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
 df_temp <- l_data$Programm|>
@@ -396,7 +396,7 @@ if(nrow(df_temp) != 0) {
   )}
 
 
-################## Eintritt aus Advanced Tickets ##################
+# Eintritt aus Advanced Tickets ##################
 # files to read in
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 
@@ -444,7 +444,7 @@ if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
 }
 
 
-#### Kioskeinkauf ####
+# Kioskeinkauf ####
 # Advace tickets Kiosk
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
@@ -460,7 +460,7 @@ df_Kiosk <- l_temp|>
          )
 df_Kiosk
 
-#### Manko und Überschuss Kiosk ####
+# Manko und Überschuss Kiosk ####
 df_manko_uerberschuss <- l_temp|>
   lapply(function(x){
     x$`Überschuss / Manko`
@@ -476,8 +476,7 @@ df_Kiosk <- df_Kiosk|>
 df_Kiosk
 
 
-
-#### Spez Verkaufsartikel / Spezialpreise einlesen ####
+# Spez Verkaufsartikel / Spezialpreise einlesen ####
 # Spezialpreise einlesen
 l_data$Spezialpreisekiosk|>
   arrange(`Event ID`, Spezialpreis)
@@ -673,7 +672,7 @@ remove(df_Mapping_Einkaufspreise,m_Kiosk,
        c_path, c_files, l_temp
        )
 
-######### Abos und Kinogutscheine #########
+# Abos und Kinogutscheine #########
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
   warning(paste0("\nDie Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
        "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
@@ -712,7 +711,7 @@ df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutsch
                                     trim_ws = TRUE)
 
 
-################## Verleiherabgaben einlesen ##################
+# Verleiherabgaben einlesen ##################
 df_temp <- l_data$Programm|>
   select(1:11,-`Link to Event ID`)|>
   left_join(l_data$Verleiher|>
@@ -735,7 +734,7 @@ if(nrow(df_temp)>0){
 }
 
 
-################ Abrechnung check ################
+# Abrechnung check ################
 
 # Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?)
 df_Abrechnung <- l_data$Programm|>
@@ -860,7 +859,7 @@ warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$F
                " gibt es keine Verleiherrechnung.",
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
 
-#### Programm check ####
+# Programm check ####
 df_Film <- l_data$Programm|>
   group_by(Suisanummer)|>
   reframe(n())|>
@@ -899,7 +898,7 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
-##################  Ticketabrechnung vorbereiten ##################
+#  Ticketabrechnung vorbereiten ##################
 
 df_Abrechnung <- df_Abrechnung|>
   filter(Datum <= Sys.Date(),
@@ -908,7 +907,7 @@ df_Abrechnung <- df_Abrechnung|>
   select(-`Verleiher Angefragt?`,-Bezeichnung)
 
 
-##### Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
+# Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. #####
 df_Tickets <- df_Eintritt|>
   left_join(df_Abrechnung,
             by = "Event ID"
@@ -939,7 +938,7 @@ df_Tickets <- df_Eintritt|>
   arrange(Datum)
 
 
-#### Umsatz aus Tickets zu Abrechnung hinzufügen ####
+# Umsatz aus Tickets zu Abrechnung hinzufügen ####
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T),
@@ -950,7 +949,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
                           by = join_by(`Event ID`)
                           )
 
-#### Suisavorabzug der Abrechnung hinzufügen ####
+# Suisavorabzug der Abrechnung hinzufügen ####
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   distinct(`SUISA-Vorabzug [%]`)
@@ -961,7 +960,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
 remove(df_Tickets)
 
 
-#### Umsatz und Verleiherabzug MWST und Ticketgewinn #####
+# Umsatz und Verleiherabzug MWST und Ticketgewinn #####
 names(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
@@ -998,7 +997,7 @@ df_Abrechnung|>
   select(1:3, `Umsatz [CHF]`,`Verleiherrechnungsbetrag [CHF]`, 15:ncol(df_Abrechnung))
 
 
-#### Kioskgewinn der Abrechnung hinzufügen 
+# Kioskgewinn der Abrechnung hinzufügen 
 df_temp <- df_Kiosk|>
   group_by(`Event ID`)|>
   reframe(`Kioskgewinn [CHF]` = sum(Gewinn, na.rm = T))
@@ -1008,12 +1007,12 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
                            )  
 
-#### Manko / Überschuss Kasse der Abrechnung hinzufügen ####
+# Manko / Überschuss Kasse der Abrechnung hinzufügen ####
 df_Abrechnung <- left_join(df_Abrechnung, 
                            df_manko_uerberschuss,
                            by = join_by(`Event ID`)
                            )  
-#### Eventeinnahmen der Abrechnung hinzufügen ####
+# Eventeinnahmen der Abrechnung hinzufügen ####
 df_temp <- l_data$Einnahmen|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
@@ -1025,7 +1024,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )  
 
-#### Eventeinnahmen der Abrechnung hinzufügen ####
+# Eventeinnahmen der Abrechnung hinzufügen ####
 df_temp <- l_data$Ausgaben|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
@@ -1037,7 +1036,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )
 
-#### Gewinn aus Filmvorführungen 
+# Gewinn aus Filmvorführungen 
 df_temp <- df_Abrechnung|>
   group_by(`Event ID`)|>
   reframe(`Gewinn aus Fimvorführung [CHF]` = 
@@ -1047,7 +1046,7 @@ df_temp <- df_Abrechnung|>
 df_temp
 df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
 
-##### Verteilprodukt über mehrere Event IDs erstellen ########
+# Verteilprodukt über mehrere Event IDs erstellen ########
 df_mapping <- df_Abrechnung|>
   select(1:6)
 df_mapping
@@ -1180,7 +1179,7 @@ l_abrechnung[["4"]]
 l_abrechnung[["5"]]
 l_abrechnung[["6"]]
 
-##################  Data frames für Berichte erstellen ##################
+#  Data frames für Berichte erstellen ##################
 
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 df_Abrechnung <- l_abrechnung|>
@@ -1247,7 +1246,7 @@ df_Besucherzahlen <- df_Eintritt|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
-################## write to Excel ##################
+# write to Excel ##################
 c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
 
@@ -1266,7 +1265,7 @@ remove(ii,
        c_filePath
        )
 
-# user interaction
+# user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
 
 l_abrechnung$`10`
