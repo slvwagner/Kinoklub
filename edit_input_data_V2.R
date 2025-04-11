@@ -1910,6 +1910,44 @@ server <- function(input, output, session) {
       "))
     )
   })
+  
+  ### color code generator ####
+  observeEvent(input$create_colors,{
+    c_Kinoklubmitglied <- 
+      l_data()[["Kinoklubmitglieder"]]|>
+      mutate(Mitglied = paste(Vorname, Nachname))|>
+      select(Mitglied)|>
+      pull()
+    
+    c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+    c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+    
+    # genaerat Kinoklubmitglieder colors 
+    viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
+      colorspace::lighten(amount = 0.3)|>
+      c_colors()
+    
+    c("#FFFFFFFF", c_colors())|>
+      c_colors()
+    c_Kinoklubmitglied <- c("",c_Kinoklubmitglied)
+    
+    # Before applying formatStyle, make sure:
+    if(length(c_Kinoklubmitglied) != length(c_colors())) {
+      stop("not the same lenght this is a Bug")
+    }
+    
+    # Determine text color based on luminance
+    text_color <- lapply(c_colors(), get_luminance)|>
+      unlist()
+    text_color <- ifelse(text_color < 0.5, "white", "black")
+    
+    tibble(Kinoklubmitglied =c_Kinoklubmitglied,
+           `Background color` = c_colors(),
+           `Text color` = text_color
+           )
+    # Trigger DT rendering 
+    current_data(current_data)
+  })
 }
 
 # shinyApp(ui = ui, server = server)
