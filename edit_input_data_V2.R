@@ -673,6 +673,121 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Change in page length ####
+  observeEvent(input$page_length, {
+    req(input$page_length)
+    page_length_var(input$page_length)
+  })
+  
+  ## Select a row and finde page and update   ####
+  observeEvent(input$table_rows_selected, {
+    req(input$table_rows_selected)
+    c_row <- as.integer(input$table_rows_selected)
+    # map selected row to ID
+    df_temp <- last_rendered_DT()
+    pull(df_temp[c_row,1])|>
+      ID_to_edit()
+    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
+    # handel user filters
+    column_filters = input$table_search_columns
+    column_filters <- column_filters|>
+      str_remove_all("\"")|>
+      str_remove_all("\\[")|>
+      str_remove_all("\\]")
+    column_filters <- str_split(column_filters,",")
+    
+    # Update last user filter
+    c_test <- lapply(column_filters, function(x){
+      nchar(x) > 0
+    })|>
+      unlist()
+    # get column data type
+    c_class <- get_data_type(df_temp)
+    ##### apply all column filters ####
+    for (ii in 1:length(column_filters)) {
+      col_filter <- column_filters[[ii]]
+      if(nchar(col_filter[1]) > 0){
+        if(c_class[ii] %in% c("Date", "hms")){
+          c_date <- pull(df_temp[,ii])|>
+            as.character()
+          df_temp <- df_temp[str_detect(c_date, col_filter),]
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+        } 
+        else if(c_class[ii] == "integer"){
+          # library(rebus)
+          # p1 <- START%R%one_or_more(DGT)
+          # p2 <- one_or_more(DGT)%R%END
+          p1 <- "^[\\d]+"
+          p2 <- "[\\d]+$"
+          start <- str_extract(col_filter, p1)|>
+            as.integer()
+          end <- str_extract(col_filter, p2)|>
+            as.integer()
+          c_select <- start:end
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
+        } else if (c_class[ii] == "factor"){
+          if(length(col_filter) > 1){
+            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
+          } else {
+            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
+            c_select <- ifelse(is.na(c_select), FALSE, c_select)
+            df_temp <- df_temp[c_select,]
+          }
+        }
+        # character 
+        else { 
+          # filters for data tabel are not case sensitive so tolower() conversion is needed 
+          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
+          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+        }
+      }
+    }
+    # map ID to selected row
+    df_temp <- df_temp |>
+      mutate(index = row_number())
+    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
+    # has the page lenght changed? 
+    if(!is.null(input$page_length)){
+      page_length_var(input$page_length)
+    }
+    if(!is_empty(row_filtered)){
+      # Calculate page 
+      c_page <-  ceiling(row_filtered / page_length_var())  
+      writeLines(paste0("Selected page ", c_page,"\n"))
+      
+      if(c_page == 0) c_page <- 1
+      last_selected_page(c_page)
+      last_selected_row(c_row)
+      
+    } else {
+      stop("Could not calculate page because row was empty, this is a BUG")
+    }
+    ##### if column filters are present update column filters #####
+    if(sum(!c_test) != length(column_filters)) {
+      x <- column_filters[[7]]
+      column_filters_temp <- column_filters|>
+        lapply(function(x){
+          if(length(x) > 1){
+            list(search = paste0("[",paste0("\"", x,"\"", collapse = ","),"]"))
+          } else {
+            if(nchar(x) > 0) {
+              list(search = x)
+            } 
+            else {
+              NULL
+            }
+          } 
+        })
+      # only update if changed
+      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
+      if(!test) {
+        last_user_filter(column_filters_temp)
+      }
+    } else {
+      last_user_filter(NULL)
+    }
+  })
+  
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
     tryCatch({
@@ -794,115 +909,6 @@ server <- function(input, output, session) {
     last_selected_row(NA)
     # remove user filter 
     last_user_filter(NULL)
-  })
-  
-  ## Select a row and finde page and update   ####
-  observeEvent(input$table_rows_selected, {
-    req(input$table_rows_selected)
-    c_row <- as.integer(input$table_rows_selected)
-    # map selected row to ID
-    df_temp <- last_rendered_DT()
-    pull(df_temp[c_row,1])|>
-      ID_to_edit()
-    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
-    # handel user filters
-    column_filters = input$table_search_columns
-    column_filters <- column_filters|>
-      str_remove_all("\"")|>
-      str_remove_all("\\[")|>
-      str_remove_all("\\]")
-    column_filters <- str_split(column_filters,",")
-    
-    # Update last user filter
-    c_test <- lapply(column_filters, function(x){
-      nchar(x) > 0
-    })|>
-      unlist()
-    # get column data type
-    c_class <- get_data_type(df_temp)
-    ##### apply all column filters ####
-    for (ii in 1:length(column_filters)) {
-      col_filter <- column_filters[[ii]]
-      if(nchar(col_filter[1]) > 0){
-        if(c_class[ii] %in% c("Date", "hms")){
-          c_date <- pull(df_temp[,ii])|>
-            as.character()
-          df_temp <- df_temp[str_detect(c_date, col_filter),]
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        } 
-        else if(c_class[ii] == "integer"){
-          # library(rebus)
-          # p1 <- START%R%one_or_more(DGT)
-          # p2 <- one_or_more(DGT)%R%END
-          p1 <- "^[\\d]+"
-          p2 <- "[\\d]+$"
-          start <- str_extract(col_filter, p1)|>
-            as.integer()
-          end <- str_extract(col_filter, p2)|>
-            as.integer()
-          c_select <- start:end
-          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
-        } else if (c_class[ii] == "factor"){
-          if(length(col_filter) > 1){
-            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
-          } else {
-            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
-            c_select <- ifelse(is.na(c_select), FALSE, c_select)
-            df_temp <- df_temp[c_select,]
-          }
-        }
-        # character 
-        else { 
-          # filters for data tabel are not case sensitive so tolower() conversion is needed 
-          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        }
-      }
-    }
-    # map ID to selected row
-    df_temp <- df_temp |>
-      mutate(index = row_number())
-    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
-    # has the page lenght changed? 
-    if(!is.null(input$page_length)){
-      page_length_var(input$page_length)
-    }
-    if(!is_empty(row_filtered)){
-      # Calculate page 
-      c_page <-  ceiling(row_filtered / page_length_var())  
-      writeLines(paste0("Selected page ", c_page,"\n"))
-      
-      if(c_page == 0) c_page <- 1
-      last_selected_page(c_page)
-      last_selected_row(c_row)
-      
-    } else {
-      stop("Could not calculate page because row was empty, this is a BUG")
-    }
-    ##### if column filters are present update column filters #####
-    if(sum(!c_test) != length(column_filters)) {
-      x <- column_filters[[7]]
-      column_filters_temp <- column_filters|>
-        lapply(function(x){
-          if(length(x) > 1){
-            list(search = paste0("[",paste0("\"", x,"\"", collapse = ","),"]"))
-          } else {
-            if(nchar(x) > 0) {
-              list(search = x)
-            } 
-            else {
-              NULL
-            }
-          } 
-        })
-      # only update if changed
-      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
-      if(!test) {
-        last_user_filter(column_filters_temp)
-      }
-    } else {
-      last_user_filter(NULL)
-    }
   })
 
   ## Disconnect from DB ####
@@ -1893,12 +1899,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
 
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
