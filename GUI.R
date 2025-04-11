@@ -1,4 +1,4 @@
-#### Graphical user interface für den Kinoklub ####
+# Graphical user interface für den Kinoklub ####
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
 # Vorbereiten / Installieren
@@ -35,869 +35,18 @@ WordPress_env <- new.env()
 # Functions
 source("source/functions.R")
 
-#### Erstellen von Verzeichnissen ####
+# Erstellen von Verzeichnissen ####
 dir.create("output/") |> suppressWarnings()
 dir.create("output/data/") |> suppressWarnings()
 
-#### Function to create icons for the site map ####
-create_icons <- function(m_Film, c_path, c_url) {
-  library(furrr)
-  library(webshot)  # Ensure webshot is loaded
-  library(magick)   # Ensure magick is loaded
-  c_select <- !((m_Film$FileName |> str_remove(".html")) %in% 
-                  (list.files("output/pict/") |> str_remove(".html.png")))
-  
-  # Determine the number of cores to use
-  num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
-  if(num_cores > 5) num_cores <- 5
-  if(nrow(m_Film) < num_cores) {
-    num_cores <- nrow(m_Film)
-  }
-  paste("Number of cores:", num_cores) |>
-    writeLines()
-  
-  # Set up parallel processing
-  plan(multisession, workers = num_cores)  # Use all but one core
-  
-  # Function to render a single icon
-  render_icons <- function(ii, m_Film, c_path, c_url, c_select) {
-    # Set the path to the input image
-    input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
-    # Create a webshot, printed html
-    webshot::webshot(url = c_url[c_select][ii], file = input_path)
-    # Read the image, crop, resize, and save
-    image_read(input_path) |>
-      image_crop(geometry = "992x992+0+0") |>
-      image_resize("400x400") |>
-      image_write(input_path)
-  }
-  
-  # Apply the function in parallel with a seed for parallel-safe random numbers
-  future_map(1:length(m_Film$FileName[c_select]), 
-             ~render_icons(.x, m_Film, c_path, c_url, c_select), 
-             .options = furrr_options(seed = TRUE)
-  )
-}
-
-#### Function to render a single RMarkdown file ####
-render_single_file <- function(input, output, envir) {
-  rmarkdown::render(
-    input = input,        # input file name
-    output_file = output, # output file name
-    output_dir = "output",# where to put the output file (directory) 
-    envir = envir, 
-    quiet = TRUE  # Suppress output for cleaner logs
-  )
-}
-
-#### Index pro Suisa-Nummer und Datum erstellen ####
-Abrechnung_mapping <- function(data_env, start, end) {
-  # Soll die Verleiherabrechnung erzeugt werden?
-  df_mapping <- data_env$df_Abrechnung |>
-    select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
-    mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
-    filter(between(Datum, as.Date(start), as.Date(end)))
-  
-  if(nrow(df_mapping) > 0){
-    df_mapping <- df_mapping|>
-      mutate(fileName_RMD            = paste0("source/Abrechnung ID",`Event ID`,".Rmd"),
-             fileName_html           = paste0("source/Abrechnung ID",`Event ID`,".html"),
-             fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ID",`Event ID`,".Rmd"),
-             fileName_html_Verleiher = paste0("source/Verleiherabrechnung ID",`Event ID`,".html")
-      )
-  }else stop("Mapping not possible")
-  return(df_mapping)
-}
-
-#### Erstellen der Abrechnung pro `Event ID` ####
-AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
-  for (ii in df_mapping$`Event ID`) {
-    # Template der Abrechnung einlesen
-    c_raw <- readLines("source/Abrechnung.Rmd")
-    
-    # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
-    index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-    c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
-    
-    # Ändern des Templates Titel Filmname
-    index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
-    c_temp1 <- df_mapping|>
-      filter(`Event ID` == ii)|>
-      select(Filmtitel) |>
-      pull()
-    c_temp <- c_raw[(index)] |> str_split("\"", simplify = T) |> as.vector()
-    c_temp <- c_temp[1:2]
-    c_temp <- paste0(c(c_temp), collapse = "\"")
-    c_temp <- paste0(c(c_temp, " "), collapse = "")
-    c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
-    c_temp <- paste(c_temp, "/ Event ID", ii)
-    c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-    
-    
-    # Create Abrechnung
-    c_fileName <- df_mapping|>
-      filter(`Event ID` == ii)|>
-      select(fileName_RMD)|>
-      pull()
-    
-    if (toc) {
-      # neues file schreiben mit toc
-      c_raw |>
-        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-        writeLines(c_fileName)
-    } else {
-      # neues file schreiben ohne toc
-      c_raw |>
-        writeLines(c_fileName)
-    }
-    
-    # Create Verleiherabrechnung
-    do_it <- df_mapping|>
-      filter(`Event ID` == ii)|>
-      select(`Kinoförderer gratis?`)|>
-      pull()
-    if(is.na(do_it)) do_it <- FALSE
-    if(do_it){
-      # Template der Abrechnung einlesen
-      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-      
-      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
-      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-      c_raw[(index + 1)] <- c_raw[(index + 1)] |> 
-        str_replace(one_or_more(DGT), paste0(ii))
-      
-      # neues file schreiben ohne toc
-      c_fileName <- df_mapping|>
-        filter(`Event ID` == ii)|>
-        select(fileName_RMD_Verleiher)|>
-        pull()
-      c_raw |>
-        writeLines(c_fileName)
-    }
-  }
-  
-  library(furrr)
-  # Determine the number of cores to use
-  num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-  if(num_cores > 4) num_cores <- 5
-  if(nrow(df_mapping) < num_cores) {
-    num_cores <- nrow(df_mapping)
-  }
-  
-  # Render in parallel Abrechnung
-  plan(multisession, workers = num_cores)
-  
-  # Render files in parallel
-  future_walk(1:nrow(df_mapping), function(ii) {
-    render_single_file(
-      df_mapping$fileName_RMD[ii],
-      df_mapping$fileName_html[ii],
-      data_env
-    )
-  })
-  file.remove(df_mapping$fileName_RMD)
-  
-  
-  return(NULL)
-}
-
-#### Erstellen der Verleiherabrechnung pro Filmvorführung ####
-VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung) {
-  # Render in parallel Verleiherabrechnung
-  create_verleiherabrechnung <- df_mapping$`Kinoförderer gratis?` |> sum()
-  
-  if (create_verleiherabrechnung > 0) {
-    # Determine the number of cores to use
-    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-    if (num_cores > 4) num_cores <- 5
-    
-    # Adjust cores based on workload
-    if (create_verleiherabrechnung < num_cores) {
-      num_cores <- create_verleiherabrechnung
-    }
-    
-    # Select files to render
-    c_select <- df_mapping |>
-      select(`Event ID`) |>
-      pull() |>
-      as.integer()
-    
-    # File names to render
-    input  <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_RMD_Verleiher)
-    output <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_html_Verleiher)
-    
-    # Render in parallel Verleiherabrechnung
-    library(future)
-    plan(multisession, workers = num_cores)
-    
-    # Render files in parallel
-    library(furrr)
-    future_walk(1:length(c_select), function(ii) {
-      render_single_file(
-        input[ii],
-        output[ii],
-        data_env
-      )
-    })
-    
-    # Delete selected files
-    if (all(file.exists(input))) {
-      file.remove(input)
-    } else {
-      warning("Some files to delete do not exist.")
-    }
-  }
-  return(NULL)
-}
-
-#### Statistik-Bericht erstellen ####
-StatistikErstellen <- function(toc) {
-  # Einlesen
-  c_raw <- readLines("source/Statistik.Rmd")
-  # Inhaltsverzeichnis
-  if (toc |> as.logical()) {
-    # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines(paste0("source/temp.Rmd"))
-  } else {
-    # neues file schreiben ohne toc
-    c_raw |>
-      writeLines(paste0("source/temp.Rmd"))
-  }
-  # Render
-  render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
-}
-
-#### Filmvorschlag erstellen ####
-FilmvorschlagErstellen <- function(toc, data_env) {
-  # Einlesen
-  c_raw <- readLines("source/Archiv.Rmd")
-  # Inhaltsverzeichnis
-  if (toc |> as.logical()) {
-    # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines(paste0("source/temp.Rmd"))
-  } else {
-    # neues file schreiben ohne toc
-    c_raw |>
-      writeLines(paste0("source/temp.Rmd"))
-  }
-  # Render
-  render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
-}
-
-#### Jahresrechnung-Bericht erstellen ####
-JahresrechnungErstellen <- function(toc) {
-  # Einlesen
-  c_raw <- readLines("source/Jahresrechnung.Rmd")
-  # Inhaltsverzeichnis
-  if (toc |> as.logical()) {
-    # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines(paste0("source/temp.Rmd"))
-  } else {
-    # neues file schreiben ohne toc
-    c_raw |>
-      writeLines(paste0("source/temp.Rmd"))
-  }
-  # Render
-  render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
-}
-
-#### function to edit Site-Map: insert pictures ####
-instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
-  # create link to pict and link to file
-  if (length(raw_rmd) == index) {
-    for (ii in 1:(length(fileNames))) {
-      if (ii == 1) {
-        # letzte Zeile von Rmd
-        raw_rmd <- c(
-          raw_rmd[1:index],
-          paste0(
-            "[",
-            "![",
-            fileNames[ii],
-            "](",
-            output_dir,
-            fileNames[ii],
-            ".png)",
-            "](",
-            url[ii],
-            ")"
-          ) # ,"  \\\n\\")," "
-        )
-      } else {
-        # normales einfügen
-        raw_rmd <- c(
-          raw_rmd[1:index],
-          paste0(
-            "[",
-            "![",
-            fileNames[ii],
-            "](",
-            output_dir,
-            fileNames[ii],
-            ".png)",
-            "](",
-            url[ii],
-            ")",
-            if ((ii %% 2) == 0) {
-              " \\"
-            }
-          ),
-          # ,"  \\\n\\"),
-          if ((ii %% 2) == 0) {
-            "\\"
-          },
-          # if index is even put additional spacing
-          raw_rmd[(index + 1):length(raw_rmd)]
-        )
-      }
-    }
-  } else {
-    # normales einfügen
-    for (ii in 1:(length(fileNames))) {
-      raw_rmd <- c(
-        raw_rmd[1:index],
-        paste0(
-          "[",
-          "![",
-          fileNames[ii],
-          "](",
-          output_dir,
-          fileNames[ii],
-          ".png)",
-          "](",
-          url[ii],
-          ")",
-          if ((ii %% 2) == 0) {
-            " \\"
-          }
-        ),
-        # ,"  \\\n\\"),
-        if ((ii %% 2) == 0) {
-          "\\"
-        },
-        # if index is even put additional spacing
-        raw_rmd[(index + 1):length(raw_rmd)]
-      )
-    }
-  }
-  return(raw_rmd)
-}
-
-#### function to create a site-map ####
-webserver <- function() {
-  # Alle Bilder löschen die nicht als html vorhanden sind
-  if (dir.exists("output/pict")) {
-    c_pict <- list.files("output/pict") |> str_remove(pattern = ".png")
-    c_html <- list.files("output/", pattern = "html")
-    
-    list.files("output/pict", full.names = TRUE)[!(c_pict %in% c_html)] |>
-      file.remove()
-  }
-  
-  # Alle html Dateien löschen
-  if (dir.exists("output/webserver")) {
-    list.files("output/webserver", full.names = TRUE) |>
-      file.remove()
-  }
-  
-  # Find reports
-  c_path <- paste0("output/")
-  writeLines(c_path)
-  df_reports <- tibble(FileName = list.files(c_path, "html"))
-  df_reports
-  
-  if (nrow(df_reports) == 0) {
-    stop("\nNo Reports can be found in .../output/")
-  }
-  
-  # Abrechnungen suchen
-  df_temp1 <- df_reports |>
-    filter(str_detect(FileName, "Abrechnung"))
-  x <- df_temp1$FileName[1]
-  
-  df_temp1 <- df_temp1 |>
-    pull() |>
-    lapply(function(x) {
-      doc <- read_html(paste0(c_path, x))
-      # Find elements to edit
-      element <- xml_find_first(doc, "body") |>
-        xml_find_first("div")
-      c_raw <- xml_children(element) |>
-        xml_text()
-      
-      if (sum(str_detect(c_raw, "Inhaltsverzeichnis")) > 0) {
-        index <- c_raw |>
-          str_detect("Übersicht")
-        element <- xml_children(element)[index]
-        element
-        
-        index <- element |>
-          xml_text() |>
-          str_detect("Filmtitel")
-        element <- xml_children(element)[index]
-        element
-        
-        # Extract data
-        c_raw <- element[3] |>
-          xml_text() |>
-          str_split("\n") |>
-          unlist()|>
-          str_remove("\r")
-        c_raw
-        
-        # Create data to return
-        # Create data to return
-        tibble(
-          `Suisa-Nummer` = c_raw[9],
-          Filmtitel = c_raw[10],
-          Datum = c_raw[9],
-          typ = "Abrechnung Filmvorführungen",
-          FileName = x
-        )
-      } else{
-        index <- c_raw |>
-          str_detect("Übersicht")
-        element <- xml_children(element)[index]
-        
-        index <- element |>
-          xml_text() |>
-          str_detect("Filmtitel")
-        element <- xml_children(element)[index]
-        
-        index <- element |>
-          xml_text() |>
-          str_detect("Filmtitel")
-        element <- xml_children(element)[index]
-        
-        # Extract data
-        c_raw <- element[1] |>
-          xml_text() |>
-          str_split("\n") |>
-          unlist() |>
-          str_remove("\r")
-        c_raw
-        
-        # Create data to return
-        tibble(
-          `Suisa-Nummer` = c_raw[7],
-          Filmtitel = c_raw[4],
-          Datum = c_raw[1],
-          typ = "Abrechnung Filmvorführungen",
-          FileName = x
-        )
-      }
-    }) |>
-    bind_rows()
-  df_temp1
-  
-  # Verleiher suchen
-  df_temp2 <- df_reports |>
-    filter(str_detect(FileName, "Verleiher"))
-  
-  if (nrow(df_temp2) != 0) {
-    df_temp2 <- df_temp2 |>
-      pull() |>
-      lapply(function(x) {
-        doc <- read_html(paste0(c_path, x))
-        # Find elements to edit
-        element <- xml_find_first(doc, "body") |>
-          xml_find_first("div")
-        
-        # Find all children of the node
-        children <- xml_children(element)
-        children <- children[[5]] |>
-          xml_children()
-        
-        # Extract data
-        c_raw <- xml_text(children[[2]])[1] |>
-          str_split("\n", simplify = T)
-        
-        # Create data to return
-        tibble(
-          `Suisa-Nummer` = c_raw[, 7],
-          Filmtitel = c_raw[, 8],
-          Datum = c_raw[, 9],
-          FileName = x
-        )
-      }) |>
-      bind_rows() |>
-      mutate(
-        `Suisa-Nummer` = str_remove(`Suisa-Nummer`, "\r"),
-        Filmtitel = str_remove(Filmtitel, "\r"),
-        Datum = str_remove(Datum, "\r"),
-        typ = "Verleiherabrechnung",
-      )
-  }
-  
-  df_temp2
-  
-  # create
-  m_Film <- bind_rows(df_temp2, df_temp1, if (file.exists("output/Statistik.html")) {
-    tibble(
-      `Suisa-Nummer` = NA,
-      Filmtitel = NA,
-      Datum = NA,
-      typ = "Statistik",
-      FileName = "Statistik.html"
-    )
-  }, if (file.exists("output/Jahresrechnung.html")) {
-    tibble(
-      `Suisa-Nummer` = NA,
-      Filmtitel = NA,
-      Datum = NA,
-      typ = "Jahresrechnung",
-      FileName = "Jahresrechnung.html"
-    )
-  }, if (file.exists("output/Archiv.html")) {
-    tibble(
-      `Suisa-Nummer` = NA,
-      Filmtitel = NA,
-      Datum = NA,
-      typ = "Archiv",
-      FileName = "Archiv.html"
-    )
-  }, )
-
-  m_Film
-
-  
-  # create site map
-  if (TRUE) {
-    # Was für Berichte typen sind vorhanden
-    c_typ_Berichte <- m_Film$FileName |>
-      str_extract(START %R% one_or_more(WRD)) |>
-      factor() |>
-      levels()
-    c_typ_Berichte
-    
-    # Convert filenames to URL
-    c_url <- paste0("file:///", URLencode(paste0(getwd(), "/output/", m_Film$FileName)), sep = "")
-    c_url
-    
-    c_path <- paste0(getwd(), "/output/pict")
-    c_path
-    dir.create(c_path) |> suppressWarnings()
-    
-    # Vorschaubilder erzeugen wenn noch nicht vorhanden
-    if (!(length(list.files("output/", "html")) == length(list.files("output/pict/")))) {
-      create_icons(m_Film, c_path, c_url) 
-    }
-    
-    # Einlesen template der Verleiherabrechnung
-    c_raw <- readLines("source/Site_Map.Rmd")
-    c_raw
-    
-    ii <- 1
-    for (ii in 1:length(c_typ_Berichte)) {
-      # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
-      # Index where to insert
-      c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
-      c_index <- c_index[length(c_index)]
-      c_index
-      
-      c_raw
-      c_raw[c_index]
-      
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Jahresrechnung") {
-        c_select <- str_detect(m_Film$FileName,
-                               START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
-        c_raw <- instert_picts(c_raw,
-                               "output/pict/",
-                               c_index,
-                               m_Film$FileName[c_select],
-                               c_url[c_select])
-      } else{
-        c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
-        c_raw <- instert_picts(c_raw,
-                               "output/pict/",
-                               c_index,
-                               m_Film$FileName[c_select],
-                               c_url[c_select])
-      }
-      
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
-        for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(
-            c_raw[1:(c_index)],
-            paste0(
-              "[",
-              m_Film$FileName[c_select][jj],
-              "](",
-              c_url[c_select][jj],
-              ")  ",
-              m_Film$Filmtitel[jj],
-              "  \\"
-            ),
-            c_raw[(c_index + 1):length(c_raw)]
-          )
-        }
-        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
-      }
-      c_raw
-      
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Abrechnung") {
-        for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(
-            c_raw[1:(c_index)],
-            paste0(
-              "[",
-              m_Film$FileName[c_select][jj],
-              "](",
-              c_url[c_select][jj],
-              ")  ",
-              m_Film$Filmtitel[jj],
-              "  \\"
-            ),
-            c_raw[(c_index + 1):length(c_raw)]
-          )
-        }
-        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
-      }
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Archiv") {
-        for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(
-            c_raw[1:(c_index)],
-            paste0(
-              "[",
-              m_Film$FileName[c_select][jj],
-              "](",
-              c_url[c_select][jj],
-              ")  ",
-              m_Film$Filmtitel[jj],
-              "  \\"
-            ),
-            c_raw[(c_index + 1):length(c_raw)]
-          )
-        }
-        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
-      }
-    }
-    c_raw
-    
-    # neues file schreiben
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines("Site-Map.Rmd")
-    
-    # Render
-    rmarkdown::render(input = "Site-Map.Rmd",
-                      envir = data_env,
-                      quiet = TRUE
-    )
-    # Remove file
-    file.remove("Site-Map.Rmd")
-    
-  }
-  
-  # Data for Webserver
-  # copy data from .../output to .../output/webserver
-  c_path <- "output/webserver"
-  if (!dir.exists(c_path)) {
-    dir.create(c_path)
-  }
-  if (!dir.exists(paste0(c_path, "/pict"))) {
-    dir.create(paste0(c_path, "/pict"))
-  }
-  
-  # copy png
-  paste0(
-    getwd(),
-    "/output/pict/",
-    list.files(
-      "output/pict/",
-      pattern = "png",
-      include.dirs = TRUE,
-      recursive = FALSE
-    )
-  ) |>
-    file.copy(paste0(c_path, "/pict"))
-  
-  
-  if (TRUE) {
-    m_Film$FileName <- m_Film$FileName
-    
-    # Was für Berichte typen sind vorhanden
-    c_typ_Berichte <- m_Film$FileName |>
-      str_extract(START %R% one_or_more(WRD)) |>
-      factor() |>
-      levels()
-    c_typ_Berichte
-    
-    # Convert filenames to URL
-    c_url <- paste0("", URLencode(m_Film$FileName))
-    c_url
-    
-    # Einlesen template der Verleiherabrechnung
-    c_raw <- readLines("source/Site_Map.Rmd")
-    c_raw
-    
-    ii <- 1
-    for (ii in 1:length(c_typ_Berichte)) {
-      # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
-      # Index where to insert
-      c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
-      c_index <- c_index[length(c_index)]
-      c_index
-      
-      c_raw
-      c_raw[c_index]
-      
-      if (c_typ_Berichte[ii] == "Jahresrechnung") {
-        c_select <- str_detect(m_Film$FileName,
-                               START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
-      } else{
-        c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
-      }
-      
-      c_raw
-      m_Film$FileName[c_select]
-      c_url[c_select]
-      
-      c_raw <- instert_picts(c_raw, "pict/", c_index, m_Film$FileName[c_select], c_url[c_select])
-      c_raw
-      
-      c_raw[c_index]
-      
-      
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
-        for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(
-            c_raw[1:(c_index)],
-            paste0(
-              "[",
-              m_Film$FileName[c_select][jj],
-              "](",
-              c_url[c_select][jj],
-              ")  ",
-              m_Film$Filmtitel[c_select][jj],
-              "  \\"
-            ),
-            c_raw[(c_index + 1):length(c_raw)]
-          )
-        }
-        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
-      }
-      
-      # Linkliste einfügen
-      if (c_typ_Berichte[ii] == "Abrechnung") {
-        for (jj in 1:length(m_Film$FileName[c_select])) {
-          c_raw <- c(
-            c_raw[1:(c_index)],
-            paste0(
-              "[",
-              m_Film$FileName[c_select][jj],
-              "](",
-              c_url[c_select][jj],
-              ")  ",
-              m_Film$Filmtitel[c_select][jj],
-              "  \\"
-            ),
-            c_raw[(c_index + 1):length(c_raw)]
-          )
-        }
-        c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
-      }
-      c_raw
-    }
-    
-    c_typ_Berichte[ii]
-    c_raw
-    
-    # neues file schreiben
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines("output/webserver/index.Rmd")
-    
-    # Render
-    rmarkdown::render(input = "output/webserver/index.Rmd", envir = data_env, quiet = TRUE)
-    # Remove file
-    file.remove("output/webserver/index.Rmd")
-    # Remove directory
-    unlink(paste0(c_path, "/pict"), recursive = TRUE)
-    
-  }
-  
-  # edit html
-  # Package names
-  packages <- c("xml2")
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-  
-  
-  add_SiteMapLink <- function(file_path) {
-    # load html file
-    doc <- read_html(file_path)
-    
-    # Find elements to edit
-    element <- xml_find_first(doc, "body") |>
-      xml_find_first("div")
-    
-    # Find all children of the parent node
-    children <- xml_children(element)
-    
-    # Insert Node
-    xml_add_child(children[[1]],
-                  paste0("a href=\"", URLencode(paste0("index.html")), "\""),
-                  "Site-Map")
-    write_xml(doc, file_path)
-  }
-  
-  #copy data from .../output to .../output/webserver
-  c_path <- "output/webserver"
-  
-  # copy html
-  paste0(
-    "output/",
-    list.files(
-      "output/",
-      pattern = "html",
-      include.dirs = FALSE,
-      recursive = FALSE
-    )
-  ) |>
-    file.copy(paste0(c_path, ""), overwrite = TRUE)
-  
-  c_files <- list.files(
-    "output/webserver/",
-    pattern = "html" %R% END,
-    include.dirs = FALSE,
-    recursive = FALSE
-  )
-  c_files <- paste0("output/webserver/", c_files)
-  
-  # apply Site-Map link
-  c_files |>
-    lapply(add_SiteMapLink)
-  
-  # remove files
-  file.remove("Site-Map.html")
-  
-}
-
-#### Error if calculation not executing ####
+## Error if calculation not executing ####
 error_calculate <-  paste0("\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
   "! Es konnten nicht alle Daten einlesen werden. !\n",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
   )
 
-#### calculate.R ####
+# calculate.R ####
 data_env <- new.env()
 # read data
 calculate_warnings <- ""
@@ -937,28 +86,6 @@ ausgabe_text
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
 
-#### Shiny reactive variables ####
-calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
-ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
-
-# Sollen Inhaltsverzeichnisse erstellt werden
-toc <- shiny::reactiveVal(TRUE)
-
-# Vektor mit Datumseinträgen
-if (exists("df_Besucherzahlen", envir = data_env))  {
-  datum_vektor <- data_env$df_Besucherzahlen$Datum
-} else {
-  datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
-}
-
-# Filmtabelle anzeigen
-df_Render <- shiny::reactiveVal(NULL)
-
-# Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
-End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
-
-# Does the index.html file exist, is the webserver ready
-file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
 
 # Serve the custom_styles directory
 shiny::addResourcePath("custom_styles", "source")
@@ -971,7 +98,7 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-#### UI-Definition fluid page ####
+# UI-Definition fluid page ####
 ui <- 
   shiny::fluidPage(
     shiny::tags$head(
@@ -991,7 +118,7 @@ ui <-
     )
   )
 
-# #### UI-Definition bs4Dash ####
+# # UI-Definition bs4Dash ####
 # library(bs4Dash)
 # ui <- dashboardPage(
 #   help = TRUE,
@@ -1013,10 +140,885 @@ ui <-
 #   )
 # )
  
-############### Server-Logik ###############
+# Server-Logik ####
 server <- function(input, output, session) {
+  ## Helper functions ####
+  ### Function to create icons for the site map #####
+  create_icons <- function(m_Film, c_path, c_url) {
+    library(furrr)
+    library(webshot)  # Ensure webshot is loaded
+    library(magick)   # Ensure magick is loaded
+    c_select <- !((m_Film$FileName |> str_remove(".html")) %in% 
+                    (list.files("output/pict/") |> str_remove(".html.png")))
+    
+    # Determine the number of cores to use
+    num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
+    if(num_cores > 5) num_cores <- 5
+    if(nrow(m_Film) < num_cores) {
+      num_cores <- nrow(m_Film)
+    }
+    paste("Number of cores:", num_cores) |>
+      writeLines()
+    
+    # Set up parallel processing
+    plan(multisession, workers = num_cores)  # Use all but one core
+    
+    # Function to render a single icon
+    render_icons <- function(ii, m_Film, c_path, c_url, c_select) {
+      # Set the path to the input image
+      input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
+      # Create a webshot, printed html
+      webshot::webshot(url = c_url[c_select][ii], file = input_path)
+      # Read the image, crop, resize, and save
+      image_read(input_path) |>
+        image_crop(geometry = "992x992+0+0") |>
+        image_resize("400x400") |>
+        image_write(input_path)
+    }
+    
+    # Apply the function in parallel with a seed for parallel-safe random numbers
+    future_map(1:length(m_Film$FileName[c_select]), 
+               ~render_icons(.x, m_Film, c_path, c_url, c_select), 
+               .options = furrr_options(seed = TRUE)
+    )
+  }
   
-  ##### Überwachung Button Daten Einlesen #####
+  ### Function to render a single RMarkdown file ####
+  render_single_file <- function(input, output, envir) {
+    rmarkdown::render(
+      input = input,        # input file name
+      output_file = output, # output file name
+      output_dir = "output",# where to put the output file (directory) 
+      envir = envir, 
+      quiet = TRUE  # Suppress output for cleaner logs
+    )
+  }
+  
+  ### Index pro Suisa-Nummer und Datum erstellen ####
+  Abrechnung_mapping <- function(data_env, start, end) {
+    # Soll die Verleiherabrechnung erzeugt werden?
+    df_mapping <- data_env$df_Abrechnung |>
+      select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
+      mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
+      filter(between(Datum, as.Date(start), as.Date(end)))
+    
+    if(nrow(df_mapping) > 0){
+      df_mapping <- df_mapping|>
+        mutate(fileName_RMD            = paste0("source/Abrechnung ID",`Event ID`,".Rmd"),
+               fileName_html           = paste0("source/Abrechnung ID",`Event ID`,".html"),
+               fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ID",`Event ID`,".Rmd"),
+               fileName_html_Verleiher = paste0("source/Verleiherabrechnung ID",`Event ID`,".html")
+        )
+    }else stop("Mapping not possible")
+    return(df_mapping)
+  }
+  
+  ### Erstellen der Abrechnung pro `Event ID` ####
+  AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
+    for (ii in df_mapping$`Event ID`) {
+      # Template der Abrechnung einlesen
+      c_raw <- readLines("source/Abrechnung.Rmd")
+      
+      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> str_replace(one_or_more(DGT), paste0(ii))
+      
+      # Ändern des Templates Titel Filmname
+      index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
+      c_temp1 <- df_mapping|>
+        filter(`Event ID` == ii)|>
+        select(Filmtitel) |>
+        pull()
+      c_temp <- c_raw[(index)] |> str_split("\"", simplify = T) |> as.vector()
+      c_temp <- c_temp[1:2]
+      c_temp <- paste0(c(c_temp), collapse = "\"")
+      c_temp <- paste0(c(c_temp, " "), collapse = "")
+      c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
+      c_temp <- paste(c_temp, "/ Event ID", ii)
+      c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
+      
+      
+      # Create Abrechnung
+      c_fileName <- df_mapping|>
+        filter(`Event ID` == ii)|>
+        select(fileName_RMD)|>
+        pull()
+      
+      if (toc) {
+        # neues file schreiben mit toc
+        c_raw |>
+          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+          writeLines(c_fileName)
+      } else {
+        # neues file schreiben ohne toc
+        c_raw |>
+          writeLines(c_fileName)
+      }
+      
+      # Create Verleiherabrechnung
+      do_it <- df_mapping|>
+        filter(`Event ID` == ii)|>
+        select(`Kinoförderer gratis?`)|>
+        pull()
+      if(is.na(do_it)) do_it <- FALSE
+      if(do_it){
+        # Template der Abrechnung einlesen
+        c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+        
+        # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+        index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+        c_raw[(index + 1)] <- c_raw[(index + 1)] |> 
+          str_replace(one_or_more(DGT), paste0(ii))
+        
+        # neues file schreiben ohne toc
+        c_fileName <- df_mapping|>
+          filter(`Event ID` == ii)|>
+          select(fileName_RMD_Verleiher)|>
+          pull()
+        c_raw |>
+          writeLines(c_fileName)
+      }
+    }
+    
+    library(furrr)
+    # Determine the number of cores to use
+    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+    if(num_cores > 4) num_cores <- 5
+    if(nrow(df_mapping) < num_cores) {
+      num_cores <- nrow(df_mapping)
+    }
+    
+    # Render in parallel Abrechnung
+    plan(multisession, workers = num_cores)
+    
+    # Render files in parallel
+    future_walk(1:nrow(df_mapping), function(ii) {
+      render_single_file(
+        df_mapping$fileName_RMD[ii],
+        df_mapping$fileName_html[ii],
+        data_env
+      )
+    })
+    file.remove(df_mapping$fileName_RMD)
+    
+    
+    return(NULL)
+  }
+  
+  ### Erstellen der Verleiherabrechnung pro Filmvorführung ####
+  VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung) {
+    # Render in parallel Verleiherabrechnung
+    create_verleiherabrechnung <- df_mapping$`Kinoförderer gratis?` |> sum()
+    
+    if (create_verleiherabrechnung > 0) {
+      # Determine the number of cores to use
+      num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+      if (num_cores > 4) num_cores <- 5
+      
+      # Adjust cores based on workload
+      if (create_verleiherabrechnung < num_cores) {
+        num_cores <- create_verleiherabrechnung
+      }
+      
+      # Select files to render
+      c_select <- df_mapping |>
+        select(`Event ID`) |>
+        pull() |>
+        as.integer()
+      
+      # File names to render
+      input  <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_RMD_Verleiher)
+      output <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_html_Verleiher)
+      
+      # Render in parallel Verleiherabrechnung
+      library(future)
+      plan(multisession, workers = num_cores)
+      
+      # Render files in parallel
+      library(furrr)
+      future_walk(1:length(c_select), function(ii) {
+        render_single_file(
+          input[ii],
+          output[ii],
+          data_env
+        )
+      })
+      
+      # Delete selected files
+      if (all(file.exists(input))) {
+        file.remove(input)
+      } else {
+        warning("Some files to delete do not exist.")
+      }
+    }
+    return(NULL)
+  }
+  
+  ### Statistik-Bericht erstellen ####
+  StatistikErstellen <- function(toc) {
+    # Einlesen
+    c_raw <- readLines("source/Statistik.Rmd")
+    # Inhaltsverzeichnis
+    if (toc |> as.logical()) {
+      # neues file schreiben mit toc
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines(paste0("source/temp.Rmd"))
+    } else {
+      # neues file schreiben ohne toc
+      c_raw |>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    # Render
+    render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
+  }
+  
+  ### Filmvorschlag erstellen ####
+  FilmvorschlagErstellen <- function(toc, data_env) {
+    # Einlesen
+    c_raw <- readLines("source/Archiv.Rmd")
+    # Inhaltsverzeichnis
+    if (toc |> as.logical()) {
+      # neues file schreiben mit toc
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines(paste0("source/temp.Rmd"))
+    } else {
+      # neues file schreiben ohne toc
+      c_raw |>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    # Render
+    render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
+  }
+  
+  ### Jahresrechnung-Bericht erstellen ####
+  JahresrechnungErstellen <- function(toc) {
+    # Einlesen
+    c_raw <- readLines("source/Jahresrechnung.Rmd")
+    # Inhaltsverzeichnis
+    if (toc |> as.logical()) {
+      # neues file schreiben mit toc
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines(paste0("source/temp.Rmd"))
+    } else {
+      # neues file schreiben ohne toc
+      c_raw |>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    # Render
+    render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
+  }
+  
+  ### function to edit Site-Map: insert pictures ####
+  instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
+    # create link to pict and link to file
+    if (length(raw_rmd) == index) {
+      for (ii in 1:(length(fileNames))) {
+        if (ii == 1) {
+          # letzte Zeile von Rmd
+          raw_rmd <- c(
+            raw_rmd[1:index],
+            paste0(
+              "[",
+              "![",
+              fileNames[ii],
+              "](",
+              output_dir,
+              fileNames[ii],
+              ".png)",
+              "](",
+              url[ii],
+              ")"
+            ) # ,"  \\\n\\")," "
+          )
+        } else {
+          # normales einfügen
+          raw_rmd <- c(
+            raw_rmd[1:index],
+            paste0(
+              "[",
+              "![",
+              fileNames[ii],
+              "](",
+              output_dir,
+              fileNames[ii],
+              ".png)",
+              "](",
+              url[ii],
+              ")",
+              if ((ii %% 2) == 0) {
+                " \\"
+              }
+            ),
+            # ,"  \\\n\\"),
+            if ((ii %% 2) == 0) {
+              "\\"
+            },
+            # if index is even put additional spacing
+            raw_rmd[(index + 1):length(raw_rmd)]
+          )
+        }
+      }
+    } else {
+      # normales einfügen
+      for (ii in 1:(length(fileNames))) {
+        raw_rmd <- c(
+          raw_rmd[1:index],
+          paste0(
+            "[",
+            "![",
+            fileNames[ii],
+            "](",
+            output_dir,
+            fileNames[ii],
+            ".png)",
+            "](",
+            url[ii],
+            ")",
+            if ((ii %% 2) == 0) {
+              " \\"
+            }
+          ),
+          # ,"  \\\n\\"),
+          if ((ii %% 2) == 0) {
+            "\\"
+          },
+          # if index is even put additional spacing
+          raw_rmd[(index + 1):length(raw_rmd)]
+        )
+      }
+    }
+    return(raw_rmd)
+  }
+  
+  ### function to create a site-map ####
+  webserver <- function() {
+    # Alle Bilder löschen die nicht als html vorhanden sind
+    if (dir.exists("output/pict")) {
+      c_pict <- list.files("output/pict") |> str_remove(pattern = ".png")
+      c_html <- list.files("output/", pattern = "html")
+      
+      list.files("output/pict", full.names = TRUE)[!(c_pict %in% c_html)] |>
+        file.remove()
+    }
+    
+    # Alle html Dateien löschen
+    if (dir.exists("output/webserver")) {
+      list.files("output/webserver", full.names = TRUE) |>
+        file.remove()
+    }
+    
+    # Find reports
+    c_path <- paste0("output/")
+    writeLines(c_path)
+    df_reports <- tibble(FileName = list.files(c_path, "html"))
+    df_reports
+    
+    if (nrow(df_reports) == 0) {
+      stop("\nNo Reports can be found in .../output/")
+    }
+    
+    # Abrechnungen suchen
+    df_temp1 <- df_reports |>
+      filter(str_detect(FileName, "Abrechnung"))
+    x <- df_temp1$FileName[1]
+    
+    df_temp1 <- df_temp1 |>
+      pull() |>
+      lapply(function(x) {
+        doc <- read_html(paste0(c_path, x))
+        # Find elements to edit
+        element <- xml_find_first(doc, "body") |>
+          xml_find_first("div")
+        c_raw <- xml_children(element) |>
+          xml_text()
+        
+        if (sum(str_detect(c_raw, "Inhaltsverzeichnis")) > 0) {
+          index <- c_raw |>
+            str_detect("Übersicht")
+          element <- xml_children(element)[index]
+          element
+          
+          index <- element |>
+            xml_text() |>
+            str_detect("Filmtitel")
+          element <- xml_children(element)[index]
+          element
+          
+          # Extract data
+          c_raw <- element[3] |>
+            xml_text() |>
+            str_split("\n") |>
+            unlist()|>
+            str_remove("\r")
+          c_raw
+          
+          # Create data to return
+          # Create data to return
+          tibble(
+            `Suisa-Nummer` = c_raw[9],
+            Filmtitel = c_raw[10],
+            Datum = c_raw[9],
+            typ = "Abrechnung Filmvorführungen",
+            FileName = x
+          )
+        } else{
+          index <- c_raw |>
+            str_detect("Übersicht")
+          element <- xml_children(element)[index]
+          
+          index <- element |>
+            xml_text() |>
+            str_detect("Filmtitel")
+          element <- xml_children(element)[index]
+          
+          index <- element |>
+            xml_text() |>
+            str_detect("Filmtitel")
+          element <- xml_children(element)[index]
+          
+          # Extract data
+          c_raw <- element[1] |>
+            xml_text() |>
+            str_split("\n") |>
+            unlist() |>
+            str_remove("\r")
+          c_raw
+          
+          # Create data to return
+          tibble(
+            `Suisa-Nummer` = c_raw[7],
+            Filmtitel = c_raw[4],
+            Datum = c_raw[1],
+            typ = "Abrechnung Filmvorführungen",
+            FileName = x
+          )
+        }
+      }) |>
+      bind_rows()
+    df_temp1
+    
+    # Verleiher suchen
+    df_temp2 <- df_reports |>
+      filter(str_detect(FileName, "Verleiher"))
+    
+    if (nrow(df_temp2) != 0) {
+      df_temp2 <- df_temp2 |>
+        pull() |>
+        lapply(function(x) {
+          doc <- read_html(paste0(c_path, x))
+          # Find elements to edit
+          element <- xml_find_first(doc, "body") |>
+            xml_find_first("div")
+          
+          # Find all children of the node
+          children <- xml_children(element)
+          children <- children[[5]] |>
+            xml_children()
+          
+          # Extract data
+          c_raw <- xml_text(children[[2]])[1] |>
+            str_split("\n", simplify = T)
+          
+          # Create data to return
+          tibble(
+            `Suisa-Nummer` = c_raw[, 7],
+            Filmtitel = c_raw[, 8],
+            Datum = c_raw[, 9],
+            FileName = x
+          )
+        }) |>
+        bind_rows() |>
+        mutate(
+          `Suisa-Nummer` = str_remove(`Suisa-Nummer`, "\r"),
+          Filmtitel = str_remove(Filmtitel, "\r"),
+          Datum = str_remove(Datum, "\r"),
+          typ = "Verleiherabrechnung",
+        )
+    }
+    
+    df_temp2
+    
+    # create
+    m_Film <- bind_rows(df_temp2, df_temp1, if (file.exists("output/Statistik.html")) {
+      tibble(
+        `Suisa-Nummer` = NA,
+        Filmtitel = NA,
+        Datum = NA,
+        typ = "Statistik",
+        FileName = "Statistik.html"
+      )
+    }, if (file.exists("output/Jahresrechnung.html")) {
+      tibble(
+        `Suisa-Nummer` = NA,
+        Filmtitel = NA,
+        Datum = NA,
+        typ = "Jahresrechnung",
+        FileName = "Jahresrechnung.html"
+      )
+    }, if (file.exists("output/Archiv.html")) {
+      tibble(
+        `Suisa-Nummer` = NA,
+        Filmtitel = NA,
+        Datum = NA,
+        typ = "Archiv",
+        FileName = "Archiv.html"
+      )
+    }, )
+    
+    m_Film
+    
+    
+    # create site map
+    if (TRUE) {
+      # Was für Berichte typen sind vorhanden
+      c_typ_Berichte <- m_Film$FileName |>
+        str_extract(START %R% one_or_more(WRD)) |>
+        factor() |>
+        levels()
+      c_typ_Berichte
+      
+      # Convert filenames to URL
+      c_url <- paste0("file:///", URLencode(paste0(getwd(), "/output/", m_Film$FileName)), sep = "")
+      c_url
+      
+      c_path <- paste0(getwd(), "/output/pict")
+      c_path
+      dir.create(c_path) |> suppressWarnings()
+      
+      # Vorschaubilder erzeugen wenn noch nicht vorhanden
+      if (!(length(list.files("output/", "html")) == length(list.files("output/pict/")))) {
+        create_icons(m_Film, c_path, c_url) 
+      }
+      
+      # Einlesen template der Verleiherabrechnung
+      c_raw <- readLines("source/Site_Map.Rmd")
+      c_raw
+      
+      ii <- 1
+      for (ii in 1:length(c_typ_Berichte)) {
+        # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+        # Index where to insert
+        c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
+        c_index <- c_index[length(c_index)]
+        c_index
+        
+        c_raw
+        c_raw[c_index]
+        
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Jahresrechnung") {
+          c_select <- str_detect(m_Film$FileName,
+                                 START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
+          c_raw <- instert_picts(c_raw,
+                                 "output/pict/",
+                                 c_index,
+                                 m_Film$FileName[c_select],
+                                 c_url[c_select])
+        } else{
+          c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
+          c_raw <- instert_picts(c_raw,
+                                 "output/pict/",
+                                 c_index,
+                                 m_Film$FileName[c_select],
+                                 c_url[c_select])
+        }
+        
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
+          for (jj in 1:length(m_Film$FileName[c_select])) {
+            c_raw <- c(
+              c_raw[1:(c_index)],
+              paste0(
+                "[",
+                m_Film$FileName[c_select][jj],
+                "](",
+                c_url[c_select][jj],
+                ")  ",
+                m_Film$Filmtitel[jj],
+                "  \\"
+              ),
+              c_raw[(c_index + 1):length(c_raw)]
+            )
+          }
+          c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
+        }
+        c_raw
+        
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Abrechnung") {
+          for (jj in 1:length(m_Film$FileName[c_select])) {
+            c_raw <- c(
+              c_raw[1:(c_index)],
+              paste0(
+                "[",
+                m_Film$FileName[c_select][jj],
+                "](",
+                c_url[c_select][jj],
+                ")  ",
+                m_Film$Filmtitel[jj],
+                "  \\"
+              ),
+              c_raw[(c_index + 1):length(c_raw)]
+            )
+          }
+          c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
+        }
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Archiv") {
+          for (jj in 1:length(m_Film$FileName[c_select])) {
+            c_raw <- c(
+              c_raw[1:(c_index)],
+              paste0(
+                "[",
+                m_Film$FileName[c_select][jj],
+                "](",
+                c_url[c_select][jj],
+                ")  ",
+                m_Film$Filmtitel[jj],
+                "  \\"
+              ),
+              c_raw[(c_index + 1):length(c_raw)]
+            )
+          }
+          c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
+        }
+      }
+      c_raw
+      
+      # neues file schreiben
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines("Site-Map.Rmd")
+      
+      # Render
+      rmarkdown::render(input = "Site-Map.Rmd",
+                        envir = data_env,
+                        quiet = TRUE
+      )
+      # Remove file
+      file.remove("Site-Map.Rmd")
+      
+    }
+    
+    # Data for Webserver
+    # copy data from .../output to .../output/webserver
+    c_path <- "output/webserver"
+    if (!dir.exists(c_path)) {
+      dir.create(c_path)
+    }
+    if (!dir.exists(paste0(c_path, "/pict"))) {
+      dir.create(paste0(c_path, "/pict"))
+    }
+    
+    # copy png
+    paste0(
+      getwd(),
+      "/output/pict/",
+      list.files(
+        "output/pict/",
+        pattern = "png",
+        include.dirs = TRUE,
+        recursive = FALSE
+      )
+    ) |>
+      file.copy(paste0(c_path, "/pict"))
+    
+    
+    if (TRUE) {
+      m_Film$FileName <- m_Film$FileName
+      
+      # Was für Berichte typen sind vorhanden
+      c_typ_Berichte <- m_Film$FileName |>
+        str_extract(START %R% one_or_more(WRD)) |>
+        factor() |>
+        levels()
+      c_typ_Berichte
+      
+      # Convert filenames to URL
+      c_url <- paste0("", URLencode(m_Film$FileName))
+      c_url
+      
+      # Einlesen template der Verleiherabrechnung
+      c_raw <- readLines("source/Site_Map.Rmd")
+      c_raw
+      
+      ii <- 1
+      for (ii in 1:length(c_typ_Berichte)) {
+        # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+        # Index where to insert
+        c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
+        c_index <- c_index[length(c_index)]
+        c_index
+        
+        c_raw
+        c_raw[c_index]
+        
+        if (c_typ_Berichte[ii] == "Jahresrechnung") {
+          c_select <- str_detect(m_Film$FileName,
+                                 START %R% c_typ_Berichte[ii] %R% DOT %R% "html")
+        } else{
+          c_select <- str_detect(m_Film$FileName, START %R% c_typ_Berichte[ii])
+        }
+        
+        c_raw
+        m_Film$FileName[c_select]
+        c_url[c_select]
+        
+        c_raw <- instert_picts(c_raw, "pict/", c_index, m_Film$FileName[c_select], c_url[c_select])
+        c_raw
+        
+        c_raw[c_index]
+        
+        
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Verleiherabrechnung") {
+          for (jj in 1:length(m_Film$FileName[c_select])) {
+            c_raw <- c(
+              c_raw[1:(c_index)],
+              paste0(
+                "[",
+                m_Film$FileName[c_select][jj],
+                "](",
+                c_url[c_select][jj],
+                ")  ",
+                m_Film$Filmtitel[c_select][jj],
+                "  \\"
+              ),
+              c_raw[(c_index + 1):length(c_raw)]
+            )
+          }
+          c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
+        }
+        
+        # Linkliste einfügen
+        if (c_typ_Berichte[ii] == "Abrechnung") {
+          for (jj in 1:length(m_Film$FileName[c_select])) {
+            c_raw <- c(
+              c_raw[1:(c_index)],
+              paste0(
+                "[",
+                m_Film$FileName[c_select][jj],
+                "](",
+                c_url[c_select][jj],
+                ")  ",
+                m_Film$Filmtitel[c_select][jj],
+                "  \\"
+              ),
+              c_raw[(c_index + 1):length(c_raw)]
+            )
+          }
+          c_raw <- c(c_raw[1:(c_index + jj)], paste0("  \\"), c_raw[(c_index + jj + 1):length(c_raw)])
+        }
+        c_raw
+      }
+      
+      c_typ_Berichte[ii]
+      c_raw
+      
+      # neues file schreiben
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines("output/webserver/index.Rmd")
+      
+      # Render
+      rmarkdown::render(input = "output/webserver/index.Rmd", envir = data_env, quiet = TRUE)
+      # Remove file
+      file.remove("output/webserver/index.Rmd")
+      # Remove directory
+      unlink(paste0(c_path, "/pict"), recursive = TRUE)
+      
+    }
+    
+    # edit html
+    # Package names
+    packages <- c("xml2")
+    # Install packages not yet installed
+    installed_packages <- packages %in% rownames(installed.packages())
+    if (any(installed_packages == FALSE)) {
+      install.packages(packages[!installed_packages])
+    }
+    # Packages loading
+    invisible(lapply(packages, library, character.only = TRUE))
+    
+    
+    add_SiteMapLink <- function(file_path) {
+      # load html file
+      doc <- read_html(file_path)
+      
+      # Find elements to edit
+      element <- xml_find_first(doc, "body") |>
+        xml_find_first("div")
+      
+      # Find all children of the parent node
+      children <- xml_children(element)
+      
+      # Insert Node
+      xml_add_child(children[[1]],
+                    paste0("a href=\"", URLencode(paste0("index.html")), "\""),
+                    "Site-Map")
+      write_xml(doc, file_path)
+    }
+    
+    #copy data from .../output to .../output/webserver
+    c_path <- "output/webserver"
+    
+    # copy html
+    paste0(
+      "output/",
+      list.files(
+        "output/",
+        pattern = "html",
+        include.dirs = FALSE,
+        recursive = FALSE
+      )
+    ) |>
+      file.copy(paste0(c_path, ""), overwrite = TRUE)
+    
+    c_files <- list.files(
+      "output/webserver/",
+      pattern = "html" %R% END,
+      include.dirs = FALSE,
+      recursive = FALSE
+    )
+    c_files <- paste0("output/webserver/", c_files)
+    
+    # apply Site-Map link
+    c_files |>
+      lapply(add_SiteMapLink)
+    
+    # remove files
+    file.remove("Site-Map.html")
+    
+  }
+  
+  ## Shiny reactive variables ####
+  calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
+  ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
+  
+  # Sollen Inhaltsverzeichnisse erstellt werden
+  toc <- shiny::reactiveVal(TRUE)
+  
+  # Vektor mit Datumseinträgen
+  if (exists("df_Besucherzahlen", envir = data_env))  {
+    datum_vektor <- data_env$df_Besucherzahlen$Datum
+  } else {
+    datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
+  }
+  
+  # Filmtabelle anzeigen
+  df_Render <- shiny::reactiveVal(NULL)
+  
+  # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
+  End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+  
+  # Does the index.html file exist, is the webserver ready
+  file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
+  
+  
+  ##  Überwachung Button Daten Einlesen #####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
     c_time <- Sys.time()
@@ -1060,7 +1062,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##### Überwachung Button Filmabrechnung(en) erstellen #####
+  ## Überwachung Button Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1165,7 +1167,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ##### Überwachung Button Statistik #####
+  ## Überwachung Button Statistik #####
   shiny::observeEvent(input$Statistik, {
     # Execution time 
     c_time <- Sys.time()
@@ -1214,7 +1216,7 @@ server <- function(input, output, session) {
     
   })
   
-  ##### Überwachung Button Jahresrechnung #####
+  ## Überwachung Button Jahresrechnung #####
   shiny::observeEvent(input$Jahresrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1254,7 +1256,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##### Download Handler Werbung #####
+  ## Download Handler Werbung #####
   output$downloadExcel <- downloadHandler(
     filename = function() {
       "Werbung.xlsx"
@@ -1269,7 +1271,7 @@ server <- function(input, output, session) {
     }
   )
   
-  ##### Überwachung Button Wordpress #####
+  ## Überwachung Button Wordpress #####
   shiny::observeEvent(input$wordpress, {
     # Execution time 
     c_time <- Sys.time()
@@ -1309,7 +1311,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##### Überwachung Button "Alles erstellen" #####
+  ## Überwachung Button "Alles erstellen" #####
   shiny::observeEvent(input$ErstelleAbrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1411,7 +1413,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##### Download Handler Wordpress #####
+  ## Download Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
@@ -1429,7 +1431,7 @@ server <- function(input, output, session) {
     }
   )
   
-  ##### Überwachung Input: Inhaltsverzeichniss #####
+  ## Überwachung Input: Inhaltsverzeichniss #####
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1437,7 +1439,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-  ##### Upload handler #####
+  ## Upload handler #####
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
@@ -1552,13 +1554,13 @@ server <- function(input, output, session) {
     }
   })
   
-  ##### Read selected sheet data #####
+  ## Read selected sheet data #####
   selected_data <- shiny::reactive({
     shiny::req(file_data(), input$selected_sheet)
     col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
   })
   
-  ##### Reder: Update table with all the dates in the selected range #####
+  ## Reder: Update table with all the dates in the selected range #####
   output$dateTable <- shiny::renderTable({
     if (exists("data_env")) {
       start_datum <- input$dateRange |> min()
@@ -1574,14 +1576,14 @@ server <- function(input, output, session) {
     }
   })
   
-  ##### Render: txt file rendering
+  ## Render: txt file rendering
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
   
-  ##### Render: dynamic sheet selection UI #####
+  ## Render: dynamic sheet selection UI #####
   output$sheet_selector <- shiny::renderUI({
     shiny::req(file_data())
     shiny::selectInput("selected_sheet",
@@ -1589,18 +1591,18 @@ server <- function(input, output, session) {
                        choices = file_data()$sheets)
   })
   
-  ##### Render: Systemrückmeldungen aktualisieren #####
+  ## Render: Systemrückmeldungen aktualisieren #####
   output$ausgabe <- renderText({
     ausgabe_text()
   })
   
-  ##### Render: selected sheet contents #####
+  ## Render: selected sheet contents #####
   output$table_output <- shiny::renderTable({
     shiny::req(selected_data())
     selected_data()
   })
   
-  ##### Render: Dynamically update the input panel content #####
+  ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
       # File input handler
@@ -1638,7 +1640,9 @@ server <- function(input, output, session) {
         # Latest selectable date
         format = "dd.mm.yyyy",
         # Set input format to German (DD.MM.YYYY)
-        separator = " bis " # Separator for the two dates in German
+        separator = " bis ", # Separator for the two dates in German
+        language = "de",
+        weekstart = 1
       ),
       
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
@@ -1689,7 +1693,7 @@ server <- function(input, output, session) {
     )
   })
   
-  ##### Render: Dynamically update the output panel content #####
+  ## Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       shiny::actionButton("launch_app", "Input Daten editieren"),
@@ -1714,10 +1718,10 @@ server <- function(input, output, session) {
     
   })
   
-  ##### Store the process in a reactive value #####
+  ## Store the process in a reactive value #####
   second_app_process <- reactiveVal(NULL)
   
-  ##### launch the Dateien editieren App #####
+  ## launch the Dateien editieren App #####
   observeEvent(input$launch_app, {
     # Execution time 
     c_time <- Sys.time()
@@ -1749,7 +1753,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##### stop input data edit app #####
+  ## stop input data edit app #####
   observeEvent(input$stop_app, {
     # Execution time 
     c_time <- Sys.time()
