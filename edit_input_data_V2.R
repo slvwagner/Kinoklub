@@ -306,43 +306,6 @@ server <- function(input, output, session) {
     return(df_temp)
   }
   
-  convert_Einsatzplan <- function(df_temp, convert_to){
-    if(convert_to == "char"){
-      bind_cols(df_temp|>
-                  select(1:5),
-                df_temp|>
-                  select(6:10)|>
-                  mutate(across(everything(), as.character)),
-                df_temp|>
-                  select(11:ncol(df_temp))
-      )
-    } else if(convert_to == "fact"){
-      bind_cols(df_temp|>
-                  select(1:5),
-                df_temp |>
-                  select(6:10) |>
-                  mutate(across(everything(), factor)), # Apply factor column-wise without coercing to a matrix
-                df_temp|>
-                  select(11:ncol(df_temp))
-      )
-    }
-  }
-  
-  convert_Programm <- function(df_temp, convert_to){
-    if(convert_to == "char"){
-      bind_cols(
-        df_temp|>
-          mutate(Verleiher = as.character(Verleiher),
-                 `Verleiher Angefragt?` = as.character(`Verleiher Angefragt?`)),
-      )
-    } else if(convert_to == "fact"){
-      df_temp|>
-        mutate(Verleiher = factor(Verleiher),
-               `Verleiher Angefragt?` = factor(`Verleiher Angefragt?`)
-        )
-    }
-  }
-  
   Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
     # If the Programm changes Einsatzplan must be updated too
     if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
@@ -390,13 +353,10 @@ server <- function(input, output, session) {
     luminance <- luminance * 0.8
     return(luminance)
   }
-  
-  # Helper function to crate modla to edit a row
+
   create_modal_input <- function(df_row, l_temp) {
+    # Helper function to crate modla to edit a row
     cnt <- length(l_temp)
-    
-    current_data()
-    
     for (ii in 1:ncol(df_row)) {
       col_name <- names(df_row)[ii]
       col_data_type <- class(pull(df_row[, ii]))[1]
@@ -1899,12 +1859,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
 
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
