@@ -714,7 +714,7 @@ server <- function(input, output, session) {
     
   }, server = TRUE)
   
-  # Datatable has been rendered ####
+  # Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
     if(!is.na(last_selected_row())){
       dt_proxy()|>
