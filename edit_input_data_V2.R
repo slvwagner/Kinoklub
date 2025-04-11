@@ -98,7 +98,6 @@ server <- function(input, output, session) {
   ID_to_edit <- reactiveVal(1L)
   c_connected_to_db <- reactiveVal(FALSE)
   DB_con <- reactiveVal(NULL)
-  c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
   
   last_rendered_DT <- reactiveVal(NULL)
@@ -219,7 +218,6 @@ server <- function(input, output, session) {
           actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
           shiny::tags$hr(),
           actionButton("check_unique", "Prüfen", class = "btn-success"),
-          actionButton("create_colors", "Farbcode neu erstellen", class = "btn-success"),
           shiny::tags$hr(),
           actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
           shiny::tags$hr(),
@@ -562,24 +560,7 @@ server <- function(input, output, session) {
           backgroundColor = styleEqual(c_Kinoklubmitglied, member_colors),
           color = styleEqual(c_Kinoklubmitglied, text_colors)
         )
-    } else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
-      
-      for (ii in 1:nrow(current_data())) {
-        # Back ground color
-        bg_color <- c_colors()[ii]
-        # Determine text color based on luminance
-        text_color <- ifelse(get_luminance(bg_color) < 0.5, "white", "black")
-        
-        # Apply background color and text color to rows
-        dt <- dt |>
-          formatStyle(
-            columns = 1:nrow(current_data()),  # Apply to all columns
-            target = "row",
-            backgroundColor = styleEqual(ii, bg_color),
-            color = styleEqual(ii, text_color)  # Set text color
-          )
-      }
-    }
+    } 
     return(dt)
   }
   
@@ -729,12 +710,10 @@ server <- function(input, output, session) {
         c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
         c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
         
-        viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
-          colorspace::lighten(amount = 0.2) |>
-          c_colors()
+        c_colors <- viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
+          colorspace::lighten(amount = 0.2)
         
-        c("#FFFFFFFF", c_colors()) |>
-          c_colors()
+        c_colors <- c("#FFFFFFFF", c_colors)
         
       }else{
         current_data(l_data()[["Programm"]])
@@ -1909,44 +1888,6 @@ server <- function(input, output, session) {
         });
       "))
     )
-  })
-  
-  ### color code generator ####
-  observeEvent(input$create_colors,{
-    c_Kinoklubmitglied <- 
-      l_data()[["Kinoklubmitglieder"]]|>
-      mutate(Mitglied = paste(Vorname, Nachname))|>
-      select(Mitglied)|>
-      pull()
-    
-    c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-    c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-    
-    # genaerat Kinoklubmitglieder colors 
-    viridis(n = length(c_Kinoklubmitglied), option = "turbo")|>
-      colorspace::lighten(amount = 0.3)|>
-      c_colors()
-    
-    c("#FFFFFFFF", c_colors())|>
-      c_colors()
-    c_Kinoklubmitglied <- c("",c_Kinoklubmitglied)
-    
-    # Before applying formatStyle, make sure:
-    if(length(c_Kinoklubmitglied) != length(c_colors())) {
-      stop("not the same lenght this is a Bug")
-    }
-    
-    # Determine text color based on luminance
-    text_color <- lapply(c_colors(), get_luminance)|>
-      unlist()
-    text_color <- ifelse(text_color < 0.5, "white", "black")
-    
-    tibble(Kinoklubmitglied =c_Kinoklubmitglied,
-           `Background color` = c_colors(),
-           `Text color` = text_color
-           )
-    # Trigger DT rendering 
-    current_data(current_data)
   })
 }
 
