@@ -743,6 +743,8 @@ server <- function(input, output, session) {
       # remove row and page selection 
       last_selected_page(NA)
       last_selected_row(NA)
+      # remove user filter 
+      last_user_filter(NULL)
       
       shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
       
