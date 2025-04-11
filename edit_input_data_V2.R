@@ -104,7 +104,6 @@ server <- function(input, output, session) {
   DB_con <- reactiveVal(NULL)
   c_colors <- reactiveVal(NULL)
   df_temp_to_render <- reactiveVal(NULL)
-  dt_proxy <- reactiveVal(dataTableProxy('table'))
   last_rendered_DT <- reactiveVal(NULL)
   
   ## helper functions ####
@@ -716,8 +715,8 @@ server <- function(input, output, session) {
   
   # Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
-    if(!is.na(last_selected_row())){
-      dt_proxy()|>
+    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
+      dataTableProxy('table')|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
     }
@@ -748,8 +747,8 @@ server <- function(input, output, session) {
   
   ## Data set type selection ####
   observeEvent(input$data_selection,{
-    shiny::withProgress(message = "login... ", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+    shiny::withProgress(message = "data selection", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
       
       data_selection_(input$data_selection)
       if(input$data_selection == "Dropdowns"){
@@ -763,7 +762,7 @@ server <- function(input, output, session) {
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
       
-      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
       
       # Convert data types for each table
       convert_DB_to_R(l_data_sql,l_template)|>
@@ -785,7 +784,7 @@ server <- function(input, output, session) {
       last_selected_page(NA)
       last_selected_row(NA)
       
-      shiny::incProgress(1, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 2"))
       
     })
   })
@@ -826,6 +825,10 @@ server <- function(input, output, session) {
     }else {
       current_data(l_temp[[input$dataset]])
     }
+    
+    # remove row and page selection 
+    last_selected_page(NA)
+    last_selected_row(NA)
     
   })
   
