@@ -522,30 +522,6 @@ server <- function(input, output, session) {
       data_selection_("Inputdaten")
     })
   }
-
-  process_column_filters <- function(df) {
-    column_filters <- input$table_search_columns |>
-      str_remove_all('["\\[\\]]') |>
-      str_split(",")
-    
-    # Update last user filter state
-    filter_state <- lapply(column_filters, function(x) {
-      if (any(nchar(x) > 0)) {
-        if (length(x) > 1) {
-          list(search = paste0("[", toString(shQuote(x)), "]"))
-        } else {
-          list(search = x)
-        }
-      } else {
-        NULL
-      }
-    })
-    
-    # Only update if changed
-    if (!identical(last_user_filter(), filter_state)) {
-      last_user_filter(filter_state)
-    }
-  }
   
   apply_conditional_formatting <- function(dt) {
     req(current_data())
