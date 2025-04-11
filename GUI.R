@@ -1445,36 +1445,8 @@ server <- function(input, output, session) {
     file_path <- input$file$datapath
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
-    
-    if (file_ext == "xlsx") {
-      # save xlsx files
-      # Define save path
-      save_path <- paste0("Input/", file_name)
-      # Save the file to the specified directory
-      file.copy(from = file_path,
-                to = save_path,
-                overwrite = TRUE)
-      
-      # user interaction
-      paste0(
-        "Die Datei \"",
-        file_name,
-        "\" wurde eingelesen und im Verzeichniss ",
-        "\n",getwd(),"/Kinoklub",
-        save_path,
-        " abgespeichert"
-      ) |>
-        ausgabe_text()
-      
-      # Read all sheet names
-      sheet_names <- openxlsx::getSheetNames(save_path)
-      return(list(
-        type = "xlsx",
-        path = save_path,
-        sheets = sheet_names
-      ))
-      
-    } else if (file_ext == "txt") {
+
+    if (file_ext == "txt") {
       # save txt files
       if (file_name == "Procinema.txt" |
           file_name == "procinema.txt") {
@@ -1494,7 +1466,7 @@ server <- function(input, output, session) {
         paste0(
           "Die Datei \"",
           file_name,
-          "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+          "\" wurde im Verzeichniss \n.../Kinoklub",
           save_path,
           " abgespeichert"
         ) |>
@@ -1512,7 +1484,7 @@ server <- function(input, output, session) {
         paste0(
           "Die Datei \"",
           file_name,
-          "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+          "\" wurde im Verzeichniss \n.../Kinoklub",
           save_path,
           " abgespeichert"
         ) |>
@@ -1534,7 +1506,7 @@ server <- function(input, output, session) {
       paste0(
         "Die Datei \"",
         file_name,
-        "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+        "\" wurde im Verzeichniss \n.../Kinoklub",
         save_path,
         " abgespeichert"
       ) |>
@@ -1609,11 +1581,10 @@ server <- function(input, output, session) {
       shiny::fileInput(
         "file",
         "Datei hochladen:",
-        accept = c(".xlsx", ".txt"),
+        accept = c(".csv", ".txt"),
         multiple = FALSE,
         placeholder = "Drag & drop or browse a file"
       ),
-      shiny::uiOutput("sheet_selector"),
       
       # Button Daten Einlesen
       shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
