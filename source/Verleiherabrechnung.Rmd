@@ -25,27 +25,6 @@ c_verteilprodukt <- df_Abrechnung|>
 
 ```
 
-
-<!-- ```{r include=FALSE} -->
-<!-- df_mapping <- tibble(Datum = c_Date)|> -->
-<!--   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)), -->
-<!--          index = row_number()) -->
-
-<!-- c_Datum <- c_Date[ii] -->
-
-<!-- c_linkDatum <- df_Abrechnung|> -->
-<!--   filter(Datum == c_Date[ii])|> -->
-<!--    select(`Link Datum`)|> -->
-<!--    pull() -->
-
-<!-- c_suisa <- df_show|> -->
-<!--   filter(Datum == c_Date[ii])|> -->
-<!--   select(`Suisa Nummer`)|> -->
-<!--   pull() -->
-
-<!-- ``` -->
-
-
 \
 
 **TaB* AtelierKino** \
@@ -81,10 +60,10 @@ Reinach , `r act_date`
 
 ## Verleiherabrechnung
 ```{r}
-df_temp1 <- l_data$Ausgaben|>
-  filter(`Event ID` == ii, 
-         Kategorie == "Verleiher")|>
-  mutate(Datum = format(Datum,"%d.%m.%Y"))
+df_temp1 <- df_Abrechnung|>
+  filter(`Event ID` == ii)|>
+  mutate(Datum = format(Datum,"%d.%m.%Y"))|>
+  select(Suisanummer, Filmtitel, Datum, Zeit)
 
 df_temp1|>
   knitr::kable()
