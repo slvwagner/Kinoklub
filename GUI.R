@@ -1374,8 +1374,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
           VerleiherabrechnungErstellen(
             df_mapping__,
-            data_env$df_Abrechnung,
-            toc = toc()
+            data_env$df_Abrechnung
           )
           shiny::incProgress(1 / 10, detail = paste("step", 5, "of 10"))
           
@@ -1589,13 +1588,6 @@ server <- function(input, output, session) {
       # Button Daten Einlesen
       shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
       shiny::tags$hr(),
-      # Add tooltips using shinyBS
-      shinyBS::bsTooltip(
-        id = "DatenEinlesen",
-        title = "Es werden alle Dateien im Ordner .../Kinoklub/input eingelesen.",
-        placement = "right",
-        trigger = "hover"
-      ),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
       shiny::dateRangeInput(
@@ -1618,13 +1610,8 @@ server <- function(input, output, session) {
       
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
-      # Add tooltips using shinyBS
-      shinyBS::bsTooltip(
-        id = "Abrechnung",
-        title = "Es werden die Filmabrechnungen im gewählten Datumsbereich erstellt.",
-        placement = "right",
-        trigger = "hover"
-      ),
+
+
       shiny::tags$hr(),
       
       # Button zum Ausführen von Code Statistik erstellen
@@ -1645,13 +1632,7 @@ server <- function(input, output, session) {
       
       # Button zum Ausführen von Code Alles erstellen mit Webserver
       shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
-      # Add tooltips using shinyBS
-      shinyBS::bsTooltip(
-        id = "ErstelleAbrechnung",
-        title = "Achtung die Ausführung kann viel Zeit in anspruchnehmen!",
-        placement = "right",
-        trigger = "hover"
-      ),
+
       shiny::tags$hr(),
       
       # Inhaltsverzeichnis
