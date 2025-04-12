@@ -351,6 +351,7 @@ server <- function(input, output, session) {
         warning("Some files to delete do not exist.")
       }
     }
+    file.remove(input)
     return(NULL)
   }
   
