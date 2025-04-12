@@ -1322,6 +1322,7 @@ server <- function(input, output, session) {
         sep = "\n"
       )
       
+      End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
 
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
