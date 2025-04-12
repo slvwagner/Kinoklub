@@ -71,19 +71,15 @@ df_temp1|>
 
 ### Eintritte und Umsatz
 ```{r}
-df_temp <- df_Abrechnung|>
-  filter(`Event ID` == ii)
+df_temp <- l_abrechnung[[as.character(ii)]]$Eintritte
 ```
 
 
 ```{r}
-c_suisa_prozent <- df_temp|>
-  distinct(`SUISA-Vorabzug [%]`)|>
-  pull()
+c_suisa_prozent <- df_Abrechnung|>
+  filter(`Event ID` == ii)|>
+  distinct(`SUISA-Vorabzug [%]`)
 
-df_temp <- df_Abrechnung_tickes|>
-  filter(`Event ID` == ii
-         )
 
 ```
 
@@ -91,21 +87,13 @@ df_temp <- df_Abrechnung_tickes|>
 ```{r}
 df_temp1 <- df_temp|>
   group_by(Platzkategorie)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
+  reframe(`Verkaufspreis [CHF]` = sum(Verkaufspreis),
+          Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(Umsatz),
+          `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`))
 
 ```
 
-
-```{r}
-df_temp1 <- df_temp|>
-  distinct(Platzkategorie, .keep_all = T)|>
-  select(Platzkategorie, `Verkaufspreis [CHF]`)|>
-  left_join(df_temp1,
-            by = join_by(Platzkategorie))|>
-  arrange(desc(`Umsatz [CHF]`))
-
-```
 
 
 ```{r}
@@ -115,7 +103,7 @@ df_temp1|>
 
 
 ```{r}
-Brutto <- df_temp|>
+Brutto <- df_temp1|>
   reframe(`Brutto [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
 ```
 
@@ -127,7 +115,8 @@ df_temp <- Brutto|>
          `Netto 1 [CHF]` = `Brutto [CHF]`,
          `Netto 0.00%` = 0,
          `Netto 2 [CHF]` = `Brutto [CHF]`,
-         `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round5Rappen()
+         `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round5Rappen(),
+         `Netto 3 [CHF]` = `Netto 2 [CHF]` - `SUISA-Vorabzug [CHF]`
          )
 
 df_temp|>
@@ -137,10 +126,4 @@ df_temp|>
 ```
 
 
-```{r}
-df_temp|>
-  mutate(`Netto 3 [CHF]` = (`Brutto [CHF]` - `SUISA-Vorabzug [CHF]`))|>
-  select(`Netto 3 [CHF]`)|>
-  knitr::kable()
-```
 

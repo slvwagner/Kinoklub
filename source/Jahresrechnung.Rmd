@@ -83,11 +83,11 @@ df_temp2|>
 df_temp <- df_Abrechnung|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
-         Anfang = paste0(lubridate::hour(Zeit), ":", 
+         Zeit = paste0(lubridate::hour(Zeit), ":", 
                          lubridate::minute(Zeit) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                          )
         )|>
-  select(Datum, Datum_display, Filmtitel, `SUISA-Vorabzug [CHF]`)
+  select(Datum, Datum_display, Filmtitel, `Suisavorabzug [CHF]`)
 ```
 
 
@@ -107,25 +107,27 @@ DT::datatable(df_temp,
 
 ```{r}
 df_temp|>
-  reframe(`Summe [CHF]` = sum(`SUISA-Vorabzug [CHF]`, na.rm = T))|>
+  reframe(`Summe [CHF]` = sum(`Suisavorabzug [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 
 #### Verleiherrechnungen
 
+
+
 ```{r}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == l_data$Kategorie$Auswahl[6])|>
-  arrange(desc(Datum))
+  arrange(desc(Datum))|>
+  left_join(df_Abrechnung,
+            by = join_by(`Event ID`))|>
+  rename(Datum = Datum.x)
 
-df_temp1 <- df_temp1|>
-  left_join(df_Abrechnung_tickes, by = c("Datum" = "Datum"))
 ```
 
 
 ```{r}
 df_temp1 <- df_temp1|>
-  mutate(Datum = Datum)|>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   select(Datum, Datum_display, `Suisanummer`,Bezeichnung, `Betrag [CHF]`)|>
   rename(`Betrag [CHF]` = `Betrag [CHF]`)
@@ -159,7 +161,7 @@ df_temp1|>
 ```{r}
 df_temp <- df_Abrechnung|>
   reframe(`Umsatz` = sum(`Umsatz [CHF]`, na.rm = T),
-          `SUISA-Vorabzug`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
+          `SUISA-Vorabzug`= -sum(`Suisavorabzug [CHF]`, na.rm = T),
           `Verleiherabzug (noch keinen Rechnung erhalten)` = -df_temp2|>pull(),
           Verleiherrechnung = -df_temp1|>pull()
           )|>
@@ -268,10 +270,10 @@ Event|>
 ### Einahmen
 
 ```{r}
-KioskEinnahmen <- df_Kiosk|>
-  group_by(Verkaufsartikel, Verkaufspreis)|>
+KioskEinnahmen <- df_Abrechnung_kiosk|>
+  group_by(Verkaufsartikel, `Verkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
+          `Betrag [CHF]` = sum(`Kassiert [CHF]`, na.rm = T))|>
   arrange(desc(`Betrag [CHF]`))|>
   filter(Verkaufsartikel != "Keine Kioskverkäufe")
 
@@ -293,9 +295,9 @@ KioskEinnahmen|>
 #### Einkauf Getränke
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
-EinkaufGetränke <- df_Kiosk|>
+EinkaufGetränke <- df_Abrechnung_kiosk|>
   filter(Lieferant == l_data$Lieferant$Lieferantenname[2])|>
-  group_by(`Artikel-Kassensystem`,Verkaufspreis, `Einkaufspreis [CHF]`)|>
+  group_by(`Verkaufsartikel`,`Verkaufspreis [CHF]`, `Einkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(`Einkaufspreis [CHF]`))|>
   arrange(desc(Anzahl))
@@ -427,7 +429,7 @@ df_6erAbos|>
 ### Kinogutscheine
 
 ```{r}
-df_temp <- atelierkino_gutschein|>
+df_temp <- df_atelierkino_gutschein|>
   filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
@@ -460,7 +462,7 @@ df_gutschein|>
 ### Kinoförderer
 
 ```{r}
-df_temp <- atelierkino_foerderer|>
+df_temp <- df_atelierkino_foerderer|>
   filter(expiration > Sys.Date(), # Anzeigen wenn gültig (Datum)
          count_use < 2            # Aneiten wenn nicht bereits gebraucht
          )|>
@@ -523,13 +525,17 @@ df_temp|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
-  select(Datum, Firmennamen , `Betrag [CHF]`)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  filter(Kategorie == l_data$Kategorie$Auswahl[8])
 
-df_temp|>
-  knitr::kable()
+if(nrow(df_temp) > 0){
+  df_temp <- df_temp|>
+    select(Datum, Firmennamen , `Betrag [CHF]`)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  
+  df_temp|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}
@@ -544,13 +550,16 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
-  select(Datum, Bezeichnung , Firmennamen, `Betrag [CHF]`)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
-df_temp1|>
-  knitr::kable()
+  filter(Kategorie == l_data$Kategorie$Auswahl[8])
 
+if(nrow(df_temp1) > 0){
+  df_temp1 <- df_temp1 |>
+    select(Datum, Bezeichnung , Firmennamen, `Betrag [CHF]`)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  df_temp1|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}
@@ -597,14 +606,17 @@ Werbung|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == "Vermietung")|>
-  select(Datum, Bezeichnung, `Betrag [CHF]`)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  filter(Kategorie == "Vermietung")
 
-df_temp|>
-  knitr::kable()
-
+if(nrow(df_temp) > 0){
+  df_temp <- df_temp  |>
+    select(Datum, Bezeichnung, `Betrag [CHF]`)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  
+  df_temp|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}
@@ -617,14 +629,17 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[7])|>
-  select(Datum, Bezeichnung, `Betrag [CHF]`)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  filter(Kategorie == l_data$Kategorie$Auswahl[7])
 
-df_temp1|>
-  knitr::kable()
-
+if(nrow(df_temp1)>0){
+  df_temp1 <- df_temp1|>
+    select(Datum, Bezeichnung, `Betrag [CHF]`)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  
+  df_temp1|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}
@@ -690,14 +705,17 @@ Personalaufwand|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[5])|>
-  select(Datum, Bezeichnung,`Betrag [CHF]`)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  filter(Kategorie == l_data$Kategorie$Auswahl[5])
 
-df_temp|>
-  knitr::kable()
-
+if(nrow(df_temp) > 0){
+  df_temp <- df_temp|>
+    select(Datum, Bezeichnung,`Betrag [CHF]`)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  
+  df_temp|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}
@@ -712,15 +730,18 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[5])|>
-  select(Datum, Bezeichnung,`Betrag [CHF]`)|>
-  arrange(Datum)|>
-  arrange(Datum)|>   
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  filter(Kategorie == l_data$Kategorie$Auswahl[5])
 
-df_temp1|>
-  knitr::kable()
-
+if(nrow(df_temp1) > 0){
+  df_temp1 <- df_temp1|>
+    select(Datum, Bezeichnung,`Betrag [CHF]`)|>
+    arrange(Datum)|>
+    arrange(Datum)|>   
+    mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  
+  df_temp1|>
+    knitr::kable()
+}
 ```
 
 ```{r echo=FALSE}

@@ -1024,7 +1024,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )  
 
-# Eventeinnahmen der Abrechnung hinzufügen ####
+# Eventausgaben der Abrechnung hinzufügen ####
 df_temp <- l_data$Ausgaben|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
@@ -1036,7 +1036,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )
 
-# Gewinn aus Filmvorführungen 
+# Gewinn aus Filmvorführungen ####
 df_temp <- df_Abrechnung|>
   group_by(`Event ID`)|>
   reframe(`Gewinn aus Fimvorführung [CHF]` = 
@@ -1046,10 +1046,10 @@ df_temp <- df_Abrechnung|>
 df_temp
 df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
 
-# Verteilprodukt über mehrere Event IDs erstellen ########
+# Gemeinsame Abrechnung über mehrere Event IDs erstellen ####
 df_mapping <- df_Abrechnung|>
-  select(1:6)
-df_mapping
+  select(1:6)|>
+  filter(`Event ID` %in% df_Eintritt$`Event ID`)
 
 # find all connected Filmvorführungen from Programm and remove all already connected
 l_abrechnung <- inspect_link_ids(df_mapping)
@@ -1064,7 +1064,7 @@ for (ID in names(l_abrechnung)) {
   # Event ID`s 
   IDs <- l_abrechnung[[ID]]
 
-  # Umsatzverteilprodukt berechnen für die gemeinsame Abrechnung
+  ## Umsatzverteilprodukt berechnen für die gemeinsame Abrechnung ####
   Verteilprodukt <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
     group_by(`Event ID`)|>
@@ -1078,7 +1078,7 @@ for (ID in names(l_abrechnung)) {
               by = join_by(`Event ID`)
     )
   
-  # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden?
+  # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden? ####
   if(nrow(Verteilprodukt) !=  nrow(l_data$Programm|>filter(`Event ID` %in% IDs))){
     df_temp <- l_data$Programm|>
       filter(`Event ID` %in% IDs)
@@ -1093,7 +1093,7 @@ for (ID in names(l_abrechnung)) {
     select(`Event ID`, Verteilprodukt)
   Verteilprodukt
   
-  # Verteilen der Abrechnung 
+  # Verteilen der Abrechnung ####
   Abrechnung <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
     left_join(Verteilprodukt,
@@ -1112,7 +1112,7 @@ for (ID in names(l_abrechnung)) {
            `Gewinn aus Fimvorführung [CHF]` = `Gewinn aus Fimvorführung [CHF]` * Verteilprodukt
     )
   
-  # Verteilen der Eintritte 
+  # Verteilen der Eintritte ####
   Eintritte <- df_Eintritt|> 
     filter(`Event ID` %in% IDs)|>
     select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
@@ -1123,7 +1123,7 @@ for (ID in names(l_abrechnung)) {
     mutate(`Ticketumsatz [CHF]` = Umsatz * Verteilprodukt)
   Eintritte
   
-  # Verteilen der Einnahmen 
+  # Verteilen der Einnahmen ####
   Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
     select(`Event ID`, Kategorie, Bezeichnung, `Betrag [CHF]`)|>
     filter(`Event ID` %in% IDs)|>
@@ -1134,7 +1134,7 @@ for (ID in names(l_abrechnung)) {
     mutate(`Betrag verteilt [CHF]` = Verteilprodukt * `Betrag [CHF]`)
   Einnahmen
   
-  # Verteilen der Ausgaben 
+  # Verteilen der Ausgaben ####
   Ausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
     select(`Event ID`, Kategorie, Datum, Bezeichnung, `Betrag [CHF]`)|>
     filter(`Event ID` %in% IDs)|>
@@ -1145,15 +1145,15 @@ for (ID in names(l_abrechnung)) {
     mutate(`Betrag verteilt [CHF]` = Verteilprodukt * `Betrag [CHF]`)
   Ausgaben
   
-  # Der Kioskgewinn wird nicht verteilt 
+  # Der Kioskgewinn wird nicht verteilt ####
   Kiosk <- df_Kiosk|>
     filter(`Event ID` %in% IDs)
   
-  # Überschuss und Manko wird nicht verteilt 
+  # Überschuss und Manko wird nicht verteilt ####
   Manko <- df_manko_uerberschuss|>
     filter(`Event ID` %in% IDs)
   
-  # return
+  # return ####
   l_abrechnung[[cnt]] <- 
     list(
       Verteilprodukt = Verteilprodukt,
@@ -1179,9 +1179,9 @@ l_abrechnung[["4"]]
 l_abrechnung[["5"]]
 l_abrechnung[["6"]]
 
-#  Data frames für Berichte erstellen ##################
+#  Data frames für Berichte erstellen ####
 
-# Abrechnung Tickets erstellen (für Berichte verwendet)
+# Abrechnung Tickets erstellen (für Berichte verwendet) ####
 df_Abrechnung <- l_abrechnung|>
   lapply(function(x){
     x$Abrechnung
@@ -1190,7 +1190,7 @@ df_Abrechnung <- l_abrechnung|>
   mutate(`Event ID` = as.integer(`Event ID`))
 df_Abrechnung
 
-# Abrechnung Tickets erstellen (für Berichte verwendet)
+# Abrechnung Tickets erstellen (für Berichte verwendet) ####
 df_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
     x$Eintritte
@@ -1198,17 +1198,29 @@ df_Abrechnung_tickes <- l_abrechnung|>
   bind_rows(.id = "Event ID")|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis,
          `Umsatz [CHF]` = Umsatz)
-df_Abrechnung_tickes
+df_Abrechnung_tickes <- df_Abrechnung_tickes|>
+  mutate(`Event ID` = as.integer(`Event ID`))|>
+  left_join(df_Abrechnung,
+            by = join_by(`Event ID`)
+  )
 
-# Abrechnung Kiosk erstellen  (für Berichte verwendet)
+# Abrechnung Kiosk erstellen  (für Berichte verwendet) ####
 df_Abrechnung_kiosk <- l_abrechnung|>
   lapply(function(x){
     x$Kiosk
   })|>
   bind_rows(.id = "Event ID")
+
+df_Abrechnung_kiosk <- df_Abrechnung_kiosk|>
+  mutate(`Event ID` = as.integer(`Event ID`))|>
+  left_join(df_Abrechnung,
+            by = join_by(`Event ID`)
+            )
+
+
 df_Abrechnung_kiosk
 
-# Abrechnung Events erstellen (für Berichte verwendet)
+# Abrechnung Events erstellen (für Berichte verwendet) ####
 df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
   lapply(function(x){
     x$`Eventeinnahmen`
@@ -1223,7 +1235,7 @@ df_Abrechnung_Eventausgaben <- l_abrechnung|>
   bind_rows(.id = "Event ID")
 df_Abrechnung_Eventausgaben
 
-# Keine Verleiherrechnung
+# Keine Verleiherrechnung ####
 df_keine_Rechnung <- l_abrechnung|>
   lapply(function(x){
     x$Abrechnung
@@ -1232,7 +1244,7 @@ df_keine_Rechnung <- l_abrechnung|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_keine_Rechnung$`Verleiherrechnungsbetrag [CHF]`
 
-# Manko / Überschuss
+# Manko / Überschuss ####
 df_manko_uerberschuss <- l_abrechnung|>
   lapply(function(x){
     x$`Manko / Überschuss`
@@ -1240,13 +1252,13 @@ df_manko_uerberschuss <- l_abrechnung|>
   bind_rows(.id = "Event ID")
 df_manko_uerberschuss
 
-# summary Eintritt (für Berichte verwendet)
+# summary Eintritt (für Berichte verwendet) ####
 df_Besucherzahlen <- df_Eintritt|>
   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
-# write to Excel ##################
+# write to Excel ####
 c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
 
@@ -1260,7 +1272,7 @@ list(`Werbung` = df_Besucherzahlen,
   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
-# remove not used variables
+# remove not used variables ####
 remove(ii,
        c_filePath
        )

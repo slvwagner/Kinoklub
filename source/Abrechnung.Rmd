@@ -364,8 +364,7 @@ if(df_temp3|>nrow()){
 
 ```{r echo=FALSE}
 df_temp2 <- df_temp|>
-  filter(is.na(Lieferant))|>
-  rename(`Umsatz [CHF]` = `Kassiert [CHF]`)
+  filter(is.na(Lieferant))
 
 df_temp2|>
   select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)|>

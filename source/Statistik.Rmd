@@ -37,7 +37,6 @@ Bericht wurde am `r act_date` erstellt.
 df_temp <- df_Abrechnung |>
   arrange(desc(Datum)) |>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))
-names(df_temp)
 ```
 
 
@@ -746,17 +745,17 @@ df_temp <- df_Abrechnung_kiosk|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn`))
 
-if(df_temp$`Gewinn`|>mean() > df_temp$`Gewinn`|>median()){
-  gewinn <- df_temp$`Gewinn`|>median()
+if(df_temp$`Gewinn`|>mean(na.rm = TRUE) > df_temp$`Gewinn`|>median(na.rm = TRUE)){
+  gewinn <- df_temp$`Gewinn`|>median(na.rm = TRUE)
 }else{
-  gewinn <- df_temp$`Gewinn`|>mean()
+  gewinn <- df_temp$`Gewinn`|>mean(na.rm = TRUE)
 }
 
 s <- (gewinn * shows_per_year)/365
 ```
 
 
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE, warning=FALSE}
 df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
@@ -774,11 +773,12 @@ df_temp|>
 ## Kiosk 
 
 ### Verkaufsartikel 
+
 ```{r }
-df_temp <- df_Kiosk|>
+df_temp <- df_Abrechnung_kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
-          `Umsatz [CHF]` = sum(Kassiert),
+          `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
           `Gewinn [CHF]` = sum(Gewinn)|>round(2)
           )|>
   arrange(desc(Anzahl))|>
@@ -794,10 +794,10 @@ df_temp|>
 
 
 ```{r}
-df_temp <- df_Kiosk|>
+df_temp <- df_Abrechnung_kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
-          `Umsatz [CHF]` = sum(Kassiert),
+          `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
           `Gewinn [CHF]` = sum(Gewinn)
           )|>
   filter(Verkaufsartikel != "Keine Kioskverkäufe")|>
@@ -826,7 +826,7 @@ df_temp|>
 
 ### Ladenhüter (keine Verkäufe)
 ```{r }
-df_temp <- df_Einkaufspreise|>
+df_temp <- l_data$`Einkauf Kiosk`|>
   distinct(`Artikelname-Kassensystem`)|>
   left_join(df_Kiosk|>
             group_by(Verkaufsartikel)|>
@@ -846,9 +846,7 @@ df_temp|>
 df_temp <- df_Abrechnung_kiosk|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(Datum_display, Datum,`Event ID`, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert)|>
-  rename(`Umsatz [CHF]` = `Kassiert`,
-         `Verkaufspreis [CHF]` = Verkaufspreis)
+  select(Datum_display, Datum,`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)
 
 ```
 
@@ -878,7 +876,7 @@ df_temp <- left_join(
 
 ```{r }
 df_temp1 <- df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Kassiert [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))
 df_temp1|>
   knitr::kable(digits = 2)
 ```
@@ -886,11 +884,9 @@ df_temp1|>
 
 ```{r fig.width=10}
 df_temp <- df_Abrechnung_kiosk|>
-  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
-         Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(`Event ID`, Verkaufsartikel, Verkaufspreis, Anzahl, Kassiert)|>
-  rename(`Umsatz [CHF]` = `Kassiert`,
-         `Verkaufspreis [CHF]` = Verkaufspreis)
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
+  rename(`Umsatz [CHF]` = `Kassiert [CHF]`)
 ```
 
 
@@ -918,8 +914,6 @@ df_temp|>
 ```
 
 #### Wochentaganalyse
-
-
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
