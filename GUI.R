@@ -1053,6 +1053,7 @@ server <- function(input, output, session) {
           )
       })
       
+      End_date_choose(max(data_env$df_Abrechnung$Datum))
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1409,7 +1410,9 @@ server <- function(input, output, session) {
           ))
         })
       }
-      End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+      
+      End_date_choose(max(data_env$df_Abrechnung$Datum))
+      
       file_exists(file.exists("output/webserver/index.html"))
       
       # calculate execution time
