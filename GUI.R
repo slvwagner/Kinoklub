@@ -1115,11 +1115,16 @@ server <- function(input, output, session) {
                 data_env,
                 start_datum, end_datum
               )
+            df_mapping__ <- df_mapping__|>
+              filter(!`Kinoförderer gratis?`)
+            
             shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 3, "of 4"))
-            VerleiherabrechnungErstellen(
-              df_mapping__,
-              data_env$df_Abrechnung
-            )
+            if(nrow(df_mapping__) > 0){
+              VerleiherabrechnungErstellen(
+                df_mapping__,
+                data_env$df_Abrechnung
+              )
+            }
           }, error = function(e) {
             ausgabe_text(
               paste0(
@@ -1372,10 +1377,15 @@ server <- function(input, output, session) {
             toc = toc()
           )
           shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
-          VerleiherabrechnungErstellen(
-            df_mapping__,
-            data_env$df_Abrechnung
-          )
+          df_mapping__ <- df_mapping__|>
+            filter(!`Kinoförderer gratis?`)
+          if(nrow(df_mapping__)>0){
+            VerleiherabrechnungErstellen(
+              df_mapping__,
+              data_env$df_Abrechnung
+            )
+          }
+
           shiny::incProgress(1 / 10, detail = paste("step", 5, "of 10"))
           
           # Procinema
