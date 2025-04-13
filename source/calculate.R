@@ -1102,7 +1102,7 @@ for (ID in names(l_abrechnung)) {
     )
   Abrechnung|>select(22:ncol(Abrechnung))
 
-    Abrechnung <- Abrechnung|>
+  Abrechnung <- Abrechnung|>
     mutate(`Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt,
            `Umsatz [CHF]` = `Umsatz [CHF]` * Verteilprodukt,
            `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3 [CHF]` * Verteilprodukt,
