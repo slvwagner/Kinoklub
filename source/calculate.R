@@ -94,7 +94,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
 
       if(dmy(c_temp[2]) != df_temp$Datum) {
         stop("\nIn der Datei: .../Kinoklub/", fileName,
-                "\nwurde das Datum ",c_temp[2]," gefunden.",
+                "\nwurde das Datum ",format(c_temp[2], "%d.%m.%Y")," gefunden.",
                 "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n" )
       }
 
@@ -204,7 +204,7 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
 
       if(c_fileDate != df_temp$Datum) {
         stop("\nIn der Datei: .../Kinoklub/", fileName,
-                "\nwurde das Datum ",c_fileDate," gefunden.",
+                "\nwurde das Datum ",format(c_fileDate, "%d.%m.%Y")," gefunden.",
                 "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n" )
       }
 
@@ -1049,16 +1049,17 @@ df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
 # Gemeinsame Abrechnung über mehrere Event IDs erstellen ####
 df_mapping <- df_Abrechnung|>
   select(1:6)|>
+  mutate(`Link to Event ID` = as.character(`Link to Event ID`)|>as.integer())|>
   filter(`Event ID` %in% df_Eintritt$`Event ID`)
 
 # find all connected Filmvorführungen from Programm and remove all already connected
 l_abrechnung <- inspect_link_ids(df_mapping)
 l_abrechnung <- l_abrechnung|>
   nullify_used_entries()
-l_abrechnung
 
+l_abrechnung[[1]]
 
-ID <- "1"
+ID <- 1
 cnt <- 1
 for (ID in names(l_abrechnung)) {
   # Event ID`s 
@@ -1100,9 +1101,10 @@ for (ID in names(l_abrechnung)) {
               by = join_by(`Event ID`)
     )
   Abrechnung|>select(22:ncol(Abrechnung))
-  Abrechnung <- Abrechnung|>
+
+    Abrechnung <- Abrechnung|>
     mutate(`Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt,
-           `Umsatz [CHF]` = `Umsatz [CHF]` *Verteilprodukt,
+           `Umsatz [CHF]` = `Umsatz [CHF]` * Verteilprodukt,
            `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3 [CHF]` * Verteilprodukt,
            `Suisavorabzug [CHF]` = `Suisavorabzug [CHF]` * Verteilprodukt,
            `Verleiherabzug [CHF]` = `Verleiherabzug [CHF]` * Verteilprodukt,
@@ -1111,6 +1113,8 @@ for (ID in names(l_abrechnung)) {
            `Eventausgaben [CHF]` = `Eventausgaben [CHF]` * Verteilprodukt,
            `Gewinn aus Fimvorführung [CHF]` = `Gewinn aus Fimvorführung [CHF]` * Verteilprodukt
     )
+  Abrechnung|>
+    select(16:ncol(Abrechnung))
   
   # Verteilen der Eintritte ####
   Eintritte <- df_Eintritt|> 
@@ -1173,11 +1177,7 @@ remove(Verteilprodukt, Eintritte, Einnahmen, Ausgaben, Kiosk, Manko, Abrechnung,
 l_abrechnung
 
 l_abrechnung[["1"]]
-l_abrechnung[["2"]]
-l_abrechnung[["3"]]
-l_abrechnung[["4"]]
-l_abrechnung[["5"]]
-l_abrechnung[["6"]]
+
 
 #  Data frames für Berichte erstellen ####
 
@@ -1198,6 +1198,8 @@ df_Abrechnung_tickes <- l_abrechnung|>
   bind_rows(.id = "Event ID")|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis,
          `Umsatz [CHF]` = Umsatz)
+df_Abrechnung_tickes
+
 df_Abrechnung_tickes <- df_Abrechnung_tickes|>
   mutate(`Event ID` = as.integer(`Event ID`))|>
   left_join(df_Abrechnung,
