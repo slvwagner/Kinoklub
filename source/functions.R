@@ -408,7 +408,7 @@ inspect_link_ids <- function(df_mapping) {
   names(result) <- df_mapping$`Event ID`  # Set names to ID_Programm
   
   for (ii in seq_len(nrow(df_mapping))) {
-    link_ids <- c(df_mapping[ii,"Event ID"]|>pull())  # Store all consecutive Link IDs for this row
+    link_ids <- df_mapping[ii,"Event ID"]|>pull()  # Store all consecutive Link IDs for this row
     link <- df_mapping[ii,"Link to Event ID"]|>pull()
     run <- TRUE
     if (!is.na(link)){
