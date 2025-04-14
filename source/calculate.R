@@ -1057,6 +1057,8 @@ l_abrechnung <- inspect_link_ids(df_mapping)
 l_abrechnung <- l_abrechnung|>
   nullify_used_entries()
 
+l_gemeinsame_Abrechnung_IDs <- l_abrechnung
+l_gemeinsame_Abrechnung_IDs
 l_abrechnung[[1]]
 
 ID <- 1
@@ -1078,7 +1080,7 @@ for (ID in names(l_abrechnung)) {
   
   
   ## Summary Eintritte  ####
-  s_Eintritte <- Eintritte|>
+  Eintritte <- Eintritte|>
     group_by(Platzkategorie)|>
     reframe(Anzahl = sum(Anzahl),
             `Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
@@ -1094,118 +1096,60 @@ for (ID in names(l_abrechnung)) {
   l_abrechnung[[cnt]] <- 
     list(
       Gemeinsame_Abrechnung = Gemeinsame_Abrechnung,
-      Eintritte = Eintritte,
-      s_Eintritte = s_Eintritte
+      Eintritte = Eintritte
     )
   cnt <- cnt + 1
 }
-remove(Eintritte, s_Eintritte,
-       df_mapping, df_Abrechnung,
-       df_manko_uerberschuss, df_Spezialpreisekiosk, df_temp
+remove(Eintritte, 
+       df_mapping, df_temp
 )
 l_abrechnung
-
 l_abrechnung[["1"]]
 
-
-#  Data frames für Berichte erstellen ####
-
-# Abrechnung Tickets erstellen (für Berichte verwendet) ####
-df_Abrechnung <- l_abrechnung|>
+#  Gemeinsame Abrechnung erstellen ####
+## Abrechnung Tickets erstellen (für Berichte verwendet) ####
+Gemeinsame_Abrechnung <- l_abrechnung|>
   lapply(function(x){
-    x$Abrechnung
+    x$Gemeinsame_Abrechnung
   })|>
-  bind_rows(.id = "Event ID")|>
-  mutate(`Event ID` = as.integer(`Event ID`))
-df_Abrechnung
+  bind_rows()|>
+  mutate(`Link to Event ID` = as.integer(`Link to Event ID`))
+Gemeinsame_Abrechnung
 
-# Abrechnung Tickets erstellen (für Berichte verwendet) ####
-df_Abrechnung_Verteilprodukt <- l_abrechnung|>
-  lapply(function(x){
-    x$Verteilprodukt
-  })|>
-  bind_rows(.id = "Event ID")|>
-  mutate(`Event ID` = as.integer(`Event ID`))
-df_Abrechnung_Verteilprodukt
-
-# Abrechnung Tickets erstellen (für Berichte verwendet) ####
-df_Abrechnung_tickes <- l_abrechnung|>
+## Abrechnung Tickets erstellen (für Berichte verwendet) ####
+Gemeinsame_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
     x$Eintritte
   })|>
-  bind_rows()|>
-  rename(`Verkaufspreis [CHF]` = Verkaufspreis)
-df_Abrechnung_tickes
-
-df_Abrechnung_tickes <- df_Abrechnung_tickes|>
-  mutate(`Event ID` = as.integer(`Event ID`))|>
-  left_join(df_Abrechnung,
-            by = join_by(`Event ID`)
-  )
-
-# Abrechnung Kiosk erstellen  (für Berichte verwendet) ####
-df_Abrechnung_kiosk <- l_abrechnung|>
-  lapply(function(x){
-    x$Kiosk
-  })|>
-  bind_rows(.id = "Event ID")
-
-df_Abrechnung_kiosk <- df_Abrechnung_kiosk|>
-  mutate(`Event ID` = as.integer(`Event ID`))|>
-  left_join(df_Abrechnung,
-            by = join_by(`Event ID`)
-  )
+  bind_rows()
+Gemeinsame_Abrechnung_tickes
 
 
-df_Abrechnung_kiosk
-
-# Abrechnung Events erstellen (für Berichte verwendet) ####
-df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
-  lapply(function(x){
-    x$`Eventeinnahmen`
-  })|>
-  bind_rows(.id = "Event ID")
-df_Abrechnung_Eventeinnahmen
-
-df_Abrechnung_Eventausgaben <- l_abrechnung|>
-  lapply(function(x){
-    x$`Eventausgaben`
-  })|>
-  bind_rows(.id = "Event ID")
-df_Abrechnung_Eventausgaben
-
-# Keine Verleiherrechnung ####
-df_keine_Rechnung <- l_abrechnung|>
-  lapply(function(x){
-    x$Abrechnung
-  })|>
-  bind_rows(.id = "Event ID")|>
-  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
-df_keine_Rechnung$`Verleiherrechnungsbetrag [CHF]`
-
-# Manko / Überschuss ####
-df_manko_uerberschuss <- l_abrechnung|>
-  lapply(function(x){
-    x$`Manko / Überschuss`
-  })|>
-  bind_rows(.id = "Event ID")
-df_manko_uerberschuss
-
-# summary Eintritt (für Berichte verwendet) ####
+# Daten für Berichet #### 
+## Besucherzahlen  ####
 df_Besucherzahlen <- df_Eintritt|>
   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
-# write to Excel ####
+# Eventeinnahmen ####
+df_Eventeinnahmen <- l_data$Einnahmen|>
+  filter(Kategorie == "Event")
+
+# Eventausgaben ####
+df_Eventausgaben <- l_data$Ausgaben|>
+  filter(Kategorie == "Event")
+
+
+# Data export: write to Excel ####
 c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
 
 list(`Werbung` = df_Besucherzahlen,
-     `Tickets` = df_Abrechnung_tickes,
-     `Kiosk` = df_Abrechnung_kiosk,
-     `Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
-     `Eventausgaben` = df_Abrechnung_Eventausgaben,
+     `Tickets` = df_Eintritt,
+     `Kiosk` = df_Kiosk,
+     `Eventeinnahmen` = df_Eventeinnahmen,
+     `Eventausgaben` = df_Eventausgaben,
      `Filmvorführung` = df_Abrechnung
 )|>
   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
