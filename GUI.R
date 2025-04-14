@@ -27,6 +27,9 @@ invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
 
 # load user settings
+if(!file.exists("user_settings.R")) {
+  stop("Missing required file: user_settings.R")
+}
 source("user_settings.R")
 
 # create environment to run WordPress scripts
@@ -36,8 +39,8 @@ WordPress_env <- new.env()
 source("source/functions.R")
 
 # Erstellen von Verzeichnissen ####
-dir.create("output/") |> suppressWarnings()
-dir.create("output/data/") |> suppressWarnings()
+dir.create("output/", showWarnings = FALSE, recursive = TRUE)
+dir.create("output/data/", showWarnings = FALSE, recursive = TRUE) 
 
 ## Error if calculation not executing ####
 error_calculate <-  paste0("\n",
@@ -293,12 +296,13 @@ server <- function(input, output, session) {
     
     # Render files in parallel
     future_walk(1:nrow(df_mapping), function(ii) {
+      message("Processing ", ii, " of ", nrow(df_mapping))
       render_single_file(
         df_mapping$fileName_RMD[ii],
         df_mapping$fileName_html[ii],
         data_env
       )
-    })
+    }, .options = furrr_options(seed = NULL))
     file.remove(df_mapping$fileName_RMD)
     
     
@@ -1624,6 +1628,7 @@ server <- function(input, output, session) {
       
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
+      shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
 
 
       shiny::tags$hr(),
