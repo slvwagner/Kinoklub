@@ -1210,7 +1210,7 @@ server <- function(input, output, session) {
           }
           
         } 
-        #### time inputs h:m 00:00 ####
+        #### time inputs ####
         else if(c_input_class == "hms"){
           c_input[ii] <- as.character(c_input[ii])
           if (c_input[ii] == "" | c_input[ii] == "..."){
