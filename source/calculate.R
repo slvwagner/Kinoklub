@@ -445,7 +445,7 @@ if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
 }
 
 
-# Kioskeinkauf ####
+# Kiosk ####
 # Advace tickets Kiosk
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
@@ -461,7 +461,7 @@ df_Kiosk <- l_temp|>
   )
 df_Kiosk
 
-# Manko und Überschuss Kiosk ####
+## Manko und Überschuss Kiosk ####
 df_manko_uerberschuss <- l_temp|>
   lapply(function(x){
     x$`Überschuss / Manko`
@@ -477,8 +477,8 @@ df_Kiosk <- df_Kiosk|>
 df_Kiosk
 
 
-# Spez Verkaufsartikel / Spezialpreise einlesen ####
-# Spezialpreise einlesen
+## Spez Verkaufsartikel / Spezialpreise einlesen ####
+## Spezialpreise einlesen ####
 l_data$Spezialpreisekiosk|>
   arrange(`Event ID`, Spezialpreis)
 
@@ -503,7 +503,7 @@ df_spez_preis <- df_spez_preis|>
   )
 df_spez_preis
 
-# Sind alle Spezialpreise pro `Event ID` definiert?
+## Sind alle Spezialpreise pro `Event ID` definiert? ####
 df_spez_preis_na <- df_spez_preis|>
   filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
   arrange(`Event ID`, `Artikel-Kassensystem`)
@@ -531,7 +531,7 @@ if(nrow(df_spez_preis_na) > 0) {
 }
 remove(df_spez_preis)
 
-# join Spezpreise mit Verkaufsartikel
+## join Spezpreise mit Verkaufsartikel ####
 df_Kiosk <- df_Kiosk|>
   left_join(df_Spezialpreisekiosk|>
               select(-ID),
@@ -541,7 +541,7 @@ df_Kiosk <- df_Kiosk|>
   select(-Artikelname)
 df_Kiosk
 
-# Kiosk Einkaufspreise
+## Kiosk Einkaufspreise ####
 df_Einkaufspreise <- l_data$`Einkauf Kiosk`|>
   rename(ID_Kioskartikel = ID)
 df_Einkaufspreise
@@ -615,7 +615,7 @@ df_Kiosk <- m_Kiosk|>
   bind_rows()
 df_Kiosk
 
-# V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
+## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
 df_Kiosk <- bind_rows(df_Kiosk|>
                         filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
                         mutate(Verkaufsartikel = "Popcorn frisch"),
@@ -624,7 +624,7 @@ df_Kiosk <- bind_rows(df_Kiosk|>
 )
 df_Kiosk
 
-# Gewinn
+## Kioskgewinn ####
 df_Kiosk <- df_Kiosk|>
   mutate(Gewinn = if_else(is.na(`Einkaufspreis [CHF]`),
                           `Betrag`,
@@ -643,7 +643,7 @@ df_Kiosk <-
   )
 
 df_Kiosk <- df_Kiosk|>
-  select("Event ID", "ID_Kioskartikel","Verkaufsartikel", "Lieferant",
+  select("Event ID", "Datum", "Suisanummer","ID_Kioskartikel","Verkaufsartikel", "Lieferant",
          "Verkaufspreis", "Anzahl", "Kassiert",  
          #"Artikel", "Verkaufspreis [CHF]", "Menge", 
          "Einkaufspreis [CHF]", 
@@ -653,7 +653,7 @@ df_Kiosk <- df_Kiosk|>
          `Kassiert [CHF]` = Kassiert)
 
 df_Kiosk <- df_Kiosk|>
-  mutate(`Gewinn` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]` ))
+  mutate(`Gewinn` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`))
 
 df_Kiosk
 
@@ -1126,24 +1126,33 @@ Gemeinsame_Abrechnung_tickes
 
 
 # Daten für Berichet #### 
+ 
+## Abrechnung ####
+df_Abrechnung <- df_Abrechnung|>
+  mutate(`Gewinn aus Fimvorführung [CHF]` = round5Rappen(`Gewinn aus Fimvorführung [CHF]`))
+
 ## Besucherzahlen  ####
 df_Besucherzahlen <- df_Eintritt|>
   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
-# Eventeinnahmen ####
+## Eventeinnahmen ####
 df_Eventeinnahmen <- l_data$Einnahmen|>
   filter(Kategorie == "Event")
 
-# Eventausgaben ####
+## Eventausgaben ####
 df_Eventausgaben <- l_data$Ausgaben|>
   filter(Kategorie == "Event")
 
+## Keine Rechnung vorhanden ####
+names(df_Abrechnung)
+df_keine_Rechnung <- df_Abrechnung|>
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 
 # Data export: write to Excel ####
 c_filePath <- "output/data/"
-if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
+if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
 
 list(`Werbung` = df_Besucherzahlen,
      `Tickets` = df_Eintritt,

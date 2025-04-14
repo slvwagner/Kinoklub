@@ -22,7 +22,7 @@ Bericht wurde am `r act_date` erstellt.
 df_temp <- df_Eintritt|>
   group_by(Platzkategorie, Verkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(Umsatz, na.rm = T))|>
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))|>
   arrange(desc(Verkaufspreis))
 
 df_temp|>
@@ -270,7 +270,7 @@ Event|>
 ### Einahmen
 
 ```{r}
-KioskEinnahmen <- df_Abrechnung_kiosk|>
+KioskEinnahmen <- df_Kiosk|>
   group_by(Verkaufsartikel, `Verkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(`Kassiert [CHF]`, na.rm = T))|>
@@ -295,7 +295,7 @@ KioskEinnahmen|>
 #### Einkauf Getränke
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
-EinkaufGetränke <- df_Abrechnung_kiosk|>
+EinkaufGetränke <- df_Kiosk|>
   filter(Lieferant == l_data$Lieferant$Lieferantenname[2])|>
   group_by(`Verkaufsartikel`,`Verkaufspreis [CHF]`, `Einkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),

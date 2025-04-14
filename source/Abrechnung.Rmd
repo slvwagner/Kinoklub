@@ -16,17 +16,10 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 1
+ii <- 22
 ```
 
 
-```{r echo=FALSE}
-c_verteilprodukt <- df_Abrechnung|>
-  filter(`Event ID` == ii)|>
-  select(Verteilprodukt)|>
-  pull()
-
-```
 
 ## Übersicht
 
@@ -66,8 +59,7 @@ if(r_is.defined(df_keine_Rechnung)){
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
   filter(`Event ID` == ii)|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  rename(`Umsatz [sFR]` = `Umsatz`)
+  select(Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
 
 df_temp|>
   knitr::kable()
@@ -75,7 +67,7 @@ df_temp|>
 
 ```{r echo=FALSE}
 Umsatz <- df_temp|>
-  reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [sFR]`, na.rm = T))
+  reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
 
 Umsatz|>
   knitr::kable()
@@ -120,18 +112,12 @@ if(r_is.defined(df_keine_Rechnung)){
     } else{
       df_temp <- df_Abrechnung |>
         filter(`Event ID` == ii)
-      
+      df_temp
       if (!is.na(df_temp$`Link to Event ID`)) {
-        paste(
-          "Dieser Film wird zusammen mit diesem Datum",
-          paste0(
-            lubridate::day(df_temp$`Link to Event ID`),
-            ".",
-            lubridate::month(df_temp$`Link to Event ID`),
-            ".",
-            lubridate::year(df_temp$`Link to Event ID`)
-          ),
-          "abgerechnet."
+        paste0(
+          "Der Film mit Event ID ", df_temp$`Event ID`, ", wird zusammen mit Event ID ", df_temp$`Link to Event ID`," am ",
+          format(df_temp$Datum, "%d.%m.%Y"),
+          " abgerechnet."
         ) |>
           writeLines()
       }
@@ -154,9 +140,6 @@ if(nrow(df_Abrechnung) == 1){
 
 ```
 
-```{r}
-names(df_Abrechnung)
-```
 
 ```{r echo=FALSE}
 Filmvorführungen <- df_temp$`Gewinn aus Fimvorführung [CHF]`
@@ -197,13 +180,19 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 
 `r  abgaben_text`
 
+
+```{r}
+df_temp$`Kinoförderer gratis?`
+```
+
+
+
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
   if(df_temp$`Kinoförderer gratis?`){
       df_temp1 <- 
         tibble(
           Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
-          Verteilprodukt = df_temp$Verteilprodukt,                        
           `Betrag [CHF]` = 
             c(
               c_Umsatz,
@@ -220,7 +209,6 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
               "Umsatz (Kinofördere abgerechnet)",
               "Suisa-Vorabzug",
               "Verleiherrechnungsbetrag (Kinofördere abgerechnet)"),
-          Verteilprodukt = df_temp$Verteilprodukt, 
           `Betrag [CHF]` = 
             c(
               c_Umsatz,          
@@ -236,7 +224,6 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
       tibble(
         Bezeichnung = 
           c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
-        Verteilprodukt = df_temp$Verteilprodukt, 
         `Betrag [CHF]` = 
           c(c_Umsatz,
             -(df_temp$`Suisavorabzug [CHF]`) ,
@@ -249,7 +236,6 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
         "Umsatz (Kinofördere abgerechnet)",
         "Suisa-Vorabzug",
         "Verleiherrechnungsbetrag (Kinofördere abgerechnet)"),
-        Verteilprodukt = df_temp$Verteilprodukt, 
         `Betrag [CHF]` = c(
           c_Umsatz,
           c_Umsatz_Kinoförderer,
@@ -317,7 +303,7 @@ Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, 
 ### Gewinn für Kiosk Artikel
 
 ```{r echo=FALSE}
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   filter(`Event ID` == ii,
          )|>
   rename(`Gewinn [CHF]` = Gewinn
@@ -364,17 +350,19 @@ if(df_temp3|>nrow()){
 
 ```{r echo=FALSE}
 df_temp2 <- df_temp|>
-  filter(is.na(Lieferant))
+  filter(is.na(Lieferant))|>
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)
 
 df_temp2|>
-  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)|>
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
   knitr::kable()
 ```
 
-```{r}
-df_temp2 <- df_temp2|>
-  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)|>round5Rappen())
 
+```{r echo=FALSE}
+df_temp2 <- df_temp2|>
+  reframe(`Summe [CHF]` = sum(`Kassiert [CHF]`, na.rm = T)|>round5Rappen())
+  
 df_temp2|>
   knitr::kable()
 ```
@@ -412,6 +400,8 @@ Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
 Manko <- df_manko_uerberschuss|>
   filter(`Event ID` == ii)|>
   rename(`Summe [CHF]` = `Überschuss / Manko`)
+if(nrow(Manko) < 1) tibble(Manko = 0)
+
 ```
 
 ```{r echo=FALSE}
@@ -428,11 +418,15 @@ df_temp <- bind_cols(
             df_temp2,
             df_temp |>
               reframe(`Summe [CHF]` = -sum(`Betrag [CHF]`, na.rm = T)),
-            Manko)
+            Manko|>
+              reframe(`Summe [CHF]` = sum(Manko, na.rm = T))
+            )
   )|>
-  rename(`Betrag [CHF]` = `Summe [CHF]`)|>
-  select(-`Event ID`)
+  rename(`Betrag [CHF]` = `Summe [CHF]`)
+```
 
+
+```{r echo=FALSE}
 df_temp|>
   knitr::kable()
 ```

@@ -459,17 +459,20 @@ df_temp|> # arrange the plot
 ```{r}
 df_temp <- df_Eintritt|>
   group_by(Platzkategorie, Verkaufspreis)|>
-  filter(Zahlend != 0)|>
+  filter(Zahlend)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
-  reframe(Umsatz = sum(Umsatz))|>
-  arrange(desc(Umsatz))
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(desc(`Umsatz [CHF]`))
+df_temp
+```
 
+
+```{r}
 df_temp <- df_temp|>
   mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
-         `Anteil [%]` = round(Umsatz/(sum(Umsatz)/100),1)
+         `Anteil [%]` = round(`Umsatz [CHF]`/(sum(`Umsatz [CHF]`)/100),1)
          )|>
-  select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, Umsatz)|>
-  rename(`Umsatz [CHF]` = Umsatz)
+  select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, `Umsatz [CHF]`)
 
 df_temp|>
   DT::datatable(df_temp)
@@ -478,7 +481,7 @@ df_temp|>
 
 ```{r}
 df_Eintritt|>
-  reframe(`Summe Umsatz [CHF]` = sum(Umsatz))|>
+  reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   knitr::kable()
 ```
 
@@ -486,7 +489,7 @@ df_Eintritt|>
 df_temp <- df_Eintritt|>
   filter(Zahlend)|>
   group_by(Platzkategorie, Verkaufspreis)|>
-  reframe(`Umsatz [CHF]` = sum(Umsatz))|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   arrange(desc(`Umsatz [CHF]`))
 
 # Sortierung für Plot
@@ -526,7 +529,7 @@ df_temp <- df_Eintritt|>
 df_temp <- df_Eintritt|>
   filter(Zahlend)|>
   group_by(Datum)|>
-  reframe(`Film Umsatz [CHF]` = sum(Umsatz))|>
+  reframe(`Film Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Film Umsatz [CHF]`))
 ```
@@ -559,11 +562,6 @@ df_temp|>
 
 
 ### Filmabgaben
-
-```{r}
-names(df_Abrechnung)
-```
-
 
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
@@ -741,7 +739,7 @@ df_temp|>
 
 ### Prognose
 ```{r }
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn`))
 
@@ -775,7 +773,7 @@ df_temp|>
 ### Verkaufsartikel 
 
 ```{r }
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
@@ -794,7 +792,7 @@ df_temp|>
 
 
 ```{r}
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
@@ -843,7 +841,7 @@ df_temp|>
 
 ### Kiosk Umsatz pro Gast
 ```{r }
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(Datum_display, Datum,`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)
@@ -883,7 +881,7 @@ df_temp1|>
 
 
 ```{r fig.width=10}
-df_temp <- df_Abrechnung_kiosk|>
+df_temp <- df_Kiosk|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
   rename(`Umsatz [CHF]` = `Kassiert [CHF]`)
