@@ -181,11 +181,6 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 `r  abgaben_text`
 
 
-```{r}
-df_temp$`Kinoförderer gratis?`
-```
-
-
 
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
