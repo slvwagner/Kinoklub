@@ -1423,6 +1423,7 @@ server <- function(input, output, session) {
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           left_join(
             l_data()$Programm|>
+              filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
               select(1:8, -`Link to Event ID`,-Verleiher), 
             df_temp,
             by = join_by(`Event ID`)
