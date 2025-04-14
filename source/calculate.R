@@ -1078,6 +1078,7 @@ for (ID in names(l_abrechnung)) {
     left_join(l_data$Programm|>select(1:6)|>select(-`Link to Event ID`),
               by = join_by(`Event ID`)
     )
+  Verteilprodukt
   
   # Error handling: Sind die Eintritte daten für jede Filmvorführung vorhanden? ####
   if(nrow(Verteilprodukt) !=  nrow(l_data$Programm|>filter(`Event ID` %in% IDs))){
@@ -1090,14 +1091,12 @@ for (ID in names(l_abrechnung)) {
                    "\nBitte Eintritte herunterladen und abspeichern!\n\n"))
     next
   }
-  Verteilprodukt <- Verteilprodukt|>
-    select(`Event ID`, Verteilprodukt)
-  Verteilprodukt
   
   # Verteilen der Abrechnung ####
   Abrechnung <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilprodukt,
+    left_join(Verteilprodukt|>
+                select(`Event ID`, Verteilprodukt),
               by = join_by(`Event ID`)
     )
   Abrechnung|>select(22:ncol(Abrechnung))
@@ -1120,18 +1119,17 @@ for (ID in names(l_abrechnung)) {
   Eintritte <- df_Eintritt|> 
     filter(`Event ID` %in% IDs)|>
     select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-    left_join(Verteilprodukt, 
+    left_join(Verteilprodukt|>
+                select(`Event ID`, Verteilprodukt), 
               by = join_by(`Event ID`)
               )
-  Eintritte <- Eintritte|>
-    mutate(`Ticketumsatz [CHF]` = Umsatz * Verteilprodukt)
-  Eintritte
   
   # Verteilen der Einnahmen ####
   Einnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
     select(`Event ID`, Kategorie, Bezeichnung, `Betrag [CHF]`)|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilprodukt,
+    left_join(Verteilprodukt|>
+                select(`Event ID`, Verteilprodukt), 
               by = join_by(`Event ID`)
               )
   Einnahmen <- Einnahmen|>
@@ -1142,7 +1140,8 @@ for (ID in names(l_abrechnung)) {
   Ausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
     select(`Event ID`, Kategorie, Datum, Bezeichnung, `Betrag [CHF]`)|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilprodukt,
+    left_join(Verteilprodukt|>
+                select(`Event ID`, Verteilprodukt), 
               by = join_by(`Event ID`)
     )
   Ausgaben <- Ausgaben|>
@@ -1191,13 +1190,21 @@ df_Abrechnung <- l_abrechnung|>
 df_Abrechnung
 
 # Abrechnung Tickets erstellen (für Berichte verwendet) ####
+df_Abrechnung_Verteilprodukt <- l_abrechnung|>
+  lapply(function(x){
+    x$Verteilprodukt
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.integer(`Event ID`))
+df_Abrechnung_Verteilprodukt
+
+# Abrechnung Tickets erstellen (für Berichte verwendet) ####
 df_Abrechnung_tickes <- l_abrechnung|>
   lapply(function(x){
     x$Eintritte
   })|>
-  bind_rows(.id = "Event ID")|>
-  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
-         `Umsatz [CHF]` = Umsatz)
+  bind_rows()|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)
 df_Abrechnung_tickes
 
 df_Abrechnung_tickes <- df_Abrechnung_tickes|>
