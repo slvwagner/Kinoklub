@@ -1049,13 +1049,11 @@ df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
 # Gemeinsame Verleiherabrechnung über mehrere Event IDs ####
 df_mapping <- df_Abrechnung|>
   select(1:6)|>
-  mutate(`Link to Event ID` = as.character(`Link to Event ID`)|>as.integer())|>
-  filter(`Event ID` %in% df_Eintritt$`Event ID`)
+  mutate(`Link to Event ID` = as.character(`Link to Event ID`)|>as.integer())
+df_mapping
 
 # find all connected Filmvorführungen from Programm and remove all already connected
 l_abrechnung <- inspect_link_ids(df_mapping)
-l_abrechnung <- l_abrechnung|>
-  nullify_used_entries()
 
 l_gemeinsame_Abrechnung_IDs <- l_abrechnung
 l_gemeinsame_Abrechnung_IDs
@@ -1124,9 +1122,7 @@ Gemeinsame_Abrechnung_tickes <- l_abrechnung|>
   bind_rows()
 Gemeinsame_Abrechnung_tickes
 
-
 # Daten für Berichet #### 
- 
 ## Abrechnung ####
 df_Abrechnung <- df_Abrechnung|>
   mutate(`Gewinn aus Fimvorführung [CHF]` = round5Rappen(`Gewinn aus Fimvorführung [CHF]`))

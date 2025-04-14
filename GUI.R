@@ -257,30 +257,6 @@ server <- function(input, output, session) {
         c_raw |>
           writeLines(c_fileName)
       }
-      
-      # Create Verleiherabrechnung
-      do_it <- df_mapping|>
-        filter(`Event ID` == ii)|>
-        select(`Kinoförderer gratis?`)|>
-        pull()
-      if(is.na(do_it)) do_it <- FALSE
-      if(do_it){
-        # Template der Abrechnung einlesen
-        c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-        
-        # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
-        index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
-        c_raw[(index + 1)] <- c_raw[(index + 1)] |> 
-          str_replace(one_or_more(DGT), paste0(ii))
-        
-        # neues file schreiben ohne toc
-        c_fileName <- df_mapping|>
-          filter(`Event ID` == ii)|>
-          select(fileName_RMD_Verleiher)|>
-          pull()
-        c_raw |>
-          writeLines(c_fileName)
-      }
     }
     
     library(furrr)
@@ -310,52 +286,54 @@ server <- function(input, output, session) {
   }
   
   ### Erstellen der Verleiherabrechnung pro Filmvorführung ####
-  VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung) {
-    # Render in parallel Verleiherabrechnung
-    create_verleiherabrechnung <- df_mapping$`Kinoförderer gratis?` |> sum()
-    
-    if (create_verleiherabrechnung > 0) {
-      # Determine the number of cores to use
-      num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if (num_cores > 4) num_cores <- 5
+  VerleiherabrechnungErstellen <- function(df_mapping) {
+    for (ii in df_mapping$`Event ID`) {
+      # Create Verleiherabrechnung
+      # Template der Abrechnung einlesen
+      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       
-      # Adjust cores based on workload
-      if (create_verleiherabrechnung < num_cores) {
-        num_cores <- create_verleiherabrechnung
-      }
+      # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+      index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
+      c_raw[(index + 1)] <- c_raw[(index + 1)] |> 
+        str_replace(one_or_more(DGT), paste0(ii))
       
-      # Select files to render
-      c_select <- df_mapping |>
-        select(`Event ID`) |>
-        pull() |>
-        as.integer()
-      
-      # File names to render
-      input  <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_RMD_Verleiher)
-      output <- df_mapping |> filter(`Event ID` %in% c_select) |> pull(fileName_html_Verleiher)
-      
-      # Render in parallel Verleiherabrechnung
-      library(future)
-      plan(multisession, workers = num_cores)
-      
-      # Render files in parallel
-      library(furrr)
-      future_walk(1:length(c_select), function(ii) {
-        render_single_file(
-          input[ii],
-          output[ii],
-          data_env
-        )
-      })
-      
-      # Delete selected files
-      if (all(file.exists(input))) {
-        file.remove(input)
-      } else {
-        warning("Some files to delete do not exist.")
-      }
+      # neues file schreiben ohne toc
+      c_fileName <- df_mapping|>
+        filter(`Event ID` == ii)|>
+        select(fileName_RMD_Verleiher)|>pull()
+      c_raw |>
+        writeLines(c_fileName)
     }
-    file.remove(input)
+    
+    # Determine the number of cores to use
+    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+    if (num_cores > 4) num_cores <- 5
+    
+    # Adjust cores based on workload
+    if (nrow(df_mapping) < num_cores) {
+      num_cores <- nrow(df_mapping)
+    }
+    
+    # Render in parallel Verleiherabrechnung
+    library(future)
+    plan(multisession, workers = num_cores)
+    
+    # Render files in parallel
+    library(furrr)
+    future_walk(1:nrow(df_mapping), function(ii) {
+      render_single_file(
+        df_mapping$fileName_RMD_Verleiher[ii],
+        df_mapping$fileName_html_Verleiher[ii],
+        data_env
+      )
+    })
+    
+    # Delete selected files
+    if (all(file.exists(df_mapping$fileName_RMD_Verleiher))) {
+      file.remove(df_mapping$fileName_RMD_Verleiher)
+    } else {
+      warning("Some files to delete do not exist.")
+    }
     return(NULL)
   }
   
@@ -1106,6 +1084,18 @@ server <- function(input, output, session) {
               data_env$df_Abrechnung,
               toc = toc()
             )
+            # webserver
+            tryCatch({
+              webserver()
+            }, error = function(e) {
+              ausgabe_text(
+                paste0(
+                  ausgabe_text(),
+                  "\nWebserver erstellen, Fehler:\n",
+                  e$message
+                )
+              )
+            })
           }, error = function(e) {
             ausgabe_text(
               paste0(
@@ -1114,44 +1104,8 @@ server <- function(input, output, session) {
               )
             )
           })
-          # Filmabrechnungen erstellen mit dateRange user input
-          tryCatch({
-            df_mapping__ <- 
-              Abrechnung_mapping(
-                data_env,
-                start_datum, end_datum
-              )
-            df_mapping__ <- df_mapping__|>
-              filter(!`Kinoförderer gratis?`)
-            
-            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 3, "of 4"))
-            if(nrow(df_mapping__) > 0){
-              VerleiherabrechnungErstellen(
-                df_mapping__,
-                data_env$df_Abrechnung
-              )
-            }
-          }, error = function(e) {
-            ausgabe_text(
-              paste0(
-                ausgabe_text(),
-                "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
-                e$message
-              )
-            )
-          })
-          # webserver
-          tryCatch({
-            webserver()
-          }, error = function(e) {
-            ausgabe_text(
-              paste0(
-                ausgabe_text(),
-                "\nWebserver erstellen, Fehler:\n",
-                e$message
-              )
-            )
-          })
+
+
         } else {
           ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
         }
@@ -1164,6 +1118,95 @@ server <- function(input, output, session) {
           ausgabe_text()
         
         shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
+      })
+    }else{
+      paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
+             "Bitte Dateien einlesen und nochmals versuchen.")|>
+        ausgabe_text()
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+    }
+  })
+  
+  ## Überwachung Button Verleiherabrechnung(en) erstellen #####
+  shiny::observeEvent(input$Verleiherrechnung, {
+    # Execution time 
+    c_time <- Sys.time()
+    if(!is.null(data_env$df_Abrechnung)){
+      shiny::withProgress(message = "Script running... ", value = 0, {
+        shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
+        ausgabe_text("")
+        start_datum <- input$dateRange |> min()
+        end_datum <- input$dateRange |> max()
+        
+        # Überprüfen, ob beide Daten gültig sind
+        if (start_datum <= end_datum) {
+          # Aktion ausführen
+          ausgabe_text(
+            paste0(
+              "Die Filmabrechnungen für den Zeitraum \n",
+              format(start_datum, "%d.%m.%Y"),
+              " bis ",
+              format(end_datum, "%d.%m.%Y"),
+              " wurden erstellt",
+              paste0("\n", getwd(), "/output")
+            )
+          )
+          
+          # Verleiherrechnung erstellen mit dateRange user input
+          tryCatch({
+            df_mapping__ <- 
+              Abrechnung_mapping(
+                data_env,
+                start_datum, end_datum
+              )
+            df_mapping__ <- df_mapping__|>
+              filter(!`Kinoförderer gratis?`)
+            
+            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
+            if(nrow(df_mapping__) > 0){
+              VerleiherabrechnungErstellen(
+                df_mapping__
+              )
+              # webserver
+              tryCatch({
+                webserver()
+              }, error = function(e) {
+                ausgabe_text(
+                  paste0(
+                    ausgabe_text(),
+                    "\nWebserver erstellen, Fehler:\n",
+                    e$message
+                  )
+                )
+              })
+            }
+          }, error = function(e) {
+            ausgabe_text(
+              paste0(
+                ausgabe_text(),
+                "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
+                e$message
+              )
+            )
+          })
+
+        } else {
+          ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+        }
+        file_exists(file.exists("output/webserver/index.html"))
+        
+        # calculate execution time
+        c_time <- c(c_time,end = Sys.time())|>
+          diff()
+        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+          ausgabe_text()
+        
+        shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
       })
     }else{
       paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
@@ -1339,7 +1382,7 @@ server <- function(input, output, session) {
       list.files("output/pict/", "html", full.names = TRUE) |>
         file.remove()
       
-      # run script calculate.R to finde error spezifcally happening with only this source
+      # run script calculate.R to finde error specifically happening with only this source
       tryCatch({
         # erstellen von Verzeichnissen
         dir.create("output/") |> suppressWarnings()
@@ -1359,6 +1402,7 @@ server <- function(input, output, session) {
         )|>
           ausgabe_text()
       })
+      
       # run the rest of the script
       if(calculate_warnings() == ""){
         tryCatch({
@@ -1387,8 +1431,7 @@ server <- function(input, output, session) {
             filter(!`Kinoförderer gratis?`)
           if(nrow(df_mapping__)>0){
             VerleiherabrechnungErstellen(
-              df_mapping__,
-              data_env$df_Abrechnung
+              df_mapping__
             )
           }
 

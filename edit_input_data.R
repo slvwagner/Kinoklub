@@ -1,15 +1,15 @@
 # Edit input data for Kinoklub ######
 # Shiny app to edit all Kinoklub input data
 # The data is stored on a SQL DB. The Password for the DB connection must be stored 
-# in a envirnonment variable: DB_PASSWORD_KINOKLUB 
-# Find instroction in the readme to set it up for windows or Mac/Linux
+# in a environment variable: DB_PASSWORD_KINOKLUB 
+# Find instruction in the readme to set it up for windows or Mac/Linux
 
 library(shiny)
 library(shinyjs)
 library(shinyTime)
 library(DT)
 library(viridis)
-library(colorspace)
+# library(colorspace)
 library(tidyverse)
 
 source("source/functions.R")

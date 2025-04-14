@@ -13,17 +13,9 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
 ```{r variablen, include=FALSE}
-ii <- 1
+ii <- 17
 ```
 
-
-```{r echo=FALSE}
-c_verteilprodukt <- df_Abrechnung|>
-  filter(`Event ID` == ii)|>
-  select(Verteilprodukt)|>
-  pull()
-
-```
 
 \
 
@@ -34,8 +26,7 @@ Tunaustrasse 5 \
 
 
 ```{r}
-df_temp <- l_data$Programm|>
-  filter(`Event ID` == ii)
+df_temp <- l_abrechnung[[as.character(ii)]]$Gemeinsame_Abrechnung
 ```
 
 ```{r}
@@ -43,8 +34,7 @@ df_temp <- left_join(
   df_temp, 
   l_data$Verleiher, 
   by = c("Verleiher"="Verleihername")
-  )|>
-  filter(`Event ID` ==df_temp$`Event ID`)
+  )
 ```
 
 
@@ -60,8 +50,7 @@ Reinach , `r act_date`
 
 ## Verleiherabrechnung
 ```{r}
-df_temp1 <- df_Abrechnung|>
-  filter(`Event ID` == ii)|>
+df_temp1 <- df_temp|>
   mutate(Datum = format(Datum,"%d.%m.%Y"))|>
   select(Suisanummer, Filmtitel, Datum, Zeit)
 
@@ -85,12 +74,7 @@ c_suisa_prozent <- df_Abrechnung|>
 
 
 ```{r}
-df_temp1 <- df_temp|>
-  group_by(Platzkategorie)|>
-  reframe(`Verkaufspreis [CHF]` = sum(Verkaufspreis),
-          Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(Umsatz),
-          `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`))
+df_temp1 <- l_abrechnung[[as.character(ii)]]$Eintritte
 
 ```
 
