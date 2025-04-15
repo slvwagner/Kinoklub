@@ -68,92 +68,86 @@ DB_get_table <- function(table_name, con, download = TRUE){
   }
 }
 
-# Copy a data frame to SQL DB (slow done for each row because of DB batch restrictions)
+# Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) ####
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
-  # Load necessary libraries
   library(DBI)
   library(hms)
   
-  # Validate database connection
   if (!dbIsValid(con)) {
     stop("Invalid database connection.")
   }
   
-  # Get column names and wrap them in backticks to handle spaces and special characters
   col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
   
-  # Check if table exists
   table_exists <- dbExistsTable(con, table_name)
   
-  # If table exists and delete_existing is TRUE, delete all rows
   if (table_exists && delete_existing) {
     message(sprintf("Table '%s' exists. Deleting all existing rows...", table_name))
     dbExecute(con, sprintf("DELETE FROM `%s`;", table_name))
     message(sprintf("All rows deleted from '%s'.", table_name))
   }
   
-  # If table does not exist, create it
   if (!table_exists) {
     message(sprintf("Table '%s' does not exist. Creating table...", table_name))
     
-    # Infer SQL column types based on R data types (MySQL-specific)
     sql_types <- sapply(df_data, function(x) {
       if (is.integer(x)) {
         return("INT")
       } else if (is.numeric(x)) {
         return("DOUBLE")
+      } else if (is.logical(x)) {
+        return("BOOLEAN")  # Add support for logical
       } else if (inherits(x, "Date")) {
         return("DATE")
       } else if (inherits(x, "hms")) {
-        return("TIME")  # Use TIME for time of day
+        return("TIME")
       } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
-        return("DATETIME")  # Use DATETIME for date-time values
+        return("DATETIME")
       } else if (is.character(x) || is.factor(x)) {
-        return("TEXT")  # Use TEXT for character or factor columns
+        return("TEXT")
       } else {
         stop(sprintf("Unsupported data type for column: %s", class(x)))
       }
     })
     
-    # Construct CREATE TABLE query with backticks around column names
+    col_defs <- paste0("`", names(sql_types), "` ", sql_types)
+    
+    # Add PRIMARY KEY constraint to the first column
+    col_defs[1] <- paste0(col_defs[1], " PRIMARY KEY")
+    
     create_query <- sprintf(
       "CREATE TABLE `%s` (%s);",
       table_name,
-      paste(paste0("`", colnames(df_data), "` ", sql_types), collapse = ", ")
+      paste(col_defs, collapse = ", ")
     )
     
-    # Execute table creation
     dbExecute(con, create_query)
     message(sprintf("Table '%s' created successfully.", table_name))
   }
   
-  # Loop through each row and insert data
   for (i in 1:nrow(df_data)) {
-    # Skip empty rows
-    if (all(is.na(df_data[i, ]))) {
-      next
-    }
+    if (all(is.na(df_data[i, ]))) next
     
-    # Format values for MySQL
     values <- sapply(df_data[i, ], function(x) {
       if (is.na(x)) {
-        return("NULL")  # Handle NA values properly
+        return("NULL")
+      } else if (is.logical(x)) {
+        return(as.character(as.integer(x)))  # TRUE -> 1, FALSE -> 0
       } else if (is.numeric(x)) {
-        return(as.character(x))  # Keep numeric values as is
+        return(as.character(x))
       } else if (inherits(x, "Date")) {
-        return(sprintf("'%s'", as.character(x)))  # Format Date as 'YYYY-MM-DD'
+        return(sprintf("'%s'", as.character(x)))
       } else if (inherits(x, "hms")) {
-        return(sprintf("'%s'", as.character(x)))  # Format time as 'HH:MM:SS'
+        return(sprintf("'%s'", as.character(x)))
       } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
-        return(sprintf("'%s'", format(x, "%Y-%m-%d %H:%M:%S")))  # Format datetime as 'YYYY-MM-DD HH:MM:SS'
+        return(sprintf("'%s'", format(x, "%Y-%m-%d %H:%M:%S")))
       } else if (is.character(x) || is.factor(x)) {
-        return(sprintf("'%s'", gsub("'", "''", as.character(x))))  # Escape single quotes in strings
+        return(sprintf("'%s'", gsub("'", "''", as.character(x))))
       } else {
         stop(sprintf("Unsupported data type for value: %s", class(x)))
       }
     })
     
-    # Create SQL query with backticks around column names
     query <- sprintf(
       "INSERT INTO `%s` (%s) VALUES (%s);",
       table_name,
@@ -161,15 +155,13 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
       paste(values, collapse = ", ")
     )
     
-    # Ensure NULL values are correctly formatted (without quotes)
     query <- gsub("'NULL'", "NULL", query)
-    
-    # Execute query
     dbExecute(con, query)
   }
   
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
+
 
 # Function to add a row to any table
 DB_add_row <- function(con, table_name, new_row) {
