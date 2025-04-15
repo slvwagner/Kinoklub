@@ -97,7 +97,7 @@ df_temp <- Brutto|>
   mutate(Brutto = Brutto|>pull(),
          Tax = 0,
          `Netto 1 [CHF]` = `Brutto [CHF]`,
-         `Netto 0.00%` = 0,
+         `Netto 0.00 [%]` = 0,
          `Netto 2 [CHF]` = `Brutto [CHF]`,
          `SUISA-Vorabzug [CHF]` = (`Brutto [CHF]` * c_suisa_prozent/100)|>round5Rappen(),
          `Netto 3 [CHF]` = `Netto 2 [CHF]` - `SUISA-Vorabzug [CHF]`

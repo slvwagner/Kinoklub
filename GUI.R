@@ -981,9 +981,6 @@ server <- function(input, output, session) {
   calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
   ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
   
-  # Sollen Inhaltsverzeichnisse erstellt werden
-  toc <- shiny::reactiveVal(TRUE)
-  
   # Vektor mit Datumseinträgen
   if (exists("df_Besucherzahlen", envir = data_env))  {
     datum_vektor <- data_env$df_Besucherzahlen$Datum
@@ -1082,7 +1079,7 @@ server <- function(input, output, session) {
             AbrechnungErstellen(
               df_mapping__,
               data_env$df_Abrechnung,
-              toc = toc()
+              toc = TRUE
             )
             # webserver
             tryCatch({
@@ -1234,7 +1231,7 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          StatistikErstellen(toc())
+          StatistikErstellen(TRUE)
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1283,7 +1280,7 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-          JahresrechnungErstellen(toc())
+          JahresrechnungErstellen(TRUE)
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
         }, error = function(e) {
@@ -1343,7 +1340,7 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-        FilmvorschlagErstellen(toc(), WordPress_env)
+        FilmvorschlagErstellen(TRUE, WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         webserver()
       }, error = function(e) {
@@ -1407,11 +1404,11 @@ server <- function(input, output, session) {
       if(calculate_warnings() == ""){
         tryCatch({
           # Statistik-Bericht erstellen
-          StatistikErstellen(toc())
+          StatistikErstellen(TRUE)
           shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
           
           # Jahresrechnung-Bericht erstellen
-          JahresrechnungErstellen(toc())
+          JahresrechnungErstellen(TRUE)
           shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
           
           # Bericht(e) Abrechnung pro Filmforführung erstellen
@@ -1424,7 +1421,7 @@ server <- function(input, output, session) {
           AbrechnungErstellen(
             df_mapping__,
             data_env$df_Abrechnung,
-            toc = toc()
+            toc = TRUE
           )
           shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
           df_mapping__ <- df_mapping__|>
@@ -1444,7 +1441,7 @@ server <- function(input, output, session) {
           source("source/read_and_convert_wordPress.R", local = WordPress_env)
           shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
           
-          FilmvorschlagErstellen(toc(), WordPress_env)
+          FilmvorschlagErstellen(TRUE, WordPress_env)
           shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
           
           # Create webserver data
@@ -1491,13 +1488,6 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Überwachung Input: Inhaltsverzeichniss #####
-  shiny::observeEvent(input$Inhaltsverzeichnis, {
-    print(clc)
-    toc(input$Inhaltsverzeichnis)
-    print(toc())
-    file_exists(file.exists("output/webserver/index.html"))
-  })
   
   ## Upload handler #####
   file_data <- shiny::reactive({
