@@ -217,7 +217,7 @@ server <- function(input, output, session) {
   }
   
   ### Erstellen der Abrechnung pro `Event ID` ####
-  AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
+  AbrechnungErstellen <- function(df_mapping, df_Abrechnung) {
     for (ii in df_mapping$`Event ID`) {
       # Template der Abrechnung einlesen
       c_raw <- readLines("source/Abrechnung.Rmd")
@@ -247,16 +247,11 @@ server <- function(input, output, session) {
         select(fileName_RMD)|>
         pull()
       
-      if (toc) {
-        # neues file schreiben mit toc
-        c_raw |>
-          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-          writeLines(c_fileName)
-      } else {
-        # neues file schreiben ohne toc
-        c_raw |>
-          writeLines(c_fileName)
-      }
+      # neues file schreiben mit toc
+      c_raw |>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+        writeLines(c_fileName)
+
     }
     
     library(furrr)
@@ -338,58 +333,45 @@ server <- function(input, output, session) {
   }
   
   ### Statistik-Bericht erstellen ####
-  StatistikErstellen <- function(toc) {
+  StatistikErstellen <- function() {
     # Einlesen
     c_raw <- readLines("source/Statistik.Rmd")
     # Inhaltsverzeichnis
-    if (toc |> as.logical()) {
-      # neues file schreiben mit toc
-      c_raw |>
-        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-        writeLines(paste0("source/temp.Rmd"))
-    } else {
-      # neues file schreiben ohne toc
-      c_raw |>
-        writeLines(paste0("source/temp.Rmd"))
-    }
+
+    # neues file schreiben mit toc
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+      writeLines(paste0("source/temp.Rmd"))
+
     # Render
     render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
   }
   
   ### Filmvorschlag erstellen ####
-  FilmvorschlagErstellen <- function(toc, data_env) {
+  FilmvorschlagErstellen <- function(data_env) {
     # Einlesen
     c_raw <- readLines("source/Archiv.Rmd")
     # Inhaltsverzeichnis
-    if (toc |> as.logical()) {
-      # neues file schreiben mit toc
-      c_raw |>
-        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-        writeLines(paste0("source/temp.Rmd"))
-    } else {
-      # neues file schreiben ohne toc
-      c_raw |>
-        writeLines(paste0("source/temp.Rmd"))
-    }
+
+    # neues file schreiben mit toc
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+      writeLines(paste0("source/temp.Rmd"))
+
     # Render
     render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
   }
   
   ### Jahresrechnung-Bericht erstellen ####
-  JahresrechnungErstellen <- function(toc) {
+  JahresrechnungErstellen <- function() {
     # Einlesen
     c_raw <- readLines("source/Jahresrechnung.Rmd")
     # Inhaltsverzeichnis
-    if (toc |> as.logical()) {
-      # neues file schreiben mit toc
-      c_raw |>
-        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-        writeLines(paste0("source/temp.Rmd"))
-    } else {
-      # neues file schreiben ohne toc
-      c_raw |>
-        writeLines(paste0("source/temp.Rmd"))
-    }
+
+    c_raw |>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+      writeLines(paste0("source/temp.Rmd"))
+
     # Render
     render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
   }
@@ -1231,7 +1213,7 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          StatistikErstellen(TRUE)
+          StatistikErstellen()
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1340,7 +1322,7 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-        FilmvorschlagErstellen(TRUE, WordPress_env)
+        FilmvorschlagErstellen(WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         webserver()
       }, error = function(e) {
@@ -1404,11 +1386,11 @@ server <- function(input, output, session) {
       if(calculate_warnings() == ""){
         tryCatch({
           # Statistik-Bericht erstellen
-          StatistikErstellen(TRUE)
+          StatistikErstellen()
           shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
           
           # Jahresrechnung-Bericht erstellen
-          JahresrechnungErstellen(TRUE)
+          JahresrechnungErstellen()
           shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
           
           # Bericht(e) Abrechnung pro Filmforführung erstellen
@@ -1420,8 +1402,7 @@ server <- function(input, output, session) {
             )
           AbrechnungErstellen(
             df_mapping__,
-            data_env$df_Abrechnung,
-            toc = TRUE
+            data_env$df_Abrechnung
           )
           shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
           df_mapping__ <- df_mapping__|>
@@ -1441,7 +1422,7 @@ server <- function(input, output, session) {
           source("source/read_and_convert_wordPress.R", local = WordPress_env)
           shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
           
-          FilmvorschlagErstellen(TRUE, WordPress_env)
+          FilmvorschlagErstellen(WordPress_env)
           shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
           
           # Create webserver data
