@@ -77,18 +77,22 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
     stop("Invalid database connection.")
   }
   
+  # Get first column name (intended as primary key)
+  primary_key_col <- names(df_data)[1]
+  
+  # Ensure primary key column has unique values
+  if (anyDuplicated(df_data[[primary_key_col]]) > 0) {
+    stop(sprintf("Primary key column '%s' contains duplicate values.", primary_key_col))
+  }
+  
+  # All column names for insert
   col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
   
   table_exists <- dbExistsTable(con, table_name)
   
   if (table_exists && delete_existing) {
-    message(sprintf("Table '%s' exists. Deleting all existing rows...", table_name))
-    dbExecute(con, sprintf("DELETE FROM `%s`;", table_name))
-    message(sprintf("All rows deleted from '%s'.", table_name))
-  }
-  
-  if (!table_exists) {
-    message(sprintf("Table '%s' does not exist. Creating table...", table_name))
+    message(sprintf("Table '%s' exists. Dropping it...", table_name))
+    dbExecute(con, sprintf("DROP TABLE `%s`;", table_name))
     
     sql_types <- sapply(df_data, function(x) {
       if (is.integer(x)) {
@@ -96,7 +100,7 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
       } else if (is.numeric(x)) {
         return("DOUBLE")
       } else if (is.logical(x)) {
-        return("BOOLEAN")  # Add support for logical
+        return("BOOLEAN")
       } else if (inherits(x, "Date")) {
         return("DATE")
       } else if (inherits(x, "hms")) {
@@ -110,15 +114,14 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
       }
     })
     
-    col_defs <- paste0("`", names(sql_types), "` ", sql_types)
-    
-    # Add PRIMARY KEY constraint to the first column
-    col_defs[1] <- paste0(col_defs[1], " PRIMARY KEY")
+    # Construct CREATE TABLE query with primary key on first column
+    column_defs <- paste0("`", names(sql_types), "` ", sql_types)
+    column_defs[1] <- paste(column_defs[1], "PRIMARY KEY")
     
     create_query <- sprintf(
       "CREATE TABLE `%s` (%s);",
       table_name,
-      paste(col_defs, collapse = ", ")
+      paste(column_defs, collapse = ", ")
     )
     
     dbExecute(con, create_query)
@@ -132,7 +135,7 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
       if (is.na(x)) {
         return("NULL")
       } else if (is.logical(x)) {
-        return(as.character(as.integer(x)))  # TRUE -> 1, FALSE -> 0
+        return(as.character(as.integer(x)))
       } else if (is.numeric(x)) {
         return(as.character(x))
       } else if (inherits(x, "Date")) {
@@ -161,6 +164,10 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
+
+
+
+
 
 
 # Function to add a row to any table

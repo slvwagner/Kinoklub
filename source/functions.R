@@ -52,8 +52,6 @@ if (commandArgs()[1]=='RStudio'){
   print(paste0("not support: ",commandArgs()[1]))
 }                                                                         
 
-
-                                                                    
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
 #print(clc)                                      ##  when you load this source,
@@ -384,8 +382,7 @@ r_is.defined <- function(sym) {
   exists(sym, env)
 }
 
-r_signif <- function (x, significant_digits = 3)
-{
+r_signif <- function (x, significant_digits = 3){
   format(x, format = "g", digits = significant_digits)
 }
 

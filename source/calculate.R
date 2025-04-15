@@ -17,23 +17,19 @@ source("source/SQL/SQL_Functions.R")
 # read template
 l_template <- readRDS("source/SQL/template.Rds")
 
-# Data base user password from system variables
+# connect to data base ####
+## Data base user password from system variables ####
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# Data base user
+## Data base user ####
 user <- "ch367079_flo"
-
-# Connect to data base
+## Connection ####
 con <- DB_connect(pw, "ch367079_flo")
-# get all data as defined in the template l_template
-# Convert data types for each table
-l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
-# Disconnect from DB
-dbDisconnect(con)
-remove(l_template, con, pw, user)
 
+## get all data as defined in the template l_template ####
+### Convert data types for each table ####
+l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
 
 # check nb of files Eintritt vs Kiosk ####
-
 c_eintritt <- list.files("Input/advance tickets",pattern = "Eintritt")
 c_Kiosk <- list.files("Input/advance tickets",pattern = "Kiosk")
 
@@ -103,7 +99,7 @@ if(nrow(df_temp) != 0) {
   )}
 
 
-# Eintritt aus Advanced Tickets ##################
+# Eintritt aus Advanced Tickets ####
 # files to read in
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 
@@ -116,40 +112,7 @@ if(is_empty(c_files)) {
 }
 
 # read and convert Eintritte
-l_temp <- convert_data_Film_txt(c_files, l_data$Programm)
-
-# create data frame
-df_Eintritt <- l_temp|>
-  bind_rows()|>
-  mutate(Verkaufspreis = Preis ,
-         Zahlend = if_else(Verkaufspreis == 0, F, T))|>
-  select(Datum, Suisanummer, Filmtitel, Platzkategorie, Zahlend, Verkaufspreis, Anzahl, Umsatz,`SUISA-Vorabzug`)
-df_Eintritt
-
-# join `Event ID`
-df_Eintritt <- df_Eintritt|>
-  left_join(l_data$Programm|>
-              filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-              select(`Event ID`, Datum, Suisanummer),
-            by = join_by(Datum, Suisanummer)
-  )|>
-  rename(`Umsatz [CHF]` = Umsatz)
-# paste0("`",names(df_Eintritt), "`")|>
-#   paste0(collapse = ", ")|>
-#   writeLines()
-
-df_Eintritt <- df_Eintritt|>
-  select(`Event ID`, `Datum`, `Suisanummer`, `Filmtitel`, `Platzkategorie`, `Zahlend`, `Verkaufspreis`, `Anzahl`, `Umsatz [CHF]`, `SUISA-Vorabzug` )
-
-
-if(sum(is.na(df_Eintritt$`Event ID`)) > 0){
-  df_temp <- df_Eintritt|>
-    filter(is.na(`Event ID`))|>
-    distinct(Datum, Suisanummer,.keep_all = TRUE)
-  stop("\nFür den Film ", df_temp$Filmtitel, " mit Suisanummer ", df_temp$Suisanummer, " am ",
-       paste0(format(df_temp$Datum, "%d.%m.%Y"), collapse = ", "), " existiert kein Programmeintrag\nBitte das Programm korrigieren!\n"
-  )
-}
+df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 
 
 # Kiosk ####
@@ -871,6 +834,9 @@ list(`Werbung` = df_Besucherzahlen,
 remove(ii,
        c_filePath
 )
+
+# Disconnect from DB ####
+dbDisconnect(con)
 
 # user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
