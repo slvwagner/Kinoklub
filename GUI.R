@@ -1683,17 +1683,7 @@ server <- function(input, output, session) {
       shiny::tags$hr(),
       
       # Button zum Ausführen von Code Alles erstellen mit Webserver
-      shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
-
-      shiny::tags$hr(),
-      
-      # Inhaltsverzeichnis
-      shiny::selectInput(
-        inputId = "Inhaltsverzeichnis",
-        label = "Inhaltsverzeichnis erstellen?",
-        choices = list("Ja" = TRUE, "Nein" = FALSE),
-        selected = TRUE # Default value
-      )
+      shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
     )
   })
   
