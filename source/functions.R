@@ -24,14 +24,14 @@ round5Rappen <- function(zahl) {
 }
 
 
-# variable is present in global environment
+# variable is present in global environment ####
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
   exists(sym, env)
 }
 
-# library is loaded in global environment
+# library is loaded in global environment ####
 r_is.library_loaded <- function(package_name) {
   is_loaded <- FALSE
   tryCatch({
@@ -43,17 +43,14 @@ r_is.library_loaded <- function(package_name) {
 }
 
 
-
+# clean console ####
 if (commandArgs()[1]=='RStudio'){
-  ##  method print: \f: Form Feed
   print.cleanup <- function(cleanupObject) cat("\f")     
-  
-  
-}else if(substr(commandArgs()[1], nchar(commandArgs()[1]), nchar(commandArgs()[1])) == "R"){        
-  
+} else if(substr(commandArgs()[1], nchar(commandArgs()[1]), nchar(commandArgs()[1])) == "R"){        
   print.cleanup <- function(cleanupObject) cat(c("\033[2J","\033[H"))
-  
-}else{print(paste0("not support: ",commandArgs()[1]))}                                                                         
+} else {
+  print(paste0("not support: ",commandArgs()[1]))
+}                                                                         
 
 
                                                                     
@@ -65,45 +62,7 @@ class(clc) <- 'cleanup'                         ##  class cleanup
 
 
 
-# library(rebus)
-# p <- START%R%one_or_more("#")%R%SPC
-# as.character(p)
-
-create_df <- function(c_Rmd) {
-  p <- "^```"
-  df_data <- data.frame(
-    index = 1:length(c_Rmd),
-    c_Rmd,
-    code_sections = lapply(c_Rmd, function(x)
-      stringr::str_detect(x, p)) |> unlist(),
-    is.heading = stringr::str_detect(c_Rmd, "^[#]+\\s")
-  )
-  
-  # search and exclude code sections
-  c_start_ii <- 0
-  for (ii in 1:nrow(df_data)) {
-    if (df_data$code_sections[ii] &  (c_start_ii != 0)) {
-      df_data$code_sections[c_start_ii:ii] <-
-        rep(TRUE, length(c_start_ii:ii))
-      c_start_ii <- 0
-    } else if (df_data$code_sections[ii]) {
-      c_start_ii <- ii
-    }
-  }
-  
-  # remove heading in code section
-  df_data$is.heading <- ifelse(df_data$code_sections, FALSE, df_data$is.heading)
-  
-  # Store headings
-  df_data$`#` <- stringr::str_detect(df_data$c_Rmd, "^#\\s") |> ifelse(1, 0)
-  df_data$`##` <-  stringr::str_detect(df_data$c_Rmd, "^##\\s") |> ifelse(1, 0)
-  df_data$`###` <- stringr::str_detect(df_data$c_Rmd, "^###\\s") |> ifelse(1, 0)
-  df_data$`####` <- stringr::str_detect(df_data$c_Rmd, "^####\\s") |> ifelse(1, 0)
-  df_data$`#####` <- stringr::str_detect(df_data$c_Rmd, "^#####\\s") |> ifelse(1, 0)
-  df_data$`######` <- stringr::str_detect(df_data$c_Rmd, "^######\\s") |> ifelse(1, 0)
-  return(df_data)
-}
-
+# Inhaltsverzeichnis für Markdown ####
 r_toc_for_Rmd <- function(
     c_Rmd,
     toc_heading_string = "Table of Contents" ,
@@ -111,6 +70,40 @@ r_toc_for_Rmd <- function(
     pagebreak_level = "non"
 )
 {
+  create_df <- function(c_Rmd) {
+    p <- "^```"
+    df_data <- data.frame(
+      index = 1:length(c_Rmd),
+      c_Rmd,
+      code_sections = lapply(c_Rmd, function(x)
+        stringr::str_detect(x, p)) |> unlist(),
+      is.heading = stringr::str_detect(c_Rmd, "^[#]+\\s")
+    )
+    
+    # search and exclude code sections
+    c_start_ii <- 0
+    for (ii in 1:nrow(df_data)) {
+      if (df_data$code_sections[ii] &  (c_start_ii != 0)) {
+        df_data$code_sections[c_start_ii:ii] <-
+          rep(TRUE, length(c_start_ii:ii))
+        c_start_ii <- 0
+      } else if (df_data$code_sections[ii]) {
+        c_start_ii <- ii
+      }
+    }
+    
+    # remove heading in code section
+    df_data$is.heading <- ifelse(df_data$code_sections, FALSE, df_data$is.heading)
+    
+    # Store headings
+    df_data$`#` <- stringr::str_detect(df_data$c_Rmd, "^#\\s") |> ifelse(1, 0)
+    df_data$`##` <-  stringr::str_detect(df_data$c_Rmd, "^##\\s") |> ifelse(1, 0)
+    df_data$`###` <- stringr::str_detect(df_data$c_Rmd, "^###\\s") |> ifelse(1, 0)
+    df_data$`####` <- stringr::str_detect(df_data$c_Rmd, "^####\\s") |> ifelse(1, 0)
+    df_data$`#####` <- stringr::str_detect(df_data$c_Rmd, "^#####\\s") |> ifelse(1, 0)
+    df_data$`######` <- stringr::str_detect(df_data$c_Rmd, "^######\\s") |> ifelse(1, 0)
+    return(df_data)
+  }
   # create data frame to work with
   df_data <- create_df(c_Rmd)
   
@@ -384,6 +377,7 @@ r_toc_for_Rmd <- function(
   return(c_Rmd)
 }
 
+# Variel ist definiert? ####
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
@@ -427,8 +421,9 @@ inspect_link_ids <- function(df_mapping) {
   return(result)
 }
 
+# Collect all values that appear in chains (excluding the first element of each list) ####
 nullify_used_entries <- function(lst) {
-  # Collect all values that appear in chains (excluding the first element of each list)
+ 
   used_values <- unlist(lapply(lst, function(x) x[-1])) 
   
   # Convert list names to numeric for comparison
@@ -580,7 +575,65 @@ convert_data_Film_txt <- function(fileName, Programm) {
         )
     })
   names(l_Eintritt) <- fileName
-  return(l_Eintritt)
+  
+  # create data frame
+  df_Eintritt <- l_Eintritt |>
+    bind_rows() |>
+    mutate(Verkaufspreis = Preis ,
+           Zahlend = if_else(Verkaufspreis == 0, F, T)) |>
+    select(
+      Datum,
+      Suisanummer,
+      Filmtitel,
+      Platzkategorie,
+      Zahlend,
+      Verkaufspreis,
+      Anzahl,
+      Umsatz,
+      `SUISA-Vorabzug`
+    )
+  df_Eintritt
+  
+  # join `Event ID`
+  df_Eintritt <- df_Eintritt |>
+    left_join(
+      Programm |>
+        filter(`Verleiher Angefragt?` != "Wird nicht gespielt") |>
+        select(`Event ID`, Datum, Suisanummer),
+      by = join_by(Datum, Suisanummer)
+    ) |>
+    rename(`Umsatz [CHF]` = Umsatz)
+  
+  df_Eintritt <- df_Eintritt |>
+    select(
+      `Event ID`,
+      `Datum`,
+      `Suisanummer`,
+      `Filmtitel`,
+      `Platzkategorie`,
+      `Zahlend`,
+      `Verkaufspreis`,
+      `Anzahl`,
+      `Umsatz [CHF]`,
+      `SUISA-Vorabzug`
+    )
+  
+  if (sum(is.na(df_Eintritt$`Event ID`)) > 0) {
+    df_temp <- df_Eintritt |>
+      filter(is.na(`Event ID`)) |>
+      distinct(Datum, Suisanummer, .keep_all = TRUE)
+    stop(
+      "\nFür den Film ",
+      df_temp$Filmtitel,
+      " mit Suisanummer ",
+      df_temp$Suisanummer,
+      " am ",
+      paste0(format(df_temp$Datum, "%d.%m.%Y"), collapse = ", "),
+      " existiert kein Programmeintrag\nBitte das Programm korrigieren!\n"
+    )
+  }
+  
+  return(df_Eintritt)
 }
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
