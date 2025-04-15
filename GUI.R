@@ -1614,7 +1614,8 @@ server <- function(input, output, session) {
         "Datei hochladen:",
         accept = c(".csv", ".txt"),
         multiple = FALSE,
-        placeholder = "Drag & drop or browse a file"
+        buttonLabel = "Datei auswählen",
+        placeholder = "Drag & drop file"
       ),
       
       # Button Daten Einlesen
