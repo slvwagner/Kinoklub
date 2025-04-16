@@ -7,8 +7,8 @@ con <- DB_connect(pw, "ch367079_flo")
 l_data <- DB_backup_DB(con)
 l_data <- convert_DB_to_R(l_data, l_template)
 
-# l_data$Programm <- l_data$Programm|>
-#   left_join(l_data$Einsatzplan)
+l_data$Programm <- l_data$Programm|>
+  left_join(l_data$Einsatzplan)
 
 saveRDS(l_data, "Backup/Data.Rds")
 
