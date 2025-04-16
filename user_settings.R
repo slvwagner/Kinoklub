@@ -21,8 +21,8 @@
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
 # 2024 V1.14 GUI Graphical user interface 
 # 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
-# 2024 V1.16 Introduction of envirnonments to run GUI
-# 2025 V1.17 Data type for excel files are definded by column type database 
+# 2024 V1.16 Introduction of environments to run GUI
+# 2025 V1.17 Data type for excel files are defined by column type database 
 # 2025 V2.00 Fist fully tested Version
 # 2025 V2.01 New Feature: More than one Film per day can be handled
 # 2025 V2.02 New Feature: Files can be uploade via GUI
@@ -31,7 +31,7 @@
 # 2025 V2.05 Bereits gezeigte Filme im Archiv
 # 2025 V2.06 Script running status bar
 # 2025 V2.07 Speed up
-# 2025 V3.00 Input Dateien GUi erstellt, Excel dateinen werden nicht mehr benötigt
+# 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt
 
 
 #############################################################################################################################################

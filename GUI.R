@@ -32,11 +32,14 @@ if(!file.exists("user_settings.R")) {
 }
 source("user_settings.R")
 
+l_template <- readRDS("source/SQL/template.Rds")
+
 # create environment to run WordPress scripts
 WordPress_env <- new.env()
 
 # Functions
 source("source/functions.R")
+source("source/SQL/SQL_Functions.R")
 
 # Erstellen von Verzeichnissen ####
 dir.create("output/", showWarnings = FALSE, recursive = TRUE)
@@ -1520,6 +1523,58 @@ server <- function(input, output, session) {
           " abgespeichert"
         ) |>
           ausgabe_text()
+        
+        if(str_detect(file_name, pattern = "Eintritte")){
+          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+          con <- DB_connect(pw, "ch367079_flo")
+          Programm <- DB_get_table("Programm", con)
+          Programm <- convert_to_template_types(Programm, l_template$Programm)
+          df_temp <- convert_data_Film_txt(save_path, Programm)
+          df_test <- data_env$df_Eintritt
+          df_test <- df_test|>
+            filter((`Event ID` %in% df_temp$`Event ID`))
+          c_update <- !identical(df_temp, df_test)
+          
+          DB_copy_table(data_env$df_Eintritt, con , "df_Eintritt")
+          
+          if(c_update){
+            df_test <- data_env$df_Eintritt
+            
+          }
+          dbDisconnect(con)
+        } else if (str_detect(file_name, pattern = "Kiosk")){
+          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+          con <- DB_connect(pw, "ch367079_flo")
+          Programm <- DB_get_table("Programm", con)
+          Programm <- convert_to_template_types(Programm, l_template$Programm)
+          Einkauf <- DB_get_table("Einkauf Kiosk", con)
+          Einkauf <- convert_to_template_types(Einkauf, l_template$`Einkauf Kiosk`)
+
+          l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, Einkauf)
+          
+          df_Kiosk <- l_temp|>
+            lapply(function(x){
+              x$df_Kiosk
+            })|>
+            bind_rows(.id = "Event ID")|>
+            mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
+                     as.integer()
+            )
+          
+          df_test <- data_env$df_Kiosk
+          df_test <- df_test|>
+            filter((`Event ID` %in% df_temp$`Event ID`))
+          c_update <- !identical(df_temp, df_test)
+          
+          DB_copy_table(data_env$df_Kiosk, con , "df_Kiosk")
+          
+          if(c_update){
+            DB_copy_table(df_Eintritt, con , "df_Kiosk")
+          }
+          dbDisconnect(con)
+        }
+        
+        
         return(list(type = "txt", data = readLines(file_path)))
       }
     } else if (file_ext == "csv") {

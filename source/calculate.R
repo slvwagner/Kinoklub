@@ -111,6 +111,7 @@ if(is_empty(c_files)) {
   )
 }
 
+
 # read and convert Eintritte
 df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 
