@@ -630,6 +630,9 @@ server <- function(input, output, session) {
       dataTableProxy('table')|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_row())
+    } else if (!is.na(last_selected_page())){
+      dataTableProxy('table')|>
+        selectPage(last_selected_page())
     }
   })
   
@@ -1806,22 +1809,20 @@ server <- function(input, output, session) {
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
-    if(nrow(current_data()) <= 1){
-      showModal(modalDialog(
-        title = "Die letzte Zeile kannn nicht gelöscht werden",
-        footer = tagList(
-          modalButton("Abbrechen")
-        ),
-        easyClose = TRUE
-      ))
-    }
-    else {
-      req(input$table_rows_selected)
+    # if(nrow(current_data()) <= 1){
+    #   showModal(modalDialog(
+    #     title = "Die letzte Zeile kannn nicht gelöscht werden",
+    #     footer = tagList(
+    #       modalButton("Abbrechen")
+    #     ),
+    #     easyClose = TRUE
+    #   ))
+    # }
+    # else {
       # Find ID to delete
       row <- current_data()[input$table_rows_selected, ]
-      
-      # Update data
       updated_data <- current_data()
+      # Delete
       updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
       current_data(updated_data)
       
@@ -1833,10 +1834,10 @@ server <- function(input, output, session) {
       }
       
       ##### select last edited page ####
-      last_selected_row(last_selected_row() - 1)
-      if(nrow(current_data()) == last_selected_row()) last_selected_row(last_selected_row() - 1)
+      last_selected_row(NA)
+
       removeModal()
-    }
+    # }
   })
   
   ## Dynamic UI ####
@@ -1860,12 +1861,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
 
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
