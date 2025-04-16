@@ -5,14 +5,20 @@ source("source/SQL/SQL_Functions.R")
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(pw, "ch367079_flo")
 l_data <- DB_backup_DB(con)
+l_template <- readRDS("source/SQL/template.Rds")
 l_data <- convert_DB_to_R(l_data, l_template)
 
-l_data$Programm <- l_data$Programm|>
-  left_join(l_data$Einsatzplan)
+l_data$Einsatzplan <- l_data$Programm|>
+  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
+  left_join(l_data$Einsatzplan|>
+              select(-(2:6)
+                     )
+            )|>
+  arrange(Datum)
 
 saveRDS(l_data, "Backup/Data.Rds")
 
-l_data
+l_data$Einsatzplan
 
 # l_template <- readRDS("Input/backup/Data_backup1.Rds")
 # l_template[["Verleiherabgaben"]] <- NULL
