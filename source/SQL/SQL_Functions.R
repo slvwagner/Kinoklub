@@ -3,6 +3,7 @@ library(DBI)
 library(tidyverse)
 source("source/functions.R")
 
+# Database functions  ####
 # connection to Database
 DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   # Database credentials
@@ -68,7 +69,7 @@ DB_get_table <- function(table_name, con, download = TRUE){
   }
 }
 
-# Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) ####
+# Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) 
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   library(DBI)
   library(hms)
@@ -440,8 +441,25 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
           " (Row where ", primary_key_col, " = ", primary_key_value, ").")
 }
 
+# Back up all tables from database 
+DB_backup_DB <- function(con) {
+  if(dbIsValid(con)){
+    # List all tables in the connected database
+    tables <- dbListTables(con)
+    
+    # Backup all data 
+    l_data <- tables|>
+      lapply(DB_get_table, con)
+    
+    names(l_data) <- tables
+    message("Downloaded the following tables from the Database:\n", paste(tables, collapse = "\n"))
+  } else {
+    stop("Database connection is not valid")
+  }
+  return(l_data)
+}
 
-# Conversion template
+# Conversion ####
 convert_to_template_types <- function(df_sql, df_template) {
   # Align columns (keep only those present in both data frames)
   common_cols <- intersect(colnames(df_sql), colnames(df_template))
