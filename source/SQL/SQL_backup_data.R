@@ -8,6 +8,7 @@ l_data <- DB_backup_DB(con)
 l_template <- readRDS("source/SQL/template.Rds")
 l_data <- convert_DB_to_R(l_data, l_template)
 
+# Update Programm and Einsatzplan
 l_data$Einsatzplan <- l_data$Programm|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
   left_join(l_data$Einsatzplan|>
@@ -15,10 +16,7 @@ l_data$Einsatzplan <- l_data$Programm|>
                      )
             )|>
   arrange(Datum)
-
 saveRDS(l_data, "Backup/Data.Rds")
-
-l_data$Einsatzplan
 
 # l_template <- readRDS("Input/backup/Data_backup1.Rds")
 # l_template[["Verleiherabgaben"]] <- NULL
