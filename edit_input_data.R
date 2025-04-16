@@ -9,7 +9,6 @@ library(shinyjs)
 library(shinyTime)
 library(DT)
 library(viridis)
-# library(colorspace)
 library(tidyverse)
 
 source("source/functions.R")

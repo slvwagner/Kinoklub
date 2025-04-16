@@ -14,7 +14,7 @@ l_template <- l_data|>
       slice(1)
   })
 
-# Update
+# Update template
 saveRDS(l_template,"source/SQL/template.Rds")
 saveRDS(l_data, c_file)
 
