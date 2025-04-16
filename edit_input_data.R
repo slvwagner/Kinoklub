@@ -23,8 +23,11 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown ####
-c_select_input_data <- c(16,14,1:3,5)
-c_select_dropdown_data <- c(17, 6,11:12,7,9,13)
+c_select_input_data <- c("Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
+l_template[c_select_input_data]
+
+c_select_dropdown_data <- c("Kinoklubmitglieder", "Verleiher", "Lieferanten", "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
+l_template[c_select_dropdown_data]
 
 # Data table in german ####
 DT_language <- list(

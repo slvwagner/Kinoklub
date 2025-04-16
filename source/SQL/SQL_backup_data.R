@@ -16,10 +16,9 @@ l_template <- l_data|>
 
 # Update template
 saveRDS(l_template,"source/SQL/template.Rds")
-saveRDS(l_data, c_file)
 
 
-# dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "df_Eintritt"))
+dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "Verleiherabgaben"))
 
 ###################################################
 # Disconnect from DB
