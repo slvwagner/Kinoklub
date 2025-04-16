@@ -1205,7 +1205,7 @@ server <- function(input, output, session) {
               l_input[[ii]] <- as.integer(c_temp)
             }
           }else{
-            if (c_input[ii] == "" | c_input[ii] == "..."){
+            if ((c_input[ii] == "") | (c_input[ii] == "...") | (c_input[ii] == "NA")){
               l_input[[ii]] <- as.character(NA)
             } else {
               l_input[[ii]] <- as.character(c_input[ii])
@@ -1861,12 +1861,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
 
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
