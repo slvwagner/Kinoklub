@@ -166,11 +166,6 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
 
-
-
-
-
-
 # Function to add a row to any table
 DB_add_row <- function(con, table_name, new_row) {
   # Validate inputs
@@ -391,7 +386,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }
 
-
+# Function to update a single cell in a table
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
   # Validate inputs
   if (!dbIsValid(con)) {
