@@ -5,6 +5,7 @@ source("source/SQL/SQL_Functions.R")
 c_file <- "Backup/Data.Rds"
 l_data <- readRDS(c_file)
 
+l_data$Einsatzplan
 
 # # Change columns
 # l_data$Programm <- l_data$Programm|>
