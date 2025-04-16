@@ -26,7 +26,7 @@ Get_suisa <- function(c_suisa) {
 }
 
 # error handling
-c_file <- "Input/Procinema/procinema.txt"
+c_file <- "Input/Procinema/Procinema.txt"
 if(!file.exists(c_file)) stop(paste0("\nDie Datei \"", c_file, " konnte nicht gefunden werden.",
                                      "\nBitte herunterladen und abspeichern oder über GUI hochladen."))
 
