@@ -3,8 +3,7 @@ library(DBI)
 library(tidyverse)
 source("source/functions.R")
 
-# Database functions  ####
-# connection to Database
+# connection to Database ####
 DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   # Database credentials
   host <- "lx51.hoststar.hosting"
@@ -42,7 +41,7 @@ DB_update_all <- function(l_data, con) {
   })
 }
 
-# get all data defined by the template l_data
+# get all data defined by a template ####
 DB_get_Data <- function(l_template, con, download = TRUE) {
   if(download){
     temp <- names(l_template)|>
@@ -60,6 +59,7 @@ DB_get_Data <- function(l_template, con, download = TRUE) {
   return(temp)
 }
 
+# get data from given table ####
 DB_get_table <- function(table_name, con, download = TRUE){
   if(download){
     tbl(con, table_name)|>
@@ -69,7 +69,7 @@ DB_get_table <- function(table_name, con, download = TRUE){
   }
 }
 
-# Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) 
+# Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) ####
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   library(DBI)
   library(hms)
@@ -166,7 +166,7 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   message(sprintf("Data inserted into '%s' successfully!", table_name))
 }
 
-# Function to add a row to any table
+# Function to add a row to any table ####
 DB_add_row <- function(con, table_name, new_row) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -261,12 +261,12 @@ DB_add_row <- function(con, table_name, new_row) {
   message("Row ",new_row[[1]][1] ," added successfully to table '","`", table_name,"`", "'.")
 }
 
-# 
+# Helper function to get column types from table ####
 DB_describe_table <- function(con, table_name){
   dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
 }
 
-# Function to edit a row in table
+# Function to edit a row in table ####
 DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values, c_class) {
   # Validate inputs
   if (!DBI::dbIsValid(con)) {
@@ -349,7 +349,7 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
           " updated successfully in table '", table_name, "'.")
 }
 
-# Function to delete a row from any table
+# Function to delete a row from any table ####
 DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -386,7 +386,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }
 
-# Function to update a single cell in a table
+# Function to update a single cell in a table ####
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -436,7 +436,7 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
           " (Row where ", primary_key_col, " = ", primary_key_value, ").")
 }
 
-# Back up all tables from database 
+# Back up all tables from database ####
 DB_backup_DB <- function(con) {
   if(dbIsValid(con)){
     # List all tables in the connected database
@@ -489,7 +489,7 @@ convert_to_template_types <- function(df_sql, df_template) {
   return(df_sql)
 }
 
-# convert data from DB to R with correct conversion template
+# convert data from DB to R with correct conversion template ####
 convert_DB_to_R <- function(data,template) {
   # Convert data types for each table
   data_converted <- names(data) |>

@@ -1,3 +1,7 @@
+library(httr)
+library(rvest)
+library(tidyverse)
+library(purrr)
 
 # spez. Round for Swiss currency "CHF"
 round5Rappen <- function(zahl) {
@@ -784,11 +788,6 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   names(l_temp) <- fileName
   return(l_temp)
 }
-
-library(httr)
-library(rvest)
-library(tidyverse)
-library(purrr)
 
 # search procinem by a given Suisanummber
 search_procinema_by_suisa <- function(suisa_number) {
