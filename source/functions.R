@@ -827,7 +827,7 @@ search_procinema_by_suisa <- function(suisa_number) {
   
   if(length(film_nodes) == 0) {
     message("No film nodes found in the results")
-    return(tibble())
+    return(NULL)
   }
   
   # Process each film
@@ -855,6 +855,9 @@ search_procinema_by_suisa <- function(suisa_number) {
 
 # get detailed information for a film ####
 film_details <- function(url) {
+  if(is_empty(url)) {
+    return(NULL)
+  }
   suppressPackageStartupMessages({
     require(rvest)
     require(dplyr)
@@ -890,7 +893,7 @@ film_details <- function(url) {
   
   # Fetch the page
   page <- tryCatch({
-    resp <- GET(url, timeout(10))
+    resp <- GET(url, timeout(2))
     if (http_error(resp)) stop("HTTP error")
     read_html(resp)
   }, error = function(e) {
