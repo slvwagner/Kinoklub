@@ -53,14 +53,6 @@ df_files <- df_files|>
   mutate(Datum = dmy(Datum))
 df_files
 
-df_files <- left_join(df_files,
-          Shows)|>
-  mutate(Eintritt = NULL,
-         Kiosk = NULL)|>
-  mutate(`Event ID` = row_number()
-         )|>
-  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit)
-
 df_files <- df_files|>
   mutate(`Link to Event ID` = "",
          Verleiher = "",
