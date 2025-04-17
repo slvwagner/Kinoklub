@@ -23,7 +23,7 @@ c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown ####
-c_select_input_data <- c("Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
+c_select_input_data <- c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
 l_template[c_select_input_data]
 
 c_select_dropdown_data <- c("Kinoklubmitglieder", "Verleiher", "Lieferanten", "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
@@ -1863,12 +1863,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
 
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)

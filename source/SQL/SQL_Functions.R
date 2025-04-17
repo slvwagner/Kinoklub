@@ -87,35 +87,36 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
     stop(sprintf("Primary key column '%s' contains duplicate values.", primary_key_col))
   }
   
-  # All column names for insert
-  col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
+  # Determine SQL types for each column
+  sql_types <- sapply(df_data, function(x) {
+    if (is.integer(x)) {
+      return("INT")
+    } else if (is.numeric(x)) {
+      return("DOUBLE")
+    } else if (is.logical(x)) {
+      return("BOOLEAN")
+    } else if (inherits(x, "Date")) {
+      return("DATE")
+    } else if (inherits(x, "hms")) {
+      return("TIME")
+    } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
+      return("DATETIME")
+    } else if (is.character(x) || is.factor(x)) {
+      return("TEXT")
+    } else {
+      stop(sprintf("Unsupported data type for column: %s", class(x)))
+    }
+  })
   
   table_exists <- dbExistsTable(con, table_name)
   
   if (table_exists && delete_existing) {
     message(sprintf("Table '%s' exists. Dropping it...", table_name))
     dbExecute(con, sprintf("DROP TABLE `%s`;", table_name))
-    
-    sql_types <- sapply(df_data, function(x) {
-      if (is.integer(x)) {
-        return("INT")
-      } else if (is.numeric(x)) {
-        return("DOUBLE")
-      } else if (is.logical(x)) {
-        return("BOOLEAN")
-      } else if (inherits(x, "Date")) {
-        return("DATE")
-      } else if (inherits(x, "hms")) {
-        return("TIME")
-      } else if (inherits(x, "POSIXct") || inherits(x, "POSIXlt")) {
-        return("DATETIME")
-      } else if (is.character(x) || is.factor(x)) {
-        return("TEXT")
-      } else {
-        stop(sprintf("Unsupported data type for column: %s", class(x)))
-      }
-    })
-    
+    table_exists <- FALSE
+  }
+  
+  if (!table_exists) {
     # Construct CREATE TABLE query with primary key on first column
     column_defs <- paste0("`", names(sql_types), "` ", sql_types)
     column_defs[1] <- paste(column_defs[1], "PRIMARY KEY")
@@ -130,6 +131,13 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
     message(sprintf("Table '%s' created successfully.", table_name))
   }
   
+  # Prepare column names for insert
+  col_names <- paste0("`", colnames(df_data), "`", collapse = ", ")
+  
+  # Initialize counter for successful inserts
+  success_count <- 0
+  
+  # Process values row by row
   for (i in 1:nrow(df_data)) {
     if (all(is.na(df_data[i, ]))) next
     
@@ -161,10 +169,20 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
     )
     
     query <- gsub("'NULL'", "NULL", query)
-    dbExecute(con, query)
+    
+    tryCatch({
+      dbExecute(con, query)
+      success_count <- success_count + 1
+    }, error = function(e) {
+      warning(sprintf("Failed to insert row %d: %s", i, e$message))
+    })
   }
   
-  message(sprintf("Data inserted into '%s' successfully!", table_name))
+  message(sprintf("Successfully inserted %d of %d rows into '%s'.",
+                  success_count, nrow(df_data), table_name))
+  
+  # Return the number of successful inserts
+  invisible(success_count)
 }
 
 # Function to add a row to any table ####
