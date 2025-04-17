@@ -1,0 +1,13 @@
+08.08.24
+Kinder	10.00		72			720.00
+8			104.00
+Spez 1	5.00		72			360.00
+Spez 2	3.00		72			216.00
+144			576.00
+Gesamt		144			576.00
+- Abo/Gutsch. gegen Rg./Kreditkarten			0.00
+- CHF an Bank			0.00
+- Spesen			0.00
++/- Überschuss | Manko			0.00
+Solde		576.00
+MWSt 8.1%	5.02	

@@ -1,0 +1,35 @@
+
+KW 2024-45
+
+31.10.2024
+
+06.11.2024
+
+
+AtelierKino
+
+AtelierKino D Harold And The Purple Crayon
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Sony Pictures Releasing Switzerland GmbH
+Dufourstrasse 24
+8008	Zürich
+1016.779	HAROLD AND THE PURPLE CRAYON
+D	AtelierKino - Reinach
+1. Woche von 31.10.2024 bis 06.11.2024
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	03.11.2024	1	7	0	40.00
+Gesamt	1	7	0	40.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	1	16.00
+Kinder	12.00	0.0000	2	24.00
+Kinofördererkarte	0.00	0.0000	4	0.00
+Gesamt	7	40.00
+Brutto	40.00
+Tax	-0.00
+Netto 1	40.00
+Netto 0.00%	-0.00
+Netto 2	40.00
+1.48% SUISA-Vorabzug	-0.59
+Netto 3	39.41

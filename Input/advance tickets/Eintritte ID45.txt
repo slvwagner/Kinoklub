@@ -1,0 +1,36 @@
+
+KW 2024-50
+
+05.12.2024
+
+11.12.2024
+
+
+AtelierKino
+
+AtelierKino OV/d Joan Baez I Am A Noise
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Xenix Filmdistribution GmbH
+Weberstrasse 21
+8004	Zürich
+1019.044	JOAN BAEZ I AM A NOISE
+OV/d	AtelierKino - Reinach
+1. Woche von 05.12.2024 bis 11.12.2024
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Sa	07.12.2024	1	16	4	219.00
+Gesamt	1	16	4	219.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	8	128.00
+Ermässigt	13.00	0.0000	7	91.00
+Kinofördererkarte	0.00	0.0000	1	0.00
+Kinoklub-Mitglieder	0.00	0.0000	4	0.00
+Gesamt	20	219.00
+Brutto	219.00
+Tax	-0.00
+Netto 1	219.00
+Netto 0.00%	-0.00
+Netto 2	219.00
+1.48% SUISA-Vorabzug	-3.24
+Netto 3	215.76

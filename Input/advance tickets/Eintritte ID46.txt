@@ -1,0 +1,37 @@
+
+KW 2024-50
+
+05.12.2024
+
+11.12.2024
+
+
+AtelierKino
+
+AtelierKino OV Die Tabubrecherin
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Langjahr Film GmbH
+Luzernerstrasse 16
+6037	Root
+1020.295	DIE TABUBRECHERIN
+OV	AtelierKino - Reinach
+1. Woche von 05.12.2024 bis 11.12.2024
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	08.12.2024	1	32	5	417.00
+Gesamt	1	32	5	417.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	9	144.00
+Ermässigt	13.00	0.0000	21	273.00
+Kinoförderer	0.00	0.0000	2	0.00
+Kinofördererkarte	0.00	0.0000	2	0.00
+Kinoklub-Mitglieder	0.00	0.0000	3	0.00
+Gesamt	37	417.00
+Brutto	417.00
+Tax	-0.00
+Netto 1	417.00
+Netto 0.00%	-0.00
+Netto 2	417.00
+1.48% SUISA-Vorabzug	-6.17
+Netto 3	410.83

@@ -1,0 +1,40 @@
+
+KW 2024-46
+
+07.11.2024
+
+13.11.2024
+
+
+AtelierKino
+
+AtelierKino D The Scent of fear
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Praesens-Film AG
+Münchhaldenstrasse 10
+Postfach 919
+8034	Zürich
+1014.761	THE SCENT OF FEAR
+D	AtelierKino - Reinach
+1. Woche von 07.11.2024 bis 13.11.2024
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	10.11.2024	1	42	10	752.00
+Gesamt	1	42	10	752.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	20.00	0.0000	20	400.00
+Ermässigt	16.00	0.0000	21	336.00
+Kinder	16.00	0.0000	1	16.00
+Kinoförderer	0.00	0.0000	2	0.00
+Green Card	0.00	0.0000	2	0.00
+Kinoklub-Mitglieder	0.00	0.0000	1	0.00
+Mitarbeiter*in	0.00	0.0000	5	0.00
+Gesamt	52	752.00
+Brutto	752.00
+Tax	-0.00
+Netto 1	752.00
+Netto 0.00%	-0.00
+Netto 2	752.00
+1.48% SUISA-Vorabzug	-11.13
+Netto 3	740.87
