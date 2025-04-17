@@ -3,7 +3,8 @@ library(DBI)
 library(tidyverse)
 source("source/functions.R")
 
-# connection to Database ####
+# Database functions  ####
+# connection to Database
 DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
   # Database credentials
   host <- "lx51.hoststar.hosting"
@@ -386,7 +387,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }
 
-# Function to update a single cell in a table ####
+# Function to update a single cell in a table
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -436,7 +437,7 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
           " (Row where ", primary_key_col, " = ", primary_key_value, ").")
 }
 
-# Back up all tables from database ####
+# Back up all tables from database 
 DB_backup_DB <- function(con) {
   if(dbIsValid(con)){
     # List all tables in the connected database
@@ -489,7 +490,7 @@ convert_to_template_types <- function(df_sql, df_template) {
   return(df_sql)
 }
 
-# convert data from DB to R with correct conversion template ####
+# convert data from DB to R with correct conversion template
 convert_DB_to_R <- function(data,template) {
   # Convert data types for each table
   data_converted <- names(data) |>
