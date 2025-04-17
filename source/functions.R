@@ -23,7 +23,6 @@ round5Rappen <- function(zahl) {
     round(2)
 }
 
-
 # variable is present in global environment ####
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
@@ -42,7 +41,6 @@ r_is.library_loaded <- function(package_name) {
   return(is_loaded)
 }
 
-
 # clean console ####
 if (commandArgs()[1]=='RStudio'){
   print.cleanup <- function(cleanupObject) cat("\f")     
@@ -51,14 +49,10 @@ if (commandArgs()[1]=='RStudio'){
 } else {
   print(paste0("not support: ",commandArgs()[1]))
 }                                                                         
-
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
 #print(clc)                                      ##  when you load this source,
 ##  it cleans all console
-
-
-
 
 # Inhaltsverzeichnis für Markdown ####
 r_toc_for_Rmd <- function(
@@ -382,10 +376,12 @@ r_is.defined <- function(sym) {
   exists(sym, env)
 }
 
+# signif but return sting 
 r_signif <- function (x, significant_digits = 3){
   format(x, format = "g", digits = significant_digits)
 }
 
+# inspect links ####
 inspect_link <- function(df_mapping, ID){
   link <- df_mapping|>
     filter(`Event ID` == ID)|>
@@ -853,16 +849,10 @@ search_procinema_by_suisa <- function(suisa_number) {
   return(results)
 }
 
-# Example usage
-suisa_number <- "1020.295"  # Example SUISA number
-results <- search_procinema_by_suisa(suisa_number)
-
-# Print results
-if(nrow(results) > 0) {
-  print(results)
-} else {
-  message("No results found")
-}
+# # Example usage
+# suisa_number <- "1020.295"  # Example SUISA number
+# results <- search_procinema_by_suisa(suisa_number)
+# print(results)
 
 # get detailed information for a film ####
 film_details <- function(url) {
@@ -961,7 +951,7 @@ film_details <- function(url) {
   )
 }
 
-# Example usage
-result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
-print(result$synopsis)
-print(result)
+# # Example usage
+# result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
+# print(result$synopsis)
+# print(result)
