@@ -789,4 +789,179 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
   return(l_temp)
 }
 
+library(httr)
+library(rvest)
+library(tidyverse)
+library(purrr)
 
+# search procinem by a given Suisanummber
+search_procinema_by_suisa <- function(suisa_number) {
+  # Create the form POST request
+  response <- POST(
+    "https://www.procinema.ch/de/statistics/filmdb/",
+    body = list(
+      sta_fdb_movid = suisa_number,
+      sta_fdb_search = "Suchen",  # The search button value
+      process = "Filter"          # The submit action
+    ),
+    encode = "form"
+  )
+  
+  # Check if successful
+  if(status_code(response) != 200) {
+    message("Request failed with status: ", status_code(response))
+    return(tibble())
+  }
+  
+  # Parse the HTML content
+  html_content <- content(response, as = "text") %>% 
+    read_html()
+  
+  # Check if results were found
+  results_header <- html_content %>% 
+    html_node("h3") %>% 
+    html_text(trim = TRUE)
+  
+  if(is.na(results_header) || !str_detect(results_header, "Suchresultate")) {
+    message("No results found for SUISA number: ", suisa_number)
+    return(tibble())
+  }
+  
+  # Extract film information
+  film_nodes <- html_content %>% html_nodes(".listline")
+  
+  if(length(film_nodes) == 0) {
+    message("No film nodes found in the results")
+    return(tibble())
+  }
+  
+  # Process each film
+  results <- map_df(film_nodes, function(node) {
+    tibble(
+      Filmtitel = node %>% html_node(".fl a") %>% html_text(trim = TRUE),
+      link = node %>% html_node(".fl a") %>% html_attr("href") %>% 
+        paste0("https://www.procinema.ch", .),
+      Verleiher = node %>% html_node(".fc") %>% html_text(trim = TRUE) %>% 
+        str_replace_all("\\s+", " ") %>% str_trim(),
+      Suisanummer = node %>% html_node(".fdbsuisa") %>% html_text(trim = TRUE),
+      release_date = node %>% html_node(".fdbrelease") %>% html_text(trim = TRUE),
+      admissions = node %>% html_node(".fdbadm") %>% html_text(trim = TRUE) %>% 
+        str_remove_all("'") %>% as.integer()
+    )
+  })
+  
+  return(results)
+}
+
+# Example usage
+suisa_number <- "1020.295"  # Example SUISA number
+results <- search_procinema_by_suisa(suisa_number)
+
+# Print results
+if(nrow(results) > 0) {
+  print(results)
+} else {
+  message("No results found")
+}
+
+# get detailed information for a film ####
+film_details <- function(url) {
+  suppressPackageStartupMessages({
+    require(rvest)
+    require(dplyr)
+    require(stringr)
+    require(purrr)
+    require(tibble)
+    require(httr)
+  })
+  
+  # Helper function to extract values from faditem blocks
+  extract_faditem <- function(page, label) {
+    items <- page %>% html_nodes(".faditem")
+    for (item in items) {
+      lbl <- item %>% html_node(".faditemlbl") %>% html_text(trim = TRUE)
+      if (!is.na(lbl) && str_detect(lbl, label)) {
+        return(item %>% html_node(".faditemcont") %>% html_text(trim = TRUE))
+      }
+    }
+    return(NA_character_)
+  }
+  
+  # Helper function to clean numbers
+  clean_number <- function(x) {
+    if (is.na(x) || x == "") return(NA_integer_)
+    as.integer(str_remove_all(x, "[^0-9]"))
+  }
+  
+  # Helper function to clean dates
+  clean_date <- function(x) {
+    if (is.na(x) || x == "") return(NA_character_)
+    x
+  }
+  
+  # Fetch the page
+  page <- tryCatch({
+    resp <- GET(url, timeout(10))
+    if (http_error(resp)) stop("HTTP error")
+    read_html(resp)
+  }, error = function(e) {
+    message(str_glue("Error loading {url}: {e$message}"))
+    return(NULL)
+  })
+  
+  if (is.null(page)) return(tibble())
+  
+  # Extract all information
+  tibble(
+    # Basic info
+    title = page %>% html_node("h1") %>% html_text(trim = TRUE) %||% NA_character_,
+    link = url,
+    
+    # Titles
+    original_title = extract_faditem(page, "Original"),
+    german_title = extract_faditem(page, "Deutsch"),
+    french_title = extract_faditem(page, "Französisch"),
+    italian_title = extract_faditem(page, "Italienisch"),
+    
+    # Release dates
+    release_ch = clean_date(extract_faditem(page, "Schweiz")),
+    release_dch = clean_date(extract_faditem(page, "Deutschschweiz")),
+    release_fch = clean_date(extract_faditem(page, "Suisse romande")),
+    release_ich = clean_date(extract_faditem(page, "Tessin")),
+    
+    # Admissions
+    admissions_ch = clean_number(extract_faditem(page, "Schweiz$")),
+    admissions_dch = clean_number(extract_faditem(page, "Deutschschweiz$")),
+    admissions_fch = clean_number(extract_faditem(page, "Suisse romande$")),
+    admissions_ich = clean_number(extract_faditem(page, "Tessin$")),
+    
+    # Age ratings
+    age_approved = clean_number(extract_faditem(page, "Zugelassen ab")),
+    age_recommended = clean_number(extract_faditem(page, "Empfohlen ab")),
+    age_ti = clean_number(extract_faditem(page, "Kanton TI")),
+    
+    # Synopsis
+    synopsis = page %>% 
+      html_node("h3:contains('INHALT') + p") %>% 
+      html_text(trim = TRUE) %||% NA_character_,
+    
+    # Images (comma-separated URLs)
+    images = page %>% 
+      html_nodes(".scenimg") %>% 
+      html_attr("src") %>% 
+      {if (length(.) > 0) str_c("https://www.procinema.ch", .) else NA_character_} %>% 
+      str_c(collapse = ", "),
+    
+    # Crew
+    director = extract_faditem(page, "Regie") %>% str_replace_all("<br>", ", "),
+    producer = extract_faditem(page, "Produzent"),
+    writer = extract_faditem(page, "Drehbuch") %>% str_replace_all("<br>", ", "),
+    music = extract_faditem(page, "Musik"),
+    actors = extract_faditem(page, "Schauspieler")
+  )
+}
+
+# Example usage
+result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
+print(result$synopsis)
+print(result)
