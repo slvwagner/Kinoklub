@@ -957,3 +957,27 @@ film_details <- function(url) {
 # result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
 # print(result$synopsis)
 # print(result)
+
+
+# create empty line with correct data type ####
+
+create_empty_line <- function(df_data) {
+  df_data|>
+  slice(0) |>
+    add_row() |>
+    mutate(across(everything(), ~ {
+      if (is.character(.)) {
+        ""
+      } else if (is.integer(.)) {
+        0L
+      } else if (is.numeric(.)) {
+        0
+      } else if (is.factor(.)) {
+        factor(NA, levels = levels(.))
+      } else if (inherits(., "Date")) {
+        as.Date(NA)
+      } else {
+        NA
+      }
+    }))
+}

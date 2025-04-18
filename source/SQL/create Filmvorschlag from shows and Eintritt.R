@@ -64,39 +64,104 @@ con <- DB_connect(pw, "ch367079_flo")
 c_suisa <- DB_get_table("Programm", con)|>
   distinct(Suisanummer)|>
   pull()
+c_suisa
 
 # search suisa on procinema.ch
 l_search <- c_suisa|>
   lapply(search_procinema_by_suisa)
-names(l_search) <- df_files$Suisanummer
+names(l_search) <- c_suisa
 
+# manual mapping ####
+DB_get_verleiher <- function(con) {
+  df_Verleiher <- DB_get_table("Verleiher", con)|>
+    select(-ID)
+  df_Verleiher
+  
+  df_Verleiher <- bind_rows(
+    # procinema TEMP IMPORT
+    df_Verleiher |>
+      create_empty_line()|>
+      mutate(Verleihername = "TEMP IMPORT")|>
+      mutate(`Automatisch generiert` = TRUE),
+    # procinema Producer
+    df_Verleiher |>
+      create_empty_line()|>
+      mutate(Verleihername = "PRODUCER")|>
+      mutate(`Automatisch generiert` = TRUE),
+    # procinema WB => Warner Bros
+    df_Verleiher|>
+      filter(str_detect(Verleihername, "Warner Bros Entertainment Switzerland GmbH"))|>
+      mutate(Verleihername = "WB")|>
+      mutate(`Automatisch generiert` = TRUE),
+    # procinema WB => Pathé
+    df_Verleiher|>
+      filter(str_detect(Verleihername, "Pathé Films AG"))|>
+      mutate(Verleihername = "PATHE")|>
+      mutate(`Automatisch generiert` = TRUE),
+    # anything else 
+    df_Verleiher|>
+      mutate(`Automatisch generiert` = FALSE)
+  )
+  df_Verleiher <- 
+    bind_cols(ID = 1:nrow(df_Verleiher),df_Verleiher)|>
+    distinct(Verleihername,.keep_all = TRUE)
+  df_Verleiher
+  return(df_Verleiher)
+}
+
+# get Verleiher from DB ####
+df_Verleiher <- DB_get_verleiher(con)
+
+# mapping ####
 df_search <- l_search|>
   bind_rows()
 
-# map verleiher 
-df_Verleiher <- DB_get_table("Verleiher", con)
-df_test <- distinct(df_search, Verleiher)
+df_test <- distinct(df_search, Verleiher, .keep_all = TRUE)
+df_test
 
+ii <- 1
 df_mapping <- 1:nrow(df_test)|>
   lapply(function(ii){
     c_select <- str_detect(tolower(df_Verleiher$Verleihername),tolower(df_test$Verleiher)[ii])
+    c_select
     bind_cols(Verleiher_procinema = df_test$Verleiher[ii],
-              Verleiher = df_Verleiher$Verleihername[c_select]
+              Verleihername = df_Verleiher$Verleihername[c_select]
               )
     })|>
   bind_rows()
 
-slvwagner::
+head(df_mapping, n = 20)
 
-# Find details
-l_details <- l_search|>
-  lapply(function(x){
-    if(is.null(x)) return(NULL)
-    else film_details(x$link)
+## manual adjustment ####
+df_mapping[df_mapping$Verleiher_procinema == "WB",2] <- "Warner Bros Entertainment Switzerland GmbH"
+df_mapping[df_mapping$Verleiher_procinema == "PATHE",2] <- "Pathé Films AG"
+df_mapping
+
+# dictionary ####
+dict_env <- slvwagner::dict_from_data.frame(df_mapping)
+
+# get Verleiher ####
+df_search <- df_search|>
+  mutate(Verleiher =  slvwagner::dict_get_values(Verleiher,envir = dict_env))
+
+df_Filmvorschlag <- 
+  bind_cols(
+    ID = 1:nrow(df_search),
+    df_search
+    )|>
+  mutate(release_date = lubridate::dmy(release_date)|>suppressWarnings())|>
+  rename(`Veröffentlichungs-Datum` = release_date,
+         `Eintritte eingespielt` = admissions)
+
+# Find details ####
+l_details <- 1:nrow(df_Filmvorschlag)|>
+  lapply(function(ii){
+    pull(df_Filmvorschlag[ii,"link"])|>
+      film_details()
   })
 
 df_Filmdetails <- l_details|>
-  bind_rows(.id = "Suisanummer")|>
+  bind_rows()|> #.id = "Suisanummer")|>
   rename(Inhalt = synopsis,
          Filmtitel = title
          )|>
@@ -107,14 +172,23 @@ df_Filmdetails <- bind_cols(tibble(`ID` = 1:nrow(df_Filmdetails)),
             df_Filmdetails
             )
 
-print(df_Filmdetails)
+Filmvorschlag <- df_Filmvorschlag|>
+  left_join(df_Filmdetails|>
+              select(ID, Inhalt, director, producer, actors, writer)
+              )|>
+  mutate(Trailer = "")|>
+  select("ID", "Suisanummer","Filmtitel", "link", "Trailer", "Verleiher", "Veröffentlichungs-Datum", "Eintritte eingespielt", "Inhalt", "director", "producer", "actors", "writer")
+
+Filmvorschlag$link <- paste0("<a href=\"",Filmvorschlag$link,"\" target=\"_blank\">link</a>")
+Filmvorschlag
+
 
 source("source/SQL/SQL_Functions.R")
 # Data base user password from system variables 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(pw, "ch367079_flo")
 
-DB_copy_table(df_Filmdetails, con, "Filmvorschlag")
+DB_copy_table(Filmvorschlag, con, "Filmvorschlag")
 
 
 l_template <- readRDS("source/SQL/template.Rds")

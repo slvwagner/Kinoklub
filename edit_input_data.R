@@ -597,6 +597,7 @@ server <- function(input, output, session) {
     return(
       datatable(
         df_temp,
+        escape = FALSE,
         rownames = FALSE,
         editable = FALSE, # Nicht bearbeitbar
         selection = "single", # only select sinle row
