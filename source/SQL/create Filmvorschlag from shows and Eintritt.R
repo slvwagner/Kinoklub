@@ -177,11 +177,9 @@ Filmvorschlag <- df_Filmvorschlag|>
               select(ID, Inhalt, director, producer, actors, writer)
               )|>
   mutate(Trailer = "")|>
-  select("ID", "Suisanummer","Filmtitel", "link", "Trailer", "Verleiher", "Veröffentlichungs-Datum", "Eintritte eingespielt", "Inhalt", "director", "producer", "actors", "writer")
-
-Filmvorschlag$link <- paste0("<a href=\"",Filmvorschlag$link,"\" target=\"_blank\">link</a>")
-Filmvorschlag
-
+  select("ID", "Suisanummer","Filmtitel", "link", "Trailer", "Verleiher", "Veröffentlichungs-Datum", 
+         "Eintritte eingespielt", "Inhalt", "director", "producer", "actors", "writer")|>
+  rename(Procinema = link)
 
 source("source/SQL/SQL_Functions.R")
 # Data base user password from system variables 
