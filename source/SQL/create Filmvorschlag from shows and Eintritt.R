@@ -61,13 +61,34 @@ source("source/SQL/SQL_Functions.R")
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(pw, "ch367079_flo")
 
-df_files <- DB_get_table("Programm", con)
+c_suisa <- DB_get_table("Programm", con)|>
+  distinct(Suisanummer)|>
+  pull()
 
-l_search <- df_files$Suisanummer|>
+# search suisa on procinema.ch
+l_search <- c_suisa|>
   lapply(search_procinema_by_suisa)
 names(l_search) <- df_files$Suisanummer
-l_search
 
+df_search <- l_search|>
+  bind_rows()
+
+# map verleiher 
+df_Verleiher <- DB_get_table("Verleiher", con)
+df_test <- distinct(df_search, Verleiher)
+
+df_mapping <- 1:nrow(df_test)|>
+  lapply(function(ii){
+    c_select <- str_detect(tolower(df_Verleiher$Verleihername),tolower(df_test$Verleiher)[ii])
+    bind_cols(Verleiher_procinema = df_test$Verleiher[ii],
+              Verleiher = df_Verleiher$Verleihername[c_select]
+              )
+    })|>
+  bind_rows()
+
+slvwagner::
+
+# Find details
 l_details <- l_search|>
   lapply(function(x){
     if(is.null(x)) return(NULL)

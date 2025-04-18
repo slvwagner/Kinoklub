@@ -827,7 +827,7 @@ search_procinema_by_suisa <- function(suisa_number) {
   
   if(length(film_nodes) == 0) {
     message("No film nodes found in the results")
-    return(NULL)
+    return(tibble())
   }
   
   # Process each film
