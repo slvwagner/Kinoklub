@@ -192,7 +192,7 @@ DB_copy_table(Filmvorschlag, con, "Filmvorschlag")
 
 
 l_template <- readRDS("source/SQL/template.Rds")
-l_template[["Filmvorschlag"]] <- df_Filmdetails|>
+l_template[["Filmvorschlag"]] <- Filmvorschlag|>
   slice(1)
 saveRDS(l_template,"source/SQL/template.Rds")
 
