@@ -780,7 +780,9 @@ df_verleiherabgaben <- col_env$get_excel_data(c_file)[["Verleiherabgaben"]]|>
 # Suisa automatisch korrigieren 
 df_verleiherabgaben$Suisanummer <- df_verleiherabgaben$Suisanummer|>
   str_squish()|>
-  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
+  str_extract(pattern = or(DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
+                           WRD%R%WRD%R%WRD%R%WRD%R%DOT%R%WRD%R%WRD%R%WRD)
+              ) 
 
 # error handling 
 df_temp <- df_verleiherabgaben|>
@@ -794,6 +796,7 @@ if(nrow(df_temp)>0){
 df_temp <- df_verleiherabgaben|>
   select(-Titel, -Adresse, -PLZ, -Ort)|>
   distinct(Suisanummer, Datum, .keep_all = T)
+df_temp
 
 for (ii in 1:nrow(df_temp)) {
   df_temp1 <- df_verleiherabgaben|>
@@ -810,9 +813,6 @@ for (ii in 1:nrow(df_temp)) {
       )
   }
 }
-
-
-
 
 # Eintrite 
 df_Eintritt <- df_Eintritt|>
@@ -832,7 +832,7 @@ df_temp <- df_Eintritt|>
 df_temp
 
 if(nrow(df_temp)>0){ 
-  stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
+  stop(paste0("\nFür den Film \"",df_temp$Filmtitel,"\" / ",df_temp$`Suisa Nummer`, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
               " wurde kein Abzug definiert.",
               "\nBitte korrigieren im File:",
               "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
