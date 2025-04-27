@@ -526,9 +526,12 @@ server <- function(input, output, session) {
     return(dt)
   }
   
+
+  
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
+    
     ### Create User-Readable "Datum" Columns ####
     df_temp <- current_data()
     
@@ -549,14 +552,12 @@ server <- function(input, output, session) {
       
       # Step 5: Build new column list with formatted columns inserted
       new_cols <- list()
-      formatted_index <- 1  # numbering the new formatted columns
+      formatted_index <- 1
       
       for (col_name in names(df_temp)) {
-        # Add original column
         new_cols[[length(new_cols) + 1]] <- df_temp[[col_name]]
         names(new_cols)[length(new_cols)] <- col_name
         
-        # Add formatted column if applicable
         if (col_name %in% datum_cols) {
           formatted_col <- df_datum_user[[as.character(formatted_index)]]
           new_cols[[length(new_cols) + 1]] <- formatted_col
@@ -565,67 +566,105 @@ server <- function(input, output, session) {
         }
       }
       
-      # Step 6: Rebuild data frame
       df_temp <- tibble::as_tibble(new_cols)
       
-      # Step 7: Build DT column definitions (hide original date, sort via original)
+      # Step 6: Build DT column definitions (hide original date, sort via original)
       col_names <- names(df_temp)
       display_col_indices <- suppressWarnings(which(!is.na(as.integer(col_names))))
       
       for (display_idx in display_col_indices) {
         original_idx <- display_idx - 1
         
-        # Ensure valid indices (guarding against edge cases)
         if (original_idx >= 1 && original_idx <= ncol(df_temp)) {
-          # Hide original and sort via it
-          l_columnDefs <- append(l_columnDefs, list(
-            list(targets = original_idx - 1, visible = FALSE),
-            list(targets = display_idx - 1, orderData = original_idx - 1)
-          ))
+          l_columnDefs <- c(
+            l_columnDefs,
+            list(list(targets = original_idx - 1, visible = FALSE)),
+            list(list(targets = display_idx - 1, orderData = original_idx - 1))
+          )
           
-          # Swap column names for clarity
+          # Swap names to ensure user-readable label appears instead
           names(df_temp)[c(original_idx, display_idx)] <- names(df_temp)[c(display_idx, original_idx)]
         }
       }
     }
+  
+    ### Optional: Apply width_vector ####
+    if(lastEdited_data_set_name() == "Filmvorschlag"){
+      width_vector <- c("Inhalt" = 500)
+    }
     
-    ### update last rendered DT, used to find selected row and calculate page ####
+    wv <- tryCatch(width_vector, error = function(e) NULL)
+    
+    if (!is.null(wv)) {
+      if (is.null(names(wv))) {
+        # Positional: use numeric index
+        for (i in seq_along(wv)) {
+          if (!is.na(wv[i]) && i <= ncol(df_temp)) {
+            cat(sprintf("Setting width of column %d (%s) to %spx\n", i, names(df_temp)[i], wv[i]))
+            l_columnDefs <- c(
+              l_columnDefs,
+              list(list(targets = i - 1, width = paste0(wv[i], "px")))
+            )
+          }
+        }
+      } else {
+        # Named: match by column name
+        for (colname in names(wv)) {
+          idx <- which(names(df_temp) == colname)
+          if (length(idx) == 1 && !is.na(wv[[colname]])) {
+            cat(sprintf("Setting width of column '%s' (index %d) to %spx\n", colname, idx, wv[[colname]]))
+            l_columnDefs <- c(
+              l_columnDefs,
+              list(list(targets = idx - 1, width = paste0(wv[[colname]], "px")))
+            )
+          } else {
+            cat(sprintf("Column '%s' not found in df_temp\n", colname))
+          }
+        }
+      }
+    }
+    
+    print(l_columnDefs)
+    
+    ### Update last rendered DT ####
     stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
     
-    ### render ####
-    return(
-      datatable(
-        df_temp,
-        escape = FALSE,
-        rownames = FALSE,
-        editable = FALSE, # Nicht bearbeitbar
-        selection = "single", # only select sinle row
-        filter = "top", # Filter oben
-        options = list(
-          columnDefs = l_columnDefs, # Spaltendefinitionen
-          pageLength = page_length_var(), # Anzahl der Zeilen pro Seite
-          lengthMenu = c_lengthMenu, # Dropdown-Menü für Zeilenanzahl
-          searchCols = last_user_filter(), # custom filtering,
-          # signal that rendering is done
-          drawCallback = JS("
-            Shiny.setInputValue('table_rendered', new Date().getTime());
-          "),
-          # page lenght 
-          initComplete = JS(
-            "function(settings, json) {",
-            "  var table = settings.oInstance.api();",
-            "  table.on('length.dt', function(e, settings, len) {",
-            "    Shiny.setInputValue('page_length', len);",
-            "  });",
-            "}"
-          ),
-          language = DT_language
-        )
-      )|>
-        apply_conditional_formatting()
-    )
+    ### Render Table ####
+    datatable(
+      df_temp,
+      escape = FALSE,
+      rownames = FALSE,
+      editable = FALSE,
+      selection = "single",
+      filter = "top",
+      options = list(
+        autoWidth = TRUE,
+        columnDefs = l_columnDefs,
+        pageLength = page_length_var(),
+        lengthMenu = c_lengthMenu,
+        searchCols = last_user_filter(),
+        drawCallback = JS("Shiny.setInputValue('table_rendered', new Date().getTime());"),
+        initComplete = JS("
+      function(settings, json) {
+        var table = settings.oInstance.api();
+        table.on('length.dt', function(e, settings, len) {
+          Shiny.setInputValue('page_length', len);
+        });
+      }
+    "),
+        language = DT_language
+      ),
+      callback = JS("
+    table.columns().every(function() {
+      var column = this;
+      $(column.header()).css('white-space', 'normal');
+    });
+  ")
+    ) |> apply_conditional_formatting()
   }, server = TRUE)
+  
+  
   
   # Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {

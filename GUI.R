@@ -1530,7 +1530,7 @@ server <- function(input, output, session) {
           Programm <- DB_get_table("Programm", con)
           Programm <- convert_to_template_types(Programm, l_template$Programm)
           df_temp <- convert_data_Film_txt(save_path, Programm)
-          df_test <- data_env$df_Eintritt
+          df_test <- data_env$Einnahmen_und_Ausgaben
           df_test <- df_test|>
             filter((`Event ID` %in% df_temp$`Event ID`))
           c_update <- !identical(df_temp, df_test)
