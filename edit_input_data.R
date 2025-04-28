@@ -20,7 +20,7 @@ c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 width_vectors <- list(# Define width vectors for specific tables
-  "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px"),
+  "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px", "actors" = "100px"),
   "Programm" = c("Filmtitel" = "200px"),
   "Einsatzplan" = c("Verantwortlich" = "150px", "Operateur*in" = "150px")
 )
@@ -53,45 +53,77 @@ DT_language <- list(
 )
 
 # Define UI ####
-ui <- 
-  fluidPage(
-    shinyjs::useShinyjs(),
-    shiny::inputPanel(shiny::headerPanel("Input Kinoklub"),
-                      shiny::textInput("user", "Benutzer"),
-                      shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
-                      shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
-                      shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
-    ),
-    includeScript("source/JS/1.12.1_jquery-ui.js"),
-    tags$head(
-      tags$style(HTML("
-        #floating-panel {
-          position: fixed;
-          top: 50px;
-          right: 20px;
-          width: 250px;
-          background: #c7dbed;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          padding: 10px;
-          box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-          z-index: 1000;
-        }
-        #floating-panel-header {
-          background: #88e3a0;
-          padding: 5px;
-          cursor: grab;
-          border-bottom: 1px solid #ddd;
-          text-align: center;
-          font-weight: bold;
-        }
-      ")),
-    ),
-    # Render the main panel
-    shiny::mainPanel(
-      shiny::uiOutput("dynamicContent_output_panel"),
-    )
+ui <- fluidPage(
+  shinyjs::useShinyjs(),
+  # Input panel at top
+  shiny::inputPanel(
+    shiny::headerPanel("Input Kinoklub"),
+    shiny::textInput("user", "Benutzer"),
+    shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+    shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
+    shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
+  ),
+  includeScript("source/JS/1.12.1_jquery-ui.js"),
+  tags$head(
+    tags$style(HTML("
+      /* Add 10px padding */
+      body {
+        padding-left: 10px;
+        margin: 0;
+      }
+      /* Main container styling */
+      .main-container {
+        width: calc(100% - 10px); /* Account for the padding */
+        margin: 0;
+        padding: 0;
+      }
+      /* Table container styling */
+      .table-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: auto;
+      }
+      /* Floating panel adjustments */
+      #floating-panel {
+        position: fixed;
+        top: 50px;
+        right: 20px;
+        width: 250px;
+        background: #c7dbed;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+      #floating-panel-header {
+        background: #88e3a0;
+        padding: 5px;
+        cursor: grab;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+        font-weight: bold;
+      }
+      /* DataTables specific adjustments */
+      .dataTables_wrapper {
+        width: 100% !important;
+        margin: 0 !important;
+      }
+      .dataTables_scroll {
+        width: 100% !important;
+      }
+    ")),
+  ),
+  # Main content area
+  div(class = "main-container",
+      div(class = "table-container",
+          uiOutput("dynamicContent_output_panel")
+      )
   )
+)
+
+
 
 # Define server ####
 server <- function(input, output, session) {
@@ -173,7 +205,7 @@ server <- function(input, output, session) {
     )
   }
   
-  ### Table editing tools ####
+  ### Toolbox for the user to interact ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
     if(data_set_select == "Programm"){
       tags$div(
