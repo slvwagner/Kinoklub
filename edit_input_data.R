@@ -110,6 +110,8 @@ server <- function(input, output, session) {
   
   
   ## helper functions ####
+  
+  ### update dropdowns ####
   update_choices <- function(l_data) {
     # Mitgliederauswahl für die Einsatzplanung
     Verantwortlich <- l_data$Kinoklubmitglieder|>
@@ -165,6 +167,7 @@ server <- function(input, output, session) {
     )
   }
   
+  ### Table editing tools ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
     if(data_set_select == "Programm"){
       tags$div(
@@ -270,6 +273,7 @@ server <- function(input, output, session) {
     }
   }
   
+  ### get date type for each column from a data frame ####
   get_data_type <- function(df){
     1:ncol(df)|>
       lapply(function(x){
@@ -281,6 +285,7 @@ server <- function(input, output, session) {
       unlist()
   }
   
+  ### Convert data frame columns to factors ####
   factor_handling <- function(df_temp, df_updated, select_row){
     # find class of column
     c_class <- get_data_type(df_temp)
@@ -308,6 +313,7 @@ server <- function(input, output, session) {
     return(df_temp)
   }
   
+  ### Update Einsatzplan (special handling) ####
   Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
     # If the Programm changes Einsatzplan must be updated too
     if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
@@ -349,6 +355,7 @@ server <- function(input, output, session) {
     }
   }
   
+  ### get luminance for a color ####
   get_luminance <- function(color) {
     rgb_val <- col2rgb(color) / 255
     luminance <- 0.2126 * rgb_val[1] + 0.7152 * rgb_val[2] + 0.0722 * rgb_val[3]
@@ -356,6 +363,7 @@ server <- function(input, output, session) {
     return(luminance)
   }
   
+  #### create user modal input ####
   create_modal_input <- function(df_row, l_temp) {
     # Helper function to crate modla to edit a row
     cnt <- length(l_temp)
@@ -448,6 +456,7 @@ server <- function(input, output, session) {
     return(l_temp)
   }
   
+  ### load all initially needed data before starting up ####
   load_initial_data <- function() {
     shiny::withProgress(message = "Loading data...", value = 0, {
       shiny::incProgress(1/3, detail = "Fetching from database")
@@ -483,6 +492,7 @@ server <- function(input, output, session) {
     })
   }
   
+  ### Apply conditional formatting to a data table ####
   apply_conditional_formatting <- function(dt) {
     req(current_data())
     req(lastEdited_data_set_name())
@@ -525,7 +535,6 @@ server <- function(input, output, session) {
     } 
     return(dt)
   }
-  
 
   
   ## Render data table ####
