@@ -657,8 +657,6 @@ server <- function(input, output, session) {
       }
     }
     
-    print(l_columnDefs)
-    
     ### Update last rendered DT ####
     stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
