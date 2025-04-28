@@ -401,7 +401,7 @@ server <- function(input, output, session) {
     return(luminance)
   }
   
-  #### create user modal input ####
+  ### create user modal input ####
   create_modal_input <- function(df_row, l_temp) {
     # Helper function to crate modla to edit a row
     cnt <- length(l_temp)
