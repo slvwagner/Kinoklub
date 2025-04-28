@@ -13,14 +13,11 @@ l_data$Einsatzplan <- l_data$Programm|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|>
   left_join(l_data$Einsatzplan|>
               select(-(2:6)
-                     )
+                     ),
+            by = join_by(`Event ID`)
             )|>
   arrange(Datum)
 saveRDS(l_data, "Backup/Data.Rds")
-
-# l_template <- readRDS("Input/backup/Data_backup1.Rds")
-# l_template[["Verleiherabgaben"]] <- NULL
-# saveRDS(l_template,"source/SQL/template.Rds")
 
 # update template
 l_template <- l_data|>
