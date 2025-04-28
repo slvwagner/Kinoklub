@@ -20,8 +20,8 @@ c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
 width_vectors <- list(# Define width vectors for specific tables
-  "Filmvorschlag" = c("Filmtitel" = "100px", "Procinema" = "80px", "Inhalt" = "600px"),
-  "Programm" = c("Titel" = "200px", "Originaltitel" = "200px"),
+  "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px"),
+  "Programm" = c("Filmtitel" = "200px"),
   "Einsatzplan" = c("Verantwortlich" = "150px", "Operateur*in" = "150px")
 )
 
