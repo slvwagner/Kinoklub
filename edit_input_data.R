@@ -19,6 +19,12 @@ Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Em
 c_pageLength = 5 # Initial page length
 c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
 
+width_vectors <- list(# Define width vectors for specific tables
+  "Filmvorschlag" = c("Filmtitel" = "100px", "Procinema" = "80px", "Inhalt" = "600px"),
+  "Programm" = c("Titel" = "200px", "Originaltitel" = "200px"),
+  "Einsatzplan" = c("Verantwortlich" = "150px", "Operateur*in" = "150px")
+)
+
 # Data templates (for data type conversion) ####
 l_template <- readRDS("source/SQL/template.Rds")
 
@@ -537,7 +543,6 @@ server <- function(input, output, session) {
   }
 
   
-  
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
@@ -597,39 +602,25 @@ server <- function(input, output, session) {
         }
       }
     }
-  
-    ### Optional: Apply width_vector ####
-    if(lastEdited_data_set_name() == "Filmvorschlag"){
-      width_vector <- c("Inhalt" = 500)
-    }
     
-    wv <- tryCatch(width_vector, error = function(e) NULL)
+    ### Apply column widths from width_vector ####
+    # Get the appropriate width vector for current table
+    current_width_vector <- width_vectors[[lastEdited_data_set_name()]]
     
-    if (!is.null(wv)) {
-      if (is.null(names(wv))) {
-        # Positional: use numeric index
-        for (i in seq_along(wv)) {
-          if (!is.na(wv[i]) && i <= ncol(df_temp)) {
-            cat(sprintf("Setting width of column %d (%s) to %spx\n", i, names(df_temp)[i], wv[i]))
-            l_columnDefs <- c(
-              l_columnDefs,
-              list(list(targets = i - 1, width = paste0(wv[i], "px")))
-            )
+    # Apply width definitions if they exist
+    if (!is.null(current_width_vector)) {
+      for (colname in names(current_width_vector)) {
+        idx <- which(names(df_temp) == colname)
+        if (length(idx) == 1) {
+          width_value <- current_width_vector[[colname]]
+          # Ensure width has proper units
+          if (!grepl("px$", width_value) && !grepl("%$", width_value)) {
+            width_value <- paste0(width_value, "px")
           }
-        }
-      } else {
-        # Named: match by column name
-        for (colname in names(wv)) {
-          idx <- which(names(df_temp) == colname)
-          if (length(idx) == 1 && !is.na(wv[[colname]])) {
-            cat(sprintf("Setting width of column '%s' (index %d) to %spx\n", colname, idx, wv[[colname]]))
-            l_columnDefs <- c(
-              l_columnDefs,
-              list(list(targets = idx - 1, width = paste0(wv[[colname]], "px")))
-            )
-          } else {
-            cat(sprintf("Column '%s' not found in df_temp\n", colname))
-          }
+          l_columnDefs <- c(
+            l_columnDefs,
+            list(list(targets = idx - 1, width = width_value))
+          )
         }
       }
     }
@@ -648,29 +639,34 @@ server <- function(input, output, session) {
       editable = FALSE,
       selection = "single",
       filter = "top",
+      width = NULL,  # Let the container handle width
       options = list(
-        autoWidth = TRUE,
+        scrollX = TRUE,  # Enable horizontal scrolling
+        autoWidth = TRUE,  # auto-width enable to controll columnwidth
         columnDefs = l_columnDefs,
+        scrollCollapse = TRUE,  # Better scrolling behavior
         pageLength = page_length_var(),
         lengthMenu = c_lengthMenu,
         searchCols = last_user_filter(),
         drawCallback = JS("Shiny.setInputValue('table_rendered', new Date().getTime());"),
         initComplete = JS("
-      function(settings, json) {
-        var table = settings.oInstance.api();
-        table.on('length.dt', function(e, settings, len) {
-          Shiny.setInputValue('page_length', len);
-        });
-      }
-    "),
+          function(settings, json) {
+            var table = settings.oInstance.api();
+            table.on('length.dt', function(e, settings, len) {
+              Shiny.setInputValue('page_length', len);
+            });
+            // Adjust column widths after initialization
+            table.columns.adjust().draw();
+          }
+        "),
         language = DT_language
       ),
       callback = JS("
-    table.columns().every(function() {
-      var column = this;
-      $(column.header()).css('white-space', 'normal');
-    });
-  ")
+        table.columns().every(function() {
+          var column = this;
+          $(column.header()).css('white-space', 'normal');
+        });
+      ")
     ) |> apply_conditional_formatting()
   }, server = TRUE)
   
@@ -1894,7 +1890,12 @@ server <- function(input, output, session) {
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       hr(),
-      if(c_connected_to_db()) DTOutput("table"),
+      if(c_connected_to_db()) {
+        div(
+          style = "width: 100%; overflow-x: auto;",  # Container with scroll
+          DTOutput("table", width = "100%")  # Table fills container
+        )
+      },
       if(c_connected_to_db()) {
         if(data_selection_() == "Inputdaten") {
           tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data)
