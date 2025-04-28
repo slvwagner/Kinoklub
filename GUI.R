@@ -81,17 +81,6 @@ create_icons <- function(m_Film, c_path, c_url) {
   )
 }
 
-# Function to render a single RMarkdown file
-render_single_file <- function(input, output, envir) {
-  rmarkdown::render(
-    input = input,        # input file name
-    output_file = output, # output file name
-    output_dir = "output",# where to put the output file (directory) 
-    envir = envir, 
-    quiet = TRUE  # Suppress output for cleaner logs
-  )
-}
-
 # Index pro Suisa-Nummer und Datum erstellen
 Abrechnung_mapping <- function(data_env, start, end) {
   df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
@@ -119,6 +108,18 @@ Abrechnung_mapping <- function(data_env, start, end) {
     )|>
     arrange(index)
   return(df_mapping)
+}
+
+# Function to render a single RMarkdown file
+render_single_file <- function(input, output, envir) {
+  rmarkdown::render(
+    input = input,
+    output_file = output,
+    output_dir = "output",
+    intermediates_dir = "output",
+    envir = envir,
+    quiet = TRUE
+  )
 }
 
 # Erstellen der Abrechnung pro Filmvorführung
