@@ -1,7 +1,7 @@
 # Graphical user interface für den Kinoklub
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
-# Vorbereiten / Installieren
+# Vorbereiten / Installieren ####
 rm(list = ls())
 
 # Define libraries to be installed
@@ -27,7 +27,7 @@ remove(packages, installed_packages)
 # load user settings
 source("user_settings.R")
 
-# Load excel column definition database
+# Load excel column definition database ####
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
 
@@ -37,11 +37,11 @@ WordPress_env <- new.env()
 # Functions
 source("source/functions.R")
 
-# Erstellen von Verzeichnissen
+# Erstellen von Verzeichnissen ####
 dir.create("output/") |> suppressWarnings()
 dir.create("output/data/") |> suppressWarnings()
 
-# Function to create icons for the site map
+# Function to create icons for the site map ####
 create_icons <- function(m_Film, c_path, c_url) {
   library(furrr)
   library(webshot)  # Ensure webshot is loaded
@@ -81,7 +81,7 @@ create_icons <- function(m_Film, c_path, c_url) {
   )
 }
 
-# Index pro Suisa-Nummer und Datum erstellen
+# Index pro Suisa-Nummer und Datum erstellen ####
 Abrechnung_mapping <- function(data_env, start, end) {
   df_mapping <- tibble(Datum = data_env$df_mapping$Datum, Suisanummer = data_env$df_mapping$Suisanummer) |>
     mutate(user_Datum = format(Datum, "%d.%m.%Y"),
@@ -110,7 +110,7 @@ Abrechnung_mapping <- function(data_env, start, end) {
   return(df_mapping)
 }
 
-# Function to render a single RMarkdown file
+# Function to render a single RMarkdown file ####
 render_single_file <- function(input, output, envir) {
   rmarkdown::render(
     input = input,
@@ -122,7 +122,7 @@ render_single_file <- function(input, output, envir) {
   )
 }
 
-# Erstellen der Abrechnung pro Filmvorführung
+# Erstellen der Abrechnung pro Filmvorführung ####
 AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Template der Abrechnung einlesen
@@ -256,7 +256,7 @@ AbrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   return(NULL)
 }
 
-# Erstellen der Verleiherabrechnung pro Filmvorführung
+# Erstellen der Verleiherabrechnung pro Filmvorführung ####
 VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   for (ii in df_mapping$index) {
     # Create Verleiherabrechnung
@@ -328,7 +328,7 @@ VerleiherabrechnungErstellen <- function(df_mapping, df_Abrechnung, toc) {
   return(NULL)
 }
 
-# Statistik-Bericht erstellen
+# Statistik-Bericht erstellen ####
 StatistikErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
@@ -347,7 +347,7 @@ StatistikErstellen <- function(toc) {
   render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
 }
 
-# Filmvorschlag erstellen
+# Filmvorschlag erstellen ####
 FilmvorschlagErstellen <- function(toc, data_env) {
   # Einlesen
   c_raw <- readLines("source/Archiv.Rmd")
@@ -366,7 +366,7 @@ FilmvorschlagErstellen <- function(toc, data_env) {
   render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
 }
 
-# Jahresrechnung-Bericht erstellen
+# Jahresrechnung-Bericht erstellen ####
 JahresrechnungErstellen <- function(toc) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
@@ -385,7 +385,7 @@ JahresrechnungErstellen <- function(toc) {
   render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
 }
 
-# function to edit Site-Map: insert pictures
+# function to edit Site-Map: insert pictures ####
 instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   # create link to pict and link to file
   if (length(raw_rmd) == index) {
@@ -467,7 +467,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   return(raw_rmd)
 }
 
-# function to create a site-map
+# function to create a site-map ####
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
   if (dir.exists("output/pict")) {
@@ -970,7 +970,7 @@ webserver <- function() {
   
 }
 
-# Envirnoment for Data to create Plots
+# Envirnoment for Data to create Plots ####
 data_env <- new.env()
 error_calculate <-  paste0(
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
@@ -978,7 +978,6 @@ error_calculate <-  paste0(
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
   )
 
-# Initialize variables
 # Initialize variables
 calculate_warnings <- ""  # Store warnings
 ausgabe_text <- ""        # Store script output
@@ -1026,11 +1025,11 @@ final_output <- paste(
 ausgabe_text <- final_output
 ausgabe_text
 
-# include some function into data_env
+# include some function into data_env ####
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
 
-# Shiny reactive variables
+# Shiny reactive variables ####
 calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
 ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
 
@@ -1067,7 +1066,7 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-# UI-Definition fluid page
+# UI-Definition fluid page ####
 ui <- function(){
   shiny::fluidPage(
     shiny::tags$head(
@@ -1088,7 +1087,7 @@ ui <- function(){
   )
 }
 
-# # UI-Definition bs4Dash
+# # UI-Definition bs4Dash ####
 # library(bs4Dash)
 # ui <- dashboardPage(
 #   help = TRUE,
@@ -1110,9 +1109,9 @@ ui <- function(){
 #   )
 # )
 
-# Server-Logik
+# Server-Logik ####
 server <- function(input, output, session) {
-  # Überwachung Button: open Excel Einkauf
+  ## Überwachung Button: open Excel Einkauf ####
   shiny::observeEvent(input$open_einkauf, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
@@ -1152,7 +1151,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button: open Excel Einnahmen und Ausgaben
+  ## Überwachung Button: open Excel Einnahmen und Ausgaben ####
   shiny::observeEvent(input$open_EinAus, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
@@ -1183,7 +1182,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button: open Excel Spezialpreise
+  ## Überwachung Button: open Excel Spezialpreise ####
   shiny::observeEvent(input$open_Spez, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
@@ -1215,7 +1214,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button: open Excel Verleiherabgaben Excel
+  ## Überwachung Button: open Excel Verleiherabgaben Excel ####
   shiny::observeEvent(input$open_Verleih, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
@@ -1247,7 +1246,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button Daten Einlesen
+  ## Überwachung Button Daten Einlesen ####
   shiny::observeEvent(input$DatenEinlesen, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
@@ -1334,7 +1333,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button Filmabrechnung(en) erstellen
+  ## Überwachung Button Filmabrechnung(en) erstellen ####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time
     c_time <- Sys.time()
@@ -1414,7 +1413,7 @@ server <- function(input, output, session) {
     }
   })
 
-  # Überwachung Button Statistik
+  ## Überwachung Button Statistik ####
   shiny::observeEvent(input$Statistik, {
     # Execution time
     c_time <- Sys.time()
@@ -1457,7 +1456,7 @@ server <- function(input, output, session) {
 
   })
 
-  # Überwachung Button Jahresrechnung
+  ## Überwachung Button Jahresrechnung ####
   shiny::observeEvent(input$Jahresrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
       # Execution time
@@ -1497,7 +1496,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Download Handler Werbung
+  ## Download Handler Werbung ####
   output$downloadExcel <- downloadHandler(
     filename = function() {
       "Werbung.xlsx"
@@ -1512,7 +1511,7 @@ server <- function(input, output, session) {
     }
   )
 
-  # Überwachung Button Wordpress
+  ## Überwachung Button Wordpress ####
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
       # Execution time
@@ -1552,7 +1551,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button "Alles erstellen"
+  ## Überwachung Button "Alles erstellen" ####
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
@@ -1654,7 +1653,7 @@ server <- function(input, output, session) {
     })
   })
 
-  # Download Handler Wordpress
+  ## Download Handler Wordpress ####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
@@ -1672,7 +1671,7 @@ server <- function(input, output, session) {
     }
   )
 
-  # Überwachung Input: Inhaltsverzeichniss
+  ## Überwachung Input: Inhaltsverzeichniss ####
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1801,7 +1800,7 @@ server <- function(input, output, session) {
     col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
   })
 
-  # Reder: Update table with all the dates in the selected range
+  ## Reder: Update table with all the dates in the selected range ####
   output$dateTable <- shiny::renderTable({
     if (exists("data_env")) {
       start_datum <- input$dateRange |> min()
@@ -1809,21 +1808,21 @@ server <- function(input, output, session) {
 
       get("df_Abrechnung", envir = data_env) |>
         filter(between(Datum, start_datum, end_datum)) |>
-        arrange(desc(Datum), desc(Anfang)) |>
+        arrange(desc(Datum)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Anfang, "%H%M")) |>
         select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
     }
   })
 
-  # Render: txt file rendering
+  ## Render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
 
-  # Render: dynamic sheet selection UI
+  ## Render: dynamic sheet selection UI ####
   output$sheet_selector <- shiny::renderUI({
     shiny::req(file_data())
     shiny::selectInput("selected_sheet",
@@ -1831,7 +1830,7 @@ server <- function(input, output, session) {
                        choices = file_data()$sheets)
   })
 
-  # Render: Systemrückmeldungen aktualisieren
+  ## Render: Systemrückmeldungen aktualisieren ####
   output$ausgabe <- renderText({
     ausgabe_text()
   })
