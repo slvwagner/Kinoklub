@@ -537,6 +537,7 @@ server <- function(input, output, session) {
   }
 
   
+  
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
@@ -672,8 +673,6 @@ server <- function(input, output, session) {
   ")
     ) |> apply_conditional_formatting()
   }, server = TRUE)
-  
-  
   
   # Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
