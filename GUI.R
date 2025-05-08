@@ -1063,8 +1063,7 @@ server <- function(input, output, session) {
             shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
             AbrechnungErstellen(
               df_mapping__,
-              data_env$df_Abrechnung,
-              toc = TRUE
+              data_env$df_Abrechnung
             )
             # webserver
             tryCatch({
