@@ -84,7 +84,10 @@ Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
 
 # check suisanummer  ##################
 ## error handling
-p <- DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT
+p <- or(DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
+        WRD%R%WRD%R%WRD%R%WRD%R%DOT%R%WRD%R%WRD%R%WRD
+)
+
 df_temp <- l_data$Programm|>
   filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)|>
@@ -110,7 +113,6 @@ if(is_empty(c_files)) {
               "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"\n")
   )
 }
-
 
 # read and convert Eintritte
 df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
