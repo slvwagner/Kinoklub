@@ -1,13 +1,39 @@
-Platzkategorie	Preis	Tax	Anzahl	Betrag	Kassiert	Vorausbezahlt	Fakturieren	Tax
-Kaffee, Espresso	4.00	0.0000	11	44.00	44.00	0.00	0.00	0.00
-Fever-Tree Tonic Water	4.50	0.0000	1	4.50	4.50	0.00	0.00	0.00
-Mineralwasser mit	4.00	0.0000	1	4.00	4.00	0.00	0.00	0.00
-Gazosa Grapefruit	6.00	0.0000	1	6.00	6.00	0.00	0.00	0.00
-Gazosa Orange	6.00	0.0000	1	6.00	6.00	0.00	0.00	0.00
-Mocca	4.00	0.0000	1	4.00	4.00	0.00	0.00	0.00
-Popcorn frisch	5.00	0.0000	1	5.00	5.00	0.00	0.00	0.00
-17	73.50	73.50	0.00	0.00	0.00
-Spez 1		0.0000	3	6.00	6.00	0.00	0.00	0.00
-Spez 2		0.0000	8	40.00	40.00	0.00	0.00	0.00
-10	46.00	46.00	0.00	0.00	0.00
-Gesamt	27	119.50	119.50	0.00	0.00	0.00
+
+Day
+
+26/11/2023
+
+reinach
+
+Atelierkino Kasse
+
+…
+Erwachsene	16.00		7	-1		96.00
+Kinder	12.00		1	-1		
+Abo 6er Eintritt	13.00		2			26.00
+AHV/IV	13.00		29	-1		364.00
+39	-3		486.00
+Kinoförderer	0.00		4			
+Mitwirkende/Gäste Anlass	0.00		3			
+Mitarbeiter*in	0.00		3			
+10			
+Kaffee, Espresso	4.00		11			44.00
+Fever-Tree Tonic Water	4.50		1			4.50
+Mineralwasser mit	4.00		1			4.00
+Gazosa Grapefruit	6.00		1			6.00
+Gazosa Orange	6.00		1			6.00
+Weisser Kaffee	4.00		1			4.00
+Popcorn frisch	5.00		1			5.00
+17			73.50
+reduzierten Ware			10			46.00
+10			46.00
+Gesamt		76	-3		605.50
+TWINT			9			-106.00
+Abo 6er			2			-26.00
+CC	11			-132.00
+- Abo/Gutsch. gegen Rg./Kreditkarten			0.00
+- CHF an Bank			0.00
+- Spesen			0.00
++/- Überschuss | Manko			13.00
+Solde		486.50
+MWSt 7.7%	8.54	
