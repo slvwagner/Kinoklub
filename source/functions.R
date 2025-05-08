@@ -654,7 +654,7 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
       
       # Extract Datum from file
       p <- or("\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", # format 01.01.2025
-              "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b", # # format 01/01/2025
+              "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b" # # format 01/01/2025
       )
       
       index <- c_raw|>

@@ -1472,7 +1472,6 @@ server <- function(input, output, session) {
     }
   )
   
-  
   ## Upload handler #####
   file_data <- shiny::reactive({
     shiny::req(input$file)
