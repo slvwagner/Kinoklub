@@ -976,13 +976,31 @@ server <- function(input, output, session) {
   # Filmtabelle anzeigen
   df_Render <- shiny::reactiveVal(NULL)
   
-  # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
-  End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
-  
   # Does the index.html file exist, is the webserver ready
   file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
   
+  # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
+  START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
+  End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
   
+  # Store process for secondary app in a reactive value
+  second_app_process <- reactiveVal(NULL)
+  
+  ##  Überwachung Abrechnungsjahr #####
+  shiny::observeEvent(input$c_Abrechnungsjahr,{
+    req(input$c_Abrechnungsjahr)
+    df_temp <- data_env$df_Besucherzahlen|>
+      filter(year(Datum) == input$c_Abrechnungsjahr)
+    if(nrow(df_temp) == 0){
+      warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
+      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+    }else{
+      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+    }
+  })
+
   ##  Überwachung Button Daten Einlesen #####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
@@ -1661,6 +1679,9 @@ server <- function(input, output, session) {
   ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
+      # Abrechnungsjahr
+      shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", value = year(Sys.Date()), min = 2023, max = 3000, step = 1),
+      
       # File input handler
       shiny::fileInput(
         "file",
@@ -1683,7 +1704,7 @@ server <- function(input, output, session) {
         # Default start date (one week ago)
         end = End_date_choose(),
         # Default end date (last show)
-        min = min(datum_vektor),
+        min = START_date_choose(),
         # Earliest selectable date
         max = End_date_choose(),
         # Latest selectable date
@@ -1746,9 +1767,7 @@ server <- function(input, output, session) {
     )
     
   })
-  
-  ## Store the process in a reactive value #####
-  second_app_process <- reactiveVal(NULL)
+
   
   ## launch the Dateien editieren App #####
   observeEvent(input$launch_app, {
