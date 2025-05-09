@@ -989,15 +989,16 @@ server <- function(input, output, session) {
   ##  Überwachung Abrechnungsjahr #####
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
-    df_temp <- data_env$df_Besucherzahlen|>
+    df_temp <- data_env$df_Eintritt|>
       filter(year(Datum) == input$c_Abrechnungsjahr)
     if(nrow(df_temp) == 0){
       warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
       START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
       End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
     }else{
-      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
-      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+      START_date_choose()
+      START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
+      End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
     }
   })
 
@@ -1700,7 +1701,7 @@ server <- function(input, output, session) {
       shiny::dateRangeInput(
         inputId = "dateRange",
         label = "Wählen Sie einen Datumsbereich aus:",
-        start = End_date_choose(),
+        start = START_date_choose(),
         # Default start date (one week ago)
         end = End_date_choose(),
         # Default end date (last show)
