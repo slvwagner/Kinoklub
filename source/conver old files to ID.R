@@ -3,9 +3,11 @@ library(tidyverse)
 library(rebus)
 library(lubridate)
 
+c_path <- "C:/Users/slvwa/Downloads/2025"
+
 df_files <- 
-  tibble(Eintritt = list.files("C:/Users/slvwa/OneDrive/Desktop/old", "Ein", full.names = TRUE),
-         Kiosk = list.files("C:/Users/slvwa/OneDrive/Desktop/old", "Kiosk", full.names = TRUE),
+  tibble(Eintritt = list.files(c_path, "Ein", full.names = TRUE),
+         Kiosk = list.files(c_path, "Kiosk", full.names = TRUE),
          Suisanummer = "",
          Datum = ""
          )
@@ -33,11 +35,17 @@ df_files <- df_files|>
   arrange(Datum)|>
   mutate(ID = row_number())
 
+# ID offset due to previously converted files
+c_offset <- 54
+
 df_files <- df_files|>
   mutate(Eintritt_new = str_replace(Eintritt, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID",ID)),
          Kiosk_new = str_replace(Kiosk, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID",ID))
          )
-df_files
+df_files$Eintritt_new
+
+
+df_
 
 file.rename(from = df_files$Kiosk, to = df_files$Kiosk_new)
 file.rename(from = df_files$Eintritt , to = df_files$Eintritt_new)
