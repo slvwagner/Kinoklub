@@ -661,6 +661,15 @@ server <- function(input, output, session) {
     stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
     
+    ### links to render in html ####
+    if(lastEdited_data_set_name() == "Filmvorschlag"){
+      df_temp <- df_temp|>
+        mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
+               Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
+               )|>
+        arrange(desc(`1`))
+    }
+    
     ### Render Table ####
     datatable(
       df_temp,
