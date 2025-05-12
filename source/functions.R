@@ -457,7 +457,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
         str_split("\t")|>
         unlist()
       
-      # Error handling: Suisa from Programm vs Suisa from Programm
+      # Error handling: Suisa from Eintritt vs Suisa from Programm
       df_temp <- Programm|>
         filter(`Event ID` == ID)
       df_temp$Suisanummer
@@ -469,7 +469,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
       
       if(c_temp[1] != df_temp$Suisanummer) {
         warning("\nIn der Datei: .../Kinoklub/", fileName,
-                "\nwurde die Suisanummer ",c_suisa," gefunden.",
+                "\nwurde die Suisanummer ",c_temp[1]," gefunden.",
                 "\nIm Program wurde aber die Suisanummer ",df_temp$Suisanummer, " für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n" )
       }
       

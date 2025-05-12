@@ -35,6 +35,6 @@ saveRDS(l_template,"source/SQL/template.Rds")
 # Disconnect from DB
 dbDisconnect(con)
 
-message("\nDatabase backup done")
+message("******************************\nDatabase backup done\n******************************")
 
 
