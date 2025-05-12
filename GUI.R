@@ -277,6 +277,8 @@ server <- function(input, output, session) {
         data_env
       )
     }, .options = furrr_options(seed = NULL))
+    
+    # remove temp files RMD files
     file.remove(df_mapping$fileName_RMD)
     
     
