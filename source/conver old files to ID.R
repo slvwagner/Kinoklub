@@ -36,16 +36,26 @@ df_files <- df_files|>
   mutate(ID = row_number())
 
 # ID offset due to previously converted files
-c_offset <- 54
+c_offset <- 49
 
-df_files <- df_files|>
-  mutate(Eintritt_new = str_replace(Eintritt, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID",ID)),
-         Kiosk_new = str_replace(Kiosk, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID",ID))
-         )
+df_files <- df_files |>
+  mutate(
+    Eintritt_new = str_replace(Eintritt, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID", ID + c_offset)),
+    Kiosk_new = str_replace(Kiosk, pattern = "\\d{2}\\.\\d{2}\\.\\d{2}", paste0("ID", ID + c_offset))
+  ) |>
+  mutate(
+    Eintritt_new = Eintritt_new |>
+      str_remove(pattern = "\\d{4}\\.\\d{3}") |>
+      str_replace(pattern = "(ID\\d+)\\s+(?=\\.txt)", replacement = "\\1") |>
+      str_trim(),
+    
+    Kiosk_new = Kiosk_new |>
+      str_remove(pattern = "\\d{4}\\.\\d{3}") |>
+      str_replace(pattern = "(ID\\d+)\\s+(?=\\.txt)", replacement = "\\1") |>
+      str_trim()
+  )
 df_files$Eintritt_new
-
-
-df_
+df_files$Kiosk_new
 
 file.rename(from = df_files$Kiosk, to = df_files$Kiosk_new)
 file.rename(from = df_files$Eintritt , to = df_files$Eintritt_new)
