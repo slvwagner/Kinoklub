@@ -1,0 +1,38 @@
+Day
+
+02/02/2025
+
+reinach
+
+Jablonski
+
+…
+Erwachsene	16.00		1			16.00
+Kinder	12.00		1			12.00
+2			28.00
+Mineralwasser mit	4.00		1			4.00
+Mineralwasser ohne	4.00		1			4.00
+CocaCola	5.00		3			15.00
+Rivella Rot	5.00		2			10.00
+Eistee	5.00		3			15.00
+Gazosa Zitrone	6.00		1			6.00
+Gazosa Orange	6.00		2			12.00
+Weisser Kaffee	4.00		1			4.00
+Schokolade	4.00		1			4.00
+Zitronen-Rosmarinsorbet	4.00		1			4.00
+Himbeersorbet	4.00		1			4.00
+Schleckbecher Bunter Mix	5.00		5			25.00
+M&Ms	3.00		3			9.00
+Maltesers	3.00		4			12.00
+Popcorn frisch	5.00		14			70.00
+43			198.00
+Gesamt		45			226.00
+TWINT			5			-60.00
+TWINT						0.00
+CC	5			-60.00
+- Abo/Gutsch. gegen Rg./Kreditkarten			0.00
+- CHF an Bank			0.00
+- Spesen			0.00
++/- Überschuss | Manko			0.00
+Solde		166.00
+MWSt 8.1%	14.84		

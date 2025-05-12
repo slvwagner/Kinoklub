@@ -1,0 +1,37 @@
+
+KW 2025-12
+
+20/03/2025
+
+26/03/2025
+
+
+AtelierKino
+
+AtelierKino D Antarctica Calling - Voyage au pôle Sud
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Xenix Filmdistribution GmbH
+Weberstrasse 21
+8004	Zürich
+1018.767	ANTARCTICA CALLING - VOYAGE AU PÔLE SUD
+D	AtelierKino - Reinach
+1. Woche von 20.03.2025 bis 26.03.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	23.03.2025	1	18	0	257.00
+Gesamt	1	18	0	257.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	10	160.00
+Ermässigt	13.00	0.0000	1	13.00
+Kinder	12.00	0.0000	7	84.00
+Gesamt	18	257.00
+Brutto	257.00
+Tax	-0.00
+Netto 1	257.00
+Netto 0.00%	-0.00
+Netto 2	257.00
+1.48% SUISA-Vorabzug	-3.80
+Netto 3	253.20
+
+

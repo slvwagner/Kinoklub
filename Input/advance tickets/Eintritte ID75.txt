@@ -1,0 +1,37 @@
+
+KW 2025-15
+
+10/04/2025
+
+16/04/2025
+
+
+AtelierKino
+
+AtelierKino OV/d Heldin
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Filmcoopi Zürich AG
+Postfach 1366
+8031	Zürich
+1020.059	HELDIN
+OV/d	AtelierKino - Reinach
+1. Woche von 10.04.2025 bis 16.04.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Do	10.04.2025	1	77	6	1'041.00
+Gesamt	1	77	6	1'041.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	35	560.00
+Ermässigt	13.00	0.0000	37	481.00
+Kinoförderer	0.00	0.0000	4	0.00
+Kinofördererkarte	0.00	0.0000	5	0.00
+Mitarbeiter*in	0.00	0.0000	2	0.00
+Gesamt	83	1'041.00
+Brutto	1'041.00
+Tax	-0.00
+Netto 1	1'041.00
+Netto 0.00%	-0.00
+Netto 2	1'041.00
+1.48% SUISA-Vorabzug	-15.41
+Netto 3	1'025.59

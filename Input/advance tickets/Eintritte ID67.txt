@@ -1,0 +1,35 @@
+
+KW 2025-12
+
+20/03/2025
+
+26/03/2025
+
+
+AtelierKino
+
+AtelierKino OV/d Prisoners of Fate
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+cineworx gmbh
+Clarastr. 48
+4005	Basel
+1019.051	PRISONERS OF FATE
+OV/d	AtelierKino - Reinach
+1. Woche von 20.03.2025 bis 26.03.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Sa	22.03.2025	1	21	5	105.00
+Gesamt	1	21	5	105.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Eintritt	5.00	0.0000	21	105.00
+Mitarbeiter*in	0.00	0.0000	4	0.00
+Kinoklub-Mitglieder	0.00	0.0000	1	0.00
+Gesamt	26	105.00
+Brutto	105.00
+Tax	-0.00
+Netto 1	105.00
+Netto 0.00%	-0.00
+Netto 2	105.00
+1.48% SUISA-Vorabzug	-1.55
+Netto 3	103.45

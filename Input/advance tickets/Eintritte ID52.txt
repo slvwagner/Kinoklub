@@ -1,0 +1,36 @@
+
+KW 2025-03
+
+16.01.2025
+
+22.01.2025
+
+
+AtelierKino
+
+AtelierKino D Flow
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Xenix Filmdistribution GmbH
+Weberstrasse 21
+8004	Zürich
+1020.643	FLOW
+D	AtelierKino - Reinach
+1. Woche von 16.01.2025 bis 22.01.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	19.01.2025	1	12	1	170.00
+Gesamt	1	12	1	170.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	6	96.00
+Ermässigt	13.00	0.0000	2	26.00
+Kinder	12.00	0.0000	4	48.00
+Kinoklub-Mitglieder	0.00	0.0000	1	0.00
+Gesamt	13	170.00
+Brutto	170.00
+Tax	-0.00
+Netto 1	170.00
+Netto 0.00%	-0.00
+Netto 2	170.00
+1.48% SUISA-Vorabzug	-2.52
+Netto 3	167.48

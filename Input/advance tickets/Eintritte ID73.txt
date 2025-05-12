@@ -1,0 +1,34 @@
+
+KW 2025-14
+
+03/04/2025
+
+09/04/2025
+
+
+AtelierKino
+
+AtelierKino D Sauvages
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Frenetic Films AG
+Riedtlistrasse 23
+8006	Zürich
+1018.523	SAUVAGES
+D	AtelierKino - Reinach
+1. Woche von 03.04.2025 bis 09.04.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+So	06.04.2025	1	2	3	26.00
+Gesamt	1	2	3	26.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Ermässigt	13.00	0.0000	2	26.00
+Mitarbeiter*in	0.00	0.0000	3	0.00
+Gesamt	5	26.00
+Brutto	26.00
+Tax	-0.00
+Netto 1	26.00
+Netto 0.00%	-0.00
+Netto 2	26.00
+1.48% SUISA-Vorabzug	-0.38
+Netto 3	25.62
