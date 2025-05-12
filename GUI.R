@@ -7,8 +7,8 @@ rm(list = ls())
 # Define libraries to be installed
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
-  "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
+  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx","RMySQL",
+  "shiny",  "shinyjs", "viridis", "colorspace"
 )
 
 # Install packages not yet installed
@@ -88,10 +88,13 @@ tryCatch({
 ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
 ausgabe_text
 
+# Error handling
+if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
+
+
 # include some function into data_env
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
-
 
 # Serve the custom_styles directory
 shiny::addResourcePath("custom_styles", "source")
@@ -967,12 +970,17 @@ server <- function(input, output, session) {
   ## Shiny reactive variables ####
   calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
   ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
+  Abrechungsjahr <- shiny::reactiveVal(year(Sys.Date()))
   
   # Vektor mit Datumseinträgen
   if (exists("df_Besucherzahlen", envir = data_env))  {
     datum_vektor <- data_env$df_Besucherzahlen$Datum
   } else {
-    datum_vektor <- seq(as.Date(paste0(Abrechungsjahr, "-01-01")), as.Date(paste0(Abrechungsjahr, "-12-31")), by = "day")
+    datum_vektor <- seq(
+      from = as.Date(paste0(year(Sys.Date()), "-01-01")),
+      to   = as.Date(paste0(year(Sys.Date()), "-12-31")),
+      by   = "day"
+    )
   }
   
   # Filmtabelle anzeigen
@@ -1420,8 +1428,8 @@ server <- function(input, output, session) {
           df_mapping__ <- 
             Abrechnung_mapping(
               data_env,
-              start = paste0(Abrechungsjahr,"-1-1")|>as.Date(),
-              end = paste0(Abrechungsjahr,"-12-31")|>as.Date()
+              start = paste0(Abrechungsjahr(),"-1-1")|>as.Date(),
+              end = paste0(Abrechungsjahr(),"-12-31")|>as.Date()
             )
           AbrechnungErstellen(
             df_mapping__,
