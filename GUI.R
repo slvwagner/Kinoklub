@@ -999,6 +999,9 @@ server <- function(input, output, session) {
   ##  Überwachung Abrechnungsjahr #####
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
+    
+    Abrechungsjahr(input$c_Abrechnungsjahr)
+    
     df_temp <- data_env$df_Eintritt|>
       filter(year(Datum) == input$c_Abrechnungsjahr)
     if(nrow(df_temp) == 0){
@@ -1010,6 +1013,10 @@ server <- function(input, output, session) {
       START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
       End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
     }
+  })
+  
+  shiny::observe({
+    shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
 
   ##  Überwachung Button Daten Einlesen #####
@@ -1691,7 +1698,9 @@ server <- function(input, output, session) {
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
       # Abrechnungsjahr
-      shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", value = year(Sys.Date()), min = 2023, max = 3000, step = 1),
+      shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
+                          value = Abrechungsjahr(),
+                          min = 2023, max = 3000, step = 1),
       
       # File input handler
       shiny::fileInput(
