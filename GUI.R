@@ -327,6 +327,19 @@ server <- function(input, output, session) {
       }
     }
     
+    # # Render files
+    # lapply(1:nrow(df_mapping), function(ii){
+    #   tryCatch({
+    #     render_single_file(
+    #       df_mapping$fileName_RMD[ii],
+    #       df_mapping$fileName_html[ii],
+    #       data_env
+    #     )
+    #   }, error = function(e) {
+    #     message("Error rendering file", df_mapping$fileName_RMD[ii], ": ", e$message)
+    #   })
+    # })
+    
     library(furrr)
     # Determine the number of cores to use
     num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
@@ -334,9 +347,21 @@ server <- function(input, output, session) {
     if(nrow(df_mapping) < num_cores) {
       num_cores <- nrow(df_mapping)
     }
-    
+
     # Render in parallel Abrechnung
     plan(multisession, workers = num_cores)
+
+    # # Render files in parallel
+    # future_map(
+    #   1:nrow(df_mapping),
+    #   ~render_single_file(
+    #     df_mapping$fileName_RMD[.x],
+    #     df_mapping$fileName_html[.x],
+    #     data_env
+    #   ),
+    #   # Use future-compatible graphics
+    #   options(future.device = TRUE)
+    # )
     
     # Render files in parallel
     future_walk(1:nrow(df_mapping), function(ii) {

@@ -127,11 +127,15 @@ if(r_is.defined(df_keine_Rechnung)){
       filter(Datum == df_mapping$Datum[ii] ,
              Suisanummmer == df_mapping$Suisanummer[ii])
   
-    if (nrow(df_temp) > 0) {
+    if (nrow(df_temp) == 0) {
       writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
     } else{
       df_temp <- df_Abrechnung |>
-        filter(Datum %in% c(df_mapping$Datum[ii]))
+        filter(
+          Datum %in% c(df_mapping$Datum[ii]),
+          `Suisa Nummer` == df_mapping$Suisanummer [ii]
+          )
+      df_temp
   
       if (!is.na(df_temp$`Link Datum`)) {
         paste(
