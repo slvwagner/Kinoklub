@@ -4,7 +4,6 @@ if (!require("DBI")) install.packages("DBI")
 if (!require("RPostgres")) install.packages("RPostgres")
 if (!require("tidyverse")) install.packages("tidyverse")
 if (!require("DT")) install.packages("DT")  # Install DT package
-if (!require("shinysky")) install.packages("shinysky")  # Install DT package
 
 library(shiny)
 library(DBI)
@@ -60,7 +59,7 @@ ui <- function(){
         passwordInput("Passwort", "Passwort"),  # Password input
         actionButton("connect", "Connect to Database"),  # Button to connect
         shiny::tags$hr(),
-        shinysky::select2Input("select2_Lieferant","Lieferant",choices = column_definitions$Lieferant),
+        shiny::selectInput("select2_Lieferant","Lieferant",choices = column_definitions$Lieferant),
         numericInput("filter_id", "Filter by ID", value = NULL),  # Filter by ID
         actionButton("filter", "Filter Row"),  # Button to filter row
         dateInput("datum", "Datum", value = Sys.Date()),
