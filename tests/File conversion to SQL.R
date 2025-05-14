@@ -2,7 +2,7 @@ library(tidyverse)
 library(rebus)
 library(lubridate)
 
-Shows <- read_delim("C:/Users/slvwa/OneDrive/Desktop/old/Shows.txt", 
+Shows <- read_delim("Shows.txt", 
                     delim = "\t", escape_double = FALSE, 
                     col_types = cols(Tag = col_date(format = "%Y-%m-%d"), 
                                      Anfang = col_time(format = "%H:%M"), 

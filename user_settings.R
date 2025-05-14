@@ -45,7 +45,7 @@ c_script_version <- "V3.00"
 # Packages loading
 #############################################################################################################################################
 
-packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "webshot", "xml2", "tidyverse")
+packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "webshot", "xml2", "tidyverse", "data.table")
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages)
 
