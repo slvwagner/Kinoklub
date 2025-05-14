@@ -1269,7 +1269,7 @@ server <- function(input, output, session) {
         else if (c_input_class %in% c("double", "numeric")) {
           l_input[[ii]] <- as.numeric(c_input[ii])
         } 
-        #### integer inputs####
+        #### integer inputs ####
         else if (c_input_class == "integer") {
           l_input[[ii]] <- as.integer(c_input[ii])
         } 
