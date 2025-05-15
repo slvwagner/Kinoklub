@@ -140,6 +140,11 @@ df_mapping
 # dictionary ####
 dict_env <- dict_from_data.frame(df_mapping)
 
+# only save if dictionary is up to date 
+# The code above may need to be edited to achive that
+# saveRDS(dict_env,"Input/Verleiher_dict.Rds")
+
+
 # get Verleiher ####
 df_search <- df_search|>
   mutate(Verleiher =  dict_get_values(Verleiher,envir = dict_env))
