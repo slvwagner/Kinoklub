@@ -13,7 +13,9 @@ library(tidyverse)
 
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
-dict_verleiher <- readRDS("Input/Verleiher_dict.Rds")
+
+# Mapping Verleiher-Procinema zu Verleiher
+dict_env <- new.env()
 
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
@@ -30,10 +32,13 @@ width_vectors <- list(# Define width vectors for specific tables
 l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown ####
-c_select_input_data <- c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
+c_select_input_data <- 
+  c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
 l_template[c_select_input_data]
 
-c_select_dropdown_data <- c("Kinoklubmitglieder", "Verleiher", "Lieferanten", "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
+c_select_dropdown_data <- 
+  c("Kinoklubmitglieder", "Verleiher", "Verleiher mapping", "Lieferanten", 
+    "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
 l_template[c_select_dropdown_data]
 
 # Data table in german ####
@@ -522,6 +527,11 @@ server <- function(input, output, session) {
   load_initial_data <- function() {
     shiny::withProgress(message = "Loading data...", value = 0, {
       shiny::incProgress(1/3, detail = "Fetching from database")
+      
+      df_mapping <- DB_get_table("Verleiher mapping",DB_con())|>
+        select(-ID)
+      
+      dict_env <<- dict_from_data.frame(df_mapping)
       
       # 1. Get all data from DB using your template
       l_data_sql <- DB_get_Data(l_template, DB_con())
@@ -1996,7 +2006,7 @@ server <- function(input, output, session) {
       showModal(modalDialog(
         title = "Film wurde bereits gezeit.",
         footer = tagList(
-          actionButton("Film_takover","Film dennoch übernehmen", class = "btn-success"),
+          actionButton("Film_takover","Film dennoch übernehmen", class = "btn-danger"),
           actionButton("abort","Abbrechen")
         )
       ))
@@ -2100,53 +2110,72 @@ server <- function(input, output, session) {
         tryCatch(
           {
             df_temp <- search_procinema_by_suisa(input$suisa)
+            
           }, error = function(e){
             showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), type = "error")
             Sys.sleep(2)
+            removeModal()
           }
         )
-        
+        # only go on if df_temp is defined 
         if(r_is.defined(df_temp)){
-          tryCatch(
-            {
-              # get correct Verleiher from dictionary
-              df_temp <- df_temp|>
-                mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_verleiher))
-            }, error = function(e){
-              showNotification(paste("Es wurde kein Verleiher Eintrag gefunden, das ist ein Fehler und muss korrigiert werden.", e$message), type = "error")
-              Sys.sleep(2)
-            }
-          )
-          
-          # render table 
-          df_temp_to_render(df_temp)  
-          removeModal()
-          
-          if(df_temp$Suisanummer %in% current_data()$Suisanummer){
-            showModal(modalDialog(
-              title = "Filmvorschlag exisiert bereits",
-              easyClose = TRUE, 
-              footer = tagList(
-                actionButton("abort","Abbrechen")
-              )
-            ))
-            df_temp_to_render(NULL)
+          df_temp <- df_temp|>
+            filter(Suisanummer == input$suisa)
+          # only go on if a suisa number match can be found
+          if((nrow(df_temp) > 0)){
+            tryCatch(
+              {
+                # get correct Verleiher from dictionary
+                df_temp <- df_temp|>
+                  mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_env))
+                
+                
+                # render table 
+                df_temp_to_render(df_temp)  
+                removeModal()
+                
+                if(df_temp$Suisanummer %in% current_data()$Suisanummer){
+                  showModal(modalDialog(
+                    title = "Filmvorschlag exisiert bereits",
+                    easyClose = TRUE, 
+                    footer = tagList(
+                      actionButton("abort","Abbrechen")
+                    )
+                  ))
+                  df_temp_to_render(NULL)
+                } else {
+                  # Calculate modal size based on number of columns
+                  num_cols <- ncol(df_temp)
+                  modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+                  modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+                  
+                  showModal(modalDialog(
+                    title = "Filmvorschlag übernehmen",
+                    tagList(
+                      div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                          dataTableOutput("modal_table")
+                      )
+                    ),
+                    easyClose = FALSE, 
+                    footer = tagList(
+                      actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
+                      actionButton("abort","Abbrechen")
+                    )
+                  ))
+                }
+                
+                
+              }, error = function(e){
+                showNotification(paste("Für den Verleiher von Procinema",df_temp$Verleiher," Fehlermeldung: ", e$message), type = "error")
+                Sys.sleep(2)
+                removeModal()
+              }
+            )  
           } else {
-            # Calculate modal size based on number of columns
-            num_cols <- ncol(df_temp)
-            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-            
+            removeModal()
             showModal(modalDialog(
-              title = "Filmvorschlag übernehmen",
-              tagList(
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
-                )
-              ),
-              easyClose = FALSE, 
+              title = paste0("Die Suisanummer ",input$suisa, " konnte nicht gefunden werden auf Procinema" ),
               footer = tagList(
-                actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
                 actionButton("abort","Abbrechen")
               )
             ))
