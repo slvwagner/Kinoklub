@@ -528,9 +528,9 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Loading data...", value = 0, {
       shiny::incProgress(1/3, detail = "Fetching from database")
       
+      # initalice dictionary Verleiher to Procinema-Verleiher
       df_mapping <- DB_get_table("Verleiher mapping",DB_con())|>
         select(-ID)
-      
       dict_env <<- dict_from_data.frame(df_mapping)
       
       # 1. Get all data from DB using your template
