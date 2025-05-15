@@ -600,7 +600,7 @@ server <- function(input, output, session) {
   output$table <- DT::renderDT({
     req(current_data())
     
-    ### Create User-Readable "Datum" Columns ####
+    # Create User-Readable "Datum" Columns 
     df_temp <- current_data()
     
     # Step 1: Identify "datum" columns
@@ -655,8 +655,7 @@ server <- function(input, output, session) {
         }
       }
     }
-    
-    ### Apply column widths from width_vector ####
+  
     # Get the appropriate width vector for current table
     current_width_vector <- width_vectors[[lastEdited_data_set_name()]]
     
@@ -678,11 +677,11 @@ server <- function(input, output, session) {
       }
     }
     
-    ### Update last rendered DT ####
+    # Update last rendered DT 
     stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
     
-    ### links to render in html ####
+    # links to render in html
     if(lastEdited_data_set_name() == "Filmvorschlag"){
       df_temp <- df_temp|>
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
@@ -690,7 +689,7 @@ server <- function(input, output, session) {
                )
     }
     
-    ### Render Table ####
+    # Render Table
     datatable(
       df_temp,
       escape = FALSE,
@@ -729,7 +728,7 @@ server <- function(input, output, session) {
     ) |> apply_conditional_formatting()
   }, server = TRUE)
   
-  # Signal: Datatable has been rendered ####
+  ## Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
       dataTableProxy('table')|>
@@ -991,6 +990,7 @@ server <- function(input, output, session) {
   })
   
   ## Get email list ####
+  ### user Modal ####
   observeEvent(input$get_email,{
     showModal(modalDialog(
       shiny::radioButtons("Verteiler", "Verteiler", 
@@ -1003,9 +1003,9 @@ server <- function(input, output, session) {
     ))
   })
   
-  ## Select email verteiler and copy emails to clipboard ####
+  ### Select email verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
-    print("yes")
+    print("Email-Verteiler")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
         filter(\`",input$Verteiler,"\` == \"ja\")|>
         distinct(`E-Mail`)|>
@@ -1569,7 +1569,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ## Row Operations (Add/Delete/Duplicate/change title) ####
+  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     if (is.null(input$table_rows_selected)) {
