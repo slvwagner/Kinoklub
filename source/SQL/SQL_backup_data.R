@@ -9,6 +9,27 @@ l_data <- DB_backup_DB(con)
 l_template <- readRDS("source/SQL/template.RDS")
 
 # # update template
+# l_template$`Verleiher mapping`
+# df_temp <- DB_get_table("Verleiher", con)
+# df_temp <- left_join(
+#   df_temp,
+#   l_template$`Verleiher mapping`,
+#   by = join_by(Verleihername)
+#   )|>
+#   mutate(ID.x = NULL)|>
+#   rename(ID = ID.y)
+# 
+# l_template$`Verleiher mapping` <- df_temp|>
+#   slice(-1)|>
+#   mutate(ID = row_number())|>
+#   select(ID, Verleiher_procinema, Verleihername)|>
+#   slice(1)
+# 
+# l_data$`Verleiher mapping` <- df_temp|>
+#   slice(-1)|>
+#   mutate(ID = row_number())|>
+#   select(ID, Verleiher_procinema, Verleihername)
+
 # l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
 # l_template$Filmvorschlag <- l_template$Filmvorschlag|>
 #   mutate(Verleiher = as.factor(Verleiher))

@@ -5,8 +5,8 @@ source("source/SQL/SQL_Functions.R")
 c_file <- "Backup/Data.Rds"
 l_data <- readRDS(c_file)
 
-l_data$Programm <- l_data$Programm|>
-  select(1:18)
+l_data$Programm
+l_data$Einsatzplan
 
 # Data base user password from system variables 
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
