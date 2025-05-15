@@ -1165,7 +1165,10 @@ server <- function(input, output, session) {
     req(df_temp_to_render())  
     datatable(df_temp_to_render(), 
               rownames = FALSE,
-              selection = "single"
+              selection = "single",
+              options = list(
+                language = DT_language
+              )
     )
   })
   
@@ -1986,22 +1989,7 @@ server <- function(input, output, session) {
     
     df_newrow <- tibble("Event ID" = Last_Event_ID + 1L,
            "Suisanummer" = row$Suisanummer,
-           "Filmtitel" = row$Filmtitel,
-           "Datum" = NA,
-           "Zeit" = NA,
-           "Link to Event ID" = NA, 
-           "Verleiher" = row$Verleiher,
-           "Verleiher Angefragt?" = "Anfrage läuft",
-           "Abzug [%]" = 30,
-           "Minimal Abzug [CHF]" = 150,
-           "Abzug fix [CHF]" = NA,
-           "Verleihervertrag abgelegt" = NA,
-           "Anzahl bestellter Poster und Flyer" = NA,
-           "Poster und Flyer erhalten?" = NA,
-           "Art der Filmlieferung" = NA,
-           "Besucherzahlen an Verleiher gesendet" = NA,
-           "Rechnung bezahlt und abgelegt" = NA,
-           "KDM ja oder nein" = NA,
+           "Filmtitel" = row$Filmtitel
            )
     df_newrow
     
@@ -2020,7 +2008,7 @@ server <- function(input, output, session) {
       ))
     } else {
       showModal(modalDialog(
-        title = "Film ins Programm übernehmen",
+        title = paste0("Film: \"", df_newrow$Filmtitel, "\" ins Programm übernehmen"),
         footer = tagList(
           actionButton("Film_takover","Film übernehmen", class = "btn-success"),
           actionButton("abort","Abbrechen")
@@ -2046,38 +2034,37 @@ server <- function(input, output, session) {
     Last_Event_ID
     Last_Event_ID + 1L
     
-    newrow <- tibble("Event ID" = Last_Event_ID + 1L,
-                        "Suisanummer" = row$Suisanummer,
-                        "Filmtitel" = row$Filmtitel,
-                        "Datum" = NA,
-                        "Zeit" = NA,
-                        "Link to Event ID" = NA, 
-                        "Verleiher" = row$Verleiher,
-                        "Verleiher Angefragt?" = "Anfrage läuft",
-                        "Abzug [%]" = 30,
-                        "Minimal Abzug [CHF]" = 150,
-                        "Abzug fix [CHF]" = NA,
-                        "Verleihervertrag abgelegt" = NA,
-                        "Anzahl bestellter Poster und Flyer" = NA,
-                        "Poster und Flyer erhalten?" = NA,
-                        "Art der Filmlieferung" = NA,
-                        "Besucherzahlen an Verleiher gesendet" = NA,
-                        "Rechnung bezahlt und abgelegt" = NA,
-                        "KDM ja oder nein" = NA,
+    newrow <- tibble(
+      "Event ID" = Last_Event_ID + 1L,
+      "Suisanummer" = row$Suisanummer,
+      "Filmtitel" = row$Filmtitel,
+      "Datum" = NA,
+      "Zeit" = NA,
+      "Link to Event ID" = NA,
+      "Verleiher" = row$Verleiher,
+      "Verleiher Angefragt?" = "Anfrage läuft",
+      "Abzug [%]" = 30,
+      "Minimal Abzug [CHF]" = 150,
+      "Abzug fix [CHF]" = NA,
+      "Verleihervertrag abgelegt" = NA,
+      "Anzahl bestellter Poster und Flyer" = NA,
+      "Poster und Flyer erhalten?" = NA,
+      "Art der Filmlieferung" = NA,
+      "Besucherzahlen an Verleiher gesendet" = NA,
+      "Rechnung bezahlt und abgelegt" = NA,
+      "KDM ja oder nein" = NA,
     )
     newrow
     
-    # Add to Programm
+    # Add new row to Programm and update Einsatzplan
     DB_add_row(DB_con(),"Programm", newrow)
-    
-    # update joined data sets 
+    # update joined data
     c_class <- get_data_type(row)
     Update_Einsatzplan(newrow, c_class, new_row = TRUE)
-    
-    # Update the list
-    l_temp <- l_data()
-    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-    # update all data
+    # update data
+    l_temp <- list()
+    l_temp[["Programm"]] <- DB_get_table("Programm", DB_con()) 
+    l_temp[["Einsatzplan"]] <- DB_get_table("Einsatzplan", DB_con()) 
     l_data(l_temp)
     # update choices
     update_choices(l_data())|>
