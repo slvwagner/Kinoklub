@@ -5,15 +5,12 @@ source("source/SQL/SQL_Functions.R")
 pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(pw, "ch367079_flo")
 l_data <- DB_backup_DB(con)
-# update template
-l_template <- l_data|>
-  lapply(function(df){
-    df|>
-      slice(1)
-  })
+# read template
+l_template <- readRDS("source/SQL/template.RDS")
 
-# Update template
-saveRDS(l_template,"source/SQL/template.Rds")
+# update template
+l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
+saveRDS(l_template, "source/template.Rds")
 
 # Convert to R data type
 l_data <- convert_DB_to_R(l_data, l_template)
@@ -28,15 +25,6 @@ l_data$Einsatzplan <- l_data$Programm|>
             )|>
   arrange(Datum)
 saveRDS(l_data, "Backup/Data.Rds")
-
-
-l_template$Einsatzplan|>
-  mutate(Suisanummer = factor(Suisanummer),
-         Datum = as.Date(Datum),
-         Zeit = hms::hms(Zeit)
-         )
-
-saveRDS(l_template, "source/template.Rds")
 
 
 # dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "Verleiherabgaben"))
