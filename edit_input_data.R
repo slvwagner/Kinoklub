@@ -1036,7 +1036,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  #### Check unique ####
+  ## Check unique ####
   observeEvent(input$check_unique, {
     # Find duplicates (keeping only duplicate rows)
     df_temp <- current_data() |>
@@ -1141,7 +1141,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #### Render modal table ####
+  ## Render modal table ####
   output$modal_table <- renderDataTable({
     req(df_temp_to_render())  
     datatable(df_temp_to_render(), 
@@ -2094,39 +2094,65 @@ server <- function(input, output, session) {
   observeEvent(input$procinema, {
     req(input$suisa)
     if(str_detect(input$suisa, pattern = "\\d{4}\\.\\d{3}")){
-      df_temp <- search_procinema_by_suisa(input$suisa)
-      # render table 
-      df_temp_to_render(df_temp)  
-      removeModal()
-      
-      if(nrow(df_temp) > 0){
-        # Calculate modal size based on number of columns
-        num_cols <- ncol(df_temp)
-        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-        modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+      shiny::withProgress(message = "Procinema", value = 0, {
+        shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
+        tryCatch(
+          {
+            df_temp <- search_procinema_by_suisa(input$suisa)
+          }, error = function(e){
+            showNotification(paste("Error:", e$message), type = "error")
+            Sys.sleep(2)
+          }
+        )
         
-        showModal(modalDialog(
-          title = "Filmvorschlag übernehmen",
-          tagList(
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                dataTableOutput("modal_table")
+        if(r_is.defined(df_temp)){
+          # render table 
+          df_temp_to_render(df_temp)  
+          removeModal()
+          
+          if(df_temp$Suisanummer %in% current_data()$Suisanummer){
+            showModal(modalDialog(
+              title = "Filmvorschlag exisiert bereits",
+              easyClose = TRUE, 
+              footer = tagList(
+                actionButton("abort","Abbrechen")
+              )
+            ))
+          } else {
+            # Calculate modal size based on number of columns
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
+            showModal(modalDialog(
+              title = "Filmvorschlag übernehmen",
+              tagList(
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
                 )
-          ),
-          easyClose = FALSE, 
-          footer = tagList(
-            actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
-            actionButton("abort","Abbrechen")
-          )
-        ))
-      } else {
-        removeModal()
-        showModal(modalDialog(
-          title = "Suisanummer auf Procinema suchen!",
-          footer = tagList(
-            actionButton("abort","Abbrechen")
-          )
-        ))
-      } 
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
+                actionButton("abort","Abbrechen")
+              )
+            ))
+          }
+          
+          
+
+        }
+        shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
+      })
+      
+    } else {
+      removeModal()
+      showModal(modalDialog(
+        title = "Die Suisanummer ist nicht korrekt",
+        footer = tagList(
+          actionButton("abort","Abbrechen")
+        )
+      ))
     }
   })
   
@@ -2134,37 +2160,62 @@ server <- function(input, output, session) {
   observeEvent(input$takeover_suisa,{
     req(input$takeover_suisa)
     req(input$modal_table_rows_selected)
-    df_temp <- df_temp_to_render()$link|>
-      film_details()|>
-      rename(Inhalt = synopsis,
-             Filmtitel = title
-      )|>
-      mutate(across(contains("release"), 
-                    ~ as.Date(., format = "%d.%m.%Y")))
     
-    new_row <- df_temp_to_render()|>
-      rename(Procinema = link,
-             `Veröffentlichungs-Datum` = release_date)|>
-      mutate(Trailer = "",
-             `Veröffentlichungs-Datum` = dmy(`Veröffentlichungs-Datum`))|>
-      select(Suisanummer, Filmtitel, Procinema, Trailer, Verleiher, `Veröffentlichungs-Datum` )|>
-      bind_cols(`Eintritte eingespielt` = df_temp$admissions_ch,
-                Inhalt = df_temp$Inhalt,
-                director = df_temp$director,
-                producer = df_temp$producer,
-                actors = df_temp$actors,
-                writer = df_temp$writer
-                )
-    new_row
-    
-    new_row <- bind_cols(ID = max(current_data()$ID) + 1,
-                         new_row
-                         )
-    
-    # updata SQL DB
-    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
-    removeModal()
-    
+    shiny::withProgress(message = "Procinema", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
+      tryCatch(
+        {
+          # search detail on procinema
+          df_temp <- df_temp_to_render()$link|>
+            film_details()|>
+            rename(Inhalt = synopsis,
+                   Filmtitel = title
+            )|>
+            mutate(across(contains("release"), 
+                          ~ as.Date(., format = "%d.%m.%Y")))
+        }, error = function(e){
+          showNotification(paste("Error:", e$message), type = "error")
+        }
+      )
+      shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
+    })
+
+    # update date if details have been found
+    if(r_is.defined(df_temp)){
+      # create new row
+      new_row <- df_temp_to_render()|>
+        rename(Procinema = link,
+               `Veröffentlichungs-Datum` = release_date)|>
+        mutate(Trailer = "",
+               `Veröffentlichungs-Datum` = dmy(`Veröffentlichungs-Datum`))|>
+        select(Suisanummer, Filmtitel, Procinema, Trailer, Verleiher, `Veröffentlichungs-Datum` )|>
+        bind_cols(`Eintritte eingespielt` = df_temp$admissions_ch,
+                  Inhalt = df_temp$Inhalt,
+                  director = df_temp$director,
+                  producer = df_temp$producer,
+                  actors = df_temp$actors,
+                  writer = df_temp$writer
+        )
+      new_row <- bind_cols(ID = max(current_data()$ID) + 1,
+                           new_row
+      )
+      
+      # updata SQL DB
+      DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+      
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+      # update all data
+      l_data(l_temp)
+      
+      # update to render
+      l_data()$Filmvorschlag|>
+        current_data()
+      
+      removeModal()
+    }
+    df_temp_to_render(NULL)
   })
   
   ## Dynamic UI ####
