@@ -986,3 +986,109 @@ create_empty_line <- function(df_data) {
       }
     }))
 }
+
+###################################################################
+#' Initialize fast dictionary environment
+#' The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_init <- function(length)
+{
+  new.env(hash = TRUE, parent = emptyenv(), size = length)
+}
+
+###################################################################
+#' Assigne key and value to fast dictionary
+#' The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_assign_key_values <- Vectorize(assign, vectorize.args = c("x", "value"))
+
+
+###################################################################
+#' The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_get_values <- Vectorize(get, vectorize.args = "x")
+
+###################################################################
+#' Check if key is in dictionary
+#' The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_exists_key <- Vectorize(exists, vectorize.args = "x")
+
+
+###################################################################
+#' Create a fast dictionary from data frame
+#' The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_from_data.frame <- function(df)
+{
+  df <- as.data.frame(df)
+  if(!is.character(df[1,1])){
+    c("dict_from_data.frame:\nkey is not character in column 1 of the dataframe argument")|>
+      r_colourise("Red")|>
+      writeLines()
+    return(NULL)
+  }else
+  {
+    # initialize hash
+    hash = new.env(hash = TRUE, parent = emptyenv(), size = nrow(df))
+    # assign values to keys
+    dict_assign_key_values(df[,1], df[,2], hash)
+    return(hash)
+  }
+}
+
+
+###################################################################
+#' Update key/value pairs of fast dictionary
+#'  The reason for using dictionaries in the first place is performance.
+#' Although it is correct that you can use named vectors and lists for the task,
+#' the issue is that they are becoming quite slow and memory hungry with more data.
+#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+#' environments with the option hash = TRUE
+
+
+dict_update <- function(df, dict)
+{
+  df <- as.data.frame(df)
+  if(nrow(df) == 1){
+    dict[[df[1,1]]] <- df[1,2]
+  }else{
+    for (ii in 1:nrow(df)) {
+      dict[[df[ii,1]]] <- df[ii,2]
+    }
+  }
+  return(dict)
+}
+
+
+
+
+
+
+
+
