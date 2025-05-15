@@ -207,7 +207,29 @@ server <- function(input, output, session) {
   
   ### Toolbox for the user to interact ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
-    if(data_set_select == "Programm"){
+    if(data_set_select == "Filmvorschlag"){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+      ) 
+    } else if (data_set_select == "Programm"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", "Werkzeuge"),
@@ -574,7 +596,6 @@ server <- function(input, output, session) {
     return(dt)
   }
 
-  
   ## Render data table ####
   output$table <- DT::renderDT({
     req(current_data())
@@ -666,8 +687,7 @@ server <- function(input, output, session) {
       df_temp <- df_temp|>
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
-               )|>
-        arrange(desc(`1`))
+               )
     }
     
     ### Render Table ####
@@ -1790,9 +1810,6 @@ server <- function(input, output, session) {
         column_choices()
       # update to render
       current_data(updated_data)
-      
-      #### select last edited row and page ####
-      
     }
   })
   
@@ -1923,6 +1940,131 @@ server <- function(input, output, session) {
 
       removeModal()
     # }
+  })
+  
+  ### Takeover Filmvorschlag to Programm ####
+  #### user modal ####
+  observeEvent(input$add_to_programm,{
+    req(input$add_to_programm)
+    req(input$table_rows_selected)
+    
+    # Find selected data
+    row <- current_data()[input$table_rows_selected, ]
+    
+    # get biggest ID from Programm
+    Last_Event_ID <- tbl(DB_con(), "Programm")|>
+      select(`Event ID`)|>
+      collect()|>
+      pull()|>
+      max()
+    Last_Event_ID
+    Last_Event_ID + 1L
+    
+    # paste0("\"",tbl(DB_con(), "Programm")|>
+    #   colnames(),"\"")|>
+    #   writeLines()
+    
+    df_newrow <- tibble("Event ID" = Last_Event_ID + 1L,
+           "Suisanummer" = row$Suisanummer,
+           "Filmtitel" = row$Filmtitel,
+           "Datum" = NA,
+           "Zeit" = NA,
+           "Link to Event ID" = NA, 
+           "Verleiher" = row$Verleiher,
+           "Verleiher Angefragt?" = "Anfrage läuft",
+           "Abzug [%]" = 30,
+           "Minimal Abzug [CHF]" = 150,
+           "Abzug fix [CHF]" = NA,
+           "Verleihervertrag abgelegt" = NA,
+           "Anzahl bestellter Poster und Flyer" = NA,
+           "Poster und Flyer erhalten?" = NA,
+           "Art der Filmlieferung" = NA,
+           "Besucherzahlen an Verleiher gesendet" = NA,
+           "Rechnung bezahlt und abgelegt" = NA,
+           "KDM ja oder nein" = NA,
+           )
+    df_newrow
+    
+    # Check if Suisanumber can be found in Programm
+    df_temp <- tbl(DB_con(), "Programm")|>
+      filter(Suisanummer == df_newrow$Suisanummer)|>
+      collect()
+    
+    if(nrow(df_temp) > 0){
+      showModal(modalDialog(
+        title = "Film wurde bereits gezeit.",
+        footer = tagList(
+          actionButton("Film_takover","Film dennoch übernehmen", class = "btn-success"),
+          actionButton("abort","Abbrechen")
+        )
+      ))
+    } else {
+      showModal(modalDialog(
+        title = "Film ins Programm übernehmen",
+        footer = tagList(
+          actionButton("Film_takover","Film übernehmen", class = "btn-success"),
+          actionButton("abort","Abbrechen")
+        )
+      ))
+    }
+  })
+  
+  #### takeover ####
+  observeEvent(input$Film_takover,{
+    req(input$table_rows_selected)
+    
+    # Find selected data
+    row <- current_data()[input$table_rows_selected, ]
+    
+    # get biggest ID from Programm
+    Last_Event_ID <- tbl(DB_con(), "Programm")|>
+      select(`Event ID`)|>
+      collect()|>
+      pull()|>
+      max()
+    
+    Last_Event_ID
+    Last_Event_ID + 1L
+    
+    newrow <- tibble("Event ID" = Last_Event_ID + 1L,
+                        "Suisanummer" = row$Suisanummer,
+                        "Filmtitel" = row$Filmtitel,
+                        "Datum" = NA,
+                        "Zeit" = NA,
+                        "Link to Event ID" = NA, 
+                        "Verleiher" = row$Verleiher,
+                        "Verleiher Angefragt?" = "Anfrage läuft",
+                        "Abzug [%]" = 30,
+                        "Minimal Abzug [CHF]" = 150,
+                        "Abzug fix [CHF]" = NA,
+                        "Verleihervertrag abgelegt" = NA,
+                        "Anzahl bestellter Poster und Flyer" = NA,
+                        "Poster und Flyer erhalten?" = NA,
+                        "Art der Filmlieferung" = NA,
+                        "Besucherzahlen an Verleiher gesendet" = NA,
+                        "Rechnung bezahlt und abgelegt" = NA,
+                        "KDM ja oder nein" = NA,
+    )
+    newrow
+    
+    # Add to Programm
+    DB_add_row(DB_con(),"Programm", newrow)
+    
+    # update joined data sets 
+    c_class <- get_data_type(row)
+    Update_Einsatzplan(newrow, c_class, new_row = TRUE)
+    
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
+    removeModal()
+
   })
   
   ## Dynamic UI ####
