@@ -1949,6 +1949,7 @@ server <- function(input, output, session) {
       updated_data <- current_data()
       # Delete in current data 
       updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+      # update to render
       current_data(updated_data)
       
       # Update SQL
@@ -1968,11 +1969,6 @@ server <- function(input, output, session) {
       
       # update all data
       l_data(l_temp)
-      
-      # update to render
-      l_data()$Filmvorschlag|>
-        current_data()
-
       
       ##### select last edited page ####
       last_selected_row(NA)
@@ -2277,12 +2273,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
