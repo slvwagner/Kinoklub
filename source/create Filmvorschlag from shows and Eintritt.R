@@ -138,11 +138,11 @@ df_mapping[df_mapping$Verleiher_procinema == "PATHE",2] <- "Pathé Films AG"
 df_mapping
 
 # dictionary ####
-dict_env <- slvwagner::dict_from_data.frame(df_mapping)
+dict_env <- dict_from_data.frame(df_mapping)
 
 # get Verleiher ####
 df_search <- df_search|>
-  mutate(Verleiher =  slvwagner::dict_get_values(Verleiher,envir = dict_env))
+  mutate(Verleiher =  dict_get_values(Verleiher,envir = dict_env))
 
 df_Filmvorschlag <- 
   bind_cols(
@@ -181,12 +181,14 @@ Filmvorschlag <- df_Filmvorschlag|>
          "Eintritte eingespielt", "Inhalt", "director", "producer", "actors", "writer")|>
   rename(Procinema = link)
 
-DB_copy_table(Filmvorschlag, con, "Filmvorschlag")
 
 
-l_template <- readRDS("source/SQL/template.Rds")
-l_template[["Filmvorschlag"]] <- Filmvorschlag|>
-  slice(1)
-saveRDS(l_template,"source/SQL/template.Rds")
+# DB_copy_table(Filmvorschlag, con, "Filmvorschlag")
+# 
+# 
+# l_template <- readRDS("source/SQL/template.Rds")
+# l_template[["Filmvorschlag"]] <- Filmvorschlag|>
+#   slice(1)
+# saveRDS(l_template,"source/SQL/template.Rds")
 
 
