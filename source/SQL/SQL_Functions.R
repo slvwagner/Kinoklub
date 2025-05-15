@@ -235,9 +235,15 @@ DB_add_row <- function(con, table_name, new_row) {
     stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
   }
   
+  # Preplace single quotes "'" with "´" 
+  new_row <- new_row|>
+    lapply(function(x){
+      str_replace_all(x, "'", "´")
+    })
+  
   # Replace NA values with NULL for SQL
   new_row <- lapply(new_row, function(x) if (is.na(x)) NULL else x)
-  
+
   # Debug: Print new_row values
   # message("Values in new_row: ", paste(new_row, collapse = ", "))
   

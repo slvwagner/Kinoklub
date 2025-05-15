@@ -223,6 +223,7 @@ server <- function(input, output, session) {
         actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
         actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
         shiny::tags$hr(),
+        actionButton("procinema_search", "Procinema-Suche", class = "btn-info"),
         actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
@@ -1886,7 +1887,7 @@ server <- function(input, output, session) {
   })
   
   ### User interaction Delete selected row(s) ####
-  #### Modal to delet row ####
+  #### Modal to delete row ####
   observeEvent(input$delete_row, {
     if(is.null(input$table_rows_selected)){
       
@@ -2067,6 +2068,105 @@ server <- function(input, output, session) {
 
   })
   
+  ### Procinema search ####
+  #### user modal ####
+  observeEvent(input$procinema_search,{
+    req(input$procinema_search)
+    
+    showModal(modalDialog(
+      title = "Suisanummer auf Procinema suchen",
+      # Input panel at top
+      shiny::inputPanel(
+        shiny::textInput("suisa", "Suisanummer", placeholder = "xxxx.xxx" )
+      ),
+      tagList(
+        div(dataTableOutput("modal_table")
+            )
+      ),
+      easyClose = FALSE, 
+      footer = tagList(
+        actionButton("procinema","Suchen", class = "btn-success"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+  })
+  #### search and take over ####  
+  observeEvent(input$procinema, {
+    req(input$suisa)
+    if(str_detect(input$suisa, pattern = "\\d{4}\\.\\d{3}")){
+      df_temp <- search_procinema_by_suisa(input$suisa)
+      # render table 
+      df_temp_to_render(df_temp)  
+      removeModal()
+      
+      if(nrow(df_temp) > 0){
+        # Calculate modal size based on number of columns
+        num_cols <- ncol(df_temp)
+        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+        modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+        
+        showModal(modalDialog(
+          title = "Filmvorschlag übernehmen",
+          tagList(
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+                )
+          ),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
+            actionButton("abort","Abbrechen")
+          )
+        ))
+      } else {
+        removeModal()
+        showModal(modalDialog(
+          title = "Suisanummer auf Procinema suchen!",
+          footer = tagList(
+            actionButton("abort","Abbrechen")
+          )
+        ))
+      } 
+    }
+  })
+  
+  #### takeover Film to Filmvorschlag by suisanummer ####
+  observeEvent(input$takeover_suisa,{
+    req(input$takeover_suisa)
+    req(input$modal_table_rows_selected)
+    df_temp <- df_temp_to_render()$link|>
+      film_details()|>
+      rename(Inhalt = synopsis,
+             Filmtitel = title
+      )|>
+      mutate(across(contains("release"), 
+                    ~ as.Date(., format = "%d.%m.%Y")))
+    
+    new_row <- df_temp_to_render()|>
+      rename(Procinema = link,
+             `Veröffentlichungs-Datum` = release_date)|>
+      mutate(Trailer = "",
+             `Veröffentlichungs-Datum` = dmy(`Veröffentlichungs-Datum`))|>
+      select(Suisanummer, Filmtitel, Procinema, Trailer, Verleiher, `Veröffentlichungs-Datum` )|>
+      bind_cols(`Eintritte eingespielt` = df_temp$admissions_ch,
+                Inhalt = df_temp$Inhalt,
+                director = df_temp$director,
+                producer = df_temp$producer,
+                actors = df_temp$actors,
+                writer = df_temp$writer
+                )
+    new_row
+    
+    new_row <- bind_cols(ID = max(current_data()$ID) + 1,
+                         new_row
+                         )
+    
+    # updata SQL DB
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+    removeModal()
+    
+  })
+  
   ## Dynamic UI ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
@@ -2094,7 +2194,7 @@ server <- function(input, output, session) {
 }
 
 # shinyApp(ui = ui, server = server)
-
+ 
 # Run the shiny app ####
 shiny::runApp(
   host = "0.0.0.0",
