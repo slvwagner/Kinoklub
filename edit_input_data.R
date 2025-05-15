@@ -1908,7 +1908,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### User interaction Delete selected row(s) ####
+  ### Delete selected row(s) ####
   #### Modal to delete row ####
   observeEvent(input$delete_row, {
     if(is.null(input$table_rows_selected)){
@@ -1934,35 +1934,51 @@ server <- function(input, output, session) {
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
     req(input$table_rows_selected)
-    # if(nrow(current_data()) <= 1){
-    #   showModal(modalDialog(
-    #     title = "Die letzte Zeile kannn nicht gelöscht werden",
-    #     footer = tagList(
-    #       modalButton("Abbrechen")
-    #     ),
-    #     easyClose = TRUE
-    #   ))
-    # }
-    # else {
+    if(nrow(current_data()) <= 1){
+      showModal(modalDialog(
+        title = "Die letzte Zeile kannn nicht gelöscht werden",
+        footer = tagList(
+          modalButton("Abbrechen")
+        ),
+        easyClose = TRUE
+      ))
+    }
+    else {
       # Find ID to delete
       row <- current_data()[input$table_rows_selected, ]
       updated_data <- current_data()
-      # Delete
+      # Delete in current data 
       updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
       current_data(updated_data)
       
       # Update SQL
       DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
+      
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+
+      # joined tables 
       if(lastEdited_data_set_name() == "Programm"){
         df_temp <- DB_get_table("Einsatzplan",DB_con())
         DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
+        df_temp <- DB_get_table("Einsatzplan",DB_con())
+        l_temp[["Einsatzplan"]] <- df_temp
       }
+      
+      # update all data
+      l_data(l_temp)
+      
+      # update to render
+      l_data()$Filmvorschlag|>
+        current_data()
+
       
       ##### select last edited page ####
       last_selected_row(NA)
 
       removeModal()
-    # }
+    }
   })
   
   ### Takeover Filmvorschlag to Programm ####
