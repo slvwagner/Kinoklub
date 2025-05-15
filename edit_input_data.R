@@ -1980,8 +1980,6 @@ server <- function(input, output, session) {
       collect()|>
       pull()|>
       max()
-    Last_Event_ID
-    Last_Event_ID + 1L
     
     # paste0("\"",tbl(DB_con(), "Programm")|>
     #   colnames(),"\"")|>
@@ -2030,31 +2028,15 @@ server <- function(input, output, session) {
       collect()|>
       pull()|>
       max()
-    
-    Last_Event_ID
-    Last_Event_ID + 1L
-    
+
     newrow <- tibble(
-      "Event ID" = Last_Event_ID + 1L,
-      "Suisanummer" = row$Suisanummer,
-      "Filmtitel" = row$Filmtitel,
-      "Datum" = NA,
-      "Zeit" = NA,
-      "Link to Event ID" = NA,
-      "Verleiher" = row$Verleiher,
-      "Verleiher Angefragt?" = "Anfrage läuft",
-      "Abzug [%]" = 30,
-      "Minimal Abzug [CHF]" = 150,
-      "Abzug fix [CHF]" = NA,
-      "Verleihervertrag abgelegt" = NA,
-      "Anzahl bestellter Poster und Flyer" = NA,
-      "Poster und Flyer erhalten?" = NA,
-      "Art der Filmlieferung" = NA,
-      "Besucherzahlen an Verleiher gesendet" = NA,
-      "Rechnung bezahlt und abgelegt" = NA,
+      "Event ID" = Last_Event_ID + 1L, "Suisanummer" = row$Suisanummer, "Filmtitel" = row$Filmtitel,
+      "Datum" = NA, "Zeit" = NA, "Link to Event ID" = NA, "Verleiher" = row$Verleiher, "Verleiher Angefragt?" = "Anfrage läuft",
+      "Abzug [%]" = 30, "Minimal Abzug [CHF]" = 150, "Abzug fix [CHF]" = NA,
+      "Verleihervertrag abgelegt" = NA, "Anzahl bestellter Poster und Flyer" = NA,"Poster und Flyer erhalten?" = NA,
+      "Art der Filmlieferung" = NA, "Besucherzahlen an Verleiher gesendet" = NA, "Rechnung bezahlt und abgelegt" = NA,
       "KDM ja oder nein" = NA,
     )
-    newrow
     
     # Add new row to Programm and update Einsatzplan
     DB_add_row(DB_con(),"Programm", newrow)
@@ -2062,9 +2044,13 @@ server <- function(input, output, session) {
     c_class <- get_data_type(row)
     Update_Einsatzplan(newrow, c_class, new_row = TRUE)
     # update data
-    l_temp <- list()
-    l_temp[["Programm"]] <- DB_get_table("Programm", DB_con()) 
+    l_temp <- l_data()
+    l_temp[["Programm"]] <- DB_get_table("Programm", DB_con())
     l_temp[["Einsatzplan"]] <- DB_get_table("Einsatzplan", DB_con()) 
+    
+    # Convert to R data type
+    l_temp <- convert_DB_to_R(l_temp, l_template)
+    # update data 
     l_data(l_temp)
     # update choices
     update_choices(l_data())|>

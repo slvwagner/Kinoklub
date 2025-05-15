@@ -29,6 +29,16 @@ l_data$Einsatzplan <- l_data$Programm|>
   arrange(Datum)
 saveRDS(l_data, "Backup/Data.Rds")
 
+
+l_template$Einsatzplan|>
+  mutate(Suisanummer = factor(Suisanummer),
+         Datum = as.Date(Datum),
+         Zeit = hms::hms(Zeit)
+         )
+
+saveRDS(l_template, "source/template.Rds")
+
+
 # dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "Verleiherabgaben"))
 
 ###################################################
