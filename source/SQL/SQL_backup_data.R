@@ -12,7 +12,7 @@ l_template <- readRDS("source/SQL/template.RDS")
 # l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
 # l_template$Filmvorschlag <- l_template$Filmvorschlag|>
 #   mutate(Verleiher = as.factor(Verleiher))
-# saveRDS(l_template, "source/template.Rds")
+# saveRDS(l_template, "source/SQL/template.RDS")
 
 # Convert to R data type
 l_data <- convert_DB_to_R(l_data, l_template)
