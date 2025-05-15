@@ -699,6 +699,14 @@ server <- function(input, output, session) {
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
                )
+    } 
+    # mailto render in html
+    if("E-Mail" %in% names(df_temp)){
+      df_temp$`E-Mail` <- 
+        ifelse(is.na(df_temp$`E-Mail`),
+               NA,
+               paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
+               )
     }
     
     # Render Table
