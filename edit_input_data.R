@@ -1003,7 +1003,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  ### Select email verteiler and copy emails to clipboard ####
+  ### Select email Verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
     print("Email-Verteiler")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
