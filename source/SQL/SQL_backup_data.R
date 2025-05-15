@@ -8,9 +8,11 @@ l_data <- DB_backup_DB(con)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
-# update template
-l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
-saveRDS(l_template, "source/template.Rds")
+# # update template
+# l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
+# l_template$Filmvorschlag <- l_template$Filmvorschlag|>
+#   mutate(Verleiher = as.factor(Verleiher))
+# saveRDS(l_template, "source/template.Rds")
 
 # Convert to R data type
 l_data <- convert_DB_to_R(l_data, l_template)
