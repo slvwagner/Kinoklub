@@ -2121,22 +2121,20 @@ server <- function(input, output, session) {
             
           }, error = function(e){
             showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), type = "error")
-            Sys.sleep(2)
             removeModal()
           }
         )
         # only go on if df_temp is defined 
         if(r_is.defined(df_temp)){
-          df_temp <- df_temp|>
-            filter(Suisanummer == input$suisa)
           # only go on if a suisa number match can be found
           if((nrow(df_temp) > 0)){
+            df_temp <- df_temp|>
+              filter(Suisanummer == input$suisa)
             tryCatch(
               {
                 # get correct Verleiher from dictionary
                 df_temp <- df_temp|>
                   mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_env))
-                
                 
                 # render table 
                 df_temp_to_render(df_temp)  
@@ -2175,14 +2173,13 @@ server <- function(input, output, session) {
                 
               }, error = function(e){
                 showNotification(paste("Für den Verleiher von Procinema",df_temp$Verleiher," Fehlermeldung: ", e$message), type = "error")
-                Sys.sleep(2)
                 removeModal()
               }
             )  
           } else {
             removeModal()
             showModal(modalDialog(
-              title = paste0("Die Suisanummer ",input$suisa, " konnte nicht gefunden werden auf Procinema" ),
+              title = paste0("Die Suisanummer: \"",input$suisa, "\" wurde auf Procinema nicht gefunden." ),
               footer = tagList(
                 actionButton("abort","Abbrechen")
               )
