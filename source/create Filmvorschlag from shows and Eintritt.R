@@ -137,6 +137,12 @@ df_mapping[df_mapping$Verleiher_procinema == "WB",2] <- "Warner Bros Entertainme
 df_mapping[df_mapping$Verleiher_procinema == "PATHE",2] <- "Pathé Films AG"
 df_mapping
 
+# only update data for dictionary if code above is correct
+# df_mapping <- bind_cols(ID = 1:nrow(df_mapping),
+#           df_mapping)
+# DB_copy_table(df_mapping, con, "Verleiher mapping")
+
+
 # dictionary ####
 dict_env <- dict_from_data.frame(df_mapping)
 
