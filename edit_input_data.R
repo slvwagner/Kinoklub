@@ -13,6 +13,7 @@ library(tidyverse)
 
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
+dict_verleiher <- readRDS("Input/Verleiher_dict.Rds")
 
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
@@ -2100,12 +2101,23 @@ server <- function(input, output, session) {
           {
             df_temp <- search_procinema_by_suisa(input$suisa)
           }, error = function(e){
-            showNotification(paste("Error:", e$message), type = "error")
+            showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), type = "error")
             Sys.sleep(2)
           }
         )
         
         if(r_is.defined(df_temp)){
+          tryCatch(
+            {
+              # get correct Verleiher from dictionary
+              df_temp <- df_temp|>
+                mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_verleiher))
+            }, error = function(e){
+              showNotification(paste("Es wurde kein Verleiher Eintrag gefunden, das ist ein Fehler und muss korrigiert werden.", e$message), type = "error")
+              Sys.sleep(2)
+            }
+          )
+          
           # render table 
           df_temp_to_render(df_temp)  
           removeModal()
@@ -2118,6 +2130,7 @@ server <- function(input, output, session) {
                 actionButton("abort","Abbrechen")
               )
             ))
+            df_temp_to_render(NULL)
           } else {
             # Calculate modal size based on number of columns
             num_cols <- ncol(df_temp)
@@ -2138,9 +2151,6 @@ server <- function(input, output, session) {
               )
             ))
           }
-          
-          
-
         }
         shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
       })
