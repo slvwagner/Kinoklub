@@ -770,12 +770,14 @@ server <- function(input, output, session) {
   observeEvent(input$table_rows_selected, {
     req(input$table_rows_selected)
     c_row <- as.integer(input$table_rows_selected)
+    
     # map selected row to ID
     df_temp <- last_rendered_DT()
     pull(df_temp[c_row,1])|>
       ID_to_edit()
     writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
-    # handel user filters
+    
+    # user filters
     column_filters = input$table_search_columns
     column_filters <- column_filters|>
       str_remove_all("\"")|>
@@ -851,7 +853,6 @@ server <- function(input, output, session) {
     }
     ### if column filters are present update column filters #####
     if(sum(!c_test) != length(column_filters)) {
-      x <- column_filters[[7]]
       column_filters_temp <- column_filters|>
         lapply(function(x){
           if(length(x) > 1){
