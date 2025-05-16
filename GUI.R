@@ -1646,11 +1646,6 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Read selected sheet data #####
-  selected_data <- shiny::reactive({
-    shiny::req(file_data(), input$selected_sheet)
-    col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
-  })
   
   ## Reder: Update table with all the dates in the selected range #####
   output$dateTable <- shiny::renderTable({
@@ -1660,7 +1655,7 @@ server <- function(input, output, session) {
       
       data_env$l_data$Programm |>
         distinct(`Event ID`, .keep_all = T)|>
-        filter(between(Datum, start_datum, end_datum)) |>
+        filter(between(Datum, start_datum, end_datum), `Verleiher Angefragt?` == "Bestätigt") |>
         arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Zeit, "%H%M")) |>
@@ -1668,31 +1663,19 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Render: txt file rendering
+  ## Render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
   
-  ## Render: dynamic sheet selection UI #####
-  output$sheet_selector <- shiny::renderUI({
-    shiny::req(file_data())
-    shiny::selectInput("selected_sheet",
-                       "Excel Blatt auswählen:",
-                       choices = file_data()$sheets)
-  })
   
   ## Render: Systemrückmeldungen aktualisieren #####
   output$ausgabe <- renderText({
     ausgabe_text()
   })
   
-  ## Render: selected sheet contents #####
-  output$table_output <- shiny::renderTable({
-    shiny::req(selected_data())
-    selected_data()
-  })
   
   ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
