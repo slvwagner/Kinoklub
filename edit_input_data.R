@@ -529,38 +529,30 @@ server <- function(input, output, session) {
       shiny::incProgress(1/3, detail = "Fetching from database")
       
       # initialize dictionary Verleiher to Procinema-Verleiher
-      df_mapping <- DB_get_table("Verleiher mapping",DB_con())|>
+      df_mapping <- DB_get_table("Verleiher mapping", DB_con()) |>
         select(-ID)
       dict_env <<- dict_from_data.frame(df_mapping)
       
-      # 1. Get all data from DB using your template
+      # Get all data from DB using your template
       l_data_sql <- DB_get_Data(l_template, DB_con())
-      
-      # 2. Convert data types
-      l_data_ready <- convert_DB_to_R(l_data_sql, l_template)
-      l_data(l_data_ready)
       
       shiny::incProgress(1/3, detail = "Preparing data")
       
-      # 3. Update choices for dropdowns
-      update_choices(l_data()) |> 
-        column_choices()
+      # Convert data types for each table
+      l_data_ready <- convert_DB_to_R(l_data_sql, l_template)
       
-      # 4. Set up input and choice datasets
-      l_data()[c_select_input_data] |> 
-        l_data_input()
-      
-      l_data()[c_select_dropdown_data] |> 
-        l_data_choices()
-      
+      # Update ALL reactive values at once to prevent multiple triggers
+      isolate({
+        l_data(l_data_ready)
+        update_choices(l_data_ready) |> column_choices()
+        l_data_input(l_data_ready[c_select_input_data])
+        l_data_choices(l_data_ready[c_select_dropdown_data])
+        current_data(l_data_ready[["Programm"]] |> arrange(desc(Datum)))
+        lastEdited_data_set_name("Programm")
+        data_selection_("Inputdaten")
+      })
       
       shiny::incProgress(1/3, detail = "Finalizing")
-      
-      # 6. Set initial view to Programm data
-      current_data(l_data()[["Programm"]] |> 
-                     arrange(desc(Datum)))
-      lastEdited_data_set_name("Programm")
-      data_selection_("Inputdaten")
     })
   }
   
