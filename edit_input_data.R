@@ -154,7 +154,6 @@ server <- function(input, output, session) {
   
   
   ## helper functions ####
-  
   ### update dropdowns ####
   update_choices <- function(l_data) {
     # Mitgliederauswahl für die Einsatzplanung
@@ -767,7 +766,7 @@ server <- function(input, output, session) {
     page_length_var(input$page_length)
   })
   
-  ## Select a row and finde page and update   ####
+  ## Select a row and find page and update   ####
   observeEvent(input$table_rows_selected, {
     req(input$table_rows_selected)
     c_row <- as.integer(input$table_rows_selected)
@@ -791,7 +790,7 @@ server <- function(input, output, session) {
       unlist()
     # get column data type
     c_class <- get_data_type(df_temp)
-    ##### apply all column filters ####
+    ### apply all column filters ####
     for (ii in 1:length(column_filters)) {
       col_filter <- column_filters[[ii]]
       if(nchar(col_filter[1]) > 0){
@@ -850,7 +849,7 @@ server <- function(input, output, session) {
     } else {
       stop("Could not calculate page because row was empty, this is a BUG")
     }
-    ##### if column filters are present update column filters #####
+    ### if column filters are present update column filters #####
     if(sum(!c_test) != length(column_filters)) {
       x <- column_filters[[7]]
       column_filters_temp <- column_filters|>
