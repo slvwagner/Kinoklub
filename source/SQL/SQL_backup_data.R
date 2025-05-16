@@ -8,6 +8,7 @@ l_data <- DB_backup_DB(con)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
+
 # # update template
 # l_template$`Verleiher mapping`
 # df_temp <- DB_get_table("Verleiher", con)

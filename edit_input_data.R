@@ -185,6 +185,7 @@ server <- function(input, output, session) {
       "Kategorie" = l_data$Kategorie$Auswahl,
       "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
       "Verleiher" = l_data$Verleiher$Verleihername,
+      "Verleihername" = l_data$`Verleiher mapping`$Verleihername,
       "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
       "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
       "KDM ja oder nein" = l_data$JaNein$Auswahl,
