@@ -56,7 +56,7 @@ if(sum(c_test) != length(c_test)){
 
 # Programm check ####
 df_temp <- l_data$Programm|>
-  distinct(Datum, Suisanummer,Zeit, .keep_all = TRUE)
+  distinct(Datum, Suisanummer, Zeit, .keep_all = TRUE)
 df_temp
 
 if(nrow(df_temp) != nrow(l_data$Programm)){
