@@ -777,7 +777,7 @@ server <- function(input, output, session) {
       ID_to_edit()
     writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
     
-    # user filters
+    # get user filters
     column_filters = input$table_search_columns
     column_filters <- column_filters|>
       str_remove_all("\"")|>
@@ -792,7 +792,7 @@ server <- function(input, output, session) {
       unlist()
     # get column data type
     c_class <- get_data_type(df_temp)
-    ### apply all column filters ####
+    ### extract data from column filters ####
     for (ii in 1:length(column_filters)) {
       col_filter <- column_filters[[ii]]
       if(nchar(col_filter[1]) > 0){
@@ -853,18 +853,14 @@ server <- function(input, output, session) {
     }
     ### if column filters are present update column filters #####
     if(sum(!c_test) != length(column_filters)) {
-      column_filters_temp <- column_filters|>
+      column_filters_temp <- input$table_search_columns|>
         lapply(function(x){
-          if(length(x) > 1){
-            list(search = paste0("[",paste0("\"", x,"\"", collapse = ","),"]"))
-          } else {
-            if(nchar(x) > 0) {
-              list(search = x)
-            } 
-            else {
-              NULL
-            }
+          if(nchar(x) > 0) {
+            list(search = x)
           } 
+          else {
+            NULL
+          }
         })
       # only update if changed
       test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
