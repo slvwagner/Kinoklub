@@ -48,7 +48,10 @@ l_data$Einsatzplan <- l_data$Programm|>
             by = join_by(`Event ID`)
             )|>
   arrange(Datum)
-saveRDS(l_data, "Backup/Data.Rds")
+
+list.files(path = "Backup")
+
+saveRDS(l_data, paste0("Backup/Data",length(list.files(path = "Backup")) + 1L,".Rds"))
 
 
 # dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "Verleiherabgaben"))
