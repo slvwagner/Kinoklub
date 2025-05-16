@@ -996,6 +996,8 @@ server <- function(input, output, session) {
     last_selected_row(NA)
     # remove user filter 
     last_user_filter(NULL)
+    # remove temp render
+    df_temp_to_render(NULL)
   })
   
   ## Disconnect from DB ####
@@ -2120,47 +2122,43 @@ server <- function(input, output, session) {
                 # get correct Verleiher from dictionary
                 df_temp <- df_temp|>
                   mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_env))
-                
-                # render table 
-                df_temp_to_render(df_temp)  
-                removeModal()
-                
-                if(df_temp$Suisanummer %in% current_data()$Suisanummer){
-                  showModal(modalDialog(
-                    title = "Filmvorschlag exisiert bereits",
-                    easyClose = TRUE, 
-                    footer = tagList(
-                      actionButton("abort","Abbrechen")
-                    )
-                  ))
-                  df_temp_to_render(NULL)
-                } else {
-                  # Calculate modal size based on number of columns
-                  num_cols <- ncol(df_temp)
-                  modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-                  modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-                  
-                  showModal(modalDialog(
-                    title = "Filmvorschlag übernehmen",
-                    tagList(
-                      div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                          dataTableOutput("modal_table")
-                      )
-                    ),
-                    easyClose = FALSE, 
-                    footer = tagList(
-                      actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
-                      actionButton("abort","Abbrechen")
-                    )
-                  ))
-                }
-                
-                
               }, error = function(e){
                 showNotification(paste("Für den Verleiher von Procinema",df_temp$Verleiher," Fehlermeldung: ", e$message), type = "error")
                 removeModal()
-              }
-            )  
+              })
+            # render table 
+            df_temp_to_render(df_temp)  
+            removeModal()
+            
+            if(df_temp$Suisanummer %in% current_data()$Suisanummer){
+              showModal(modalDialog(
+                title = "Filmvorschlag exisiert bereits",
+                easyClose = TRUE, 
+                footer = tagList(
+                  actionButton("abort","Abbrechen")
+                )
+              ))
+              df_temp_to_render(NULL)
+            } else {
+              # Calculate modal size based on number of columns
+              num_cols <- ncol(df_temp)
+              modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+              modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+              
+              showModal(modalDialog(
+                title = "Filmvorschlag übernehmen",
+                tagList(
+                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                      dataTableOutput("modal_table")
+                  )
+                ),
+                easyClose = FALSE, 
+                footer = tagList(
+                  actionButton("takeover_suisa","Selektierte Zeile übernehmen", class = "btn-success"),
+                  actionButton("abort","Abbrechen")
+                )
+              ))
+            }
           } else {
             removeModal()
             showModal(modalDialog(
