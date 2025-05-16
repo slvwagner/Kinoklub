@@ -1260,7 +1260,7 @@ server <- function(input, output, session) {
       df_temp <- current_data()
       df_temp_ <- current_data()
       
-      ### Special user input handling #####
+      #### Special user input handling #####
       if(lastEdited_data_set_name() == "Einsatzplan"){
         # select columns to be updated 
         c_select <- 7:ncol(df_temp)
@@ -1273,7 +1273,7 @@ server <- function(input, output, session) {
         names(c_input) <- NULL
         c_input
       } 
-      ### standard handling user input ####
+      #### standard handling user input ####
       else{
         # get the user input
         generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
@@ -1285,7 +1285,7 @@ server <- function(input, output, session) {
       }
       removeModal()
       
-      ### Coerce user input to correct data type ####
+      #### Coerce user input to correct data type ####
       l_input <- list()
       
       for (ii in 1:ncol(df_temp)) {
@@ -1294,7 +1294,7 @@ server <- function(input, output, session) {
         
         if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
         
-        #### handle characters ####
+        ##### handle characters ####
         if(c_input_class == "character") {
           if (c_input[ii] == "" | c_input[ii] == "..."){
             l_input[[ii]] <- as.character(NA)
@@ -1302,7 +1302,7 @@ server <- function(input, output, session) {
             l_input[[ii]] <- as.character(c_input[ii])
           }
         } 
-        #### handle dates ####
+        ##### handle dates ####
         else if (c_input_class == "Date") {
           if(is.na(c_input[ii])){
             l_input[[ii]] <- as.Date(NA)
@@ -1310,15 +1310,15 @@ server <- function(input, output, session) {
             l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
           }
         } 
-        #### numeric inputs ####
+        ##### numeric inputs ####
         else if (c_input_class %in% c("double", "numeric")) {
           l_input[[ii]] <- as.numeric(c_input[ii])
         } 
-        #### integer inputs ####
+        ##### integer inputs ####
         else if (c_input_class == "integer") {
           l_input[[ii]] <- as.integer(c_input[ii])
         } 
-        #### factor or choices inputs ####
+        ##### factor or choices inputs ####
         else if (c_input_class == "factor"){
           c_input[ii] <- as.character(c_input[ii])
           if(names(df_temp[,ii]) == "Event ID"){
@@ -1343,7 +1343,7 @@ server <- function(input, output, session) {
           }
           
         } 
-        #### time inputs ####
+        ##### time inputs ####
         else if(c_input_class == "hms"){
           c_input[ii] <- as.character(c_input[ii])
           if (c_input[ii] == "" | c_input[ii] == "..."){
@@ -1379,7 +1379,7 @@ server <- function(input, output, session) {
       df_updated <- l_input|>
         as_tibble()
       
-      ### Handle columns containing `ID` in the column name ####
+      #### Handle columns containing `ID` in the column name ####
       c_col_is_factor <- df_updated|>
         select(contains("ID"))|>
         names()
@@ -1390,7 +1390,7 @@ server <- function(input, output, session) {
         }    
       }
       
-      ### map ID to row index ####
+      #### map ID to row index ####
       df_index <- current_data()|>
         select(1)
       
@@ -1406,7 +1406,7 @@ server <- function(input, output, session) {
         pull()
       select_row
       
-      ### Handel ID`s ####
+      #### Handel ID`s ####
       df_updated <- bind_cols(current_data()[select_row,1],
                               df_updated
       )
@@ -1414,7 +1414,7 @@ server <- function(input, output, session) {
                            df_temp
       )
       
-      ### check input E-Mail if correct #####
+      #### check input E-Mail if correct #####
       df_Email <- df_updated[,names(df_temp) == "E-Mail"]
       if(ncol(df_Email) > 0){
         if(!is.na(df_Email$`E-Mail`)){
@@ -1446,7 +1446,7 @@ server <- function(input, output, session) {
         }
       }
       
-      ### check input Suisanummer if correct #####
+      #### check input Suisanummer if correct #####
       df_suisa <- df_updated[select_row,names(df_temp) == "Suisanummer"]
       if(ncol(df_suisa) > 0){
         if(!is.na(df_suisa$Suisanummer)){
@@ -1476,10 +1476,10 @@ server <- function(input, output, session) {
         }
       }
       
-      ### handle factors #####
+      #### handle factors #####
       df_temp <- factor_handling(df_temp, df_updated, select_row)
       
-      ### Handling uniqueness checks for Dropdowns ####
+      #### Handling uniqueness checks for Dropdowns ####
       if (data_selection_() == "Dropdowns") {
         # Find duplicates (keeping only duplicate rows)
         df_temp1 <- df_temp |>
@@ -1518,7 +1518,7 @@ server <- function(input, output, session) {
         }
       }
       
-      ### check for changed data #####
+      #### check for changed data #####
       test <- is.logical(all.equal(df_temp, df_temp_))
       if( test ){
         # User interaction 
@@ -1536,7 +1536,7 @@ server <- function(input, output, session) {
                              c_class
         )
         
-        ### update joined data sets and choices ####
+        ##### update joined data sets and choices ####
         if(lastEdited_data_set_name() == "Programm"){
           # Update the list
           l_temp <- l_data()
@@ -1567,7 +1567,7 @@ server <- function(input, output, session) {
             current_data()
         }
       }
-      # Maintain selection 
+      
       shiny::incProgress(1 , detail = paste("data selection", 2, "of 2"))
     })
   })
@@ -1637,7 +1637,7 @@ server <- function(input, output, session) {
         Update_Einsatzplan(new_row, c_class, new_row = TRUE)
       }
       
-      ##### Handling uniqueness checks for Dropdowns #####
+      #### Handling uniqueness checks for Dropdowns #####
       if (data_selection_() == "Dropdowns") {
         # Find duplicates (keeping only duplicate rows)
         df_temp <- updated_data |>
