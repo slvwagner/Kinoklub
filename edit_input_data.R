@@ -58,11 +58,20 @@ DT_language <- list(
   )
 )
 
+# Serve the custom_styles directory
+shiny::addResourcePath("custom_styles", "source")
+
 # Define UI ####
 ui <- fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  ),
   shinyjs::useShinyjs(),
   # Input panel at top
   shiny::inputPanel(
+    shiny::tags$head(
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+    ),
     shiny::headerPanel("Input Kinoklub"),
     shiny::textInput("user", "Benutzer"),
     shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
@@ -96,7 +105,7 @@ ui <- fluidPage(
         top: 50px;
         right: 20px;
         width: 250px;
-        background: #c7dbed;
+        background: #385c7d;
         border: 1px solid #ddd;
         border-radius: 5px;
         padding: 10px;
@@ -104,7 +113,7 @@ ui <- fluidPage(
         z-index: 1000;
       }
       #floating-panel-header {
-        background: #88e3a0;
+        background: #3f2985;
         padding: 5px;
         cursor: grab;
         border-bottom: 1px solid #ddd;
@@ -568,7 +577,11 @@ server <- function(input, output, session) {
           backgroundColor = styleEqual(
             c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
             c('lightgreen', '#ed716d', '#FFFF97')
-          )
+          ),
+          color = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('black', 'black', 'black')
+            )
         )
     }
     else if (lastEdited_data_set_name() == "Einsatzplan") {
