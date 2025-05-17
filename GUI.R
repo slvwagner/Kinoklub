@@ -1831,7 +1831,7 @@ server <- function(input, output, session) {
                       target = "_blank",
                       style = "font-size: 24px;")
       },
-      shiny::tags$h4("Filme in der gewählten Periode"),
+      shiny::tags$h4("Filme im gewählten Abrechnungsjahr"),
       if(!startup_error)DT::DTOutput("dateTable"),
       shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
