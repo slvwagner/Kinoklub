@@ -20,7 +20,7 @@ dict_env <- new.env()
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
-c_lengthMenu = c(5:10, 20, 50, 100) # page length drop down options
+c_lengthMenu = c(5:20, 50, 100) # page length drop down options
 
 width_vectors <- list(# Define width vectors for specific tables
   "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px", "actors" = "100px"),
