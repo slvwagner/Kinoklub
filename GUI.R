@@ -1302,7 +1302,7 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-          JahresrechnungErstellen(TRUE)
+          JahresrechnungErstellen()
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
           webserver()
         }, error = function(e) {
