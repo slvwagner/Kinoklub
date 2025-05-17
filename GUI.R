@@ -999,6 +999,7 @@ server <- function(input, output, session) {
   second_app_process <- reactiveVal(NULL)
   
   ##  Überwachung Abrechnungsjahr #####
+  ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
@@ -1019,6 +1020,7 @@ server <- function(input, output, session) {
     }
   })
   
+  ### 2 ####
   shiny::observe({
     shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
@@ -1650,7 +1652,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
   ## Reder: Update table with all the dates in the selected range #####
   output$dateTable <-  DT::renderDT({
     if (exists("data_env")) {
@@ -1743,12 +1744,10 @@ server <- function(input, output, session) {
       writeLines()
   })
   
-  
   ## Render: Systemrückmeldungen aktualisieren #####
   output$ausgabe <- renderText({
     ausgabe_text()
   })
-  
   
   ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
@@ -1844,7 +1843,6 @@ server <- function(input, output, session) {
     
   })
 
-  
   ## launch the Dateien editieren App #####
   observeEvent(input$launch_app, {
     # Execution time 
