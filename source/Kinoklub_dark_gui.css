@@ -1,7 +1,3 @@
-header {
-  background-color: #322f3b;
-  color: #f4cccc;
-}
 
 body {
   background-color: #322f3b;
@@ -33,62 +29,3 @@ a:hover {
   color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
 }
 
-
-.output {
-  background-color: #00eaea;  /* Change this color to your desired output background color */
-  padding: 10px;
-  border-radius: 15px;
-  color: #000000;
-}
-
-div.datatables {
-  color: #d3bebe;
-}
-
-:root {
-  dt-row-hover: 255, 255, 255;
-
-}
-
-/*Text output*/
-pre:not([class]) { /* R output */
-  background-color: #BBEEF6;
-}
-
-/*main panel*/
-pre{
-  background-color: #330937;
-  color: #f4eacc;
-  border: #000000;
-}
-
-/*side panel*/
-.well{
-  background-color: #57163a;
-  border: #000000;
-}
-
-.btn-default {
-  color: #f4eacc;
-  background-color: #330937;
-}
-
-.form-control {
-  color: #f4eacc;
-  background-color: #330937;
-}
-
-.input-group-addon {
-  color: #f4eacc;
-  background-color: #330937;
-}
-
-/*
-.selectize-dropdown,.selectize-dropdown.form-control {
-  color: #040404;
-}
-
-.selectize-input.full {
-  background-color: #935795;
-}
-*/

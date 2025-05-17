@@ -106,6 +106,8 @@ if (!dir.exists("output/webserver")) {
 }
 shiny::addResourcePath("reports", "output/webserver")
 
+# Constance ####
+c_lengthMenu = c(5:20, 50, 100) # page length drop down options
 
 # UI-Definition fluid page ####
 ui <- 
@@ -1650,18 +1652,87 @@ server <- function(input, output, session) {
   
   
   ## Reder: Update table with all the dates in the selected range #####
-  output$dateTable <- shiny::renderTable({
+  output$dateTable <-  DT::renderDT({
     if (exists("data_env")) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
       
-      data_env$l_data$Programm |>
+      df_temp <- data_env$l_data$Programm |>
         distinct(`Event ID`, .keep_all = T)|>
         filter(between(Datum, start_datum, end_datum), `Verleiher Angefragt?` == "Bestätigt") |>
         arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Zeit, "%H%M")) |>
-        select(`Event ID`,Datum, Zeit, Filmtitel, Suisanummer)
+        select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer)
+      
+      datatable(
+        df_temp,
+        filter = "top",
+        rownames = FALSE,
+        options = list(
+          pageLength = 5,
+          lengthMenu = c_lengthMenu,
+          dom = 'lftip',
+          initComplete = JS(
+            "function(settings, json) {",
+            "// One-time header/body styles",
+            "$(this.api().table().header()).css({",
+            "'background-color': '#2d3e50',",
+            "'color': '#ffffff'",
+            "});",
+            "$(this.api().table().body()).css({",
+            "'background-color': '#34495e',",
+            "'color': '#ecf0f1'",
+            "});",
+            "// One-time search/length styling",
+            "$('div.dataTables_filter input').css({",
+            "'background-color': '#2c3e50',",
+            "'color': '#ecf0f1',",
+            "'border': '1px solid #7f8c8d'",
+            "});",
+            "$('div.dataTables_length select').css({",
+            "'background-color': '#2c3e50',",
+            "'color': '#ecf0f1',",
+            "'border': '1px solid #7f8c8d'",
+            "});",
+            "}"
+          ),
+          drawCallback = JS(
+            "function(settings) {",
+            "$('a.paginate_button').css({",
+            "'background-color': '#7898b6',",
+            "'color': '#ffffff',",
+            "'border': '1px solid #7f8c8d',",
+            "'padding': '5px 10px',",
+            "'margin': '0 2px',",
+            "'border-radius': '4px',",
+            "'text-decoration': 'none'",
+            "});",
+            
+            "$('a.paginate_button.current').css({",
+            "'background-color': '#e67e22',",
+            "'color': '#ffffff',",
+            "'font-weight': 'bold'",
+            "});",
+            
+            "$('a.paginate_button').hover(",
+            "function() {",
+            "if (!$(this).hasClass('current')) {",
+            "$(this).css('background-color', '#5d7d9a');",
+            "}",
+            "},",
+            "function() {",
+            "if (!$(this).hasClass('current')) {",
+            "$(this).css('background-color', '#7898b6');",
+            "}",
+            "}",
+            ");",
+            "}"
+          )
+        )
+        
+        
+      )
     }
   })
   
@@ -1762,7 +1833,7 @@ server <- function(input, output, session) {
                       style = "font-size: 24px;")
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
-      if(!startup_error)shiny::tableOutput("dateTable"),
+      if(!startup_error)DT::DTOutput("dateTable"),
       shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
