@@ -1000,7 +1000,9 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
-    Abrechungsjahr(input$c_Abrechnungsjahr)
+    # update Abrechnungsjahr 
+    Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
+    data_env$Abrechungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
     
     df_temp <- data_env$df_Eintritt|>
       filter(year(Datum) == input$c_Abrechnungsjahr)
