@@ -199,7 +199,7 @@ s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 ```
 
 
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE, warning=FALSE}
 if(nrow(df_Abrechnung)){
   df_temp|>
   ggplot(aes(Datum, cumsum))+
@@ -350,7 +350,7 @@ s <- (gewinn * shows_per_year)/365
 ```
 
 
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE, warning=FALSE}
 df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
@@ -544,7 +544,7 @@ s <- (gewinn * shows_per_year)/365
 ```
 
 
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE, warning=FALSE}
 df_temp|>
   ggplot(aes(Datum,cumsum))+
   geom_col(fill = "darkorange2")+
