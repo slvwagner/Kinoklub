@@ -53,6 +53,10 @@ a:hover {
   font-weight: bold;
 }
 
+.modal-content {
+    position: relative;
+    background-color: #8f4b4b;
+}
 /* Filter inputs (when filter = "top") */
 table.dataTable thead input {
   background-color: #023a3a;  /* Set your desired background */
