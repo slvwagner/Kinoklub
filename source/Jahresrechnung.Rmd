@@ -20,6 +20,7 @@ Bericht wurde am `r act_date` erstellt.
 ### Einnahmen Ticketverkauf
 ```{r}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Platzkategorie, Verkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))|>
@@ -47,6 +48,7 @@ df_temp|>
 #### Keine Verleiherabrechnung vorhanden
 ```{r}
 df_temp2 <- df_Abrechnung|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))|>
   select(Datum, Filmtitel, `Suisanummer`, Verleiher,`Verleiherabzug [CHF]`)|>
   arrange(desc(Datum))
@@ -81,6 +83,7 @@ df_temp2|>
 
 ```{r}
 df_temp <- df_Abrechnung|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit), ":", 
@@ -113,10 +116,9 @@ df_temp|>
 
 #### Verleiherrechnungen
 
-
-
 ```{r}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[6])|>
   arrange(desc(Datum))|>
   left_join(df_Abrechnung,
@@ -160,6 +162,7 @@ df_temp1|>
 
 ```{r}
 df_temp <- df_Abrechnung|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   reframe(`Umsatz` = sum(`Umsatz [CHF]`, na.rm = T),
           `SUISA-Vorabzug`= -sum(`Suisavorabzug [CHF]`, na.rm = T),
           `Verleiherabzug (noch keinen Rechnung erhalten)` = -df_temp2|>pull(),
@@ -190,13 +193,17 @@ Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 
 ```{r}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[2])
 
 if(nrow(df_temp) > 0) {
   df_temp <- df_temp|>
-    left_join(df_show |> rename(Suisanummer = `Suisa Nummer`),
-              by = join_by(Datum, Suisanummer)) |>
-    mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))) |>
+    left_join(l_data$Programm,
+              by = join_by(`Event ID`)
+              ) |>
+    arrange(Datum)|>
+    filter(lubridate::year(Datum) == Abrechungsjahr)|>
+    mutate(Datum = paste0(lubridate::day(Datum), ".", lubridate::month(Datum), ".", lubridate::year(Datum))) |>
     select(Datum, Filmtitel, Bezeichnung, `Betrag [CHF]`)
   
   df_temp |>
@@ -218,6 +225,7 @@ df_temp|>
 Alle Ausgaben für den Event, z.B. Werbung, Esswaren, Spesen, ...
 ```{r}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[2])|>
   arrange((Datum))
 ```
@@ -271,6 +279,7 @@ Event|>
 
 ```{r}
 KioskEinnahmen <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Verkaufsartikel, `Verkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(`Kassiert [CHF]`, na.rm = T))|>
@@ -296,6 +305,7 @@ KioskEinnahmen|>
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
 EinkaufGetränke <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Lieferant == l_data$Lieferant$Lieferantenname[2])|>
   group_by(`Verkaufsartikel`,`Verkaufspreis [CHF]`, `Einkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
@@ -319,6 +329,7 @@ EinkaufGetränke|>
 ```{r echo=FALSE}
 
 EinkaufKino <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[3])|>
   arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
@@ -341,18 +352,23 @@ EinkaufKino|>
 Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt. 
 
 ```{r}
-df_temp <- df_manko_uerberschuss
+df_temp <- df_manko_uerberschuss|>
+  left_join(l_data$Programm, by = join_by(`Event ID`))|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(`Event ID`, Datum_display, Datum, Zeit, Filmtitel, `Überschuss / Manko`)
+df_temp
 ```
 
 ```{r}
 DT::datatable(df_temp,
-          # options = list(
-          #   columnDefs = list(
-          #     list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-          #     list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-          #   )
-          # ),
-          # colnames = c(Datum = "Datum_display")
+          options = list(
+            columnDefs = list(
+              list(targets = 3, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 3)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display") # rename column Datum_display to Datum
 )
 ```
 
@@ -525,6 +541,7 @@ df_temp|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[8])
 
 if(nrow(df_temp) > 0){
@@ -540,6 +557,7 @@ if(nrow(df_temp) > 0){
 
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))
 
@@ -550,6 +568,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[8])
 
 if(nrow(df_temp1) > 0){
@@ -564,6 +583,7 @@ if(nrow(df_temp1) > 0){
 
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))
 
@@ -588,11 +608,13 @@ df_temp|>
 Werbung <- 
   (
   Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T)) - 
+    filter(lubridate::year(Datum) == Abrechungsjahr)|>
+    filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
+    reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T)) - 
   Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+    filter(lubridate::year(Datum) == Abrechungsjahr)|>
+    filter(Kategorie == l_data$Kategorie$Auswahl[8])|>
+    reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
   )
 
 Werbung|>
@@ -606,6 +628,7 @@ Werbung|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == "Vermietung")
 
 if(nrow(df_temp) > 0){
@@ -629,6 +652,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[7])
 
 if(nrow(df_temp1)>0){
@@ -666,11 +690,13 @@ Vermietung|>
 ```{r}
 Vermietung <- 
   (  Einnahmen_und_Ausgaben$Einnahmen|>
-     filter(Kategorie == l_data$Kategorie$Auswahl[7])|>
-     reframe(`Betrag [CHF]`=sum(`Betrag [CHF]`, na.rm = T)) -
+       filter(lubridate::year(Datum) == Abrechungsjahr)|>
+       filter(Kategorie == l_data$Kategorie$Auswahl[7])|>
+       reframe(`Betrag [CHF]`=sum(`Betrag [CHF]`, na.rm = T)) -
      Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-     filter(Kategorie == l_data$Kategorie$Auswahl[7])|>
-     reframe(`Betrag [CHF]`=sum(`Betrag [CHF]`, na.rm = T))
+       filter(lubridate::year(Datum) == Abrechungsjahr)|>
+       filter(Kategorie == l_data$Kategorie$Auswahl[7])|>
+       reframe(`Betrag [CHF]`=sum(`Betrag [CHF]`, na.rm = T))
     )
 
 Vermietung|>
@@ -681,6 +707,7 @@ Vermietung|>
 ## Personalaufwand
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[4])|>
   select(Datum, Bezeichnung,`Betrag [CHF]`)|>
   arrange(Datum)|>
@@ -705,6 +732,7 @@ Personalaufwand|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[5])
 
 if(nrow(df_temp) > 0){
@@ -730,6 +758,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[5])
 
 if(nrow(df_temp1) > 0){
@@ -794,7 +823,7 @@ GewinnVerlust <- tibble(
     -`Kurzfristiges zinsloses Fremdkapital`|>pull(),
     Werbung|>pull(),
     Vermietung|>pull(),
-    -1*(Personalaufwand|>pull()),
+    - Personalaufwand|>pull(),
     Sonstiges|>pull()
   )
 ) 
