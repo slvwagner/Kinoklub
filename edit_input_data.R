@@ -742,6 +742,7 @@ server <- function(input, output, session) {
   
   ## Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
+    # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
       dataTableProxy('table')|>
         selectPage(last_selected_page())|>
