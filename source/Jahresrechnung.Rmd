@@ -194,6 +194,7 @@ Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 ```{r}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(lubridate::year(Datum) == Abrechungsjahr)|>
+  select(-Datum)|>
   filter(Kategorie == l_data$Kategorie$Auswahl[2])
 
 if(nrow(df_temp) > 0) {
