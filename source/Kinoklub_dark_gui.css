@@ -55,7 +55,7 @@ a:hover {
 
 .modal-content {
     position: relative;
-    background-color: #8f4b4b;
+    background-color: #023a3a;
 }
 /* Filter inputs (when filter = "top") */
 table.dataTable thead input {
@@ -74,7 +74,7 @@ table.dataTable thead input:focus {
 }
 
 .shiny-input-panel {
-  background-color: #052e18;
+  background-color: #023a3a;
   border: 1px solid #000000;
   border-radius: 2px;
 }

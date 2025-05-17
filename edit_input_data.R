@@ -105,7 +105,7 @@ ui <- fluidPage(
         top: 50px;
         right: 20px;
         width: 250px;
-        background: #385c7d;
+        background: #322f3b;
         border: 1px solid #ddd;
         border-radius: 5px;
         padding: 10px;
