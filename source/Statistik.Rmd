@@ -2,7 +2,7 @@
 title: "Statistik Kinoklub"
 output:
   html_document:
-    css: Kinoklub_dark.css
+    css: source/Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
@@ -35,13 +35,9 @@ Bericht wurde am `r act_date` erstellt.
 
 ```{r}
 df_temp <- df_Abrechnung |>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(desc(Datum)) |>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
-```
-
-
-```{r}
-df_temp <- df_temp|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
 ```
 
@@ -235,15 +231,8 @@ if(nrow(df_Abrechnung)){
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
-names(df_Abrechnung)
-
-```
-
-
-```{r}
 df_temp <- df_Abrechnung|>
-  # select(Datum, Zeit, `Suisa Nummer`, Filmtitel, Brutto, )|>
-  # rename(`Umsatz [CHF]` = Brutto)|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit), ":",
@@ -381,15 +370,17 @@ df_temp|>
 
 ```{r echo=FALSE}
 
-df_temp <- df_Eintritt|>  
-  arrange(Datum)|> 
-  select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
-         `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
-  rename(Eintritt = Zahlend)|>
-  arrange(desc(Anzahl))
+df_temp <- 
+  df_Eintritt|>  
+    filter(lubridate::year(Datum) == Abrechungsjahr)|>
+    arrange(Datum)|> 
+    select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
+    group_by(Zahlend)|>
+    reframe(Anzahl = sum(Anzahl))|>
+    mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
+           `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+    rename(Eintritt = Zahlend)|>
+    arrange(desc(Anzahl))
 
 df_temp|>
   DT::datatable(df_temp)
@@ -397,13 +388,14 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-df_temp <- df_Eintritt|>  
-  arrange(Datum)|> 
-  group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
-  reframe(Anzahl = sum(Anzahl))|>
-  mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
-  arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
-  
+df_temp <- 
+  df_Eintritt|>
+    filter(lubridate::year(Datum) == Abrechungsjahr)|>
+    arrange(Datum)|> 
+    group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
+    reframe(Anzahl = sum(Anzahl))|>
+    mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+    arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
 ```
 
 
@@ -425,6 +417,7 @@ df_temp|>
 
 ```{r fig.width=10}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
   reframe(Anzahl = sum(Anzahl))|>
   mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
@@ -458,12 +451,13 @@ df_temp|> # arrange the plot
 
 ```{r}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Platzkategorie, Verkaufspreis)|>
   filter(Zahlend)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   arrange(desc(`Umsatz [CHF]`))
-df_temp
+
 ```
 
 
@@ -481,12 +475,14 @@ df_temp|>
 
 ```{r}
 df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   knitr::kable()
 ```
 
 ```{r fig.width=10, fig.height=3}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Zahlend)|>
   group_by(Platzkategorie, Verkaufspreis)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
@@ -515,6 +511,7 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Platzkategorie, Verkaufspreis)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   filter(Zahlend)|>
@@ -527,6 +524,7 @@ df_temp <- df_Eintritt|>
 ##### Prognose
 ```{r fig.width=10}
 df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   filter(Zahlend)|>
   group_by(Datum)|>
   reframe(`Film Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
@@ -572,6 +570,7 @@ df_temp <- df_Abrechnung|>
 
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit),":", 
@@ -644,6 +643,7 @@ df_temp|>
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(desc(Datum))|> 
   # rename(`Umsatz [CHF]` = `Kassiert [CHF]`,
   #        `Kiosk Gewinn [CHF]` = `Gewinn [CHF]`)|>
@@ -740,6 +740,7 @@ df_temp|>
 ### Prognose
 ```{r }
 df_temp <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn`))
 
@@ -774,6 +775,7 @@ df_temp|>
 
 ```{r }
 df_temp <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
@@ -793,6 +795,7 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   group_by(Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Kassiert [CHF]`),
@@ -842,6 +845,7 @@ df_temp|>
 ### Kiosk Umsatz pro Gast
 ```{r }
 df_temp <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(Datum_display, Datum,`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)
@@ -882,6 +886,7 @@ df_temp1|>
 
 ```{r fig.width=10}
 df_temp <- df_Kiosk|>
+  filter(lubridate::year(Datum) == Abrechungsjahr)|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
   rename(`Umsatz [CHF]` = `Kassiert [CHF]`)
