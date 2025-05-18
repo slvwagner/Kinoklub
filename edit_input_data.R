@@ -64,13 +64,13 @@ shiny::addResourcePath("custom_styles", "source")
 # Define UI ####
 ui <- fluidPage(
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css")
   ),
   shinyjs::useShinyjs(),
   # Input panel at top
   shiny::inputPanel(
     shiny::tags$head(
-      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css")
     ),
     shiny::headerPanel("Input Kinoklub"),
     shiny::textInput("user", "Benutzer"),
