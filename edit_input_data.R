@@ -58,7 +58,7 @@ DT_language <- list(
   )
 )
 
-# Serve the custom_styles directory
+# Serve the custom_styles directory for css files
 shiny::addResourcePath("custom_styles", "source")
 
 # Define UI ####
