@@ -123,7 +123,20 @@ df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 # Advace tickets Kiosk
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
-df_Kiosk <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
+l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
+
+df_Kiosk <- l_temp|>
+  lapply(function(x){
+    x$df_Kiosk
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
+           as.integer()
+  )
+df_Kiosk
+
+df_Kiosk <- df_Kiosk|>
+  rename("Artikel-Kassensystem" = Verkaufsartikel)
 df_Kiosk
 
 ## Manko und Überschuss Kiosk ####
@@ -136,11 +149,6 @@ df_manko_uerberschuss <- l_temp|>
            as.integer()
   )
 df_manko_uerberschuss
-
-df_Kiosk <- df_Kiosk|>
-  rename("Artikel-Kassensystem" = Verkaufsartikel)
-df_Kiosk
-
 
 ## Spez Verkaufsartikel / Spezialpreise einlesen ####
 ## Spezialpreise einlesen ####

@@ -791,17 +791,7 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
       return(l_return)
     })
   names(l_temp) <- fileName
-  
-  df_Kiosk <- l_temp|>
-    lapply(function(x){
-      x$df_Kiosk
-    })|>
-    bind_rows(.id = "Event ID")|>
-    mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
-             as.integer()
-    )
-  
-  return(df_Kiosk)
+  return(l_temp)
 }
 
 # search procinem by a given Suisanummber
