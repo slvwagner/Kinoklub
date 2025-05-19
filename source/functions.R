@@ -640,6 +640,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
+  print("convert_data_kiosk_txt")
   l_temp <- fileName|>
     lapply(function(fileName){
       c_raw <- suppressWarnings(readLines(fileName))
