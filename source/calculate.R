@@ -120,7 +120,7 @@ df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 
 
 # Kiosk ####
-## Advace tickets Kiosk
+## Advace tickets Kiosk ####
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
 l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
@@ -150,7 +150,7 @@ df_manko_uerberschuss <- l_temp|>
   )
 df_manko_uerberschuss
 
-## Spez Verkaufsartikel / Spezialpreise einlesen ####
+# Spez Verkaufsartikel / Spezialpreise einlesen ####
 ## Spezialpreise einlesen ####
 l_data$Spezialpreisekiosk|>
   arrange(`Event ID`, Spezialpreis)
@@ -214,7 +214,7 @@ df_Kiosk <- df_Kiosk|>
   select(-Artikelname)
 df_Kiosk
 
-## Kiosk Einkaufspreise ####
+## Einkaufspreise ####
 df_Einkaufspreise <- l_data$`Einkauf Kiosk`|>
   rename(ID_Kioskartikel = ID)
 df_Einkaufspreise
