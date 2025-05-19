@@ -300,11 +300,11 @@ df_Kiosk
 ## Kioskgewinn ####
 df_Kiosk <- df_Kiosk|>
   mutate(Gewinn = if_else(is.na(`Einkaufspreis [CHF]`),
-                          `Betrag`,
-                          `Betrag` - (Anzahl * `Einkaufspreis [CHF]`))
+                          `Betrag [CHF]`,
+                          `Betrag [CHF]` - (Anzahl * `Einkaufspreis [CHF]`))
   )|>
-  rename(Kassiert = `Betrag`,
-         Verkaufspreis = Einzelpreis)
+  rename(Kassiert = `Betrag [CHF]`,
+         Verkaufspreis = `Einzelpreis [CHF]`)
 
 # join Program ID
 df_Kiosk <-
@@ -326,7 +326,7 @@ df_Kiosk <- df_Kiosk|>
          `Kassiert [CHF]` = Kassiert)
 
 df_Kiosk <- df_Kiosk|>
-  mutate(`Gewinn` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`))
+  mutate(`Gewinn [CHF]` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`))
 
 df_Kiosk
 
@@ -673,7 +673,7 @@ df_Abrechnung|>
 # Kioskgewinn der Abrechnung hinzufügen 
 df_temp <- df_Kiosk|>
   group_by(`Event ID`)|>
-  reframe(`Kioskgewinn [CHF]` = sum(Gewinn, na.rm = T))
+  reframe(`Kioskgewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = T))
 df_temp  
 df_Abrechnung <- left_join(df_Abrechnung, 
                            df_temp,

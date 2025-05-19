@@ -787,6 +787,11 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
         mutate(Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
                Betrag = if_else(Anzahl == 0, 0, Betrag))
       
+      l_return[["df_Kiosk"]] <- l_return[["df_Kiosk"]]|>
+        rename(`Einzelpreis [CHF]` = Einzelpreis,
+               `Betrag [CHF]` = Betrag
+               )
+      
       # Extrakt Überschuss / Manko
       l_return[["Überschuss / Manko"]] <- l_extracted[[2]]$`Überschuss / Manko`
       return(l_return)
