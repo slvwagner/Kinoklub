@@ -998,7 +998,7 @@ server <- function(input, output, session) {
   # Store process for secondary app in a reactive value
   second_app_process <- reactiveVal(NULL)
   
-  ##  Überwachung Abrechnungsjahr #####
+  ##  Button Abrechnungsjahr #####
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
@@ -1025,7 +1025,7 @@ server <- function(input, output, session) {
     shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
 
-  ##  Überwachung Button Daten Einlesen #####
+  ##  Button Daten Einlesen #####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
     c_time <- Sys.time()
@@ -1070,7 +1070,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Überwachung Button Filmabrechnung(en) erstellen #####
+  ## Button Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1155,7 +1155,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Überwachung Button Verleiherabrechnung(en) erstellen #####
+  ## Button Verleiherabrechnung(en) erstellen #####
   shiny::observeEvent(input$Verleiherrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1348,7 +1348,7 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Überwachung Button Wordpress #####
+  ## Button Wordpress #####
   shiny::observeEvent(input$wordpress, {
     # Execution time 
     c_time <- Sys.time()
@@ -1388,7 +1388,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Überwachung Button "Alles erstellen" #####
+  ## Button "Alles erstellen" #####
   shiny::observeEvent(input$ErstelleAbrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1495,7 +1495,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Download Handler Wordpress #####
+  ## Button Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
