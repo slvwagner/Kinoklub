@@ -27,7 +27,8 @@ con <- DB_connect(pw, "ch367079_flo")
 
 ## get all data as defined in the template l_template ####
 ### Convert data types for each table ####
-l_data <- convert_DB_to_R(DB_get_Data(l_template, con),l_template)
+l_data <- DB_get_Data(l_template, con)|>
+  convert_DB_to_R(l_template)
 
 # check nb of files Eintritt vs Kiosk ####
 c_eintritt <- list.files("Input/advance tickets",pattern = "Eintritt")
@@ -122,16 +123,7 @@ df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 # Advace tickets Kiosk
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
-l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
-
-df_Kiosk <- l_temp|>
-  lapply(function(x){
-    x$df_Kiosk
-  })|>
-  bind_rows(.id = "Event ID")|>
-  mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
-           as.integer()
-  )
+df_Kiosk <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
 df_Kiosk
 
 ## Manko und Überschuss Kiosk ####
