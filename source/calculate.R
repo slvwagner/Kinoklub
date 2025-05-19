@@ -601,13 +601,12 @@ df_Tickets <- df_Eintritt|>
   arrange(desc(Datum))|>
   select(c("Event ID","Link to Event ID", "Datum", "Zeit","Suisanummer","Filmtitel",
            "Platzkategorie","Zahlend","Verkaufspreis","Verkaufspreis für Netto3 [CHF]","Anzahl","Umsatz [CHF]","Umsatz für Netto3 [CHF]",
-           "SUISA-Vorabzug",
+           "SUISA-Vorabzug [%]",
            "Verleiher",
            "Abzug [%]","Minimal Abzug [CHF]","Abzug fix [CHF]","Kinoförderer gratis?",
-           "Verleiherrechnungsbetrag [CHF]",
-  )
-  )|>
-  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`)|>
+           "Verleiherrechnungsbetrag [CHF]"
+           )
+         )|>
   arrange(Datum)
 
 
@@ -742,7 +741,7 @@ for (ID in names(l_abrechnung)) {
   
   ## Eintritte ####
   Eintritte <- df_Eintritt|> 
-    select(- `SUISA-Vorabzug`)|>
+    select(- `SUISA-Vorabzug [%]`)|>
     filter(`Event ID` %in% IDs)|>
     select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
   

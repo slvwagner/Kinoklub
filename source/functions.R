@@ -572,7 +572,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
         mutate(Suisanummer = l_temp[[1]],
                Filmtitel = l_temp[[2]],
                Datum = dmy(l_temp[[3]]),
-               `SUISA-Vorabzug` = l_temp[[4]],
+               `SUISA-Vorabzug [%]` = l_temp[[4]],
                fileName = fileName
         )
     })
@@ -592,7 +592,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
       Verkaufspreis,
       Anzahl,
       Umsatz,
-      `SUISA-Vorabzug`
+      `SUISA-Vorabzug [%]`
     )
   df_Eintritt
   
@@ -617,7 +617,7 @@ convert_data_Film_txt <- function(fileName, Programm) {
       `Verkaufspreis`,
       `Anzahl`,
       `Umsatz [CHF]`,
-      `SUISA-Vorabzug`
+      `SUISA-Vorabzug [%]`
     )
   
   if (sum(is.na(df_Eintritt$`Event ID`)) > 0) {
