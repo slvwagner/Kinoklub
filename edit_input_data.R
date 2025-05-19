@@ -69,9 +69,6 @@ ui <- fluidPage(
   shinyjs::useShinyjs(),
   # Input panel at top
   shiny::inputPanel(
-    shiny::tags$head(
-      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css")
-    ),
     shiny::headerPanel("Input Kinoklub"),
     shiny::textInput("user", "Benutzer"),
     shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
@@ -79,57 +76,6 @@ ui <- fluidPage(
     shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
   ),
   includeScript("source/JS/1.12.1_jquery-ui.js"),
-  tags$head(
-    tags$style(HTML("
-      /* Add 10px padding */
-      body {
-        padding-left: 10px;
-        margin: 0;
-      }
-      /* Main container styling */
-      .main-container {
-        width: calc(100% - 10px); /* Account for the padding */
-        margin: 0;
-        padding: 0;
-      }
-      /* Table container styling */
-      .table-container {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow-x: auto;
-      }
-      /* Floating panel adjustments */
-      #floating-panel {
-        position: fixed;
-        top: 50px;
-        right: 20px;
-        width: 250px;
-        background: #322f3b;
-        border: 1px solid #000;
-        border-radius: 5px;
-        padding: 10px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-      }
-      #floating-panel-header {
-        background: #3f2985;
-        padding: 5px;
-        cursor: grab;
-        border-bottom: 1px solid #3f2985;
-        text-align: center;
-        font-weight: bold;
-      }
-      /* DataTables specific adjustments */
-      .dataTables_wrapper {
-        width: 100% !important;
-        margin: 0 !important;
-      }
-      .dataTables_scroll {
-        width: 100% !important;
-      }
-    ")),
-  ),
   # Main content area
   div(class = "main-container",
       div(class = "table-container",
@@ -2251,7 +2197,6 @@ server <- function(input, output, session) {
   ## Dynamic UI ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      hr(),
       if(c_connected_to_db()) {
         div(
           style = "width: 100%; overflow-x: auto;",  # Container with scroll
@@ -2274,12 +2219,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )

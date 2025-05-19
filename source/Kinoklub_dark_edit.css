@@ -9,7 +9,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 footer {
-  background-color: #322f3b;
+  background-color: #000;
   color: #f4cccc;
 }
 
@@ -20,6 +20,56 @@ code {
 }
 */
 
+/* Add 10px padding */
+body {
+  padding-left: 10px;
+  margin: 0;
+}
+/* Main container styling */
+.main-container {
+  width: calc(100% - 10px); /* Account for the padding */
+  margin: 0;
+  padding: 0;
+}
+/* Table container styling */
+.table-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+}
+/* Floating panel adjustments */
+#floating-panel {
+  position: fixed;
+  top: 50px;
+  right: 20px;
+  width: 250px;
+  background: #322f3b;
+  border: 1px solid #000;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+#floating-panel-header {
+  background: #3f2985;
+  padding: 5px;
+  cursor: grab;
+  border-bottom: 1px solid #3f2985;
+  text-align: center;
+  font-weight: bold;
+}
+/* DataTables specific adjustments */
+.dataTables_wrapper {
+  width: 100% !important;
+  margin: 0 !important;
+}
+.dataTables_scroll {
+  width: 100% !important;
+}
+
+
+/**/
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
   text-decoration: none; /* Optional: Remove the default underline */
@@ -29,29 +79,6 @@ a:hover {
   color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
 }
 
-
-
-#floating-panel {
-  position: fixed;
-  top: 50px;
-  right: 20px;
-  width: 250px;
-  background: #3f2985;
-  border: 1px solid #000;
-  border-radius: 5px;
-  padding: 10px;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
-#floating-panel-header {
-  background: #3f2985;
-  padding: 5px;
-  cursor: grab;
-  border-bottom: 1px solid #000;
-  text-align: center;
-  font-weight: bold;
-}
 
 .modal-content {
     position: relative;
