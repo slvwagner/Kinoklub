@@ -120,7 +120,7 @@ df_Eintritt <- convert_data_Film_txt(c_files, l_data$Programm)
 
 
 # Kiosk ####
-# Advace tickets Kiosk
+## Advace tickets Kiosk
 c_path <- "input/advance tickets"
 c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
 l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, l_data$`Einkauf Kiosk`)
@@ -617,6 +617,10 @@ df_temp <- df_Tickets|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T),
           `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`, na.rm = T))
 df_temp
+
+df_temp|>
+  filter(`Umsatz [CHF]` != `Umsatz für Netto3 [CHF]`)
+
 df_Abrechnung <-left_join(df_Abrechnung, 
                           df_temp,
                           by = join_by(`Event ID`)
@@ -626,6 +630,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   distinct(`SUISA-Vorabzug [%]`)
+
 df_Abrechnung <-left_join(df_Abrechnung, 
                           df_temp,
                           by = join_by(`Event ID`)
@@ -637,16 +642,8 @@ remove(df_Tickets)
 names(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
-  mutate(`Suisavorabzug [CHF]` = 
-           if_else(`Kinoförderer gratis?`,
-                   `Umsatz [CHF]` * (`SUISA-Vorabzug [%]` / 100),
-                   `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100)
-           ),
-         `Umsatz Netto 3 [CHF]` = 
-           if_else(`Kinoförderer gratis?`,
-                   `Umsatz [CHF]` - `Suisavorabzug [CHF]`,
-                   `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`
-           ),
+  mutate(`Suisavorabzug [CHF]` = `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100),
+         `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
          `MWST [CHF]` = if_else(
            is.na(`Verleiherrechnungsbetrag [CHF]`),
            `Umsatz für Netto3 [CHF]` * (l_data$MWST$MWST / 100),
