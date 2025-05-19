@@ -106,7 +106,7 @@ ui <- fluidPage(
         right: 20px;
         width: 250px;
         background: #322f3b;
-        border: 1px solid #ddd;
+        border: 1px solid #000;
         border-radius: 5px;
         padding: 10px;
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
@@ -116,7 +116,7 @@ ui <- fluidPage(
         background: #3f2985;
         padding: 5px;
         cursor: grab;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #3f2985;
         text-align: center;
         font-weight: bold;
       }
