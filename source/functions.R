@@ -433,8 +433,11 @@ nullify_used_entries <- function(lst) {
 }
 
 # Eintritte aus Advanced Tickets files #####
-convert_data_Film_txt <- function(fileName, Programm) {
+convert_data_Film_txt <- function(fileName, con) {
   library(rebus)
+  Programm <- DB_get_table("Programm",con)
+  Programm <- convert_to_template_types(Programm, l_template$Programm)
+  
   print("convert_data_Film_txt")
   l_Eintritt <- fileName|>
     lapply(function(fileName){
@@ -640,8 +643,15 @@ convert_data_Film_txt <- function(fileName, Programm) {
 }
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
-convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
+convert_data_kiosk_txt <- function(fileName, con) {
   print("convert_data_kiosk_txt")
+  
+  Programm <- DB_get_table("Programm",con)
+  Programm <- convert_to_template_types(Programm, l_template$Programm)
+  
+  `Einkauf Kiosk` <- DB_get_table("Einkauf Kiosk", con)
+  `Einkauf Kiosk` <- convert_to_template_types(`Einkauf Kiosk`, l_template$`Einkauf Kiosk`)
+  
   l_temp <- fileName|>
     lapply(function(fileName){
       c_raw <- suppressWarnings(readLines(fileName))
@@ -680,7 +690,7 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
       }
       
       # detect Verkaufarikel in string
-      p1 <- or1(paste0(df_Einkauf$`Artikelname-Kassensystem`))
+      p1 <- or1(paste0(`Einkauf Kiosk`$`Artikelname-Kassensystem`))
       
       # detect Spez Preise
       p2 <- or1(paste0("Spez"%R%SPC, 1:4))
@@ -783,22 +793,206 @@ convert_data_kiosk_txt <- function(fileName, Programm, df_Einkauf) {
       m_Kiosk
       
       # Data returned by function
-      l_return <- list()
-      l_return[["df_Kiosk"]] <- m_Kiosk|>
-        mutate(Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
-               Betrag = if_else(Anzahl == 0, 0, Betrag))
-      
-      l_return[["df_Kiosk"]] <- l_return[["df_Kiosk"]]|>
-        rename(`Einzelpreis [CHF]` = Einzelpreis,
+      df_Kiosk <- m_Kiosk|>
+        mutate(`Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+               `Betrag` = if_else(Anzahl == 0, 0, Betrag),
+               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`
+        )|>
+        rename(`Einzelpreis [CHF]`= Einzelpreis,
                `Betrag [CHF]` = Betrag
                )
-      
-      # Extrakt Überschuss / Manko
-      l_return[["Überschuss / Manko"]] <- l_extracted[[2]]$`Überschuss / Manko`
-      return(l_return)
     })
-  names(l_temp) <- fileName
-  return(l_temp)
+  names(l_temp) <- str_match(fileName, capture(one_or_more(DGT))%R%DOT%R%"txt")[,2]
+  
+  # Kiosk data 
+  df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
+    mutate(`Event ID` = as.integer(`Event ID`))|>
+    rename("Artikel-Kassensystem" = Verkaufsartikel)
+  df_Kiosk
+  
+  df_temp01 <- df_Kiosk
+  
+  # Spez Verkaufsartikel / Spezialpreise einlesen ####
+  ## Spezialpreise einlesen ####
+  df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con) 
+  df_Spezialpreisekiosk <- df_Spezialpreisekiosk|>
+    mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+           Spezialpreis = as.character(Spezialpreis)
+    )|>
+    arrange(`Event ID`, Spezialpreis)
+  df_Spezialpreisekiosk
+  
+  # Spezialpreise in Kiosk daten finden
+  df_spez_preis <- df_Kiosk|>
+    filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
+    arrange(`Event ID`)
+  df_spez_preis
+  
+  # join Filmtitel
+  df_spez_preis <- df_spez_preis|>
+    left_join(l_data$Programm|>
+                select(`Event ID`,Filmtitel),
+              by = join_by(`Event ID`)
+    )
+  df_spez_preis
+  
+  ## Sind alle Spezialpreise pro `Event ID` definiert? ####
+  df_spez_preis_na <- df_spez_preis|>
+    filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
+    arrange(`Event ID`, `Artikel-Kassensystem`)
+  df_spez_preis_na
+  
+  df_spez_preis_na <- df_spez_preis_na|>
+    left_join( # look up Spezialpreise
+      df_Spezialpreisekiosk,
+      by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
+    )
+  df_spez_preis_na
+  
+  df_spez_preis_na <- df_spez_preis_na|>
+    filter(is.na(Artikelname))
+  df_spez_preis_na
+  
+  if(nrow(df_spez_preis_na) > 0) {
+    warning(
+      paste0(
+        "\nFür die Filmvorführung ID ",df_spez_preis_na$`Event ID`, " / ", df_spez_preis_na$Filmtitel," am ", format(df_spez_preis_na$Datum, "%d.%m.%Y"),
+        "\nwurde der Artikel ", df_spez_preis_na$`Artikel-Kassensystem`," nicht definiert.",
+        "\nBitte korrigieren in Spezialpreisekiosk\n"
+      )
+    )
+  }
+  remove(df_spez_preis)
+  
+  ## join Spezpreise mit Verkaufsartikel ####
+  df_Kiosk <- df_Kiosk|>
+    left_join(df_Spezialpreisekiosk|>
+                select(-ID),
+              by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
+    )|>
+    mutate(Verkaufsartikel = if_else(is.na(Artikelname), `Artikel-Kassensystem`, Artikelname))|>
+    select(-Artikelname)
+  df_Kiosk
+  
+  ## Einkaufspreise ####
+  df_Einkaufspreise <- `Einkauf Kiosk`|>
+    rename(ID_Kioskartikel = ID)
+  df_Einkaufspreise
+  
+  #########################################
+  # df_mapping <- l_temp|>
+  #   lapply(function(x){
+  #     tibble(
+  #       Datum =
+  #         x$df_Kiosk|>
+  #         distinct(Datum)|>
+  #         pull()|>
+  #         as.Date()
+  #     )
+  #   })|>
+  #   bind_rows(.id = "fileName")
+  
+  df_mapping <- df_Kiosk|>
+    distinct(`Event ID`, `Artikel-Kassensystem`,.keep_all = TRUE)
+  
+  c_Date_Kiosk <- df_mapping$Datum
+  c_Einkaufslistendatum <- distinct(df_Einkaufspreise, `Gültig ab Datum`)|>pull()
+  
+  
+  df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date_Kiosk)|>as.integer())|>
+    bind_cols()|>
+    as.matrix()|>
+    suppressMessages()
+  df_Mapping_Einkaufspreise
+  
+  colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
+    as.character()
+  rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
+  
+  if(nrow(df_Mapping_Einkaufspreise) == 1){
+    df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
+      apply(1, function(x){
+        c_select <- max(x, na.rm = T)
+        y <- x[c_select == x]
+        y <- y[!is.na(y)]
+        return(names(y))
+      })
+    
+  }else{
+    df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
+      apply(2, function(x) ifelse(x >= 0, NA, x))|>
+      apply(1, function(x){
+        c_select <- max(x, na.rm = T)
+        y <- x[c_select == x]
+        y <- y[!is.na(y)]
+        return(names(y))
+      })
+    
+  }
+  df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>as.Date(),
+                                      Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
+  
+  # Join Einkaufspreise
+  m_Kiosk <- list()
+  for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
+    m_Kiosk[[ii]] <- df_Kiosk|>
+      filter(Datum == df_Mapping_Einkaufspreise$Datum[ii])|>
+      left_join(df_Einkaufspreise|>
+                  # select(-ID)|>
+                  filter(`Gültig ab Datum` == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
+                  select(-`Gültig ab Datum`),
+                by = c(Verkaufsartikel = "Artikelname-Kassensystem")
+      )
+  }
+  remove(df_Einkaufspreise)
+  m_Kiosk
+  
+  df_Kiosk <- m_Kiosk|>
+    bind_rows()
+  df_Kiosk
+  
+  ## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
+  df_Kiosk <- bind_rows(df_Kiosk|>
+                          filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
+                          mutate(Verkaufsartikel = "Popcorn frisch"),
+                        df_Kiosk|>
+                          filter(! Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))
+  )
+  df_Kiosk
+  
+  ## Kioskgewinn ####
+  df_Kiosk <- df_Kiosk|>
+    mutate(Gewinn = if_else(is.na(`Einkaufspreis [CHF]`),
+                            `Betrag [CHF]`,
+                            `Betrag [CHF]` - (Anzahl * `Einkaufspreis [CHF]`))
+    )|>
+    rename(Kassiert = `Betrag [CHF]`,
+           Verkaufspreis = `Einzelpreis [CHF]`)
+  
+  # join Program ID
+  df_Kiosk <-
+    df_Kiosk|>
+    select(-Datum)|>
+    left_join(l_data$Programm|>
+                select(`Event ID`, Datum, Suisanummer, Filmtitel),
+              by = join_by(`Event ID`)
+    )
+  
+  df_Kiosk <- df_Kiosk|>
+    select("Event ID", "Datum", "Suisanummer","ID_Kioskartikel","Verkaufsartikel", "Lieferant",
+           "Verkaufspreis", "Anzahl", "Kassiert",  
+           "Einkaufspreis [CHF]", 
+           "Überschuss / Manko [CHF]"
+    )|>
+    rename(`Verkaufspreis [CHF]` = Verkaufspreis,
+           `Kassiert [CHF]` = Kassiert)
+  
+  df_Kiosk <- df_Kiosk|>
+    mutate(`Gewinn [CHF]` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`))
+  
+  # function return
+  return(df_Kiosk)
+
 }
 
 # search procinem by a given Suisanummber
@@ -994,63 +1188,52 @@ create_empty_line <- function(df_data) {
     }))
 }
 
-###################################################################
-#' Initialize fast dictionary environment
-#' The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
 
-
+# Initialize fast dictionary environment ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_init <- function(length)
 {
   new.env(hash = TRUE, parent = emptyenv(), size = length)
 }
 
-###################################################################
-#' Assigne key and value to fast dictionary
-#' The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
 
-
+# Assigne key and value to fast dictionary ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_assign_key_values <- Vectorize(assign, vectorize.args = c("x", "value"))
 
 
-###################################################################
-#' The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
-
-
+# Get values from dictionary ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_get_values <- Vectorize(get, vectorize.args = "x")
 
-###################################################################
-#' Check if key is in dictionary
-#' The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
 
-
+# Check if key is in dictionary ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_exists_key <- Vectorize(exists, vectorize.args = "x")
 
 
-###################################################################
-#' Create a fast dictionary from data frame
-#' The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
-
-
+# Create a fast dictionary from data frame ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_from_data.frame <- function(df)
 {
   df <- as.data.frame(df)
@@ -1069,16 +1252,12 @@ dict_from_data.frame <- function(df)
   }
 }
 
-
-###################################################################
-#' Update key/value pairs of fast dictionary
-#'  The reason for using dictionaries in the first place is performance.
-#' Although it is correct that you can use named vectors and lists for the task,
-#' the issue is that they are becoming quite slow and memory hungry with more data.
-#' Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
-#' environments with the option hash = TRUE
-
-
+# Update key/value pairs of fast dictionary ####
+# The reason for using dictionaries in the first place is performance.
+# Although it is correct that you can use named vectors and lists for the task,
+# the issue is that they are becoming quite slow and memory hungry with more data.
+# Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
+# environments with the option hash = TRUE
 dict_update <- function(df, dict)
 {
   df <- as.data.frame(df)
