@@ -7,35 +7,78 @@ con <- DB_connect(pw, "ch367079_flo")
 l_data <- DB_backup_DB(con)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
+l_template
 
-
-# # update template
-# l_template$`Verleiher mapping`
-# df_temp <- DB_get_table("Verleiher", con)
-# df_temp <- left_join(
-#   df_temp,
-#   l_template$`Verleiher mapping`,
-#   by = join_by(Verleihername)
-#   )|>
-#   mutate(ID.x = NULL)|>
-#   rename(ID = ID.y)
+# data_env <- new.env()
+# source("source/calculate.R", local = data_env)
 # 
-# l_template$`Verleiher mapping` <- df_temp|>
-#   slice(-1)|>
-#   mutate(ID = row_number())|>
-#   select(ID, Verleiher_procinema, Verleihername)|>
+# df_temp <- data_env$df_Kiosk
+# df_temp <- bind_cols(ID = 1:nrow(df_temp), df_temp)
+# df_temp
+# 
+# l_template$df_Kiosk <- df_temp|>
 #   slice(1)
 # 
-# l_data$`Verleiher mapping` <- df_temp|>
-#   slice(-1)|>
-#   mutate(ID = row_number())|>
-#   select(ID, Verleiher_procinema, Verleihername)
+# saveRDS(l_template, "source/SQL/template.Rds")
+# 
+# df_temp|>
+#   DB_copy_table(con, "df_Kiosk")
 
-# l_template$`Verleiher mapping` <- l_data$`Verleiher mapping`
-# l_template$Filmvorschlag <- l_template$Filmvorschlag|>
-#   mutate(Verleiher = as.factor(Verleiher))
-# saveRDS(l_template, "source/SQL/template.RDS")
 
+# ################################
+# # update template
+# l_template$Ausgaben
+# df_temp <- DB_get_table("Ausgaben", con)
+# df_temp <- convert_to_template_types(df_temp, l_template$Ausgaben)
+# df_temp
+# 
+# df_temp <- df_temp|>
+#   mutate(Abrechnungsjahr = 2024L)
+# df_temp
+# 
+# slvwagner::r_names(df_temp)
+# 
+# df_temp <- df_temp|>
+#   select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")
+# df_temp
+# 
+# l_template$Ausgaben <- df_temp|>
+#   slice(1)
+# 
+# # saveRDS(l_template, "source/SQL/template.RDS")
+# DB_copy_table(df_temp, con, "Ausgaben")
+# 
+# ################################
+# # update template
+# df_temp <- DB_get_table("Einnahmen", con)
+# df_temp <- convert_to_template_types(df_temp, l_template$Einnahmen)
+# df_temp
+# 
+# df_temp <- df_temp|>
+#   mutate(Abrechnungsjahr = 2024L)
+# df_temp
+# 
+# slvwagner::r_names(df_temp)
+# 
+# df_temp <- df_temp|>
+#   select("ID", "Kategorie", "Bezeichnung", "Event ID", "Datum", "Abrechnungsjahr", "Betrag [CHF]", "Firmennamen", "Adresse", "Rechnungsnummer")
+# df_temp
+# 
+# l_template$Einnahmen <- df_temp|>
+#   slice(1)
+# 
+# l_template$Einnahmen
+# 
+# # saveRDS(l_template, "source/SQL/template.RDS")
+# DB_copy_table(df_temp, con, "Einnahmen")
+# 
+# 
+# ################################
+# saveRDS(l_template, "source/SQL/template.Rds")
+# 
+# ################################
+
+################################
 # Convert to R data type
 l_data <- convert_DB_to_R(l_data, l_template)
 
@@ -52,7 +95,6 @@ l_data$Einsatzplan <- l_data$Programm|>
 list.files(path = "Backup")
 
 saveRDS(l_data, paste0("Backup/Data",length(list.files(path = "Backup")) + 1L,".Rds"))
-
 
 # dbExecute(con, sprintf("DROP TABLE IF EXISTS `%s`", "Verleiherabgaben"))
 
