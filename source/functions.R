@@ -434,6 +434,7 @@ nullify_used_entries <- function(lst) {
 
 # Eintritte aus Advanced Tickets files #####
 convert_data_Film_txt <- function(fileName, Programm) {
+  library(rebus)
   print("convert_data_Film_txt")
   l_Eintritt <- fileName|>
     lapply(function(fileName){

@@ -534,7 +534,7 @@ convert_DB_to_R <- function(data,template) {
 }
 
 
-# Add one or more rows to a database table
+# Add one or more rows to a database table ####
 DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
   # Validate inputs
   if (!DBI::dbIsValid(con)) {
@@ -597,18 +597,10 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
       values <- sapply(row, function(val) {
         if (is.na(val) || is.null(val)) {
           "NULL"
-        } else if (is.character(val)) {
-          paste0("'", val, "'")
-        } else if (inherits(val, "Date")) {
-          paste0("'", as.character(val), "'")
-        } else if (inherits(val, "hms") || inherits(val, "difftime")) {
-          paste0("'", as.character(val), "'")
-        } else if (inherits(val, "POSIXct") || inherits(val, "POSIXlt")) {
-          paste0("'", format(val, "%Y-%m-%d %H:%M:%S"), "'")
-        } else if (is.logical(val)) {
-          as.character(as.integer(val))
+        } else if ((val == "TRUE") | (val == "FALSE")) {
+          paste0("'", ifelse(val == "TRUE", 1, 0), "'")
         } else {
-          as.character(val)
+          paste0("'", as.character(val), "'")
         }
       })
       paste0("(", paste(values, collapse = ", "), ")")
