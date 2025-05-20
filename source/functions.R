@@ -830,7 +830,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
   
   # join Filmtitel
   df_spez_preis <- df_spez_preis|>
-    left_join(l_data$Programm|>
+    left_join(Programm|>
                 select(`Event ID`,Filmtitel),
               by = join_by(`Event ID`)
     )
@@ -973,7 +973,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
   df_Kiosk <-
     df_Kiosk|>
     select(-Datum)|>
-    left_join(l_data$Programm|>
+    left_join(Programm|>
                 select(`Event ID`, Datum, Suisanummer, Filmtitel),
               by = join_by(`Event ID`)
     )
