@@ -5,11 +5,7 @@ source("source/functions.R")
 
 # Database functions  ####
 # connection to Database
-DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
-  # Database credentials
-  host <- "lx51.hoststar.hosting"
-  DB_name <- "ch367079_gui"
-  
+DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL) {
   # Check if connection already exists and is valid
   if (!is.null(con)) {
     return(con)
@@ -18,9 +14,9 @@ DB_connect <- function(pw, DB_user = "ch367079_flo", con = NULL) {
     con <- tryCatch({
       dbConnect(
         MySQL(),
-        host = host,
+        host = DB_host,
         user = DB_user,
-        password = pw,
+        password = DB_PW,
         dbname = DB_name,
         port = 3306
       )

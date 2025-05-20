@@ -70,8 +70,10 @@ ui <- fluidPage(
   # Input panel at top
   shiny::inputPanel(
     shiny::headerPanel("Input Kinoklub"),
-    shiny::textInput("user", "Benutzer"),
-    shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+    shiny::textInput("DB_host", "Datenbank Host", value = "lx51.hoststar.hosting"),
+    shiny::textInput("DB_name", "Datenbank Name", value = "ch367079_gui"),
+    shiny::textInput("DB_user", "Datenbank Benutzer"),
+    shiny::passwordInput("DB_pw", "Datenbankpasswort"),
     shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
     shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
   ),
@@ -93,18 +95,38 @@ server <- function(input, output, session) {
   l_data_choices <- reactiveVal(list())
   l_data <- reactiveVal(list())
   column_choices <- reactiveVal(list())
+  ### data frame to render ####
   current_data <- reactiveVal(tibble())
   data_selection_ <- reactiveVal("")
+  ### last page length from datatable ####
   page_length_var <- reactiveVal(5L)
+  ### last selected ID in datatable ####
   ID_to_edit <- reactiveVal(1L)
+  ### Is the database connection available ####
   c_connected_to_db <- reactiveVal(FALSE)
-  DB_con <- reactiveVal(NULL)
-  df_temp_to_render <- reactiveVal(NULL)
   
+  ### Database connection ####
+  DB_con <- shiny::reactiveVal(NULL)
+  ### Database host ####
+  DB_host <- shiny::reactiveVal(NULL)
+  ### Database host ####
+  DB_name <- shiny::reactiveVal(NULL)
+  ### Database host ####
+  DB_user <- shiny::reactiveVal(NULL)
+  ### Database host ####
+  DB_pw <- shiny::reactiveVal(NULL)
+  
+  ### temp datatable to render to render modal ####
+  df_temp_to_render <- reactiveVal(NULL)
+  ### last date frame that has been rendered ####
   last_rendered_DT <- reactiveVal(NULL)
+  ### last date frame name ####
   lastEdited_data_set_name <- reactiveVal("")
+  ### last selected row in datatable ####
   last_selected_row <- reactiveVal(1L)
+  ### last selected page in datatable ####
   last_selected_page <- reactiveVal(1L)
+  ### last set user filer in datatable ####
   last_user_filter <- reactiveVal(NULL)
   
   
@@ -826,9 +848,18 @@ server <- function(input, output, session) {
   
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
+    req(input$DB_host)
+    req(input$DB_name)
+    req(input$DB_user)
+    req(input$DB_pw)
+    DB_host(input$DB_host)
+    DB_name(input$DB_name)
+    DB_user(input$DB_user)
+    DB_pw(input$DB_pw)
+    
     tryCatch({
       # Connect to data base 
-      DB_connect(pw = input$SQL_PW, DB_user = input$user  , con = DB_con())|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       
       # After successful connection
@@ -2220,12 +2251,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )

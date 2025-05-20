@@ -30,16 +30,32 @@ remove(packages, installed_packages)
 if(!file.exists("user_settings.R")) {
   stop("Missing required file: user_settings.R")
 }
+# user settings / documentation
 source("user_settings.R")
-
-l_template <- readRDS("source/SQL/template.Rds")
-
-# create environment to run WordPress scripts
-WordPress_env <- new.env()
-
 # Functions
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
+
+# connect to data base ####
+
+## Data base credentials from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+
+# read all data from Database
+l_data <- DB_backup_DB(con)
+# read template
+l_template <- readRDS("source/SQL/template.RDS")
+# convert to R data types
+l_data <- convert_DB_to_R(l_data, l_template)
+
+# create environment to run WordPress scripts
+WordPress_env <- new.env()
 
 # Erstellen von Verzeichnissen ####
 dir.create("output/", showWarnings = FALSE, recursive = TRUE)
@@ -86,7 +102,8 @@ tryCatch({
 
 # concatenate feedback 
 ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
-ausgabe_text
+ausgabe_text|>
+  writeLines()
 
 # Error handling
 if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
@@ -114,6 +131,13 @@ ui <-
   shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+    ),
+    # Input panel at top
+    shiny::inputPanel(
+      shiny::textInput("user", "Benutzer"),
+      shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+      shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
+      shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
     ),
     paste("Kinoklub GUI", c_script_version) |>
       shiny::titlePanel(),
@@ -970,11 +994,15 @@ server <- function(input, output, session) {
   }
   
   ## Shiny reactive variables ####
+  
+  ### warning ####
   calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
+  
+  ### System rückgaben an user
   ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
   Abrechungsjahr <- shiny::reactiveVal(year(Sys.Date()))
   
-  # Vektor mit Datumseinträgen
+  ### Vektor mit Datumseinträgen ####
   if (exists("df_Besucherzahlen", envir = data_env))  {
     datum_vektor <- data_env$df_Besucherzahlen$Datum
   } else {
@@ -985,18 +1013,59 @@ server <- function(input, output, session) {
     )
   }
   
-  # Filmtabelle anzeigen
+  ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
   
-  # Does the index.html file exist, is the webserver ready
+  ### Does the index.html file exist, is the webserver ready ####
   file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
   
-  # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
+  ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
   End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
   
-  # Store process for secondary app in a reactive value
+  ### Store process for secondary app in a reactive value ####
   second_app_process <- reactiveVal(NULL)
+  
+  ### Database user ####
+  DB_user <- shiny::reactiveVal(DB_user)
+  
+  ### Database password ####
+  DB_pw <- shiny::reactiveVal(DB_pw)
+  
+  ### Database connection ####
+  DB_con <- shiny::reactiveVal(con)
+  
+  ## Button Mit Datenbank verbinden ####
+  observeEvent(input$SQL_connect, {
+    req(input$user)
+    req(input$SQL_PW)
+    DB_user(input$user)
+    DB_pw(input$SQL_PW)
+    if (!is.null(DB_con())) {
+      shiny::withProgress(message = "Running script...", value = 0, {
+        shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+        tryCatch({
+          # Connect to data base 
+          DB_connect(DB_host, DB_name, DB_user(), DB_pw(), DB_con())|>
+            DB_con()
+          
+          # read all data from Database
+          l_data <- DB_backup_DB(con)
+          # read template
+          l_template <<- readRDS("source/SQL/template.RDS")
+          # convert to R data types
+          l_data <<- convert_DB_to_R(l_data, l_template)
+          
+        }, error = function(e) {
+          showNotification(paste("load data from data base failed:"), type = "message")
+        })
+        shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+      })
+    } else {
+      showNotification(paste("Already connected to Database"), type = "error")
+    }
+  })
+  
   
   ##  Button Abrechnungsjahr #####
   ### 1 ####  
@@ -1512,7 +1581,7 @@ server <- function(input, output, session) {
       }
     }
   )
-  
+    
   ## Upload handler #####
   file_data <- shiny::reactive({
     shiny::req(input$file)
@@ -1565,56 +1634,76 @@ server <- function(input, output, session) {
           ausgabe_text()
         
         if(str_detect(file_name, pattern = "Eintritte")){
+          # Data base user password from system variables 
           pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
           con <- DB_connect(pw, "ch367079_flo")
-          Programm <- DB_get_table("Programm", con)
-          Programm <- convert_to_template_types(Programm, l_template$Programm)
-          df_temp <- convert_data_Film_txt(save_path, Programm)
-          df_test <- data_env$Einnahmen_und_Ausgaben
-          df_test <- df_test|>
-            filter((`Event ID` %in% df_temp$`Event ID`))
-          c_update <- !identical(df_temp, df_test)
-          
-          DB_copy_table(data_env$df_Eintritt, con , "df_Eintritt")
-          
-          if(c_update){
-            df_test <- data_env$df_Eintritt
-            
-          }
-          dbDisconnect(con)
-        } else if (str_detect(file_name, pattern = "Kiosk")){
-          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-          con <- DB_connect(pw, "ch367079_flo")
-          Programm <- DB_get_table("Programm", con)
-          Programm <- convert_to_template_types(Programm, l_template$Programm)
-          Einkauf <- DB_get_table("Einkauf Kiosk", con)
-          Einkauf <- convert_to_template_types(Einkauf, l_template$`Einkauf Kiosk`)
 
-          l_temp <- convert_data_kiosk_txt(c_files, l_data$Programm, Einkauf)
+          # Read Eintritt
+          df_temp <- DB_get_table("df_Eintritt", con)
+          df_temp
           
-          df_Kiosk <- l_temp|>
-            lapply(function(x){
-              x$df_Kiosk
-            })|>
-            bind_rows(.id = "Event ID")|>
-            mutate(`Event ID` = str_extract(`Event ID`, one_or_more(DGT))|>
-                     as.integer()
-            )
+          # Convert Eintritte
+          df_temp <- convert_to_template_types(df_temp, l_template$df_Eintritt)
+          df_temp
           
-          df_test <- data_env$df_Kiosk
-          df_test <- df_test|>
-            filter((`Event ID` %in% df_temp$`Event ID`))
-          c_update <- !identical(df_temp, df_test)
-          
-          DB_copy_table(data_env$df_Kiosk, con , "df_Kiosk")
-          
-          if(c_update){
-            DB_copy_table(df_Eintritt, con , "df_Kiosk")
+          test <- !identical(df_temp|>
+                      select(-ID),
+                    data_env$df_Eintritt
+          )
+          if(test){
+            new_rows <- convert_data_Film_txt(save_path, l_template$Programm)
+            
+            new_rows <- new_rows|>
+              mutate(ID = row_number())|>
+              select("ID", "Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz [CHF]", "SUISA-Vorabzug [%]")
+            new_rows
+            
+            # updata data base
+            DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
+          }else {
+            ausgabe_text("Data already exists")
           }
+          
+          # disconnect from data base
+          dbDisconnect(con)
+          
+        } else if (str_detect(file_name, pattern = "Kiosk")){
+          # Data base user password from system variables 
+          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+          con <- DB_connect(pw, "ch367079_flo")
+          
+          # Read Eintritt
+          df_temp <- DB_get_table("df_Kiosk", con)
+          df_temp
+          
+          # Convert Eintritte
+          df_temp <- convert_to_template_types(df_temp, l_template$df_Kiosk)
+          df_temp
+          
+          test <- !identical(df_temp|>
+                               select(-ID),
+                             data_env$df_Kiosk
+          )
+          
+          Einkauf <- DB_get_table("Einkauf Kiosk", con)
+          
+          if(test){
+            new_rows <- convert_data_kiosk_txt (save_path, l_template$Programm, Einkauf)
+            
+            new_rows <- new_rows|>
+              mutate(ID = row_number())|>
+              select("ID", "Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz [CHF]", "SUISA-Vorabzug [%]")
+            new_rows
+            
+            # updata data base
+            DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
+          }else {
+            ausgabe_text("Data already exists")
+          }
+          
+          # disconnect from data base
           dbDisconnect(con)
         }
-        
-        
         return(list(type = "txt", data = readLines(file_path)))
       }
     } else if (file_ext == "csv") {
