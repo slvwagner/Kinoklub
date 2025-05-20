@@ -479,7 +479,7 @@ DB_backup_DB <- function(con) {
   return(l_data)
 }
 
-# Conversion ####
+# Convert data frame from SQL DB to R data types ####
 convert_to_template_types <- function(df_sql, df_template) {
   # Align columns (keep only those present in both data frames)
   common_cols <- intersect(colnames(df_sql), colnames(df_template))
@@ -516,7 +516,7 @@ convert_to_template_types <- function(df_sql, df_template) {
   return(df_sql)
 }
 
-# convert data from DB to R with correct conversion template
+# convert data from DB to R with correct conversion template ####
 convert_DB_to_R <- function(data,template) {
   # Convert data types for each table
   data_converted <- names(data) |>
