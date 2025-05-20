@@ -506,6 +506,8 @@ convert_to_template_types <- function(df_sql, df_template) {
       df_sql[[col]] <- as.character(df_sql[[col]])
     } else if (any(col_type == "factor")) {
       df_sql[[col]] <- as.factor(df_sql[[col]])
+    } else if(any(col_type == "logical")){
+      df_sql[[col]] <- as.logical(df_sql[[col]])
     } else {
       warning(sprintf("Unsupported data type for column '%s': %s", col, paste(col_type, collapse = ", ")))
     }
