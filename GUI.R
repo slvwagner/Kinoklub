@@ -1073,7 +1073,6 @@ server <- function(input, output, session) {
 
   })
   
-  
   ##  Button Abrechnungsjahr #####
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
@@ -1641,12 +1640,8 @@ server <- function(input, output, session) {
           ausgabe_text()
         
         if(str_detect(file_name, pattern = "Eintritte")){
-          # Data base user password from system variables 
-          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-          con <- DB_connect(pw, "ch367079_flo")
-
           # Read Eintritt
-          df_temp <- DB_get_table("df_Eintritt", con)
+          df_temp <- DB_get_table("df_Eintritt", DB_con())
           df_temp
           
           # Convert Eintritte
@@ -1658,7 +1653,7 @@ server <- function(input, output, session) {
                     data_env$df_Eintritt
           )
           if(test){
-            new_rows <- convert_data_Film_txt(save_path, l_template$Programm)
+            new_rows <- convert_data_Film_txt(save_path, DB_con())
             
             new_rows <- new_rows|>
               mutate(ID = row_number())|>
@@ -1670,17 +1665,9 @@ server <- function(input, output, session) {
           }else {
             ausgabe_text("Data already exists")
           }
-          
-          # disconnect from data base
-          dbDisconnect(con)
-          
         } else if (str_detect(file_name, pattern = "Kiosk")){
-          # Data base user password from system variables 
-          pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-          con <- DB_connect(pw, "ch367079_flo")
-          
           # Read Eintritt
-          df_temp <- DB_get_table("df_Kiosk", con)
+          df_temp <- DB_get_table("df_Kiosk", DB_con())
           df_temp
           
           # Convert Eintritte
@@ -1695,7 +1682,7 @@ server <- function(input, output, session) {
           Einkauf <- DB_get_table("Einkauf Kiosk", con)
           
           if(test){
-            new_rows <- convert_data_kiosk_txt (save_path, l_template$Programm, Einkauf)
+            new_rows <- convert_data_kiosk_txt(save_path, DB_con())
             
             new_rows <- new_rows|>
               mutate(ID = row_number())|>
@@ -1707,9 +1694,6 @@ server <- function(input, output, session) {
           }else {
             ausgabe_text("Data already exists")
           }
-          
-          # disconnect from data base
-          dbDisconnect(con)
         }
         return(list(type = "txt", data = readLines(file_path)))
       }
