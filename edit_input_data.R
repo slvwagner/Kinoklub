@@ -2045,6 +2045,7 @@ server <- function(input, output, session) {
       )
     ))
   })
+  
   #### search and take over ####  
   observeEvent(input$procinema, {
     req(input$suisa)
