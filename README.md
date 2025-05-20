@@ -1,4 +1,4 @@
-Script Version: 2025 V3.00
+Script Version: V3.00
  
 ## Kinoklub
 
@@ -55,9 +55,21 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     ```         
       setx DB_PASSWORD_KINOKLUB "your_password_here"
     ```
+    ```         
+      setx DB_host "your_password_here"
+    ```
+    ```         
+      setx DB_name "your_password_here"
+    ```
     MAC / Linux
     ```
       export DB_PASSWORD_KINOKLUB="your_password_here"
+    ```
+    ```
+      export DB_host="your_password_here"
+    ```
+    ```
+      export DB_name="your_password_here"
     ```
 7.  Run this command once in R-Terminal, error MSG can be ignored
     
