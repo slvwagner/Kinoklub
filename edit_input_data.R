@@ -109,11 +109,11 @@ server <- function(input, output, session) {
   DB_con <- shiny::reactiveVal(NULL)
   ### Database host ####
   DB_host <- shiny::reactiveVal(NULL)
-  ### Database host ####
+  ### Database name ####
   DB_name <- shiny::reactiveVal(NULL)
-  ### Database host ####
+  ### Database user ####
   DB_user <- shiny::reactiveVal(NULL)
-  ### Database host ####
+  ### Database password ####
   DB_pw <- shiny::reactiveVal(NULL)
   
   ### temp datatable to render to render modal ####
