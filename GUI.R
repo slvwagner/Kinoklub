@@ -134,8 +134,11 @@ ui <-
     ),
     # Input panel at top
     shiny::inputPanel(
-      shiny::textInput("user", "Benutzer"),
-      shiny::passwordInput("SQL_PW", "Datenbankpasswort"),
+      shiny::headerPanel("Input Kinoklub"),
+      shiny::textInput("DB_host", "Datenbank Host", value = "lx51.hoststar.hosting"),
+      shiny::textInput("DB_name", "Datenbank Name", value = "ch367079_gui"),
+      shiny::textInput("DB_user", "Datenbank Benutzer"),
+      shiny::passwordInput("DB_pw", "Datenbankpasswort"),
       shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
       shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
     ),
@@ -1026,44 +1029,48 @@ server <- function(input, output, session) {
   ### Store process for secondary app in a reactive value ####
   second_app_process <- reactiveVal(NULL)
   
-  ### Database user ####
-  DB_user <- shiny::reactiveVal(DB_user)
-  
-  ### Database password ####
-  DB_pw <- shiny::reactiveVal(DB_pw)
-  
   ### Database connection ####
-  DB_con <- shiny::reactiveVal(con)
+  DB_con <- shiny::reactiveVal(NULL)
+  ### Database host ####
+  DB_host <- shiny::reactiveVal(NULL)
+  ### Database name ####
+  DB_name <- shiny::reactiveVal(NULL)
+  ### Database user ####
+  DB_user <- shiny::reactiveVal(NULL)
+  ### Database password ####
+  DB_pw <- shiny::reactiveVal(NULL)
   
   ## Button Mit Datenbank verbinden ####
   observeEvent(input$SQL_connect, {
-    req(input$user)
-    req(input$SQL_PW)
-    DB_user(input$user)
-    DB_pw(input$SQL_PW)
-    if (!is.null(DB_con())) {
-      shiny::withProgress(message = "Running script...", value = 0, {
-        shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-        tryCatch({
-          # Connect to data base 
-          DB_connect(DB_host, DB_name, DB_user(), DB_pw(), DB_con())|>
-            DB_con()
-          
-          # read all data from Database
-          l_data <- DB_backup_DB(con)
-          # read template
-          l_template <<- readRDS("source/SQL/template.RDS")
-          # convert to R data types
-          l_data <<- convert_DB_to_R(l_data, l_template)
-          
-        }, error = function(e) {
-          showNotification(paste("load data from data base failed:"), type = "message")
-        })
-        shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+    req(input$DB_host)
+    req(input$DB_name)
+    req(input$DB_user)
+    req(input$DB_pw)
+    DB_host(input$DB_host)
+    DB_name(input$DB_name)
+    DB_user(input$DB_user)
+    DB_pw(input$DB_pw)
+    
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      tryCatch({
+        # Connect to data base 
+        DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+          DB_con()
+        
+        # read all data from Database
+        l_data <- DB_backup_DB(con)
+        # read template
+        l_template <<- readRDS("source/SQL/template.RDS")
+        # convert to R data types
+        l_data <<- convert_DB_to_R(l_data, l_template)
+        
+      }, error = function(e) {
+        showNotification(paste("load data from data base failed:"), type = "message")
       })
-    } else {
-      showNotification(paste("Already connected to Database"), type = "error")
-    }
+      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+    })
+
   })
   
   
