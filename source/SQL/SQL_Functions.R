@@ -532,3 +532,107 @@ convert_DB_to_R <- function(data,template) {
   names(data_converted) <- names(data)
   return(data_converted)
 }
+
+
+# Add one or more rows to a database table
+DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
+  # Validate inputs
+  if (!DBI::dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
+  if (!DBI::dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
+  
+  # Convert single row to data frame if needed
+  if (!is.data.frame(new_rows) && is.list(new_rows) && !is.null(names(new_rows))) {
+    new_rows <- as.data.frame(new_rows, stringsAsFactors = FALSE)
+  }
+  
+  if (!is.data.frame(new_rows)) {
+    stop("new_rows must be a data frame or named list.")
+  }
+  
+  # Get table information
+  table_info <- DB_describe_table(con, table_name)
+  col_names <- table_info$Field
+  
+  # Check if all columns exist in the table
+  invalid_cols <- setdiff(names(new_rows), col_names)
+  if (length(invalid_cols) > 0) {
+    stop("The following columns don't exist in the table: ", 
+         paste(invalid_cols, collapse = ", "))
+  }
+  
+  # Check required columns (non-NULL columns without defaults)
+  required_cols <- table_info |> 
+    filter(Null == "NO" & is.na(Default)) |> 
+    pull(Field)
+  
+  missing_cols <- setdiff(required_cols, names(new_rows))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+  
+  # Replace single quotes with backticks to prevent SQL injection
+  new_rows <- new_rows |>
+    mutate(
+      across(
+        where(is.character), ~ stringr::str_replace_all(.x, "'", "´"))
+    )
+  
+  # Split into batches for more efficient insertion
+  total_rows <- nrow(new_rows)
+  batches <- split(new_rows, (seq_len(total_rows) - 1) %/% batch_size)
+  
+  success_count <- 0
+  
+  for (batch in batches) {
+    # Prepare the SQL query for batch insert
+    sql_cols <- paste0("`", names(batch), "`", collapse = ", ")
+    
+    # Prepare values for each row
+    value_rows <- apply(batch, 1, function(row) {
+      values <- sapply(row, function(val) {
+        if (is.na(val) || is.null(val)) {
+          "NULL"
+        } else if (is.character(val)) {
+          paste0("'", val, "'")
+        } else if (inherits(val, "Date")) {
+          paste0("'", as.character(val), "'")
+        } else if (inherits(val, "hms") || inherits(val, "difftime")) {
+          paste0("'", as.character(val), "'")
+        } else if (inherits(val, "POSIXct") || inherits(val, "POSIXlt")) {
+          paste0("'", format(val, "%Y-%m-%d %H:%M:%S"), "'")
+        } else if (is.logical(val)) {
+          as.character(as.integer(val))
+        } else {
+          as.character(val)
+        }
+      })
+      paste0("(", paste(values, collapse = ", "), ")")
+    })
+    
+    # Combine all value rows
+    values_sql <- paste(value_rows, collapse = ", ")
+    
+    # Build and execute the query
+    sql_query <- sprintf(
+      "INSERT INTO `%s` (%s) VALUES %s",
+      table_name, sql_cols, values_sql
+    )
+    
+    tryCatch({
+      DBI::dbExecute(con, sql_query)
+      success_count <- success_count + nrow(batch)
+    }, error = function(e) {
+      warning("Failed to insert batch: ", e$message)
+    })
+  }
+  
+  message(sprintf("Successfully inserted %d of %d rows into '%s'",
+                  success_count, total_rows, table_name))
+  
+  invisible(success_count)
+}
