@@ -227,7 +227,7 @@ server <- function(input, output, session) {
       filter(between(Datum, as.Date(start), as.Date(end)))
     if(!is.null(...)){
       df_mapping <- df_mapping|>
-        filter(`Event ID` == ...)
+        filter(`Event ID` %in% ...)
     }
     
     

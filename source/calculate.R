@@ -45,6 +45,9 @@ Ausgaben <- DB_get_table("Ausgaben", con)|>
 Verleiher <- DB_get_table("Verleiher",con)|>
   convert_to_template_types(l_template$Verleiher)
 
+Lieferant <- DB_get_table("Lieferanten",con)|>
+  convert_to_template_types(l_template$Lieferanten)
+
 `Platzkategorien zum Verrechnen` <- DB_get_table("Platzkategorien zum Verrechnen",con)
 `Platzkategorien zum Verrechnen`
 
@@ -136,14 +139,42 @@ df_manko_uerberschuss <- df_Kiosk|>
   select(`Event ID`, `Überschuss / Manko [CHF]`)
 df_manko_uerberschuss
 
-# check if all Kiosk entry can be joined by `Event ID` ####
-if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
-  df_temp <- df_Kiosk|>
-    filter(is.na(`Event ID`))|>
-    distinct(`Event ID`, .keep_all = TRUE )
-  df_temp
-  stop("\nFür den Film mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " gibt es keinen Programmeintrag.\nBitte das Programm korrigieren!\n")
-}
+# Spez Verkaufsartikel / Spezialpreise einlesen ####
+## Spezialpreise einlesen ####
+df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con) 
+df_Spezialpreisekiosk <- df_Spezialpreisekiosk|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+         Spezialpreis = as.character(Spezialpreis)
+  )|>
+  arrange(`Event ID`, Spezialpreis)
+df_Spezialpreisekiosk
+
+# Spezialpreise in Kiosk daten finden
+df_spez_preis <- df_Kiosk|>
+  filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
+  arrange(`Event ID`)
+df_spez_preis
+# join Filmtitel
+df_spez_preis <- df_spez_preis|>
+  left_join(Programm|>
+              select(`Event ID`,Filmtitel),
+            by = join_by(`Event ID`)
+  )|>
+  left_join( # look up Spezialpreise
+    df_Spezialpreisekiosk,
+    by = c("Event ID", `Verkaufsartikel` = "Spezialpreis")
+  )
+df_spez_preis
+
+## Sind alle Spezialpreise pro `Event ID` definiert? ####
+df_spez_preis_na <- df_spez_preis|>
+  filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
+  arrange(`Event ID`, `Artikelname-Kassensystem`)
+df_spez_preis_na
+
+df_spez_preis_na <- df_spez_preis_na|>
+  filter(is.na(Artikelname))
+df_spez_preis_na
 
 # Abos und Kinogutscheine ####
 ## Kino-Abo ####
@@ -211,7 +242,7 @@ if(nrow(df_temp)>0){
 }
 
 
-# Abrechnung check ####
+# Error handling ####
 ## Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?) ####
 df_Abrechnung <- Programm|>
   select(1:11)|>
@@ -232,6 +263,7 @@ df_Abrechnung <-
               rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
             by = join_by( `Event ID`)
   )
+df_Abrechnung
 
 ## error handling ####
 df_temp <- df_Abrechnung|>
@@ -458,7 +490,7 @@ df_Abrechnung <- df_Abrechnung|>
   )
 
 df_Abrechnung|>
-  select(1:3, `Umsatz [CHF]`,`Verleiherrechnungsbetrag [CHF]`, 15:ncol(df_Abrechnung))
+  select(1:3, `Umsatz [CHF]`, 17:ncol(df_Abrechnung))
 
 
 ## Kioskgewinn der Abrechnung hinzufügen ####
@@ -473,12 +505,19 @@ df_Abrechnung <- left_join(df_Abrechnung,
 )  
 df_Abrechnung
 
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`, 18:ncol(df_Abrechnung))
+
+
 ## Manko / Überschuss Kasse der Abrechnung hinzufügen ####
 df_Abrechnung <- left_join(df_Abrechnung, 
                            df_manko_uerberschuss,
                            by = join_by(`Event ID`)
                            )  
 df_Abrechnung
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`, 20:ncol(df_Abrechnung))
+
 
 ## Eventeinnahmen der Abrechnung hinzufügen ####
 df_temp <- Einnahmen|>
@@ -491,6 +530,9 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            df_temp,
                            by = join_by(`Event ID`)
 )  
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`, 20:ncol(df_Abrechnung))
+
 
 ## Eventausgaben der Abrechnung hinzufügen ####
 df_temp <- Ausgaben|>
@@ -503,6 +545,8 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            df_temp,
                            by = join_by(`Event ID`)
 )
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`, 20:ncol(df_Abrechnung))
 
 ## Gewinn aus Filmvorführungen ####
 df_temp <- df_Abrechnung|>
@@ -513,6 +557,9 @@ df_temp <- df_Abrechnung|>
   )
 df_temp
 df_Abrechnung <- left_join(df_Abrechnung, df_temp, by = join_by(`Event ID`))
+
+df_Abrechnung|>
+  select(1:3, `Umsatz [CHF]`, 20:ncol(df_Abrechnung))
 
 # Gemeinsame Verleiherabrechnung über mehrere Event IDs ####
 df_mapping <- df_Abrechnung|>
@@ -562,7 +609,9 @@ for (ID in names(l_abrechnung)) {
   l_abrechnung[[cnt]] <- 
     list(
       Gemeinsame_Abrechnung = Gemeinsame_Abrechnung,
-      Eintritte = Eintritte
+      Eintritte = Eintritte,
+      Kiosk = df_Kiosk|>
+        filter(`Event ID` %in% IDs)
     )
   cnt <- cnt + 1
 }
@@ -625,7 +674,6 @@ list(`Werbung` = df_Besucherzahlen,
      `Filmvorführung` = df_Abrechnung
 )|>
   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
-
 
 # remove not used variables ####
 remove(ii,

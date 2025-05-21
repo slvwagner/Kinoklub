@@ -265,7 +265,7 @@ df_temp|>
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 
 ```{r}
-df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
+df_temp <- Einnahmen|>
   filter(`Event ID` == ii,
          Kategorie == "Event")|>
   # rename(`Betrag [CHF]` = Betrag)|>
@@ -300,15 +300,13 @@ Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, 
 ```{r echo=FALSE}
 df_temp <- df_Kiosk|>
   filter(`Event ID` == ii,
-         )|>
-  rename(`Gewinn [CHF]` = Gewinn
          )
 ```
 
 ```{r echo=FALSE}
 df_temp1 <-  df_temp|>
   filter(!is.na(Lieferant))|>
-  select(Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`, `Einkaufspreis [CHF]`, Lieferant, `Gewinn [CHF]`)
+  select(Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`, `Einkaufspreis [CHF]`, Lieferant, `Gewinn [CHF]`)
 
 df_temp1|>
   knitr::kable()
@@ -346,17 +344,17 @@ if(df_temp3|>nrow()){
 ```{r echo=FALSE}
 df_temp2 <- df_temp|>
   filter(is.na(Lieferant))|>
-  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
 
 df_temp2|>
-  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Kassiert [CHF]`)|>
+  select(Verkaufsartikel,`Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)|>
   knitr::kable()
 ```
 
 
 ```{r echo=FALSE}
 df_temp2 <- df_temp2|>
-  reframe(`Summe [CHF]` = sum(`Kassiert [CHF]`, na.rm = T)|>round5Rappen())
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)|>round5Rappen())
   
 df_temp2|>
   knitr::kable()
@@ -367,7 +365,7 @@ df_temp2|>
 Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 
 ```{r echo=FALSE}
-df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
+df_temp <- Ausgaben|>
   filter(`Event ID` == ii)
 
 
@@ -394,7 +392,7 @@ Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
 ```{r echo=FALSE}
 Manko <- df_manko_uerberschuss|>
   filter(`Event ID` == ii)|>
-  rename(`Summe [CHF]` = `Überschuss / Manko`)
+  rename(`Summe [CHF]` = `Überschuss / Manko [CHF]`)
 if(nrow(Manko) < 1) tibble(Manko = 0)
 
 ```
