@@ -17,12 +17,9 @@ footer {
   color: #f4cccc;
 }
 
-/*
-code {
-  background-color: #ff2f3b;
-  color: black;
+.modal-content {
+  background-color: #330937;
 }
-*/
 
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */

@@ -225,6 +225,7 @@ server <- function(input, output, session) {
       select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
       mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
       filter(between(Datum, as.Date(start), as.Date(end)))
+    
     if(!is.null(...)){
       df_mapping <- df_mapping|>
         filter(`Event ID` %in% ...)
@@ -1119,7 +1120,7 @@ server <- function(input, output, session) {
       # User interaction
       showModal(
         modalDialog(
-          title = "Bitte eine Zeile markieren",
+          title = "Bitte eine Zeile in der Tabelle markieren",
           easyClose = TRUE,
           footer = modalButton("Abbrechen")
         )
@@ -1226,6 +1227,25 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Verleiherrechnung, {
     # Execution time 
     c_time <- Sys.time()
+    
+    # Execution time 
+    c_time <- Sys.time()
+    if(is.null(input$dateTable_rows_selected)){
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile in der Tabelle markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(input$dateTable_rows_selected) # exit early from the function
+    }else{
+      input$dateTable_cells_selected
+      df_mapping <- current_data()[input$dateTable_rows_selected,]
+      df_mapping
+    }
+    
     if(!is.null(data_env$df_Abrechnung)){
       shiny::withProgress(message = "Script running... ", value = 0, {
         shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
@@ -1249,16 +1269,28 @@ server <- function(input, output, session) {
           
           # Verleiherrechnung erstellen mit dateRange user input
           tryCatch({
-            df_mapping__ <- 
-              Abrechnung_mapping(
-                data_env,
-                start_datum, end_datum
-              )
+            
+            if(r_is.defined(df_mapping)){
+              df_mapping__ <- 
+                Abrechnung_mapping(
+                  data_env,
+                  start_datum, end_datum,
+                  df_mapping$`Event ID`
+                )
+            } else {
+              df_mapping__ <- 
+                Abrechnung_mapping(
+                  data_env,
+                  start_datum, end_datum
+                )
+            }
+ 
             df_mapping__ <- df_mapping__|>
               filter(!`Kinoförderer gratis?`)
             
             shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
             if(nrow(df_mapping__) > 0){
+
               VerleiherabrechnungErstellen(
                 df_mapping__
               )
@@ -1274,6 +1306,9 @@ server <- function(input, output, session) {
                   )
                 )
               })
+            } else {
+              ausgabe_text("\nFür diesen Film muss keine Verleiherrechnug erzeugt werden.
+                           \nFall doch muss die Tabelle `Verleiher` in der Sektion Dropdowns geändert werden: Spalte `Kinoförderer gratis`")
             }
           }, error = function(e) {
             ausgabe_text(
