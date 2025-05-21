@@ -1611,7 +1611,23 @@ server <- function(input, output, session) {
               str(test)
             )
           
-          new_rows_ <- anti_join(new_rows, test)
+          new_rows_ <-
+            anti_join(
+              new_rows,
+              test,
+              by = join_by(
+                `Event ID`,
+                Datum,
+                Suisanummer,
+                Filmtitel,
+                Platzkategorie,
+                Zahlend,
+                Verkaufspreis,
+                Anzahl,
+                `Umsatz [CHF]`,
+                `SUISA-Vorabzug [%]`
+              )
+            )
           
           if(nrow(new_rows_) > 0){
             # updata data base
@@ -1641,7 +1657,28 @@ server <- function(input, output, session) {
               str(test)
               )
 
-          new_rows_ <- anti_join(new_rows, test)
+          new_rows_ <- 
+            anti_join(
+              new_rows,
+              test,
+              by = join_by(
+                `Event ID`,
+                Datum,
+                ID_Kioskartikel,
+                `Artikelname-Kassensystem`,
+                Verkaufsartikel,
+                `Verkaufspreis [CHF]`,
+                Menge,
+                `Einkaufspreis [CHF]`,
+                Lieferant,
+                `Gültig ab Datum`,
+                `Einzelpreis [CHF]`,
+                Anzahl,
+                `Umsatz [CHF]`,
+                `Gewinn [CHF]`,
+                `Überschuss / Manko [CHF]`
+              )
+            )
           
           if(nrow(new_rows_) > 0){
             DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
