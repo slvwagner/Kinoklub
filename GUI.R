@@ -219,12 +219,17 @@ server <- function(input, output, session) {
   }
   
   ### Index pro Suisa-Nummer und Datum erstellen ####
-  Abrechnung_mapping <- function(data_env, start, end) {
+  Abrechnung_mapping <- function(data_env, start, end, ...) {
     # Soll die Verleiherabrechnung erzeugt werden?
     df_mapping <- data_env$df_Abrechnung |>
       select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
       mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
       filter(between(Datum, as.Date(start), as.Date(end)))
+    if(!is.null(...)){
+      df_mapping <- df_mapping|>
+        filter(`Event ID` == ...)
+    }
+    
     
     if(nrow(df_mapping) > 0){
       df_mapping <- df_mapping|>
@@ -1015,6 +1020,8 @@ server <- function(input, output, session) {
   ### Store process for secondary app in a reactive value ####
   second_app_process <- reactiveVal(NULL)
   
+  current_data <- reactiveVal(NULL)
+  
   ### Database connection ####
   DB_con <- shiny::reactiveVal(con)
   ### Database host ####
@@ -1026,6 +1033,12 @@ server <- function(input, output, session) {
   ### Database password ####
   DB_pw <- shiny::reactiveVal(DB_pw)
 
+  
+  ## Abort: do nothing! ####
+  observeEvent(input$abort,{
+    removeModal()
+  })
+  
   ##  Button: Abrechnungsjahr #####
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
@@ -1102,6 +1115,22 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
+    if(is.null(input$dateTable_rows_selected)){
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(input$dateTable_rows_selected) # exit early from the function
+    }else{
+      input$dateTable_cells_selected
+      df_mapping <- current_data()[input$dateTable_rows_selected,]
+      df_mapping
+    }
+    
     if(!is.null(data_env$df_Abrechnung)){
       shiny::withProgress(message = "Script running... ", value = 0, {
         shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
@@ -1125,11 +1154,21 @@ server <- function(input, output, session) {
           
           # Filmabrechnungen erstellen mit dateRange user input
           tryCatch({
-            df_mapping__ <- 
-              Abrechnung_mapping(
-                data_env,
-                start_datum, end_datum
-              )
+            if(r_is.defined(df_mapping)){
+              df_mapping__ <- 
+                Abrechnung_mapping(
+                  data_env,
+                  start_datum, end_datum,
+                  df_mapping$`Event ID`
+                )
+            } else {
+              df_mapping__ <- 
+                Abrechnung_mapping(
+                  data_env,
+                  start_datum, end_datum
+                )
+            }
+            
             shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
             AbrechnungErstellen(
               df_mapping__,
@@ -1630,6 +1669,10 @@ server <- function(input, output, session) {
             )
           
           if(nrow(new_rows_) > 0){
+            c_ID <- max(df_temp$ID) + 1L
+            new_rows_ <- 
+              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
+              )
             # updata data base
             DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
           } 
@@ -1681,6 +1724,10 @@ server <- function(input, output, session) {
             )
           
           if(nrow(new_rows_) > 0){
+            c_ID <- max(df_temp$ID) + 1L
+            new_rows_ <- 
+              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
+                        )
             DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
           }
         }
@@ -1734,6 +1781,8 @@ server <- function(input, output, session) {
         mutate(Datum = format(Datum, "%d.%m.%Y"),
                Zeit = format(Zeit, "%H%M")) |>
         select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer)
+      
+      current_data(df_temp)
       
       datatable(
         df_temp,
