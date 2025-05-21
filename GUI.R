@@ -135,9 +135,9 @@ ui <-
     # Input panel at top
     shiny::inputPanel(
       shiny::headerPanel("Input Kinoklub"),
-      shiny::textInput("DB_host", "Datenbank Host", value = "lx51.hoststar.hosting"),
-      shiny::textInput("DB_name", "Datenbank Name", value = "ch367079_gui"),
-      shiny::textInput("DB_user", "Datenbank Benutzer"),
+      shiny::textInput("DB_host", "Datenbank Host", value = DB_host),
+      shiny::textInput("DB_name", "Datenbank Name", value = DB_name),
+      shiny::textInput("DB_user", "Datenbank Benutzer", value = DB_user),
       shiny::passwordInput("DB_pw", "Datenbankpasswort"),
       shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
       shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
@@ -1040,7 +1040,7 @@ server <- function(input, output, session) {
   ### Database password ####
   DB_pw <- shiny::reactiveVal(NULL)
   
-  ## Button Mit Datenbank verbinden ####
+  ## Button: Mit Datenbank verbinden ####
   observeEvent(input$SQL_connect, {
     req(input$DB_host)
     req(input$DB_name)
@@ -1073,7 +1073,7 @@ server <- function(input, output, session) {
 
   })
   
-  ##  Button Abrechnungsjahr #####
+  ##  Button: Abrechnungsjahr #####
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
@@ -1100,7 +1100,7 @@ server <- function(input, output, session) {
     shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
 
-  ##  Button Daten Einlesen #####
+  ##  Button: Daten Einlesen #####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
     c_time <- Sys.time()
@@ -1145,7 +1145,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button Filmabrechnung(en) erstellen #####
+  ## Button: Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1230,7 +1230,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Button Verleiherabrechnung(en) erstellen #####
+  ## Button: Verleiherabrechnung(en) erstellen #####
   shiny::observeEvent(input$Verleiherrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1319,7 +1319,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Überwachung Button Statistik #####
+  ## Button: Statistik #####
   shiny::observeEvent(input$Statistik, {
     # Execution time 
     c_time <- Sys.time()
@@ -1368,7 +1368,7 @@ server <- function(input, output, session) {
     
   })
   
-  ## Überwachung Button Jahresrechnung #####
+  ## Button: Jahresrechnung #####
   shiny::observeEvent(input$Jahresrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1408,7 +1408,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Download Handler Werbung #####
+  ## Button: Download Handler Werbung #####
   output$downloadExcel <- downloadHandler(
     filename = function() {
       "Werbung.xlsx"
@@ -1423,7 +1423,7 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Button Wordpress #####
+  ## Button: Wordpress #####
   shiny::observeEvent(input$wordpress, {
     # Execution time 
     c_time <- Sys.time()
@@ -1463,7 +1463,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button "Alles erstellen" #####
+  ## Button: "Alles erstellen" #####
   shiny::observeEvent(input$ErstelleAbrechnung, {
     # Execution time 
     c_time <- Sys.time()
@@ -1570,7 +1570,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button Handler Wordpress #####
+  ## Button: Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
@@ -1668,26 +1668,22 @@ server <- function(input, output, session) {
         } else if (str_detect(file_name, pattern = "Kiosk")){
           # Read Eintritt
           df_temp <- DB_get_table("df_Kiosk", DB_con())
-          df_temp
           
           # Convert Eintritte
           df_temp <- convert_to_template_types(df_temp, l_template$df_Kiosk)
-          df_temp
           
           test <- !identical(df_temp|>
                                select(-ID),
                              data_env$df_Kiosk
           )
           
-          Einkauf <- DB_get_table("Einkauf Kiosk", con)
+          Einkauf <- DB_get_table("Einkauf Kiosk", DB_con())
           
           if(test){
             new_rows <- convert_data_kiosk_txt(save_path, DB_con())
-            
+            slvwagner::r_names(new_rows)
             new_rows <- new_rows|>
-              mutate(ID = row_number())|>
-              select("ID", "Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz [CHF]", "SUISA-Vorabzug [%]")
-            new_rows
+              mutate(ID = row_number())
             
             # updata data base
             DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
