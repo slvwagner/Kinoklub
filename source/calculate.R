@@ -14,7 +14,6 @@ source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
 # read template data ######
-# read template
 l_template <- readRDS("source/SQL/template.Rds")
 
 # connect to data base ####
@@ -100,10 +99,7 @@ if(nrow(df_temp) != nrow(Programm)){
               "\nEs ist aber nur einer erlaubt pro Datum und Suisanummer. Bitte das Proramm korrigieren!"))
 }
 
-# Einnahmen und Ausgaben einlesen ##################
-
-# check suisanummer  ##################
-## error handling
+## check suisanummer  ####
 p <- or(DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
         WRD%R%WRD%R%WRD%R%WRD%R%DOT%R%WRD%R%WRD%R%WRD
 )
@@ -122,8 +118,7 @@ if(nrow(df_temp) != 0) {
   )}
 
 
-# Eintritt aus Advanced Tickets ####
-# files to read in
+## Eintritt aus Advanced Tickets ####
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 
 # error handling
@@ -134,27 +129,14 @@ if(is_empty(c_files)) {
   )
 }
 
-df_Eintritt
 
-# # Kiosk ####
-# c_path <- "input/advance tickets"
-# c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
-# 
-# df_Kiosk <- convert_data_kiosk_txt(c_files, con)
-# 
-# l_template$df_Kiosk <- df_Kiosk|>
-#   slice(1)
-# saveRDS(l_template,"source/SQL/template.Rds")
-# 
-# # upload data to data base
-# DB_copy_table(df_Kiosk,con, "df_Kiosk")
-
+# Überschuss / Manko ####
 df_manko_uerberschuss <- df_Kiosk|>
   distinct(`Event ID`,.keep_all = TRUE)|>
   select(`Event ID`, `Überschuss / Manko [CHF]`)
 df_manko_uerberschuss
 
-# check if all Kiosk entry can be joined by `Event ID`
+# check if all Kiosk entry can be joined by `Event ID` ####
 if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
   df_temp <- df_Kiosk|>
     filter(is.na(`Event ID`))|>
@@ -163,7 +145,8 @@ if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
   stop("\nFür den Film mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " gibt es keinen Programmeintrag.\nBitte das Programm korrigieren!\n")
 }
 
-# Abos und Kinogutscheine #########
+# Abos und Kinogutscheine ####
+## Kino-Abo ####
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
   warning(paste0("\nDie Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
                  "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
@@ -180,6 +163,8 @@ if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
   warning(paste("\nDie Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
                 "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de\n"))
 }
+
+## Kinoförderer ####
 df_atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt",
                                        delim = "\t", escape_double = FALSE,
                                        col_types = cols(creation = col_date(format = "%Y-%m-%d"),
@@ -192,6 +177,7 @@ if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) {
   warning(paste("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.",
                 "\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de\n"))
 }
+## Kinogutscheine ####
 df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt",
                                        delim = "\t", escape_double = FALSE,
                                        col_types = cols(creation = col_date(format = "%Y-%m-%d"),
@@ -202,7 +188,7 @@ df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutsch
                                        trim_ws = TRUE)
 
 
-# Verleiherabgaben einlesen ##################
+# Verleiherabgaben ####
 df_temp <- Programm|>
   select(1:11,-`Link to Event ID`)|>
   left_join(Verleiher|>
@@ -210,12 +196,12 @@ df_temp <- Programm|>
             by = c("Verleiher" = "Verleihername"))
 df_temp
 
-# Suisa automatisch korrigieren
+## Suisa automatisch korrigieren ####
 df_temp$Suisanummer <- df_temp$Suisanummer|>
   str_squish()|>
   str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT)
 
-# error handling
+## error handling ####
 df_temp <- df_temp|>
   filter(is.na(Verleiher))
 
@@ -225,9 +211,8 @@ if(nrow(df_temp)>0){
 }
 
 
-# Abrechnung check ################
-
-# Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?)
+# Abrechnung check ####
+## Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?) ####
 df_Abrechnung <- Programm|>
   select(1:11)|>
   left_join(Verleiher|>
@@ -237,7 +222,7 @@ df_Abrechnung <- Programm|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
 df_Abrechnung
 
-# Verleiherrechnung
+## Verleiherrechnung ####
 df_Abrechnung <-
   df_Abrechnung|>
   left_join(Ausgaben|>
@@ -247,13 +232,8 @@ df_Abrechnung <-
               rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
             by = join_by( `Event ID`)
   )
-df_Abrechnung
 
-# paste0("\"",names(df_Abrechnung),"\"")|>
-#   paste0(collapse = ",")|>
-#   writeLines()
-
-# error handling
+## error handling ####
 df_temp <- df_Abrechnung|>
   filter(is.na(`Event ID`))|>
   slice(1)
@@ -266,8 +246,8 @@ if(nrow(df_temp) > 0){
   )
 }
 
-# Errorhandling
-# kein prozentualer noch fixer abzug definiert
+
+## kein prozentualer noch fixer abzug definiert ####
 df_temp <- df_Abrechnung|>
   filter(is.na(`Abzug [%]`) & is.na(`Abzug fix [CHF]`),
          `Verleiher Angefragt?` != "Wird nicht gespielt")
@@ -282,7 +262,7 @@ if(nrow(df_temp)>0){
   )
 }
 
-# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde)
+## kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde) ####
 df_temp <- df_Abrechnung|>
   filter(is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
@@ -294,7 +274,7 @@ if(nrow(df_temp)>0) warning(paste0("\nFür den Film ID ", df_temp$`Event ID`," /
 )
 )
 
-# Prozentualer und Fixer Abzug definiert
+## Prozentualer und Fixer Abzug definiert ####
 df_temp <- df_Abrechnung|>
   filter(!is.na(`Abzug [%]`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
@@ -308,7 +288,7 @@ if(nrow(df_temp)>0){
   )
 }
 
-# minimal und Fixer Abzug definiert
+## minimal und Fixer Abzug definiert ####
 df_temp <- df_Abrechnung|>
   filter(!is.na(`Minimal Abzug [CHF]`) & !is.na(`Abzug fix [CHF]`))|>
   distinct(Filmtitel,.keep_all = T)
@@ -322,15 +302,14 @@ if(nrow(df_temp)>0){
   )
 }
 
-# error handling
-# Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
+## Verleiherrechnungbetrag ist kleiner als minimaler Abzug. ####
 df_temp <- df_Abrechnung|>
   mutate(`Minimal Abzug unterschritten` = `Minimal Abzug [CHF]`> `Verleiherrechnungsbetrag [CHF]`,
          `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
   )|>
   filter(`Minimal Abzug unterschritten`)
 
-# error handling, keine Verleiherrechnung
+## error handling, keine Verleiherrechnung ####
 if(nrow(df_temp) > 0) {
   warning(paste0("\nAchtung für den Film ID ", df_temp$`Event ID`, " / ", df_temp$Filmtitel," am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
                  "\nist der Verleiherrechnungsbetrag ",df_temp$`Verleiherrechnungsbetrag [CHF]`,"[CHF] kleiner als die Mindestgarantie ",df_temp$`Minimal Abzug [CHF]`,"[CHF].",
@@ -339,7 +318,7 @@ if(nrow(df_temp) > 0) {
   )
 }
 
-# error handling Verleiherrechnung nicht vorhanden
+## error handling Verleiherrechnung nicht vorhanden ####
 df_temp <- df_Abrechnung|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_temp
@@ -389,8 +368,7 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
-#  Ticketabrechnung vorbereiten ##################
-
+#  Ticketabrechnung vorbereiten ####
 df_Abrechnung <- df_Abrechnung|>
   filter(Datum <= Sys.Date(),
          `Verleiher Angefragt?` == "Bestätigt") # Nur Filme abrechnen welche bereits vorgeführt wurden
@@ -427,7 +405,7 @@ df_Tickets <- df_Eintritt|>
   arrange(Datum)
 
 
-# Umsatz aus Tickets zu Abrechnung hinzufügen ####
+## Umsatz aus Tickets zu Abrechnung hinzufügen ####
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T),
@@ -442,7 +420,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
                           by = join_by(`Event ID`)
 )
 
-# Suisavorabzug der Abrechnung hinzufügen ####
+## Suisavorabzug der Abrechnung hinzufügen ####
 df_temp <- df_Tickets|>
   group_by(`Event ID`)|>
   distinct(`SUISA-Vorabzug [%]`)
@@ -454,7 +432,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
 remove(df_Tickets)
 
 
-# Umsatz und Verleiherabzug MWST und Ticketgewinn #####
+## Umsatz und Verleiherabzug MWST und Ticketgewinn #####
 names(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
@@ -483,7 +461,7 @@ df_Abrechnung|>
   select(1:3, `Umsatz [CHF]`,`Verleiherrechnungsbetrag [CHF]`, 15:ncol(df_Abrechnung))
 
 
-# Kioskgewinn der Abrechnung hinzufügen 
+## Kioskgewinn der Abrechnung hinzufügen ####
 df_temp <- df_Kiosk|>
   group_by(`Event ID`)|>
   reframe(`Kioskgewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = T))
@@ -495,14 +473,14 @@ df_Abrechnung <- left_join(df_Abrechnung,
 )  
 df_Abrechnung
 
-# Manko / Überschuss Kasse der Abrechnung hinzufügen ####
+## Manko / Überschuss Kasse der Abrechnung hinzufügen ####
 df_Abrechnung <- left_join(df_Abrechnung, 
                            df_manko_uerberschuss,
                            by = join_by(`Event ID`)
                            )  
 df_Abrechnung
 
-# Eventeinnahmen der Abrechnung hinzufügen ####
+## Eventeinnahmen der Abrechnung hinzufügen ####
 df_temp <- Einnahmen|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
@@ -514,7 +492,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )  
 
-# Eventausgaben der Abrechnung hinzufügen ####
+## Eventausgaben der Abrechnung hinzufügen ####
 df_temp <- Ausgaben|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
@@ -526,7 +504,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )
 
-# Gewinn aus Filmvorführungen ####
+## Gewinn aus Filmvorführungen ####
 df_temp <- df_Abrechnung|>
   group_by(`Event ID`)|>
   reframe(`Gewinn aus Fimvorführung [CHF]` = 
@@ -542,32 +520,32 @@ df_mapping <- df_Abrechnung|>
   mutate(`Link to Event ID` = as.character(`Link to Event ID`)|>as.integer())
 df_mapping
 
-# find all connected Filmvorführungen from Programm and remove all already connected
+## find all connected Filmvorführungen from Programm and remove all already connected ####
 l_abrechnung <- inspect_link_ids(df_mapping)
 
 l_gemeinsame_Abrechnung_IDs <- l_abrechnung
 l_gemeinsame_Abrechnung_IDs
 l_abrechnung[[1]]
 
+## Gemeinsame Abrechnung ####
 ID <- 1
 cnt <- 1
 for (ID in names(l_abrechnung)) {
-  # Event ID`s 
+  ### Event ID`s ####
   IDs <- l_abrechnung[[ID]]
-  
-  ## Gemeinsame Abrechnung ####
+
   Gemeinsame_Abrechnung <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)
   Gemeinsame_Abrechnung
   
-  ## Eintritte ####
+  ### Eintritte ####
   Eintritte <- df_Eintritt|> 
     select(- `SUISA-Vorabzug [%]`)|>
     filter(`Event ID` %in% IDs)|>
     select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
   
   
-  ## Summary Eintritte  ####
+  ### Summary Eintritte  ####
   Eintritte <- Eintritte|>
     group_by(Platzkategorie)|>
     reframe(Anzahl = sum(Anzahl),
@@ -580,7 +558,7 @@ for (ID in names(l_abrechnung)) {
     select("Platzkategorie", "Anzahl", "Verkaufspreis", "Umsatz [CHF]")|>
     rename(`Verkaufspreis [CHF]` = Verkaufspreis)
   
-  # return ####
+  ### return ####
   l_abrechnung[[cnt]] <- 
     list(
       Gemeinsame_Abrechnung = Gemeinsame_Abrechnung,
