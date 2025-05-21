@@ -1016,15 +1016,15 @@ server <- function(input, output, session) {
   second_app_process <- reactiveVal(NULL)
   
   ### Database connection ####
-  DB_con <- shiny::reactiveVal(NULL)
+  DB_con <- shiny::reactiveVal(con)
   ### Database host ####
-  DB_host <- shiny::reactiveVal(NULL)
+  DB_host <- shiny::reactiveVal(DB_host)
   ### Database name ####
-  DB_name <- shiny::reactiveVal(NULL)
+  DB_name <- shiny::reactiveVal(DB_name)
   ### Database user ####
-  DB_user <- shiny::reactiveVal(NULL)
+  DB_user <- shiny::reactiveVal(DB_user)
   ### Database password ####
-  DB_pw <- shiny::reactiveVal(NULL)
+  DB_pw <- shiny::reactiveVal(DB_pw)
 
   ##  Button: Abrechnungsjahr #####
   ### 1 ####  
@@ -1594,17 +1594,15 @@ server <- function(input, output, session) {
         
         if(str_detect(file_name, pattern = "Eintritte")){
           # Read Eintritt
-          df_temp <- DB_get_table("df_Eintritt", DB_con())
+          df_temp <- DB_get_table("df_Eintritt", DB_con())|>
+            convert_to_template_types(l_template$df_Eintritt)
           df_temp
           
-          # Convert Eintritte
-          df_temp <- convert_to_template_types(df_temp, l_template$df_Eintritt)
-          df_temp
-          
-          test <- !identical(df_temp|>
+          test <- identical(df_temp|>
                       select(-ID),
                     data_env$df_Eintritt
-          )
+                    )
+          
           if(test){
             new_rows <- convert_data_Film_txt(save_path, DB_con())
             
@@ -1620,8 +1618,9 @@ server <- function(input, output, session) {
           }
         } else if (str_detect(file_name, pattern = "Kiosk")){
           # Read Eintritt
-          df_temp <- DB_get_table("df_Kiosk", DB_con())
-          
+          df_temp <- DB_get_table("df_Kiosk", con)|>
+            convert_to_template_types(l_template$df_Kiosk)
+  
           # Convert Eintritte
           df_temp <- convert_to_template_types(df_temp, l_template$df_Kiosk)
           
