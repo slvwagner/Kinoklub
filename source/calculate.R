@@ -659,5 +659,3 @@ dbDisconnect(con)
 
 # user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
-
-l_abrechnung$`10`
