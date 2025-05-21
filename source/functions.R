@@ -923,8 +923,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
                          filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
                          mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
                        df_temp|>
-                         filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))
-  )|>
+                         filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz")))|>
     arrange(ID)
   df_temp <- df_temp|>
     mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
