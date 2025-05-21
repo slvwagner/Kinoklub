@@ -21,7 +21,6 @@ footer {
   background-color: #330937;
 }
 
-
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
   text-decoration: none; /* Optional: Remove the default underline */
@@ -81,12 +80,3 @@ pre{
   background-color: #330937;
 }
 
-/*
-.selectize-dropdown,.selectize-dropdown.form-control {
-  color: #040404;
-}
-
-.selectize-input.full {
-  background-color: #935795;
-}
-*/
