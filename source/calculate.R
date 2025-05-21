@@ -23,16 +23,41 @@ DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-# Data for GUI
-l_data <- DB_get_Data(l_template, con)|>
-  convert_DB_to_R(l_template)
+## load data from Database
+Programm <- DB_get_table("Programm", con)|>
+  convert_to_template_types(l_template$Programm)
+
+df_Eintritt <- DB_get_table("df_Eintritt", con)|>
+  convert_to_template_types(l_template$df_Eintritt)
+
+df_Kiosk <- DB_get_table("df_Kiosk", con)|>
+  convert_to_template_types(l_template$df_Kiosk)
+
+Einnahmen <- DB_get_table("Einnahmen", con)|>
+  convert_to_template_types(l_template$Einnahmen)
+
+Ausgaben <- DB_get_table("Ausgaben", con)|>
+  convert_to_template_types(l_template$Ausgaben)
+
+Verleiher <- DB_get_table("Verleiher",con)|>
+  convert_to_template_types(l_template$Verleiher)
+
+`Platzkategorien zum Verrechnen` <- DB_get_table("Platzkategorien zum Verrechnen",con)
+`Platzkategorien zum Verrechnen`
+
+MWST <- DB_get_table("MWST",con)
 
 # check nb of files Eintritt vs Kiosk ####
-c_eintritt <- list.files("Input/advance tickets",pattern = "Eintritt")
-c_Kiosk <- list.files("Input/advance tickets",pattern = "Kiosk")
+c_eintritt <- df_Eintritt|>
+  distinct(`Event ID`)|>
+  pull()
+c_Kiosk <- df_Kiosk|>
+  distinct(`Event ID`)|>
+  pull()
 
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
@@ -56,12 +81,12 @@ if(sum(c_test) != length(c_test)){
 } 
 
 # Programm check ####
-df_temp <- DB_get_table("Programm", con)|>
+df_temp <- Programm|>
   convert_to_template_types(l_template$Programm)
 df_temp
 
-if(nrow(df_temp) != nrow(l_data$Programm)){
-  df_temp <- anti_join(l_data$Programm,
+if(nrow(df_temp) != nrow(Programm)){
+  df_temp <- anti_join(Programm,
                        df_temp,
                        by = "Event ID"
   )
@@ -76,12 +101,6 @@ if(nrow(df_temp) != nrow(l_data$Programm)){
 }
 
 # Einnahmen und Ausgaben einlesen ##################
-Einnahmen_und_Ausgaben <- list(Einnahmen = l_data$Einnahmen|>
-                                 mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
-                               ,
-                               Ausgaben = l_data$Ausgaben|>
-                                 mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
-)
 
 # check suisanummer  ##################
 ## error handling
@@ -89,7 +108,7 @@ p <- or(DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
         WRD%R%WRD%R%WRD%R%WRD%R%DOT%R%WRD%R%WRD%R%WRD
 )
 
-df_temp <- l_data$Programm|>
+df_temp <- Programm|>
   filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Verleiher, `Verleiher Angefragt?`)|>
   filter(!str_detect(Suisanummer,p))
@@ -115,15 +134,20 @@ if(is_empty(c_files)) {
   )
 }
 
-# read and convert Eintritte
-df_Eintritt <- convert_data_Film_txt(c_files, con)
+df_Eintritt
 
-# Kiosk ####
-c_path <- "input/advance tickets"
-c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
-
-df_Kiosk <- convert_data_kiosk_txt(c_files, con)
-df_Kiosk
+# # Kiosk ####
+# c_path <- "input/advance tickets"
+# c_files <- list.files(c_path, pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
+# 
+# df_Kiosk <- convert_data_kiosk_txt(c_files, con)
+# 
+# l_template$df_Kiosk <- df_Kiosk|>
+#   slice(1)
+# saveRDS(l_template,"source/SQL/template.Rds")
+# 
+# # upload data to data base
+# DB_copy_table(df_Kiosk,con, "df_Kiosk")
 
 df_manko_uerberschuss <- df_Kiosk|>
   distinct(`Event ID`,.keep_all = TRUE)|>
@@ -138,10 +162,6 @@ if(sum(is.na(df_Kiosk$`Event ID`)) > 0){
   df_temp
   stop("\nFür den Film mit Suisanummer ", df_temp$Suisanummer, " am ", format(df_temp$Datum, "%d.%m.%Y"), " gibt es keinen Programmeintrag.\nBitte das Programm korrigieren!\n")
 }
-
-# remove no more needed variables
-remove(c_path, c_files
-       )
 
 # Abos und Kinogutscheine #########
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
@@ -183,9 +203,9 @@ df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutsch
 
 
 # Verleiherabgaben einlesen ##################
-df_temp <- l_data$Programm|>
+df_temp <- Programm|>
   select(1:11,-`Link to Event ID`)|>
-  left_join(l_data$Verleiher|>
+  left_join(Verleiher|>
               select(-ID),
             by = c("Verleiher" = "Verleihername"))
 df_temp
@@ -208,9 +228,9 @@ if(nrow(df_temp)>0){
 # Abrechnung check ################
 
 # Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?)
-df_Abrechnung <- l_data$Programm|>
+df_Abrechnung <- Programm|>
   select(1:11)|>
-  left_join(l_data$Verleiher|>
+  left_join(Verleiher|>
               select(-ID, -`E-Mail`, -Adresse, -PLZ, -Ort),
             by = c(Verleiher = "Verleihername")
   )|>
@@ -220,14 +240,14 @@ df_Abrechnung
 # Verleiherrechnung
 df_Abrechnung <-
   df_Abrechnung|>
-  left_join(Einnahmen_und_Ausgaben$Ausgaben|>
+  left_join(Ausgaben|>
+              mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
               filter(Kategorie == "Verleiher")|>
               select(1:7,-ID, -Datum, -Kategorie, -Firmennamen)|>
               rename(`Verleiherrechnungsbetrag [CHF]` = `Betrag [CHF]`),
             by = join_by( `Event ID`)
   )
 df_Abrechnung
-
 
 # paste0("\"",names(df_Abrechnung),"\"")|>
 #   paste0(collapse = ",")|>
@@ -331,10 +351,10 @@ warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$F
                "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
 
 # Programm check ####
-df_Film <- l_data$Programm|>
+df_Film <- Programm|>
   group_by(Suisanummer)|>
   reframe(n())|>
-  left_join(l_data$Programm|>
+  left_join(Programm|>
               distinct(Suisanummer, .keep_all = TRUE)|>
               select(Suisanummer, Filmtitel)
             ,
@@ -345,7 +365,7 @@ df_Film
 
 ii <- "1020.828"
 for (ii in df_Film$Suisanummer) {
-  df_temp <- l_data$Programm|>
+  df_temp <- Programm|>
     filter(Suisanummer == ii)
   df_temp
   
@@ -390,8 +410,8 @@ df_Tickets <- df_Eintritt|>
   )|>
   mutate(
     `Verkaufspreis für Netto3 [CHF]` =
-      if_else(((Platzkategorie %in% l_data$`Platzkategorien zum Verrechnen`$Kinoförderer) & (!`Kinoförderer gratis?`)),
-              l_data$`Platzkategorien zum Verrechnen`$Verkaufspreis[1],
+      if_else(((Platzkategorie %in% `Platzkategorien zum Verrechnen`$Kinoförderer) & (!`Kinoförderer gratis?`)),
+              `Platzkategorien zum Verrechnen`$Verkaufspreis[1],
               Verkaufspreis
       ),
     `Umsatz für Netto3 [CHF]` = Anzahl * `Verkaufspreis für Netto3 [CHF]`)|>
@@ -442,8 +462,8 @@ df_Abrechnung <- df_Abrechnung|>
          `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
          `MWST [CHF]` = if_else(
            is.na(`Verleiherrechnungsbetrag [CHF]`),
-           `Umsatz für Netto3 [CHF]` * (l_data$MWST$MWST / 100),
-           `Verleiherrechnungsbetrag [CHF]` / (1 + (l_data$MWST$MWST / 100)) 
+           `Umsatz für Netto3 [CHF]` * (MWST$MWST / 100),
+           `Verleiherrechnungsbetrag [CHF]` / (1 + (MWST$MWST / 100)) 
          ),
          `Verleiherabzug [CHF]` = 
            if_else(is.na(`Abzug fix [CHF]`),
@@ -483,7 +503,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
 df_Abrechnung
 
 # Eventeinnahmen der Abrechnung hinzufügen ####
-df_temp <- l_data$Einnahmen|>
+df_temp <- Einnahmen|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
   group_by(`Event ID`)|>
@@ -495,7 +515,7 @@ df_Abrechnung <- left_join(df_Abrechnung,
 )  
 
 # Eventausgaben der Abrechnung hinzufügen ####
-df_temp <- l_data$Ausgaben|>
+df_temp <- Ausgaben|>
   filter(Kategorie == "Event")|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
   group_by(`Event ID`)|>
@@ -604,18 +624,15 @@ df_Besucherzahlen <- df_Eintritt|>
 df_Besucherzahlen
 
 ## Eventeinnahmen ####
-df_Eventeinnahmen <- DB_get_table("Einnahmen", con)|>
-  convert_to_template_types(l_template$Einnahmen)|>
+df_Eventeinnahmen <- Einnahmen|>
   filter(Kategorie == "Event")
 
 ## Eventausgaben ####
-df_Eventausgaben <- DB_get_table("Ausgaben", con)|>
-  convert_to_template_types(l_template$Ausgaben)|>
+df_Eventausgaben <- Ausgaben|>
   filter(Kategorie == "Event")
 
 ## Keine Rechnung vorhanden ####
-df_keine_Rechnung <- DB_get_table("Ausgaben", con)|>
-  convert_to_template_types(l_template$Ausgaben)|>
+df_keine_Rechnung <- Ausgaben|>
   filter(is.na(`Betrag [CHF]`))
 
 # Data export: write to Excel ####
@@ -636,10 +653,6 @@ list(`Werbung` = df_Besucherzahlen,
 remove(ii,
        c_filePath
 )
-
-# Data for GUI
-l_data <- DB_get_Data(l_template, con)|>
-  convert_DB_to_R(l_template)
 
 # Disconnect from DB ####
 dbDisconnect(con)
