@@ -800,14 +800,15 @@ convert_data_kiosk_txt <- function(fileName, con) {
         )|>
         rename(`Einzelpreis [CHF]`= Einzelpreis,
                `Betrag [CHF]` = Betrag
-               )
+        )
     })
   names(l_temp) <- str_match(fileName, capture(one_or_more(DGT))%R%DOT%R%"txt")[,2]
   
   # Kiosk data 
   df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
     mutate(`Event ID` = as.integer(`Event ID`))|>
-    rename("Artikel-Kassensystem" = Verkaufsartikel)
+    rename("Artikel-Kassensystem" = Verkaufsartikel)|>
+    arrange(`Event ID`)
   df_Kiosk
   
   df_temp01 <- df_Kiosk
@@ -827,12 +828,15 @@ convert_data_kiosk_txt <- function(fileName, con) {
     filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
     arrange(`Event ID`)
   df_spez_preis
-  
   # join Filmtitel
   df_spez_preis <- df_spez_preis|>
     left_join(Programm|>
                 select(`Event ID`,Filmtitel),
               by = join_by(`Event ID`)
+    )|>
+    left_join( # look up Spezialpreise
+      df_Spezialpreisekiosk,
+      by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
     )
   df_spez_preis
   
@@ -840,13 +844,6 @@ convert_data_kiosk_txt <- function(fileName, con) {
   df_spez_preis_na <- df_spez_preis|>
     filter(str_detect(`Artikel-Kassensystem`, "Spez")) |>
     arrange(`Event ID`, `Artikel-Kassensystem`)
-  df_spez_preis_na
-  
-  df_spez_preis_na <- df_spez_preis_na|>
-    left_join( # look up Spezialpreise
-      df_Spezialpreisekiosk,
-      by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
-    )
   df_spez_preis_na
   
   df_spez_preis_na <- df_spez_preis_na|>
@@ -862,7 +859,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
       )
     )
   }
-  remove(df_spez_preis)
+  bind_rows(df_spez_preis, df_spez_preis_na)
   
   ## join Spezpreise mit Verkaufsartikel ####
   df_Kiosk <- df_Kiosk|>
@@ -879,120 +876,64 @@ convert_data_kiosk_txt <- function(fileName, con) {
     rename(ID_Kioskartikel = ID)
   df_Einkaufspreise
   
-  #########################################
-  # df_mapping <- l_temp|>
-  #   lapply(function(x){
-  #     tibble(
-  #       Datum =
-  #         x$df_Kiosk|>
-  #         distinct(Datum)|>
-  #         pull()|>
-  #         as.Date()
-  #     )
-  #   })|>
-  #   bind_rows(.id = "fileName")
-  
-  df_mapping <- df_Kiosk|>
-    distinct(`Event ID`, `Artikel-Kassensystem`,.keep_all = TRUE)
-  
-  c_Date_Kiosk <- df_mapping$Datum
-  c_Einkaufslistendatum <- distinct(df_Einkaufspreise, `Gültig ab Datum`)|>pull()
-  
-  
-  df_Mapping_Einkaufspreise <- lapply(c_Einkaufslistendatum, function(x)(x-c_Date_Kiosk)|>as.integer())|>
-    bind_cols()|>
-    as.matrix()|>
-    suppressMessages()
-  df_Mapping_Einkaufspreise
-  
-  colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
-    as.character()
-  rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
-  
-  if(nrow(df_Mapping_Einkaufspreise) == 1){
-    df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
-      apply(1, function(x){
-        c_select <- max(x, na.rm = T)
-        y <- x[c_select == x]
-        y <- y[!is.na(y)]
-        return(names(y))
-      })
-    
-  }else{
-    df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
-      apply(2, function(x) ifelse(x >= 0, NA, x))|>
-      apply(1, function(x){
-        c_select <- max(x, na.rm = T)
-        y <- x[c_select == x]
-        y <- y[!is.na(y)]
-        return(names(y))
-      })
-    
-  }
-  df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>as.Date(),
-                                      Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
-  
-  # Join Einkaufspreise
-  m_Kiosk <- list()
-  for (ii in 1:nrow(df_Mapping_Einkaufspreise)) {
-    m_Kiosk[[ii]] <- df_Kiosk|>
-      filter(Datum == df_Mapping_Einkaufspreise$Datum[ii])|>
-      left_join(df_Einkaufspreise|>
-                  # select(-ID)|>
-                  filter(`Gültig ab Datum` == df_Mapping_Einkaufspreise$Einkaufspreise[ii])|>
-                  select(-`Gültig ab Datum`),
-                by = c(Verkaufsartikel = "Artikelname-Kassensystem")
-      )
-  }
-  remove(df_Einkaufspreise)
-  m_Kiosk
-  
-  df_Kiosk <- m_Kiosk|>
-    bind_rows()
-  df_Kiosk
+  ## look up Einkaufspreise per date ####
+  l_temp <- 1:nrow(df_Kiosk)|>
+    lapply(function(ii){
+      
+      row_kiosk <- df_Kiosk|>
+        slice(ii)|>
+        rename(`Umsatz [CHF]`=`Betrag [CHF]`)
+      row_kiosk
+      
+      row_einkaufspreise <- df_Einkaufspreise|>
+        filter(`Artikelname-Kassensystem` == row_kiosk$Verkaufsartikel[1])
+      row_einkaufspreise
+      
+      if(nrow(row_einkaufspreise) == 0) { # Keine Aritkel gefunden
+        df_temp <- 
+          bind_cols(
+            row_einkaufspreise|>
+              create_empty_line(),
+            row_kiosk
+          )|>
+          mutate(ID_Kioskartikel = NA,
+                 `Artikelname-Kassensystem` = `Artikel-Kassensystem`,
+                 `Gewinn [CHF]` = `Umsatz [CHF]`,
+                 `Artikel-Kassensystem` = NULL
+          )
+      } else { # Artikelabgleich
+        df_temp <- left_join(row_einkaufspreise,
+                             row_kiosk,
+                             by = c(`Artikelname-Kassensystem` = "Artikel-Kassensystem")
+        )|>
+          mutate(`time deviation` = `Gültig ab Datum` - Datum)|>
+          filter(`time deviation` == min(`time deviation`))|> # only keep the smallest `time deviation`
+          mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
+      }
+      return(df_temp)
+    })
+  df_temp <- bind_rows(l_temp)|>
+    mutate(ID = row_number())|>
+    select("ID", "Event ID", "Datum", "ID_Kioskartikel", "Artikelname-Kassensystem", "Verkaufsartikel", "Verkaufspreis [CHF]", "Menge", "Einkaufspreis [CHF]", "Lieferant", "Gültig ab Datum",
+           "Einzelpreis [CHF]", "Anzahl", "Umsatz [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]")
+  df_temp
   
   ## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
-  df_Kiosk <- bind_rows(df_Kiosk|>
-                          filter(Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))|>
-                          mutate(Verkaufsartikel = "Popcorn frisch"),
-                        df_Kiosk|>
-                          filter(! Verkaufsartikel %in% c("Popcorn frisch", "Popcorn Salz"))
-  )
-  df_Kiosk
-  
-  ## Kioskgewinn ####
-  df_Kiosk <- df_Kiosk|>
-    mutate(Gewinn = if_else(is.na(`Einkaufspreis [CHF]`),
-                            `Betrag [CHF]`,
-                            `Betrag [CHF]` - (Anzahl * `Einkaufspreis [CHF]`))
-    )|>
-    rename(Kassiert = `Betrag [CHF]`,
-           Verkaufspreis = `Einzelpreis [CHF]`)
-  
-  # join Program ID
-  df_Kiosk <-
-    df_Kiosk|>
-    select(-Datum)|>
-    left_join(Programm|>
-                select(`Event ID`, Datum, Suisanummer, Filmtitel),
-              by = join_by(`Event ID`)
+  df_temp <- bind_rows(df_temp|>
+                         filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
+                         mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
+                       df_temp|>
+                         filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))
+  )|>
+    arrange(ID)
+  df_temp <- df_temp|>
+    mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
+                                     NA,
+                                     Verkaufsartikel)
     )
   
-  df_Kiosk <- df_Kiosk|>
-    select("Event ID", "Datum", "Suisanummer","ID_Kioskartikel","Verkaufsartikel", "Lieferant",
-           "Verkaufspreis", "Anzahl", "Kassiert",  
-           "Einkaufspreis [CHF]", 
-           "Überschuss / Manko [CHF]"
-    )|>
-    rename(`Verkaufspreis [CHF]` = Verkaufspreis,
-           `Kassiert [CHF]` = Kassiert)
-  
-  df_Kiosk <- df_Kiosk|>
-    mutate(`Gewinn [CHF]` = Anzahl * (`Verkaufspreis [CHF]`- `Einkaufspreis [CHF]`))
-  
   # function return
-  return(df_Kiosk)
-
+  return(df_temp)
 }
 
 # search procinem by a given Suisanummber
