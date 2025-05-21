@@ -1596,54 +1596,58 @@ server <- function(input, output, session) {
           # Read Eintritt
           df_temp <- DB_get_table("df_Eintritt", DB_con())|>
             convert_to_template_types(l_template$df_Eintritt)
-          df_temp
+
+          # read data an create new rows from it
+          new_rows <- convert_data_Film_txt(save_path, DB_con())
+
+          # test if entries already exists
+          test <- df_temp|>
+            filter(`Event ID` %in% new_rows$`Event ID`)|>
+            mutate(ID = NULL)
           
-          test <- identical(df_temp|>
-                      select(-ID),
-                    data_env$df_Eintritt
-                    )
+          c_test <- 
+            identical(
+              str(new_rows), 
+              str(test)
+            )
           
-          if(test){
-            new_rows <- convert_data_Film_txt(save_path, DB_con())
-            
-            new_rows <- new_rows|>
-              mutate(ID = row_number())|>
-              select("ID", "Event ID", "Datum", "Suisanummer", "Filmtitel", "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz [CHF]", "SUISA-Vorabzug [%]")
-            new_rows
-            
+          new_rows_ <- anti_join(new_rows, test)
+          
+          if(nrow(new_rows_) > 0){
             # updata data base
             DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
-          }else {
-            ausgabe_text("Data already exists")
-          }
+          } 
+
         } else if (str_detect(file_name, pattern = "Kiosk")){
           # Read Eintritt
           df_temp <- DB_get_table("df_Kiosk", con)|>
-            convert_to_template_types(l_template$df_Kiosk)
-  
-          # Convert Eintritte
-          df_temp <- convert_to_template_types(df_temp, l_template$df_Kiosk)
+            convert_to_template_types(l_template$df_Kiosk)|>
+            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
           
-          test <- !identical(df_temp|>
-                               select(-ID),
-                             data_env$df_Kiosk
-          )
+          # read data an create new rows from it
+          new_rows <- convert_data_kiosk_txt(save_path, DB_con())|>
+            select(-ID)|>
+            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
+
+          # Find entries already existing
+          test <- df_temp|>
+            filter((`Event ID` %in% new_rows$`Event ID`))|>
+            select(-ID)|>
+            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
           
-          Einkauf <- DB_get_table("Einkauf Kiosk", DB_con())
+          c_test <- 
+            identical(
+              str(new_rows), 
+              str(test)
+              )
+
+          new_rows_ <- anti_join(new_rows, test)
           
-          if(test){
-            new_rows <- convert_data_kiosk_txt(save_path, DB_con())
-            slvwagner::r_names(new_rows)
-            new_rows <- new_rows|>
-              mutate(ID = row_number())
-            
-            # updata data base
+          if(nrow(new_rows_) > 0){
             DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
-          }else {
-            ausgabe_text("Data already exists")
           }
         }
-        return(list(type = "txt", data = readLines(file_path)))
+        return(list(type = "txt", data = readLines(file_path)|>suppressWarnings()))
       }
     } else if (file_ext == "csv") {
       # save csv files (WordPress input)
