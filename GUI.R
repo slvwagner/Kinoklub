@@ -47,12 +47,8 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-# read all data from Database
-l_data <- DB_backup_DB(con)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
-# convert to R data types
-l_data <- convert_DB_to_R(l_data, l_template)
 
 # create environment to run WordPress scripts
 WordPress_env <- new.env()
@@ -131,16 +127,6 @@ ui <-
   shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-    ),
-    # Input panel at top
-    shiny::inputPanel(
-      shiny::headerPanel("Input Kinoklub"),
-      shiny::textInput("DB_host", "Datenbank Host", value = DB_host),
-      shiny::textInput("DB_name", "Datenbank Name", value = DB_name),
-      shiny::textInput("DB_user", "Datenbank Benutzer", value = DB_user),
-      shiny::passwordInput("DB_pw", "Datenbankpasswort"),
-      shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
-      shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
     ),
     paste("Kinoklub GUI", c_script_version) |>
       shiny::titlePanel(),
@@ -1039,40 +1025,7 @@ server <- function(input, output, session) {
   DB_user <- shiny::reactiveVal(NULL)
   ### Database password ####
   DB_pw <- shiny::reactiveVal(NULL)
-  
-  ## Button: Mit Datenbank verbinden ####
-  observeEvent(input$SQL_connect, {
-    req(input$DB_host)
-    req(input$DB_name)
-    req(input$DB_user)
-    req(input$DB_pw)
-    DB_host(input$DB_host)
-    DB_name(input$DB_name)
-    DB_user(input$DB_user)
-    DB_pw(input$DB_pw)
-    
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      tryCatch({
-        # Connect to data base 
-        DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
-          DB_con()
-        
-        # read all data from Database
-        l_data <- DB_backup_DB(con)
-        # read template
-        l_template <<- readRDS("source/SQL/template.RDS")
-        # convert to R data types
-        l_data <<- convert_DB_to_R(l_data, l_template)
-        
-      }, error = function(e) {
-        showNotification(paste("load data from data base failed:"), type = "message")
-      })
-      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
-    })
 
-  })
-  
   ##  Button: Abrechnungsjahr #####
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
@@ -1734,7 +1687,7 @@ server <- function(input, output, session) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
       
-      df_temp <- data_env$l_data$Programm |>
+      df_temp <- data_env$Programm |>
         distinct(`Event ID`, .keep_all = T)|>
         filter(between(Datum, start_datum, end_datum), `Verleiher Angefragt?` == "Bestätigt") |>
         arrange(desc(Datum), desc(Zeit)) |>
