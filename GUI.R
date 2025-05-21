@@ -1837,7 +1837,7 @@ server <- function(input, output, session) {
       ),
       
       # Button Daten Einlesen
-      shiny::actionButton("DatenEinlesen", "Dateien einlesen"),
+      shiny::actionButton("DatenEinlesen", "Berechnen"),
       shiny::tags$hr(),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
