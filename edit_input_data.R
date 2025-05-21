@@ -33,7 +33,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 
 # Split data to input and dropdown ####
 c_select_input_data <- 
-  c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
+  c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk", "df_Eintritt", "df_Kiosk")
 l_template[c_select_input_data]
 
 c_select_dropdown_data <- 
@@ -2251,12 +2251,12 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
