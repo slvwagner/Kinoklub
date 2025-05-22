@@ -1067,8 +1067,83 @@ server <- function(input, output, session) {
     shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
 
-  ##  Button: Daten Einlesen #####
+  ##  Button: Daten einlesen ####
   shiny::observeEvent(input$DatenEinlesen, {
+    # Execution time 
+    c_time <- Sys.time()
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
+      ausgabe_text("Dateien wurden eingelesen.\n")
+      calculate_warnings("")
+      
+      # read data
+      tryCatch({
+        # Fehler abfangen
+        ausgabe_text(capture.output({
+          withCallingHandlers(
+            {
+              # Find files 
+              c_eintritt <- list.files(path = "Input/advance tickets", pattern = "Eintritt", full.names = TRUE)
+              c_Kiosk <- list.files(path = "Input/advance tickets", pattern = "Kiosk", full.names = TRUE)
+              
+              # Error handling
+              if(length(c_eintritt) != length(c_Kiosk)) {
+                if(length(c_eintritt) > length(c_Kiosk)){
+                  stop("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.") 
+                }else {
+                  stop("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.") 
+                }
+              } 
+              c_test <- str_extract(c_eintritt, one_or_more(DGT)) %in% str_extract(c_Kiosk, one_or_more(DGT))
+              c_test
+              
+              if(sum(c_test) != length(c_test)){
+                c_index <- tibble(test = )|>
+                  mutate(index  = row_number())|>
+                  filter(!test)|>
+                  select(index)|>
+                  pull()
+                stop("\nEs gibt keine Datei \"Eintritt ID",str_extract(c_Kiosk[c_index], pattern = one_or_more(DGT)),".txt\" aber eine Datei \"", c_Kiosk[c_index], "\"",
+                     "\nEine der Dateien muss umbenannt oder gelöscht werden. ", "\nBitte im Verzeichniss  .../Input/advanced tickets/ korrigieren.\n")
+                c_Kiosk[c_index]
+              } 
+              
+              # Convert files
+              Eintritte <- convert_data_Film_txt(c_eintritt,DB_con())
+              shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
+              Kiosk <- convert_data_kiosk_txt(c_Kiosk, DB_con())
+              
+              
+            },
+            warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            }
+          )
+        }, type = "message"))
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            calculate_warnings(),
+            e$message,
+            collapse = ""
+          )
+        )
+      })
+      
+      End_date_choose(max(data_env$df_Abrechnung$Datum))
+      shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n\n",calculate_warnings())|>
+        ausgabe_text()
+    })
+  })
+  
+  ##  Button: Berechnen #####
+  shiny::observeEvent(input$calculate, {
     # Execution time 
     c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1922,7 +1997,8 @@ server <- function(input, output, session) {
       ),
       
       # Button Daten Einlesen
-      shiny::actionButton("DatenEinlesen", "Berechnen"),
+      shiny::actionButton("DatenEinlesen", "Daten prüfen"),
+      shiny::actionButton("calculate", "Berechnen"),
       shiny::tags$hr(),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
@@ -2052,13 +2128,13 @@ server <- function(input, output, session) {
   }) 
 }
 
-shiny::shinyApp(ui = ui, server = server)
+# shiny::shinyApp(ui = ui, server = server)
 
-# # Run the app
-# shiny::runApp(
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5000,
-#   # Replace 8080 with your desired port
-#   launch.browser = TRUE, # Automatically open in the system's default browser
-#   host = "0.0.0.0"
-# )
+# Run the app
+shiny::runApp(
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5000,
+  # Replace 8080 with your desired port
+  launch.browser = TRUE, # Automatically open in the system's default browser
+  host = "0.0.0.0"
+)
