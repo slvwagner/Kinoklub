@@ -41,7 +41,7 @@ a:hover {
 }
 
 div.datatables {
-  color: #b4b5a4;
+  color: #b4b5a4 !important;
 }
 
 :root {
