@@ -23,24 +23,35 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
+if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
+
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 ## load data from Database
 Programm <- DB_get_table("Programm", con)|>
-  convert_to_template_types(l_template$Programm)
+  filter(`Verleiher Angefragt?` == "Bestätigt")|>
+  convert_to_template_types(l_template$Programm)|>
+  filter(c_Abrechnungsjahr == lubridate::year(Datum))
 
 df_Eintritt <- DB_get_table("df_Eintritt", con)|>
-  convert_to_template_types(l_template$df_Eintritt)
+  convert_to_template_types(l_template$df_Eintritt)|>
+  filter(c_Abrechnungsjahr == lubridate::year(Datum))
 
 df_Kiosk <- DB_get_table("df_Kiosk", con)|>
-  convert_to_template_types(l_template$df_Kiosk)
+  convert_to_template_types(l_template$df_Kiosk)|>
+  filter(c_Abrechnungsjahr == lubridate::year(Datum))
 
 Einnahmen <- DB_get_table("Einnahmen", con)|>
-  convert_to_template_types(l_template$Einnahmen)
+  convert_to_template_types(l_template$Einnahmen)|>
+  filter(Abrechnungsjahr == c_Abrechnungsjahr)
 
 Ausgaben <- DB_get_table("Ausgaben", con)|>
-  convert_to_template_types(l_template$Ausgaben)
+  convert_to_template_types(l_template$Ausgaben)|>
+  filter(Abrechnungsjahr == c_Abrechnungsjahr)
+
+df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con)|>
+  convert_to_template_types(l_template$Spezialpreisekiosk )
 
 Verleiher <- DB_get_table("Verleiher",con)|>
   convert_to_template_types(l_template$Verleiher)
@@ -48,10 +59,11 @@ Verleiher <- DB_get_table("Verleiher",con)|>
 Lieferant <- DB_get_table("Lieferanten",con)|>
   convert_to_template_types(l_template$Lieferanten)
 
-`Platzkategorien zum Verrechnen` <- DB_get_table("Platzkategorien zum Verrechnen",con)
-`Platzkategorien zum Verrechnen`
+`Platzkategorien zum Verrechnen` <- DB_get_table("Platzkategorien zum Verrechnen",con)|>
+  convert_to_template_types(l_template$`Platzkategorien zum Verrechnen`)
 
-MWST <- DB_get_table("MWST",con)
+MWST <- DB_get_table("MWST",con)|>
+  convert_to_template_types(l_template$MWST)
 
 # check nb of files Eintritt vs Kiosk ####
 c_eintritt <- df_Eintritt|>
@@ -141,7 +153,7 @@ df_manko_uerberschuss
 
 # Spez Verkaufsartikel / Spezialpreise einlesen ####
 ## Spezialpreise einlesen ####
-df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con) 
+
 df_Spezialpreisekiosk <- df_Spezialpreisekiosk|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Spezialpreis = as.character(Spezialpreis)

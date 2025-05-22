@@ -66,6 +66,7 @@ error_calculate <-  paste0("\n",
 
 # calculate.R ####
 data_env <- new.env()
+data_env$c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 # read data
 calculate_warnings <- ""
 ausgabe_text <- ""
@@ -1045,6 +1046,8 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
+    data_env$c_Abrechnungsjahr <- input$c_Abrechnungsjahr
+    
     # update Abrechnungsjahr 
     Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
     data_env$Abrechungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
@@ -1060,6 +1063,8 @@ server <- function(input, output, session) {
       START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
       End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
     }
+    
+    ausgabe_text(paste( "Daten für", Abrechungsjahr()))
   })
   
   ### 2 ####
@@ -1068,7 +1073,7 @@ server <- function(input, output, session) {
   })
 
   ##  Button: Daten prüfen ####
-  shiny::observeEvent(input$DatenEinlesen, {
+  shiny::observeEvent(input$DatenPrüfen, {
     # Execution time 
     c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1085,6 +1090,26 @@ server <- function(input, output, session) {
               # Find files 
               c_eintritt <- list.files(path = "Input/advance tickets", pattern = "Eintritt", full.names = TRUE)
               c_Kiosk <- list.files(path = "Input/advance tickets", pattern = "Kiosk", full.names = TRUE)
+              
+              # Filter for actual year and only Bestätigt
+              Programm <- DB_get_table("Programm", DB_con())|>
+                filter(`Verleiher Angefragt?` == "Bestätigt")|>
+                convert_to_template_types(l_template$Programm)|>
+                filter(lubridate::year(Datum) == Abrechungsjahr())
+              
+              # Filter Eintritt
+              df_temp <- tibble(c_eintritt)|>
+                mutate(`Event ID` = str_match(c_eintritt, "([\\d]+)\\.txt")[,2]|>as.integer())
+              df_temp <- left_join(Programm, df_temp, by = "Event ID")
+              c_eintritt <- df_temp$c_eintritt
+              c_eintritt <- c_eintritt[!is.na(c_eintritt)]
+              
+              # Filter Kiosk
+              df_temp <- tibble(c_Kiosk)|>
+                mutate(`Event ID` = str_match(c_Kiosk, "([\\d]+)\\.txt")[,2]|>as.integer())
+              df_temp <- left_join(Programm, df_temp, by = "Event ID")
+              c_Kiosk <- df_temp$c_Kiosk
+              c_Kiosk <- c_Kiosk[!is.na(c_Kiosk)]
               
               # Error handling
               if(length(c_eintritt) != length(c_Kiosk)) {
@@ -1884,13 +1909,22 @@ server <- function(input, output, session) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
       
-      df_temp <- data_env$Programm |>
+      df_temp <- DB_get_table("Programm", con)|>
+        convert_to_template_types(l_template$Programm)|>
         distinct(`Event ID`, .keep_all = T)|>
         filter(between(Datum, start_datum, end_datum), `Verleiher Angefragt?` == "Bestätigt") |>
         arrange(desc(Datum), desc(Zeit)) |>
         mutate(Datum = format(Datum, "%d.%m.%Y"),
-               Zeit = format(Zeit, "%H%M")) |>
-        select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer)
+               Zeit = format(Zeit, "%H%M")) 
+      
+      Verleiher <- DB_get_table("Verleiher", con)|>
+        convert_to_template_types(l_template$Verleiher )|>
+        select(Verleihername, `Kinoförderer gratis?`)
+      
+      df_temp <- left_join(df_temp, Verleiher, by = c(Verleiher = "Verleihername"))
+      
+      df_temp <- df_temp|>
+        select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
       
       current_data(df_temp)
       
@@ -1997,7 +2031,7 @@ server <- function(input, output, session) {
       ),
       
       # Button Daten Einlesen
-      shiny::actionButton("DatenEinlesen", "Daten prüfen"),
+      shiny::actionButton("DatenPrüfen", "Daten prüfen"),
       shiny::actionButton("calculate", "Berechnen"),
       shiny::tags$hr(),
       
