@@ -648,7 +648,7 @@ DB_create_files_table <- function(con, table_name) {
 
 # Function to upload a text file to the database ####
 # Function to upload a text file to the database with overwrite option ####
-DB_upload_file <- function(con, file_path, table_name, overwrite = FALSE) {
+DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FALSE) {
   # Validate inputs
   if (!file.exists(file_path)) {
     stop("File does not exist: ", file_path)
@@ -660,7 +660,6 @@ DB_upload_file <- function(con, file_path, table_name, overwrite = FALSE) {
   }
   
   # Get filename and check if it exists
-  filename <- basename(file_path)
   existing_files <- tbl(con, table_name) |> 
     filter(filename == !!filename) |>
     collect()
