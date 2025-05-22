@@ -23,7 +23,7 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-c_Abrechnungsjahr <- 2024L
+# c_Abrechnungsjahr <- 2024L
 if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 ## Connection ####
