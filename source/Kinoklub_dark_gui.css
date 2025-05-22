@@ -21,6 +21,8 @@ footer {
   background-color: #6f4c72;
 }
 
+
+
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
   text-decoration: none; /* Optional: Remove the default underline */
@@ -39,7 +41,7 @@ a:hover {
 }
 
 div.datatables {
-  color: #d3bebe;
+  color: #b4b5a4;
 }
 
 :root {

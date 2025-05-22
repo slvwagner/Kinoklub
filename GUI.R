@@ -1823,6 +1823,7 @@ server <- function(input, output, session) {
         df_temp,
         filter = "top",
         rownames = FALSE,
+        class = 'datatables',
         options = list(
           pageLength = 5,
           lengthMenu = c_lengthMenu,
@@ -2055,9 +2056,9 @@ server <- function(input, output, session) {
 
 # Run the app
 shiny::runApp(
-  host = "0.0.0.0",
   shiny::shinyApp(ui = ui, server = server),
   port = 5000,
   # Replace 8080 with your desired port
-  launch.browser = TRUE # Automatically open in the system's default browser
+  launch.browser = TRUE, # Automatically open in the system's default browser
+  host = "0.0.0.0"
 )
