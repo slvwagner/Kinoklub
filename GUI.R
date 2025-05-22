@@ -1067,7 +1067,7 @@ server <- function(input, output, session) {
     shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
   })
 
-  ##  Button: Daten einlesen ####
+  ##  Button: Daten prüfen ####
   shiny::observeEvent(input$DatenEinlesen, {
     # Execution time 
     c_time <- Sys.time()
