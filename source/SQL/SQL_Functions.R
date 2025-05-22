@@ -529,7 +529,6 @@ convert_DB_to_R <- function(data,template) {
   return(data_converted)
 }
 
-
 # Add one or more rows to a database table ####
 DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
   # Validate inputs
@@ -625,7 +624,6 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
   invisible(success_count)
 }
 
-
 # Function to create a table for storing files if it doesn't exist ####
 DB_create_files_table <- function(con, table_name) {
   if (!dbExistsTable(con, table_name)) {
@@ -720,7 +718,6 @@ DB_get_file <- function(con, filename, table_name ) {
     content = result$`file content`[1]
   )
 }
-
 
 # Function to download a file from the database to disk ####
 DB_download_file <- function(con, filename, output_path, table_name ) {
