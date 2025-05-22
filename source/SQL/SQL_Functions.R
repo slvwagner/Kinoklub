@@ -631,6 +631,7 @@ DB_create_files_table <- function(con, table_name) {
       "CREATE TABLE `", table_name, "` (
         `ID` INT AUTO_INCREMENT PRIMARY KEY,
         `filename` VARCHAR(255) NOT NULL,
+        `Event ID` INT, 
         `file content` LONGTEXT NOT NULL,
         `upload time` DATETIME DEFAULT CURRENT_TIMESTAMP,
         `file size` INT,
@@ -646,7 +647,8 @@ DB_create_files_table <- function(con, table_name) {
 }
 
 # Function to upload a text file to the database ####
-DB_upload_file <- function(con, file_path, table_name) {
+# Function to upload a text file to the database with overwrite option ####
+DB_upload_file <- function(con, file_path, table_name, overwrite = FALSE) {
   # Validate inputs
   if (!file.exists(file_path)) {
     stop("File does not exist: ", file_path)
@@ -659,13 +661,21 @@ DB_upload_file <- function(con, file_path, table_name) {
   
   # Get filename and check if it exists
   filename <- basename(file_path)
-  existing_files <- tbl(con, table_name) %>% 
-    filter(filename == !!filename) %>%
+  existing_files <- tbl(con, table_name) |> 
+    filter(filename == !!filename) |>
     collect()
   
+  # Handle existing files based on overwrite parameter
   if (nrow(existing_files) > 0) {
-    message("File '", filename, "' already exists in table '", table_name, "'. Skipping upload.")
-    return(invisible(FALSE))
+    if (overwrite) {
+      message("File '", filename, "' exists. Overwriting...")
+      # Delete existing file record
+      DB_delete_row(con, table_name, "filename", filename)
+    } else {
+      message("File '", filename, "' already exists in table '", 
+              table_name, "'. Set overwrite = TRUE to replace it.")
+      return(invisible(FALSE))
+    }
   }
   
   # Read file content
@@ -676,16 +686,26 @@ DB_upload_file <- function(con, file_path, table_name) {
   file_size <- file_info$size
   file_type <- tools::file_ext(filename)
   
+  # Event ID
+  # library(rebus)
+  # p <- capture(one_or_more(DGT))%R%DOT%R%"txt"
+  # as.character(p)
+  
+  p <- "([\\d]+)\\.txt"
+  `Event ID` <- str_match(filename, p)[,2]|>as.integer()
+  
   # Get next ID
-  df_temp <- tbl(con, table_name) %>%
+  max_id <- tbl(con, table_name) |>
+    summarise(max_id = max(ID, na.rm = TRUE)) |>
     collect()
   
-  c_ID <- if (nrow(df_temp) == 0) 1L else max(df_temp$ID) + 1L
+  c_ID <- if (is.na(max_id$max_id)) 1L else max_id$max_id + 1L
   
   # Prepare the data frame for upload
   file_data <- tibble(
     ID = c_ID,
     filename = filename,
+    `Event ID` = `Event ID`,
     `file content` = file_content,
     `file size` = file_size,
     `file type` = file_type
@@ -702,8 +722,8 @@ DB_upload_file <- function(con, file_path, table_name) {
 DB_get_file <- function(con, filename, table_name ) {
   # Query the database for the file
   query <- paste0(
-    "SELECT filename, `file content` FROM `", table_name, "` ",
-    "WHERE filename = '", gsub("'", "''", filename), "'"
+    "SELECT * FROM `", table_name, "` ",
+    "WHERE `filename` = '", gsub("'", "''", filename), "'"
   )
   
   result <- dbGetQuery(con, query)
@@ -713,34 +733,41 @@ DB_get_file <- function(con, filename, table_name ) {
   }
   
   # Return as a list with filename and content
-  list(
-    filename = result$filename[1],
-    content = result$`file content`[1]
-  )
+  as_tibble(result)
 }
 
 # Function to download a file from the database to disk ####
 DB_download_file <- function(con, filename, output_path, table_name ) {
   file_data <- DB_get_file(con, filename, table_name)
   
+  # find end of line "\n"
+  x <- file_data$`file content`
+  last_two <- substr(x, nchar(x) - 1, nchar(x))
+  
   # Write the content to file
-  writeLines(paste0(file_data$content,"\n"), paste0(output_path,filename))
+  if(str_detect(last_two, "\n")){ # end of line found, no need to append
+    writeLines(file_data$`file content`, paste0(output_path,filename)) 
+  } else { # end of line not found so append 
+    writeLines(paste0(file_data$`file content`,"\n"), paste0(output_path,filename))
+  }
   
   message("File '", filename, "' downloaded to '", paste0(output_path,filename), "'.")
+  return(NULL)
 }
 
-# ## Data base credentials from system variables ####
-# DB_host <- Sys.getenv("DB_host")
-# DB_name <- Sys.getenv("DB_name")
-# DB_user <- Sys.getenv("DB_user")
-# DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# 
-# ## Connection ####
-# con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
-# 
-# DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files")
-# 
-# DB_get_file(con, "Kiosk ID1.txt","Kiosk files")
-# 
-# DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
+## Data base credentials from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+
+DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files", overwrite = T)
+
+DB_get_file(con, "Kiosk ID1.txt","Kiosk files")|>
+  print()
+
+DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
 
