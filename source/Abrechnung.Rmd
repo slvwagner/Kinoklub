@@ -165,12 +165,16 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
 }
 ```
 
+
+
 ```{r}
 c_Umsatz <- df_Abrechnung|>
+  filter(`Event ID` == ii)|>
   reframe(Umsatz = sum(`Umsatz [CHF]`,na.rm = T))|>
   pull()
 
 c_Umsatz_Kinoförderer <- df_Abrechnung|>
+  filter(`Event ID` == ii)|>
   reframe(Umsatz = sum(`Umsatz für Netto3 [CHF]`))|>
   pull()
 
@@ -181,13 +185,17 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 `r  abgaben_text`
 
 
-
+### Ticket Gewinn / Verlust
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
   if(df_temp$`Kinoförderer gratis?`){
       df_temp1 <- 
         tibble(
-          Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
+          Bezeichnung = 
+            c("Umsatz",
+              "Suisa-Vorabzug",
+              "Verleiherabzug", 
+              "MWST"),
           `Betrag [CHF]` = 
             c(
               c_Umsatz,
@@ -218,7 +226,9 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
     df_temp1 <- 
       tibble(
         Bezeichnung = 
-          c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
+          c("Umsatz",
+            "Suisa-Vorabzug",
+            "Verleiherrechnung (inkl. MWST)"),
         `Betrag [CHF]` = 
           c(c_Umsatz,
             -(df_temp$`Suisavorabzug [CHF]`) ,
@@ -253,6 +263,7 @@ df_temp1|>
 ```{r}
 df_temp|>
   select(`Gewinn aus Fimvorführung [CHF]`)|>
+  # rename(`Ticket Gewinn / Verlust [CHF]` = `Gewinn aus Fimvorführung [CHF]`)|>
   knitr::kable(digits = 2)
 ```
 
