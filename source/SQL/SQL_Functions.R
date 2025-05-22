@@ -624,3 +624,126 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
   
   invisible(success_count)
 }
+
+
+# Function to create a table for storing files if it doesn't exist ####
+DB_create_files_table <- function(con, table_name) {
+  if (!dbExistsTable(con, table_name)) {
+    create_query <- paste0(
+      "CREATE TABLE `", table_name, "` (
+        `ID` INT AUTO_INCREMENT PRIMARY KEY,
+        `filename` VARCHAR(255) NOT NULL,
+        `file content` LONGTEXT NOT NULL,
+        `upload time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `file size` INT,
+        `file type` VARCHAR(100)
+      )"  # Removed the semicolon and properly closed the parenthesis
+    )
+    
+    dbExecute(con, create_query)
+    message("Table '", table_name, "' created successfully.")
+  } else {
+    message("Table '", table_name, "' already exists.")
+  }
+}
+
+# Function to upload a text file to the database ####
+DB_upload_file <- function(con, file_path, table_name) {
+  # Validate inputs
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
+  }
+  
+  # Check if table exists, create if not
+  if (!dbExistsTable(con, table_name)) {
+    DB_create_files_table(con, table_name)
+  }
+  
+  # Get filename and check if it exists
+  filename <- basename(file_path)
+  existing_files <- tbl(con, table_name) %>% 
+    filter(filename == !!filename) %>%
+    collect()
+  
+  if (nrow(existing_files) > 0) {
+    message("File '", filename, "' already exists in table '", table_name, "'. Skipping upload.")
+    return(invisible(FALSE))
+  }
+  
+  # Read file content
+  file_content <- paste(readLines(file_path, warn = FALSE), collapse = "\n")
+  
+  # Prepare file metadata
+  file_info <- file.info(file_path)
+  file_size <- file_info$size
+  file_type <- tools::file_ext(filename)
+  
+  # Get next ID
+  df_temp <- tbl(con, table_name) %>%
+    collect()
+  
+  c_ID <- if (nrow(df_temp) == 0) 1L else max(df_temp$ID) + 1L
+  
+  # Prepare the data frame for upload
+  file_data <- tibble(
+    ID = c_ID,
+    filename = filename,
+    `file content` = file_content,
+    `file size` = file_size,
+    `file type` = file_type
+  )
+  
+  # Use your existing function to add the file to the database
+  DB_add_rows(file_data, table_name, con)
+  
+  message("File '", filename, "' uploaded successfully to table '", table_name, "'.")
+  return(invisible(TRUE))
+}
+
+# Function to retrieve all files from the database ####
+DB_get_file <- function(con, filename, table_name ) {
+  # Query the database for the file
+  query <- paste0(
+    "SELECT filename, `file content` FROM `", table_name, "` ",
+    "WHERE filename = '", gsub("'", "''", filename), "'"
+  )
+  
+  result <- dbGetQuery(con, query)
+  
+  if (nrow(result) == 0) {
+    stop("File not found in database: ", filename)
+  }
+  
+  # Return as a list with filename and content
+  list(
+    filename = result$filename[1],
+    content = result$`file content`[1]
+  )
+}
+
+
+# Function to download a file from the database to disk ####
+DB_download_file <- function(con, filename, output_path, table_name ) {
+  file_data <- DB_get_file(con, filename, table_name)
+  
+  # Write the content to file
+  writeLines(paste0(file_data$content,"\n"), paste0(output_path,filename))
+  
+  message("File '", filename, "' downloaded to '", paste0(output_path,filename), "'.")
+}
+
+# ## Data base credentials from system variables ####
+# DB_host <- Sys.getenv("DB_host")
+# DB_name <- Sys.getenv("DB_name")
+# DB_user <- Sys.getenv("DB_user")
+# DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+# 
+# ## Connection ####
+# con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+# 
+# DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files")
+# 
+# DB_get_file(con, "Kiosk ID1.txt","Kiosk files")
+# 
+# DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
+

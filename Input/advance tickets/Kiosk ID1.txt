@@ -41,3 +41,4 @@ CC	11			-88.00
 +/- Überschuss | Manko			31.00
 Solde		304.00
 MWSt 7.7%	14.51	
+

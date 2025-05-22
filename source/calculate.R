@@ -23,6 +23,7 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
+c_Abrechnungsjahr <- 2024L
 if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 ## Connection ####
@@ -51,7 +52,9 @@ Ausgaben <- DB_get_table("Ausgaben", con)|>
   filter(Abrechnungsjahr == c_Abrechnungsjahr)
 
 df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con)|>
-  convert_to_template_types(l_template$Spezialpreisekiosk )
+  convert_to_template_types(l_template$Spezialpreisekiosk )|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  filter(`Event ID` %in% Programm$`Event ID`)
 
 Verleiher <- DB_get_table("Verleiher",con)|>
   convert_to_template_types(l_template$Verleiher)
