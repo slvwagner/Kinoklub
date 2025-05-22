@@ -755,19 +755,19 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
   return(NULL)
 }
 
-## Data base credentials from system variables ####
-DB_host <- Sys.getenv("DB_host")
-DB_name <- Sys.getenv("DB_name")
-DB_user <- Sys.getenv("DB_user")
-DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-## Connection ####
-con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
-
-DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files", overwrite = T)
-
-DB_get_file(con, "Kiosk ID1.txt","Kiosk files")|>
-  print()
-
-DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
+# ## Data base credentials from system variables ####
+# DB_host <- Sys.getenv("DB_host")
+# DB_name <- Sys.getenv("DB_name")
+# DB_user <- Sys.getenv("DB_user")
+# DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+# 
+# ## Connection ####
+# con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+# 
+# DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files", overwrite = T)
+# 
+# DB_get_file(con, "Kiosk ID1.txt","Kiosk files")|>
+#   print()
+# 
+# DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
 
