@@ -78,7 +78,7 @@ if(sum(c_test) != length(c_test)){
     select(index)|>
     pull()
   stop("\nEs gibt keine Datei \"Eintritt ID",str_extract(c_Kiosk[c_index], pattern = one_or_more(DGT)),".txt\" aber eine Datei \"", c_Kiosk[c_index], "\"",
-       "\nEine der Dateien muss benannt oder gelöscht werden. ", "\nBitte im Verzeichniss  .../Input/advanced tickets/ korrigieren.\n")
+       "\nEine der Dateien muss umbenannt oder gelöscht werden. ", "\nBitte im Verzeichniss  .../Input/advanced tickets/ korrigieren.\n")
   c_Kiosk[c_index]
 } 
 
