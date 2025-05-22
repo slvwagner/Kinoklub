@@ -764,6 +764,9 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 # ## Connection ####
 # con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # 
+# DB_upload_file(con, "Input/advance tickets/Eintritte ID1.txt","Eintritt files", overwrite = T)
+
+# 
 # DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files", overwrite = T)
 # 
 # DB_get_file(con, "Kiosk ID1.txt","Kiosk files")|>
