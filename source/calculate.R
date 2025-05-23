@@ -23,7 +23,7 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-# c_Abrechnungsjahr <- 2023
+# c_Abrechnungsjahr <- 2023L
 if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 ## Connection ####
@@ -53,6 +53,9 @@ Einnahmen <- DB_get_table("Einnahmen", con)|>
 Ausgaben <- DB_get_table("Ausgaben", con)|>
   convert_to_template_types(l_template$Ausgaben)|>
   filter(Abrechnungsjahr == c_Abrechnungsjahr)
+
+`Einkauf Kiosk` <- DB_get_table("Einkauf Kiosk",con)|>
+  convert_to_template_types(l_template$`Einkauf Kiosk` )
 
 df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con)|>
   convert_to_template_types(l_template$Spezialpreisekiosk )|>
@@ -140,19 +143,6 @@ if(nrow(df_temp) != 0) {
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum),
     " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.")
   )}
-
-
-## Eintritt aus Advanced Tickets ####
-c_files <- list.files(pattern = "Eintritte", recursive = T)
-
-# error handling
-if(is_empty(c_files)) {
-  stop(paste0("\nEs gibt keinen Dateien im Verzeichniss: \".../Kinoklub/Input/advance tickets\"",
-              "\nBitte herunterladen ","<https://www.advance-ticket.ch/decomptefilms?lang=de> und abspeichern:",
-              "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"\n")
-  )
-}
-
 
 # Überschuss / Manko ####
 df_manko_uerberschuss <- df_Kiosk|>
