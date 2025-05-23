@@ -66,37 +66,7 @@ error_calculate <-  paste0("\n",
 
 # calculate.R ####
 data_env <- new.env()
-# data_env$c_Abrechnungsjahr <- lubridate::year(Sys.Date())
-# # read data
-# calculate_warnings <- ""
-# ausgabe_text <- ""
-# startup_error <- FALSE
-# tryCatch({
-#   # Fehler abfangen
-#   ausgabe_text <<- capture.output({
-#     withCallingHandlers(
-#       {
-#         source("source/calculate.R", local = data_env)
-#       },
-#       warning = function(w) {
-#         # Capture warnings and store them in calculate_warnings
-#         calculate_warnings <<- paste(calculate_warnings,"Warning:\n", w$message, sep = "")
-#         invokeRestart("muffleWarning")  # Suppress the warning from being printed
-#       }
-#     )
-#   }, type = "message")
-# }, error = function(e) {
-#   ausgabe_text <<-
-#     paste0(
-#       error_calculate,
-#       calculate_warnings,
-#       ausgabe_text,
-#       "Error:\n",e$message,
-#       collapse = ""
-#     )
-#   startup_error <<- TRUE
-# })
-# 
+
 # # concatenate feedback 
 # ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
 ausgabe_text <- ""
