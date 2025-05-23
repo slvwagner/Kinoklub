@@ -404,7 +404,6 @@ Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
 Manko <- df_manko_uerberschuss|>
   filter(`Event ID` == ii)|>
   rename(`Summe [CHF]` = `Überschuss / Manko [CHF]`)
-if(nrow(Manko) < 1) tibble(Manko = 0)
 
 ```
 
