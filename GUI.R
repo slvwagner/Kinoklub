@@ -66,41 +66,41 @@ error_calculate <-  paste0("\n",
 
 # calculate.R ####
 data_env <- new.env()
-data_env$c_Abrechnungsjahr <- lubridate::year(Sys.Date())
-# read data
-calculate_warnings <- ""
+# data_env$c_Abrechnungsjahr <- lubridate::year(Sys.Date())
+# # read data
+# calculate_warnings <- ""
+# ausgabe_text <- ""
+# startup_error <- FALSE
+# tryCatch({
+#   # Fehler abfangen
+#   ausgabe_text <<- capture.output({
+#     withCallingHandlers(
+#       {
+#         source("source/calculate.R", local = data_env)
+#       },
+#       warning = function(w) {
+#         # Capture warnings and store them in calculate_warnings
+#         calculate_warnings <<- paste(calculate_warnings,"Warning:\n", w$message, sep = "")
+#         invokeRestart("muffleWarning")  # Suppress the warning from being printed
+#       }
+#     )
+#   }, type = "message")
+# }, error = function(e) {
+#   ausgabe_text <<-
+#     paste0(
+#       error_calculate,
+#       calculate_warnings,
+#       ausgabe_text,
+#       "Error:\n",e$message,
+#       collapse = ""
+#     )
+#   startup_error <<- TRUE
+# })
+# 
+# # concatenate feedback 
+# ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
 ausgabe_text <- ""
-startup_error <- FALSE
-tryCatch({
-  # Fehler abfangen
-  ausgabe_text <<- capture.output({
-    withCallingHandlers(
-      {
-        source("source/calculate.R", local = data_env)
-      },
-      warning = function(w) {
-        # Capture warnings and store them in calculate_warnings
-        calculate_warnings <<- paste(calculate_warnings,"Warning:\n", w$message, sep = "")
-        invokeRestart("muffleWarning")  # Suppress the warning from being printed
-      }
-    )
-  }, type = "message")
-}, error = function(e) {
-  ausgabe_text <<-
-    paste0(
-      error_calculate,
-      calculate_warnings,
-      ausgabe_text,
-      "Error:\n",e$message,
-      collapse = ""
-    )
-  startup_error <<- TRUE
-})
-
-# concatenate feedback 
-ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
-ausgabe_text|>
-  writeLines()
+startup_error <<- FALSE
 
 # Error handling
 if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
@@ -993,7 +993,8 @@ server <- function(input, output, session) {
   
   ## Shiny reactive variables ####
   ### warning ####
-  calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
+  # calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
+  calculate_warnings <- shiny::reactiveVal("")
   
   ### System rückgaben an user
   ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
@@ -1047,13 +1048,12 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
-    data_env$c_Abrechnungsjahr <- input$c_Abrechnungsjahr
-    
     # update Abrechnungsjahr 
     Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
     data_env$Abrechungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
+    req(data_env$df_Eintritt)
     
-    df_temp <- data_env$df_Eintritt|>
+    df_temp <- DB_get_table("Programm", DB_con())|>
       filter(year(Datum) == input$c_Abrechnungsjahr)
     if(nrow(df_temp) == 0){
       warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
@@ -1792,58 +1792,67 @@ server <- function(input, output, session) {
               paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
                      c_message ,"\n")
           })
-
-          # test if entries already exists
-          test <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
-            select(-ID)|>
-            filter(`Event ID` %in% new_rows$`Event ID`)|>
-            collect()|>
-            convert_to_template_types(l_template$df_Eintritt)
           
-          c_test <- 
-            identical(
-              str(new_rows), 
-              str(test)
-            )
-          
-          # what needs to be updated?
-          new_rows_ <-
-            anti_join(
-              new_rows, test,
-              by = join_by(`Event ID`, Datum, Suisanummer, Filmtitel,
-                           Platzkategorie, Zahlend, Verkaufspreis, Anzahl, `Umsatz [CHF]`, `SUISA-Vorabzug [%]`)
-            )
-          
-          if(nrow(new_rows_) > 0){
-            c_ID <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
-              select(ID)|>
+          if(table_exists(DB_con(),"df_Eintritt")){
+            # test if entries already exists
+            test <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
+              select(-ID)|>
+              filter(`Event ID` %in% new_rows$`Event ID`)|>
               collect()|>
-              pull()|>
-              as.integer()|>
-              max()|>
-              suppressMessages()
+              convert_to_template_types(l_template$df_Eintritt)
             
-            if(is.infinite(c_ID)) c_ID <- 1
-            else c_ID <- c_ID + 1L
+            c_test <- 
+              identical(
+                str(new_rows), 
+                str(test)
+              )
             
-            new_rows_ <- 
-              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
-                        new_rows_
-                        )
-
-            # update database
-            DB_add_rows(new_rows_, "df_Eintritt", con, batch_size = 1)
+            # what needs to be updated?
+            new_rows_ <-
+              anti_join(
+                new_rows, test,
+                by = join_by(`Event ID`, Datum, Suisanummer, Filmtitel,
+                             Platzkategorie, Zahlend, Verkaufspreis, Anzahl, `Umsatz [CHF]`, `SUISA-Vorabzug [%]`)
+              )
+            
+            if(nrow(new_rows_) > 0){
+              c_ID <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
+                select(ID)|>
+                collect()|>
+                pull()|>
+                as.integer()|>
+                max()
+              c_ID <- c_ID + 1L
+              
+              new_rows_ <- 
+                bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
+                          new_rows_
+                )
+              
+              # update database
+              DB_add_rows(new_rows_, "df_Eintritt", con, batch_size = 1)
+              # system reply message
+              paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+                     paste0(print(new_rows_), collapse = "\n"), 
+                     c_message
+              )|>
+                ausgabe_text()
+            } else {
+              c_message|>
+                ausgabe_text()
+            }
+          } else {
+            new_rows <- 
+              bind_cols(ID = 1:nrow(new_rows),
+                        new_rows)
+            DB_copy_table(new_rows, DB_con(), "df_Eintritt")
             # system reply message
             paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
                    paste0(print(new_rows_), collapse = "\n"), 
                    c_message
-                   )|>
-              ausgabe_text()
-          } else {
-            c_message|>
+            )|>
               ausgabe_text()
           }
-          
           c_raw <- DB_get_file(con, file_name, "Eintritt files")$`file content`|>
             str_split("\n")|>
             unlist()
@@ -1877,88 +1886,68 @@ server <- function(input, output, session) {
                      c_message ,"\n")
           })
           
-          # test if entries already exists
-          test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
-            select(-ID)|>
-            filter(`Event ID` %in% new_rows$`Event ID`)|>
-            collect()|>
-            convert_to_template_types(l_template$df_Kiosk)|>
-            mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
-          
-          new_rows <- new_rows|>
-            select(-ID)|>
-            mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
-
-          c_test <- identical(new_rows, test)
-          c_test <- identical(dim(new_rows), dim(test))
-   
-          # test <- as.list(test)
-          # new_rows <- as.list(new_rows)
-          # 
-          # l_temp <- list()
-          # for(ii in 1:length(test)){
-          #   l_temp[[ii]] <- identical(test[ii], new_rows[ii])
-          # }
-
-          # what needs to be updated?
-          new_rows_ <- 
-            anti_join(
-              new_rows,
-              test,
-              by = join_by(`Event ID`, Datum, ID_Kioskartikel, `Artikelname-Kassensystem`, Verkaufsartikel, 
-                           `Verkaufspreis [CHF]`, Menge, `Einkaufspreis [CHF]`, Lieferant, 
-                           `Gültig ab Datum`, `Einzelpreis [CHF]`, Anzahl, `Umsatz [CHF]`, 
-                           `Gewinn [CHF]`, `Überschuss / Manko [CHF]`)
-            )
-          
-          # df1 <- test
-          # df2 <- new_rows
-          # 
-          # # Ensure both data frames have the same dimensions
-          # stopifnot(identical(dim(df1), dim(df2)))
-          # 
-          # # Logical matrix of where values differ
-          # diff_matrix <- df1 != df2
-          # 
-          # # Get row and column indices of differences
-          # diff_indices <- which(diff_matrix, arr.ind = TRUE)
-          # 
-          # # Create a summary data frame
-          # cell_diff_df <- data.frame(
-          #   Row    = diff_indices[, "row"],
-          #   Column = colnames(df1)[diff_indices[, "col"]],
-          #   df1_value = mapply(function(i, j) df1[i, j], diff_indices[, "row"], diff_indices[, "col"]),
-          #   df2_value = mapply(function(i, j) df2[i, j], diff_indices[, "row"], diff_indices[, "col"])
-          # )
-          # 
-          # print(cell_diff_df)
-          
-          if(nrow(new_rows_) > 0){
-            c_ID <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
-              select(ID)|>
+          if(table_exists(DB_con(),"df_Kiosk")){
+            # test if entries already exists
+            test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
+              select(-ID)|>
+              filter(`Event ID` %in% new_rows$`Event ID`)|>
               collect()|>
-              pull()|>
-              as.integer()|>
-              max()|>
-              suppressMessages()
-            if(is.infinite(c_ID)) c_ID <- 1
-            else c_ID <- c_ID + 1L
+              convert_to_template_types(l_template$df_Kiosk)|>
+              mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
             
+            new_rows <- new_rows|>
+              select(-ID)|>
+              mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
+            
+            c_test <- identical(new_rows, test)
+            c_test <- identical(dim(new_rows), dim(test))
+
+            # what needs to be updated?
             new_rows_ <- 
-              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
-                        new_rows_
+              anti_join(
+                new_rows,
+                test,
+                by = join_by(`Event ID`, Datum, ID_Kioskartikel,
+                             `Artikelname-Kassensystem`, Verkaufsartikel, `Verkaufspreis [CHF]`, Menge,
+                             `Einkaufspreis [CHF]`, Lieferant, `Gültig ab Datum`, `Einzelpreis [CHF]`,
+                             Anzahl, `Umsatz [CHF]`, `Gewinn [CHF]`, `Überschuss / Manko [CHF]`)
               )
             
-            # update database
-            DB_add_rows(new_rows_, "df_Kiosk", con, batch_size = 1)
+            if(nrow(new_rows_) > 0){
+              c_ID <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
+                select(ID)|>
+                collect()|>
+                pull()|>
+                as.integer()|>
+                max()
+              c_ID <- c_ID + 1L
+              
+              new_rows_ <- 
+                bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
+                          new_rows_
+                )
+              
+              # update database
+              DB_add_rows(new_rows_, "df_Kiosk", con, batch_size = 1)
+              # system reply message
+              paste0("Es wurde folgendes der Tabelle df_Kiosk hinzugefügt:\n",
+                     paste0(print(new_rows_), collapse = "\n"), 
+                     c_message
+              )|>
+                ausgabe_text()
+            } else {
+              c_message|>
+                ausgabe_text()
+            }
+          } else {
+            new_rows <- new_rows|>
+              mutate(ID = row_number())
+            DB_copy_table(new_rows, DB_con(), "df_Kiosk")
             # system reply message
             paste0("Es wurde folgendes der Tabelle df_Kiosk hinzugefügt:\n",
                    paste0(print(new_rows_), collapse = "\n"), 
                    c_message
-                   )|>
-              ausgabe_text()
-          } else {
-            c_message|>
+            )|>
               ausgabe_text()
           }
           

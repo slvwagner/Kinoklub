@@ -773,3 +773,24 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 # 
 # DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
 
+
+# Check if a table exists on a database ####
+table_exists <- function(con, table_name, schema = NULL) {
+  if (is.null(schema)) {
+    tables <- DBI::dbListTables(con)
+    tolower(table_name) %in% tolower(tables)
+  } else {
+    # For databases that support schemas
+    query <- DBI::sqlInterpolate(
+      con,
+      "SELECT COUNT(*) FROM information_schema.tables 
+       WHERE table_schema = ?schema AND table_name = ?table",
+      schema = schema,
+      table = table_name
+    )
+    DBI::dbGetQuery(con, query)[1, 1] > 0
+  }
+}
+
+
+
