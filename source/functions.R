@@ -644,7 +644,6 @@ convert_data_Film_txt <- function(fileName, con) {
   return(df_Eintritt)
 }
 
-
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {
   print("convert_data_kiosk_txt")
@@ -657,7 +656,9 @@ convert_data_kiosk_txt <- function(fileName, con) {
   
   l_temp <- fileName|>
     lapply(function(fileName){
-      c_raw <- suppressWarnings(readLines(fileName))
+      c_raw <- DB_get_file(con, fileName, "Kiosk files")$`file content`|>
+        str_split("\n")|>
+        unlist()
       
       # find ID_Program from file name
       ID <- str_match(fileName, "ID"%R%optional(SPC)%R%capture(one_or_more(DGT)))[2]|>
@@ -804,6 +805,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
         rename(`Einzelpreis [CHF]`= Einzelpreis,
                `Betrag [CHF]` = Betrag
         )
+      return(df_Kiosk)
     })
   names(l_temp) <- str_match(fileName, capture(one_or_more(DGT))%R%DOT%R%"txt")[,2]
   

@@ -989,6 +989,7 @@ server <- function(input, output, session) {
     
   }
 
+
   
   ## Shiny reactive variables ####
   ### warning ####
@@ -1750,29 +1751,38 @@ server <- function(input, output, session) {
         return(list(type = "txt", data = readLines(file_path)))
       } else{
         if(str_detect(file_name, pattern = "Eintritte")){
-          ausgabe_text("")
+          
           # upload file to database 
+          c_message <- ""
           tryCatch({
             DB_upload_file(con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = FALSE)
           }, warning = function(w) {
-            paste0("Warning caught:\n", conditionMessage(w))|>
-              calculate_warnings()
+            c_message <<- paste0("\nWarnung bein Hochladen der Datei:\n", file_name, "\n", conditionMessage(w), "\n")
           }, error = function(e) {
-            paste0("\nError caught:\n", conditionMessage(e), "\n*******\n",calculate_warnings())|>
-              ausgabe_text()
+            c_message <<- 
+              paste0("\nFehler beim Hochladen der Datei:\n", c_message, "\n",file_name, "\n",conditionMessage(e), "\n",
+                     c_message, "\n")
           })
-          
-          # Read Eintritt
-          df_temp <- DB_get_table("df_Eintritt", DB_con())|>
-            convert_to_template_types(l_template$df_Eintritt)
-
+      
           # read data an create new rows from it
-          new_rows <- convert_data_Film_txt(file_name, DB_con())
+          tryCatch({
+            new_rows <- convert_data_Film_txt(file_name, DB_con())
+          }, warning = function(w) {
+             c_message <<- 
+               paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
+                      c_message, "\n")
+          }, error = function(e) {
+            c_message <<- 
+              paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
+                     c_message ,"\n")
+          })
 
           # test if entries already exists
-          test <- df_temp|>
+          test <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
+            select(-ID)|>
             filter(`Event ID` %in% new_rows$`Event ID`)|>
-            mutate(ID = NULL)
+            collect()|>
+            convert_to_template_types(l_template$df_Eintritt)
           
           c_test <- 
             identical(
@@ -1780,23 +1790,32 @@ server <- function(input, output, session) {
               str(test)
             )
           
+          # what needs to be updated?
           new_rows_ <-
             anti_join(
-              new_rows, test,
-              by = join_by(
-                `Event ID`, Datum, Suisanummer, Filmtitel, Platzkategorie, Zahlend,
-                Verkaufspreis, Anzahl, `Umsatz [CHF]`, `SUISA-Vorabzug [%]`
-              )
+              new_rows, test
             )
           
           if(nrow(new_rows_) > 0){
-            c_ID <- max(df_temp$ID) + 1L
+            c_ID <- max(df_Eintritt$ID) + 1L
+            
             new_rows_ <- 
-              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
-              )
+              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
+                        new_rows_
+                        )
+
             # update database
-            DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
-          } 
+            DB_add_rows(new_rows_, "df_Eintritt", con, batch_size = 1)
+            # system reply message
+            paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+                   paste0(print(new_rows_), collapse = "\n"), 
+                   c_message
+                   )|>
+              ausgabe_text()
+          } else {
+            c_message|>
+              ausgabe_text()
+          }
           
           c_raw <- DB_get_file(con, file_name, "Eintritt files")$`file content`|>
             str_split("\n")|>
@@ -1805,65 +1824,76 @@ server <- function(input, output, session) {
           return(list(type = "txt", data = c_raw))
           
         } else if (str_detect(file_name, pattern = "Kiosk")){
-          # Read Eintritt
-          df_temp <- DB_get_table("df_Kiosk", con)|>
-            convert_to_template_types(l_template$df_Kiosk)|>
-            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
+          # upload file to database 
+          c_message <- ""
+          tryCatch({
+            DB_upload_file(con, file_path = file_path, file_name, table_name = "Kiosk files", overwrite = FALSE)
+          }, warning = function(w) {
+            c_message <<- paste0("\nWarnung bein Hochladen der Datei:\n", file_name, "\n", conditionMessage(w), "\n")
+          }, error = function(e) {
+            c_message <<- 
+              paste0("\nFehler beim Hochladen der Datei:\n", c_message, "\n",file_name, "\n",conditionMessage(e), "\n",
+                     c_message, "\n")
+          })
           
           # read data an create new rows from it
-          new_rows <- convert_data_kiosk_txt(save_path, DB_con())|>
-            select(-ID)|>
-            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
-
-          # Find entries already existing
-          test <- df_temp|>
-            filter((`Event ID` %in% new_rows$`Event ID`))|>
-            select(-ID)|>
-            mutate(`Gewinn [CHF]` = signif(`Gewinn [CHF]`))
+          tryCatch({
+            # read data an create new rows from it
+            new_rows <- convert_data_kiosk_txt(file_name, DB_con())
+          }, warning = function(w) {
+            c_message <<- 
+              paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
+                     c_message, "\n")
+          }, error = function(e) {
+            c_message <<- 
+              paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
+                     c_message ,"\n")
+          })
           
-          c_test <- 
-            identical(
-              str(new_rows), 
-              str(test)
-              )
+          # test if entries already exists
+          test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
+            select(-ID)|>
+            filter(`Event ID` %in% new_rows$`Event ID`)|>
+            collect()|>
+            convert_to_template_types(l_template$df_Kiosk)
+          
+          new_rows <- new_rows|>
+            select(-ID)
 
+          # what needs to be updated?
           new_rows_ <- 
             anti_join(
               new_rows,
-              test,
-              by = join_by(
-                `Event ID`,
-                Datum,
-                ID_Kioskartikel,
-                `Artikelname-Kassensystem`,
-                Verkaufsartikel,
-                `Verkaufspreis [CHF]`,
-                Menge,
-                `Einkaufspreis [CHF]`,
-                Lieferant,
-                `Gültig ab Datum`,
-                `Einzelpreis [CHF]`,
-                Anzahl,
-                `Umsatz [CHF]`,
-                `Gewinn [CHF]`,
-                `Überschuss / Manko [CHF]`
-              )
+              test
             )
           
           if(nrow(new_rows_) > 0){
-            c_ID <- max(df_temp$ID) + 1L
+            c_ID <- max(df_Kiosk$ID) + 1L
+            
             new_rows_ <- 
-              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
-                        )
+              bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
+                        new_rows_
+              )
+            
+            # update database
             DB_add_rows(new_rows_, "df_Kiosk", con, batch_size = 1)
-            print(new_rows_)|>
+            # system reply message
+            paste0("Es wurde folgendes der Tabelle df_Kiosk hinzugefügt:\n",
+                   paste0(print(new_rows_), collapse = "\n"), 
+                   c_message
+            )|>
               ausgabe_text()
           } else {
-            paste0("Der Datenbank wurde nichts hinzugefügt ",ausgabe_text())|>
+            c_message|>
               ausgabe_text()
           }
+          
+          c_raw <- DB_get_file(con, file_name, "Kiosk files")$`file content`|>
+            str_split("\n")|>
+            unlist()
+          
+          return(list(type = "txt", data = c_raw))
         }
-        return(list(type = "txt", data = DB_get_file(con, file_name, "Kiosk files")))
       }
     } else if (file_ext == "csv") {
       # save csv files (WordPress input)
@@ -2000,8 +2030,15 @@ server <- function(input, output, session) {
   ## Render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
-    file_data()$data |>
-      writeLines()
+    if(is.null(file_data())){
+      ""|>
+        writeLines()
+    } else {
+      c_raw <- file_data()$data
+      c_raw|>
+        writeLines()
+    }
+    
   })
   
   ## Render: Systemrückmeldungen aktualisieren #####
