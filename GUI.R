@@ -998,6 +998,8 @@ server <- function(input, output, session) {
   
   ### System rückgaben an user
   ausgabe_text <- shiny::reactiveVal(as.character(ausgabe_text))
+  
+  ### Abrechnungsjahr ####
   Abrechungsjahr <- shiny::reactiveVal(year(Sys.Date()))
   
   ### Vektor mit Datumseinträgen ####
@@ -1051,21 +1053,68 @@ server <- function(input, output, session) {
     # update Abrechnungsjahr 
     Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
     data_env$Abrechungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
-    req(data_env$df_Eintritt)
     
-    df_temp <- DB_get_table("Programm", DB_con())|>
-      filter(year(Datum) == input$c_Abrechnungsjahr)
-    if(nrow(df_temp) == 0){
-      warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
-      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
-      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
-    }else{
-      START_date_choose()
-      START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
-      End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
-    }
-    
-    ausgabe_text(paste( "Daten für", Abrechungsjahr()))
+    # Execution time 
+    c_time <- Sys.time()
+    shiny::withProgress(message = "Berechnung...", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
+      ausgabe_text("Dateien wurden eingelesen.\n")
+      calculate_warnings("")
+      
+      # read data
+      tryCatch({
+        # Fehler abfangen
+        ausgabe_text(capture.output({
+          withCallingHandlers(
+            {
+              data_env$c_Abrechnungsjahr <- Abrechungsjahr()
+              source("source/calculate.R", local = data_env)
+              shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+            },
+            warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            }
+          )
+        }, type = "message"))
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            error_calculate,
+            e$message,
+            collapse = ""
+          )
+        )
+      })
+      
+     
+      
+      
+      df_temp <- DB_get_table("Programm", DB_con())|>
+        filter(year(Datum) == input$c_Abrechnungsjahr)
+      if(nrow(df_temp) == 0){
+        warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
+        START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+        End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+      }else{
+        START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
+        End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
+        
+        START_date_choose()
+        End_date_choose()
+      }
+      
+      
+      shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
+             "Berechnung durchgeführt\n",
+             calculate_warnings())|>
+        ausgabe_text()
+    })
   })
   
   ### 2 ####
@@ -1088,6 +1137,7 @@ server <- function(input, output, session) {
         ausgabe_text(capture.output({
           withCallingHandlers(
             {
+              data_env$c_Abrechnungsjahr <- Abrechungsjahr()
               source("source/calculate.R", local = data_env)
               shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
             },
@@ -1107,13 +1157,13 @@ server <- function(input, output, session) {
             )
           )
       })
-      
-      End_date_choose(max(data_env$df_Abrechnung$Datum))
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n\n",calculate_warnings())|>
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
+             "Berechnung durchgeführt\n",
+             calculate_warnings())|>
         ausgabe_text()
     })
   })
@@ -1892,99 +1942,93 @@ server <- function(input, output, session) {
   
   ## Reder: Update table with all the dates in the selected range #####
   output$dateTable <-  DT::renderDT({
-    if (exists("data_env")) {
-      start_datum <- input$dateRange |> min()
-      end_datum <- input$dateRange |> max()
-      
-      df_temp <- DB_get_table("Programm", con)|>
-        convert_to_template_types(l_template$Programm)|>
-        distinct(`Event ID`, .keep_all = T)|>
-        filter(between(Datum, start_datum, end_datum), `Verleiher Angefragt?` == "Bestätigt") |>
-        arrange(desc(Datum), desc(Zeit)) |>
-        mutate(Datum = format(Datum, "%d.%m.%Y"),
-               Zeit = format(Zeit, "%H%M")) 
-      
-      Verleiher <- DB_get_table("Verleiher", con)|>
-        convert_to_template_types(l_template$Verleiher )|>
-        select(Verleihername, `Kinoförderer gratis?`)
-      
-      df_temp <- left_join(df_temp, Verleiher, by = c(Verleiher = "Verleihername"))
-      
-      df_temp <- df_temp|>
-        select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
-      
-      current_data(df_temp)
-      
-      datatable(
-        df_temp,
-        filter = "top",
-        rownames = FALSE,
-        class = 'datatables',
-        options = list(
-          pageLength = 5,
-          lengthMenu = c_lengthMenu,
-          dom = 'lftip',
-          initComplete = JS(
-            "function(settings, json) {",
-            "// One-time header/body styles",
-            "$(this.api().table().header()).css({",
-            "'background-color': '#2d3e50',",
-            "'color': '#ffffff'",
-            "});",
-            "$(this.api().table().body()).css({",
-            "'background-color': '#34495e',",
-            "'color': '#ecf0f1'",
-            "});",
-            "// One-time search/length styling",
-            "$('div.dataTables_filter input').css({",
-            "'background-color': '#2c3e50',",
-            "'color': '#ecf0f1',",
-            "'border': '1px solid #7f8c8d'",
-            "});",
-            "$('div.dataTables_length select').css({",
-            "'background-color': '#2c3e50',",
-            "'color': '#ecf0f1',",
-            "'border': '1px solid #7f8c8d'",
-            "});",
-            "}"
-          ),
-          drawCallback = JS(
-            "function(settings) {",
-            "$('a.paginate_button').css({",
-            "'background-color': '#7898b6',",
-            "'color': '#ffffff',",
-            "'border': '1px solid #7f8c8d',",
-            "'padding': '5px 10px',",
-            "'margin': '0 2px',",
-            "'border-radius': '4px',",
-            "'text-decoration': 'none'",
-            "});",
-            
-            "$('a.paginate_button.current').css({",
-            "'background-color': '#e67e22',",
-            "'color': '#ffffff',",
-            "'font-weight': 'bold'",
-            "});",
-            
-            "$('a.paginate_button').hover(",
-            "function() {",
-            "if (!$(this).hasClass('current')) {",
-            "$(this).css('background-color', '#5d7d9a');",
-            "}",
-            "},",
-            "function() {",
-            "if (!$(this).hasClass('current')) {",
-            "$(this).css('background-color', '#7898b6');",
-            "}",
-            "}",
-            ");",
-            "}"
-          )
+    df_temp <- DB_get_table("Programm", con)|>
+      convert_to_template_types(l_template$Programm)|>
+      distinct(`Event ID`, .keep_all = T)|>
+      filter(between(Datum, START_date_choose(), End_date_choose()), `Verleiher Angefragt?` == "Bestätigt") |>
+      arrange(desc(Datum), desc(Zeit)) |>
+      mutate(Datum = format(Datum, "%d.%m.%Y"),
+             Zeit = format(Zeit, "%H%M")) 
+    
+    Verleiher <- DB_get_table("Verleiher", con)|>
+      convert_to_template_types(l_template$Verleiher )|>
+      select(Verleihername, `Kinoförderer gratis?`)
+    
+    df_temp <- left_join(df_temp, Verleiher, by = c(Verleiher = "Verleihername"))
+    
+    df_temp <- df_temp|>
+      select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
+    
+    current_data(df_temp)
+    
+    datatable(
+      df_temp,
+      filter = "top",
+      rownames = FALSE,
+      class = 'datatables',
+      options = list(
+        pageLength = 5,
+        lengthMenu = c_lengthMenu,
+        dom = 'lftip',
+        initComplete = JS(
+          "function(settings, json) {",
+          "// One-time header/body styles",
+          "$(this.api().table().header()).css({",
+          "'background-color': '#2d3e50',",
+          "'color': '#ffffff'",
+          "});",
+          "$(this.api().table().body()).css({",
+          "'background-color': '#34495e',",
+          "'color': '#ecf0f1'",
+          "});",
+          "// One-time search/length styling",
+          "$('div.dataTables_filter input').css({",
+          "'background-color': '#2c3e50',",
+          "'color': '#ecf0f1',",
+          "'border': '1px solid #7f8c8d'",
+          "});",
+          "$('div.dataTables_length select').css({",
+          "'background-color': '#2c3e50',",
+          "'color': '#ecf0f1',",
+          "'border': '1px solid #7f8c8d'",
+          "});",
+          "}"
+        ),
+        drawCallback = JS(
+          "function(settings) {",
+          "$('a.paginate_button').css({",
+          "'background-color': '#7898b6',",
+          "'color': '#ffffff',",
+          "'border': '1px solid #7f8c8d',",
+          "'padding': '5px 10px',",
+          "'margin': '0 2px',",
+          "'border-radius': '4px',",
+          "'text-decoration': 'none'",
+          "});",
+          
+          "$('a.paginate_button.current').css({",
+          "'background-color': '#e67e22',",
+          "'color': '#ffffff',",
+          "'font-weight': 'bold'",
+          "});",
+          
+          "$('a.paginate_button').hover(",
+          "function() {",
+          "if (!$(this).hasClass('current')) {",
+          "$(this).css('background-color', '#5d7d9a');",
+          "}",
+          "},",
+          "function() {",
+          "if (!$(this).hasClass('current')) {",
+          "$(this).css('background-color', '#7898b6');",
+          "}",
+          "}",
+          ");",
+          "}"
         )
-        
-        
       )
-    }
+    )
+    
   })
   
   ## Render: txt file rendering ####
