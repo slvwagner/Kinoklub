@@ -988,9 +988,9 @@ server <- function(input, output, session) {
     file.remove("Site-Map.html")
     
   }
+
   
   ## Shiny reactive variables ####
-  
   ### warning ####
   calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
   
@@ -1749,30 +1749,25 @@ server <- function(input, output, session) {
           ausgabe_text()
         return(list(type = "txt", data = readLines(file_path)))
       } else{
-        # save all other txt files
-        # Define save path
-        save_path <- paste0("Input/advance tickets/", file_name)
-        # Save the file to the specified directory
-        file.copy(from = file_path,
-                  to = save_path,
-                  overwrite = TRUE)
-        # user interaction
-        paste0(
-          "Die Datei \"",
-          file_name,
-          "\" wurde im Verzeichniss \n.../Kinoklub",
-          save_path,
-          " abgespeichert"
-        ) |>
-          ausgabe_text()
-        
         if(str_detect(file_name, pattern = "Eintritte")){
+          ausgabe_text("")
+          # upload file to database 
+          tryCatch({
+            DB_upload_file(con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = FALSE)
+          }, warning = function(w) {
+            paste0("Warning caught:\n", conditionMessage(w))|>
+              calculate_warnings()
+          }, error = function(e) {
+            paste0("\nError caught:\n", conditionMessage(e), "\n*******\n",calculate_warnings())|>
+              ausgabe_text()
+          })
+          
           # Read Eintritt
           df_temp <- DB_get_table("df_Eintritt", DB_con())|>
             convert_to_template_types(l_template$df_Eintritt)
 
           # read data an create new rows from it
-          new_rows <- convert_data_Film_txt(save_path, DB_con())
+          new_rows <- convert_data_Film_txt(file_name, DB_con())
 
           # test if entries already exists
           test <- df_temp|>
@@ -1787,19 +1782,10 @@ server <- function(input, output, session) {
           
           new_rows_ <-
             anti_join(
-              new_rows,
-              test,
+              new_rows, test,
               by = join_by(
-                `Event ID`,
-                Datum,
-                Suisanummer,
-                Filmtitel,
-                Platzkategorie,
-                Zahlend,
-                Verkaufspreis,
-                Anzahl,
-                `Umsatz [CHF]`,
-                `SUISA-Vorabzug [%]`
+                `Event ID`, Datum, Suisanummer, Filmtitel, Platzkategorie, Zahlend,
+                Verkaufspreis, Anzahl, `Umsatz [CHF]`, `SUISA-Vorabzug [%]`
               )
             )
           
@@ -1811,7 +1797,13 @@ server <- function(input, output, session) {
             # updata data base
             DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
           } 
+          
+          c_raw <- DB_get_file(con, file_name, "Eintritt files")$`file content`|>
+            str_split("\n")|>
+            unlist()
 
+          return(list(type = "txt", data = c_raw))
+          
         } else if (str_detect(file_name, pattern = "Kiosk")){
           # Read Eintritt
           df_temp <- DB_get_table("df_Kiosk", con)|>
@@ -1863,10 +1855,15 @@ server <- function(input, output, session) {
             new_rows_ <- 
               bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
                         )
-            DB_add_rows(new_rows, "df_Kiosk", con, batch_size = 1)
+            DB_add_rows(new_rows_, "df_Kiosk", con, batch_size = 1)
+            print(new_rows_)|>
+              ausgabe_text()
+          } else {
+            paste0("Der Datenbank wurde nichts hinzugefügt ",ausgabe_text())|>
+              ausgabe_text()
           }
         }
-        return(list(type = "txt", data = readLines(file_path)|>suppressWarnings()))
+        return(list(type = "txt", data = DB_get_file(con, file_name, "Kiosk files")))
       }
     } else if (file_ext == "csv") {
       # save csv files (WordPress input)

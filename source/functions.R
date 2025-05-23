@@ -447,8 +447,10 @@ convert_data_Film_txt <- function(fileName, con) {
         as.integer()
       
       # read in data
-      c_raw <- suppressWarnings(readLines(fileName))
-      c_raw
+      c_raw <- DB_get_file(con, fileName, "Eintritt files")$`file content`|>
+        str_split("\n")|>
+        unlist()
+      
       l_temp <- list()
       
       # Extract suisa from file
@@ -641,6 +643,7 @@ convert_data_Film_txt <- function(fileName, con) {
   
   return(df_Eintritt)
 }
+
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {

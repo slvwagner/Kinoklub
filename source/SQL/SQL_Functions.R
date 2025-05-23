@@ -671,7 +671,7 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
       # Delete existing file record
       DB_delete_row(con, table_name, "filename", filename)
     } else {
-      message("File '", filename, "' already exists in table '", 
+      stop("File '", filename, "' already exists in table '", 
               table_name, "'. Set overwrite = TRUE to replace it.")
       return(invisible(FALSE))
     }
