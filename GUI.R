@@ -1794,7 +1794,7 @@ server <- function(input, output, session) {
             new_rows_ <- 
               bind_cols(ID = c_ID:(c_ID + nrow(new_rows_)),
               )
-            # updata data base
+            # update database
             DB_add_rows(new_rows, "df_Eintritt", con, batch_size = 1)
           } 
           
