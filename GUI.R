@@ -1022,7 +1022,7 @@ server <- function(input, output, session) {
     
     # update Abrechnungsjahr 
     Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
-    data_env$Abrechungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
+    data_env$c_Abrechnungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
     
     # Execution time 
     c_time <- Sys.time()
@@ -1081,7 +1081,7 @@ server <- function(input, output, session) {
       c_time <- c(c_time,end = Sys.time())|>
         diff()
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
-             "Berechnung durchgeführt\n",
+             "Berechnung für das Jahr ", Abrechungsjahr()," durchgeführt\n",
              calculate_warnings())|>
         ausgabe_text()
     })
@@ -1132,7 +1132,7 @@ server <- function(input, output, session) {
       c_time <- c(c_time,end = Sys.time())|>
         diff()
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
-             "Berechnung durchgeführt\n",
+             "Berechnung für das Jahr ", Abrechungsjahr()," durchgeführt\n",
              calculate_warnings())|>
         ausgabe_text()
     })
