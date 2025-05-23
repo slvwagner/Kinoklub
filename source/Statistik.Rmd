@@ -849,7 +849,7 @@ df_temp <- df_Kiosk|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(Datum_display, Datum,`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
-
+df_temp
 ```
 
 
@@ -916,6 +916,11 @@ df_temp|>
 ```
 
 #### Wochentaganalyse
+```{r}
+df_temp
+```
+
+
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")

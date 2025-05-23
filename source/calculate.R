@@ -23,8 +23,6 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-# c_Abrechnungsjahr <- 2023L
-if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
@@ -34,12 +32,12 @@ Programm <- DB_get_table("Programm", con, download = FALSE)|>
   filter(`Verleiher Angefragt?` == "Bestätigt")|>
   collect()|>
   convert_to_template_types(l_template$Programm)|>
-  filter(c_Abrechnungsjahr == lubridate::year(Datum))
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)
 Programm
 
 df_Eintritt <- DB_get_table("df_Eintritt", con)|>
   convert_to_template_types(l_template$df_Eintritt)|>
-  filter(c_Abrechnungsjahr == lubridate::year(Datum))
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)
 df_Eintritt
 
 df_Kiosk <- DB_get_table("df_Kiosk", con)|>

@@ -40,7 +40,7 @@
 rm(list = ls())
 source("source/functions.R")
 c_script_version <- "V3.00"
-
+c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 #############################################################################################################################################
 # Packages loading
