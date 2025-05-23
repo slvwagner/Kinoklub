@@ -12,15 +12,16 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # Backup
 l_data <- DB_backup_DB(con)
+l_data
 
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
-l_template
 
-# ################################
+# l_template$`Eintritt files` <- l_data$`Eintritt files`
+# l_template$`Kiosk files` <- l_data$`Kiosk files`
+# 
+# # save template
 # saveRDS(l_template, "source/SQL/template.Rds")
-
-################################
 
 ################################
 # Convert to R data type
