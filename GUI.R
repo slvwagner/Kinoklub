@@ -1722,6 +1722,14 @@ server <- function(input, output, session) {
     file_path <- input$file$datapath
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
+    
+    if(length(file_name) > 1){
+      paste0("Die folgenden Dateien wurden hochgeladen:\n" , paste(file_name, collapse = "\n"),
+             "\nEs darf nur eine Datei hochgeladen werden!")|>
+        ausgabe_text()
+      return(NULL)
+    }
+    
 
     if (file_ext == "txt") {
       # save txt files
@@ -1760,7 +1768,7 @@ server <- function(input, output, session) {
             c_message <<- paste0("\nWarnung bein Hochladen der Datei:\n", file_name, "\n", conditionMessage(w), "\n")
           }, error = function(e) {
             c_message <<- 
-              paste0("\nFehler beim Hochladen der Datei:\n", c_message, "\n",file_name, "\n",conditionMessage(e), "\n",
+              paste0("\nFehler beim Hochladen der Datei:\n", file_name, "\n",conditionMessage(e), "\n",
                      c_message, "\n")
           })
       
@@ -1793,11 +1801,22 @@ server <- function(input, output, session) {
           # what needs to be updated?
           new_rows_ <-
             anti_join(
-              new_rows, test
+              new_rows, test,
+              by = join_by(`Event ID`, Datum, Suisanummer, Filmtitel,
+                           Platzkategorie, Zahlend, Verkaufspreis, Anzahl, `Umsatz [CHF]`, `SUISA-Vorabzug [%]`)
             )
           
           if(nrow(new_rows_) > 0){
-            c_ID <- max(df_Eintritt$ID) + 1L
+            c_ID <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
+              select(ID)|>
+              collect()|>
+              pull()|>
+              as.integer()|>
+              max()|>
+              suppressMessages()
+            
+            if(is.infinite(c_ID)) c_ID <- 1
+            else c_ID <- c_ID + 1L
             
             new_rows_ <- 
               bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
@@ -1832,7 +1851,7 @@ server <- function(input, output, session) {
             c_message <<- paste0("\nWarnung bein Hochladen der Datei:\n", file_name, "\n", conditionMessage(w), "\n")
           }, error = function(e) {
             c_message <<- 
-              paste0("\nFehler beim Hochladen der Datei:\n", c_message, "\n",file_name, "\n",conditionMessage(e), "\n",
+              paste0("\nFehler beim Hochladen der Datei:\n", file_name, "\n",conditionMessage(e), "\n",
                      c_message, "\n")
           })
           
@@ -1855,10 +1874,23 @@ server <- function(input, output, session) {
             select(-ID)|>
             filter(`Event ID` %in% new_rows$`Event ID`)|>
             collect()|>
-            convert_to_template_types(l_template$df_Kiosk)
+            convert_to_template_types(l_template$df_Kiosk)|>
+            mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
           
           new_rows <- new_rows|>
-            select(-ID)
+            select(-ID)|>
+            mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
+
+          c_test <- identical(new_rows, test)
+          c_test <- identical(dim(new_rows), dim(test))
+   
+          # test <- as.list(test)
+          # new_rows <- as.list(new_rows)
+          # 
+          # l_temp <- list()
+          # for(ii in 1:length(test)){
+          #   l_temp[[ii]] <- identical(test[ii], new_rows[ii])
+          # }
 
           # what needs to be updated?
           new_rows_ <- 
@@ -1867,8 +1899,38 @@ server <- function(input, output, session) {
               test
             )
           
+          # df1 <- test
+          # df2 <- new_rows
+          # 
+          # # Ensure both data frames have the same dimensions
+          # stopifnot(identical(dim(df1), dim(df2)))
+          # 
+          # # Logical matrix of where values differ
+          # diff_matrix <- df1 != df2
+          # 
+          # # Get row and column indices of differences
+          # diff_indices <- which(diff_matrix, arr.ind = TRUE)
+          # 
+          # # Create a summary data frame
+          # cell_diff_df <- data.frame(
+          #   Row    = diff_indices[, "row"],
+          #   Column = colnames(df1)[diff_indices[, "col"]],
+          #   df1_value = mapply(function(i, j) df1[i, j], diff_indices[, "row"], diff_indices[, "col"]),
+          #   df2_value = mapply(function(i, j) df2[i, j], diff_indices[, "row"], diff_indices[, "col"])
+          # )
+          # 
+          # print(cell_diff_df)
+          
           if(nrow(new_rows_) > 0){
-            c_ID <- max(df_Kiosk$ID) + 1L
+            c_ID <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
+              select(ID)|>
+              collect()|>
+              pull()|>
+              as.integer()|>
+              max()|>
+              suppressMessages()
+            if(is.infinite(c_ID)) c_ID <- 1
+            else c_ID <- c_ID + 1L
             
             new_rows_ <- 
               bind_cols(ID = c_ID:(c_ID + nrow(new_rows_) - 1),
@@ -1881,7 +1943,7 @@ server <- function(input, output, session) {
             paste0("Es wurde folgendes der Tabelle df_Kiosk hinzugefügt:\n",
                    paste0(print(new_rows_), collapse = "\n"), 
                    c_message
-            )|>
+                   )|>
               ausgabe_text()
           } else {
             c_message|>
