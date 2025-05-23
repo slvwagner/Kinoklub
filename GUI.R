@@ -1089,8 +1089,16 @@ server <- function(input, output, session) {
           withCallingHandlers(
             {
               # Find files 
-              c_eintritt <- list.files(path = "Input/advance tickets", pattern = "Eintritt", full.names = TRUE)
-              c_Kiosk <- list.files(path = "Input/advance tickets", pattern = "Kiosk", full.names = TRUE)
+              # c_eintritt <- list.files(path = "Input/advance tickets", pattern = "Eintritt", full.names = TRUE)
+              # c_Kiosk <- list.files(path = "Input/advance tickets", pattern = "Kiosk", full.names = TRUE)
+              
+              c_eintritt <- DB_get_table("Eintritt files", DB_con())|>
+                select(filename)|>
+                pull()
+              c_Kiosk <- DB_get_table("Kiosk files", DB_con())|>
+                select(filename)|>
+                pull()
+              
               
               # Filter for actual year and only Bestätigt
               Programm <- DB_get_table("Programm", DB_con())|>
@@ -1896,7 +1904,11 @@ server <- function(input, output, session) {
           new_rows_ <- 
             anti_join(
               new_rows,
-              test
+              test,
+              by = join_by(`Event ID`, Datum, ID_Kioskartikel, `Artikelname-Kassensystem`, Verkaufsartikel, 
+                           `Verkaufspreis [CHF]`, Menge, `Einkaufspreis [CHF]`, Lieferant, 
+                           `Gültig ab Datum`, `Einzelpreis [CHF]`, Anzahl, `Umsatz [CHF]`, 
+                           `Gewinn [CHF]`, `Überschuss / Manko [CHF]`)
             )
           
           # df1 <- test

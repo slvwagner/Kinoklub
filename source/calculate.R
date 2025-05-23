@@ -23,21 +23,24 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-# c_Abrechnungsjahr <- 2024L
+# c_Abrechnungsjahr <- 2023
 if(!r_is.defined(c_Abrechnungsjahr)) c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 ## load data from Database
-Programm <- DB_get_table("Programm", con)|>
+Programm <- DB_get_table("Programm", con, download = FALSE)|>
   filter(`Verleiher Angefragt?` == "Bestätigt")|>
+  collect()|>
   convert_to_template_types(l_template$Programm)|>
   filter(c_Abrechnungsjahr == lubridate::year(Datum))
+Programm
 
 df_Eintritt <- DB_get_table("df_Eintritt", con)|>
   convert_to_template_types(l_template$df_Eintritt)|>
   filter(c_Abrechnungsjahr == lubridate::year(Datum))
+df_Eintritt
 
 df_Kiosk <- DB_get_table("df_Kiosk", con)|>
   convert_to_template_types(l_template$df_Kiosk)|>
@@ -72,15 +75,18 @@ MWST <- DB_get_table("MWST",con)|>
 c_eintritt <- df_Eintritt|>
   distinct(`Event ID`)|>
   pull()
+c_eintritt
+
 c_Kiosk <- df_Kiosk|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   distinct(`Event ID`)|>
   pull()
 
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
-    stop("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
+    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
   }else {
-    stop("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.")
+    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.")
   }
 }
 c_test <- str_extract(c_eintritt, one_or_more(DGT)) %in% str_extract(c_Kiosk, one_or_more(DGT))
@@ -370,11 +376,13 @@ df_temp <- df_Abrechnung|>
   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
 df_temp
 
-# Error handling: Keine Verleiherrechnung vorhanden
-warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
-               "\nmit der Suisanummer ", df_temp$Suisanummer,
-               " gibt es keine Verleiherrechnung.",
-               "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+if(nrow(df_temp) > 0) {
+  # Error handling: Keine Verleiherrechnung vorhanden
+  warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
+                 "\nmit der Suisanummer ", df_temp$Suisanummer,
+                 " gibt es keine Verleiherrechnung.",
+                 "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+}
 
 # Programm check ####
 df_Film <- Programm|>

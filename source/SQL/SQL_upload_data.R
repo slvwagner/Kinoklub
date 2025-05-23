@@ -6,10 +6,16 @@ c_files <- list.files(path = "Backup", full.names = TRUE)
 c_file <- c_files[length(c_files)]
 l_data <- readRDS(c_file)
 
-# Data base user password from system variables 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-con <- DB_connect(pw, "ch367079_flo")
+## Data base credentials from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+
+# update database
 DB_update_all(l_data ,con)
 
 ###################################################
