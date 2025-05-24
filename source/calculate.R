@@ -23,7 +23,6 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
