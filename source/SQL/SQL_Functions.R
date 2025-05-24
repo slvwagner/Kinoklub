@@ -664,41 +664,47 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
     filter(filename == !!filename) |>
     collect()
   
-  # Handle existing files based on overwrite parameter
   if (nrow(existing_files) > 0) {
+    
+    # Handle existing files based on overwrite parameter
     if (overwrite) {
       message("File '", filename, "' exists. Overwriting...")
+      
       # Delete existing file record
-      DB_delete_row(con, table_name, "filename", filename)
+      DB_delete_row(con, table_name, names(existing_files)[1], existing_files[1])
+
+      # uses the existing ID
+      c_ID <- existing_files$ID
+      
     } else {
       stop("File '", filename, "' already exists in table '", 
               table_name, "'. Set overwrite = TRUE to replace it.")
       return(invisible(FALSE))
     }
+  } else {
+    # Get next ID
+    max_id <- tbl(con, table_name) |>
+      summarise(max_id = max(ID, na.rm = TRUE)) |>
+      collect()
+    
+    c_ID <- if (is.na(max_id$max_id)) 1L else max_id$max_id + 1L
   }
+  # create `Event ID`
+  p <- "([\\d]+)\\.txt"
+  `Event ID` <- str_match(filename, p)[,2]|>as.integer()
   
   # Read file content
-  file_content <- paste(readLines(file_path, warn = FALSE), collapse = "\n")
+  file_content <- paste(readLines(file_path, warn = FALSE), collapse = "\n")|>
+    suppressWarnings()
   
   # Prepare file metadata
   file_info <- file.info(file_path)
   file_size <- file_info$size
   file_type <- tools::file_ext(filename)
   
-  # Event ID
   # library(rebus)
-  # p <- capture(one_or_more(DGT))%R%DOT%R%"txt"
-  # as.character(p)
-  
-  p <- "([\\d]+)\\.txt"
-  `Event ID` <- str_match(filename, p)[,2]|>as.integer()
-  
-  # Get next ID
-  max_id <- tbl(con, table_name) |>
-    summarise(max_id = max(ID, na.rm = TRUE)) |>
-    collect()
-  
-  c_ID <- if (is.na(max_id$max_id)) 1L else max_id$max_id + 1L
+  # p <- DOT%R%one_or_more(DGT)%R%END
+  p <- "\\.[\\d]+$"
   
   # Prepare the data frame for upload
   file_data <- tibble(
@@ -706,6 +712,7 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
     filename = filename,
     `Event ID` = `Event ID`,
     `file content` = file_content,
+    `upload time` = Sys.time()|>as.character()|>str_remove(p) ,
     `file size` = file_size,
     `file type` = file_type
   )
