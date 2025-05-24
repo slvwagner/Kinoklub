@@ -647,7 +647,7 @@ convert_data_Film_txt <- function(fileName, con) {
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {
   print("convert_data_kiosk_txt")
-  
+  # library(rebus)
   Programm <- DB_get_table("Programm",con)
   Programm <- convert_to_template_types(Programm, l_template$Programm)
   
@@ -659,9 +659,11 @@ convert_data_kiosk_txt <- function(fileName, con) {
       c_raw <- DB_get_file(con, fileName, "Kiosk files")$`file content`|>
         str_split("\n")|>
         unlist()
-      
+      # p <- "ID"%R%optional(SPC)%R%capture(one_or_more(DGT))
+      p <- "ID[\\s]?([\\d]+)"
+      as.character(p)
       # find ID_Program from file name
-      ID <- str_match(fileName, "ID"%R%optional(SPC)%R%capture(one_or_more(DGT)))[2]|>
+      ID <- str_match(fileName, p)[2]|>
         as.integer()
       
       # find ID_Program
@@ -669,9 +671,10 @@ convert_data_kiosk_txt <- function(fileName, con) {
         filter(`Event ID` == ID)
       
       # Extract Datum from file
-      p <- or("\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", # format 01.01.2025
-              "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b" # # format 01/01/2025
-      )
+      # p <- or("\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", # format 01.01.2025
+      #         "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b" # # format 01/01/2025
+      # )
+      p <- "(?:\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b|\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b)"
       
       index <- c_raw|>
         str_detect(p)
