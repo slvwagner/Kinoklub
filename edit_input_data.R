@@ -699,7 +699,63 @@ server <- function(input, output, session) {
         scrollCollapse = TRUE,  # Better scrolling behavior
         pageLength = page_length_var(),
         lengthMenu = c_lengthMenu,
-        searchCols = last_user_filter()
+        searchCols = last_user_filter(),
+        initComplete = JS(
+          "function(settings, json) {",
+          "// One-time header/body styles",
+          "$(this.api().table().header()).css({",
+          "'background-color': '#2d3e50',",
+          "'color': '#ffffff'",
+          "});",
+          "$(this.api().table().body()).css({",
+          "'background-color': '#34495e',",
+          "'color': '#ecf0f1'",
+          "});",
+          "// One-time search/length styling",
+          "$('div.dataTables_filter input').css({",
+          "'background-color': '#2c3e50',",
+          "'color': '#ecf0f1',",
+          "'border': '1px solid #7f8c8d'",
+          "});",
+          "$('div.dataTables_length select').css({",
+          "'background-color': '#2c3e50',",
+          "'color': '#ecf0f1',",
+          "'border': '1px solid #7f8c8d'",
+          "});",
+          "}"
+        ),
+        drawCallback = JS(
+          "function(settings) {",
+          "$('a.paginate_button').css({",
+          "'background-color': '#7898b6',",
+          "'color': '#ffffff',",
+          "'border': '1px solid #7f8c8d',",
+          "'padding': '5px 10px',",
+          "'margin': '0 2px',",
+          "'border-radius': '4px',",
+          "'text-decoration': 'none'",
+          "});",
+          
+          "$('a.paginate_button.current').css({",
+          "'background-color': '#e67e22',",
+          "'color': '#ffffff',",
+          "'font-weight': 'bold'",
+          "});",
+          
+          "$('a.paginate_button').hover(",
+          "function() {",
+          "if (!$(this).hasClass('current')) {",
+          "$(this).css('background-color', '#5d7d9a');",
+          "}",
+          "},",
+          "function() {",
+          "if (!$(this).hasClass('current')) {",
+          "$(this).css('background-color', '#7898b6');",
+          "}",
+          "}",
+          ");",
+          "}"
+        )
         )
     ) |> apply_conditional_formatting()
   }, server = TRUE)
