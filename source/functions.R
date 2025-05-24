@@ -697,14 +697,15 @@ convert_data_kiosk_txt <- function(fileName, con) {
       }
       
       # detect Verkaufarikel in string
-      p1 <- or1(paste0(`Einkauf Kiosk`$`Artikelname-Kassensystem`))
+      p1 <- rebus::or1(paste0(`Einkauf Kiosk`$`Artikelname-Kassensystem`))
       
       # detect Spez Preise
-      p2 <- or1(paste0("Spez"%R%SPC, 1:4))
+      # "Spez"%R%SPC
+      p2 <- rebus::or1(paste0("Spez\\s", 1:4))
       
       # Detect Überschuss Manko
-      p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
-      
+      # p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
+      p3 <- "[-]?[\\d]+[\\.]?[\\d]+"
       # create list to store data
       ii <- 1L
       l_extracted <- list()
@@ -810,7 +811,9 @@ convert_data_kiosk_txt <- function(fileName, con) {
         )
       return(df_Kiosk)
     })
-  names(l_temp) <- str_match(fileName, capture(one_or_more(DGT))%R%DOT%R%"txt")[,2]
+  # p <- capture(one_or_more(DGT))%R%DOT%R%"txt"
+  p <- "([\\d]+)\\.txt"
+  names(l_temp) <- str_match(fileName, p)[,2]
   
   # Kiosk data 
   df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
