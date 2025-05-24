@@ -2270,8 +2270,7 @@ server <- function(input, output, session) {
     shiny::tagList(
       if(c_connected_to_db()) {
         div(
-          style = "width: 100%; overflow-x: auto;",  # Container with scroll
-          DTOutput("table", width = "100%")  # Table fills container
+          DTOutput("table")  # Table fills container
         )
       },
       if(c_connected_to_db()) {
