@@ -721,7 +721,7 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
   DB_add_rows(file_data, table_name, con)
   
   message("File '", filename, "' uploaded successfully to table '", table_name, "'.")
-  return(invisible(TRUE))
+  return(file_content)
 }
 
 # Function to retrieve all files from the database ####

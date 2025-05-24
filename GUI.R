@@ -1877,7 +1877,7 @@ server <- function(input, output, session) {
                 ),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file", "Überschreiben"),
+                  actionButton("upload_file_kiosk", "Überschreiben"),
                   actionButton("abort", "Abbrechen")
                 )
               )
@@ -1942,8 +1942,8 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Upload file already exists ####
-  shiny::observeEvent(input$upload_file, {
+  ## Upload kiosk file already exists ####
+  shiny::observeEvent(input$upload_file_kiosk, {
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
     tryCatch({
