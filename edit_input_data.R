@@ -2270,7 +2270,20 @@ server <- function(input, output, session) {
     shiny::tagList(
       if(c_connected_to_db()) {
         div(
-          DTOutput("table")  # Table fills container
+          style = "width: 100%; overflow-x: auto;",
+          DTOutput("table", width = "100%"),
+          
+          # Insert the JavaScript HERE - right after the table output
+          tags$script(HTML(
+            "$(function() {
+              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+            });",
+            "
+            $(document).on('change', '.dataTables_length select', function() {
+              Shiny.setInputValue('page_length', $(this).val());
+            });
+            "
+            ))
         )
       },
       if(c_connected_to_db()) {
@@ -2279,14 +2292,10 @@ server <- function(input, output, session) {
         } else {
           tool_box(l_data_choices(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
         }
-      },
-      tags$script(HTML("
-        $(function() {
-          $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-        });
-      "))
+      }
     )
   })
+  
 }
 
 # shinyApp(ui = ui, server = server)
