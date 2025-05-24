@@ -1655,9 +1655,9 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-
+    ### txt #####
     if (file_ext == "txt") {
-      # save txt files
+      #### procinema #####
       if (file_name == "Procinema.txt" |
           file_name == "procinema.txt") {
         # save Procinema.txt file
@@ -1682,7 +1682,9 @@ server <- function(input, output, session) {
         ) |>
           ausgabe_text()
         return(list(type = "txt", data = readLines(file_path)))
-      } else{
+      } 
+      #### Eintritte #####
+      else{
         if(str_detect(file_name, pattern = "Eintritte")){
           
           # upload file to database 
@@ -1699,11 +1701,25 @@ server <- function(input, output, session) {
       
           # read data an create new rows from it
           tryCatch({
-            new_rows <- convert_data_Film_txt(file_name, DB_con())
-          }, warning = function(w) {
-             c_message <<- 
-               paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
-                      c_message, "\n")
+            # read data an create new rows from it
+            tryCatch({
+              test <- capture.output({
+                withCallingHandlers(
+                  {
+                    new_rows <- convert_data_Film_txt(file_name, DB_con())
+                  },
+                  warning = function(w) {
+                    # Capture warnings and store them 
+                    c_message <<- paste0(c_message, "Warning: ", w$message)
+                    invokeRestart("muffleWarning")  # Suppress the warning from being printed
+                  }
+                )
+              }, type = "message")
+            }, error = function(e) {
+              c_message <<- 
+                paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
+                       c_message ,"\n")
+            })
           }, error = function(e) {
             c_message <<- 
               paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
@@ -1776,7 +1792,9 @@ server <- function(input, output, session) {
 
           return(list(type = "txt", data = c_raw))
           
-        } else if (str_detect(file_name, pattern = "Kiosk")){
+        } 
+        #### Kiosk #####
+        else if (str_detect(file_name, pattern = "Kiosk")){
           # upload file to database 
           c_message <- ""
           tryCatch({
@@ -1816,13 +1834,26 @@ server <- function(input, output, session) {
               filter(`Event ID` %in% new_rows$`Event ID`)|>
               collect()|>
               convert_to_template_types(l_template$df_Kiosk)|>
-              mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
+              mutate(Lieferant = as.character(Lieferant),
+                     `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
+                     `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
+                     `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
+                     `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
+                     )
             
             new_rows <- new_rows|>
               select(-ID)|>
-              mutate(`Gewinn [CHF]` = round(`Gewinn [CHF]`,2))
+              mutate(Lieferant = as.character(Lieferant),
+                     `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
+                     `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
+                     `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
+                     `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
+              )
             
             c_test <- identical(new_rows, test)
+            if(!c_test){
+              print("here")
+            }
             c_test <- identical(dim(new_rows), dim(test))
 
             # what needs to be updated?
@@ -1881,7 +1912,9 @@ server <- function(input, output, session) {
           return(list(type = "txt", data = c_raw))
         }
       }
-    } else if (file_ext == "csv") {
+    } 
+    ### csv #####
+    else if (file_ext == "csv") {
       # save csv files (WordPress input)
       # Define save path
       save_path <- paste0("Input/WordPress/")
@@ -1902,7 +1935,9 @@ server <- function(input, output, session) {
       ) |>
         ausgabe_text()
       return(list(type = "csv", data = readLines(file_path)))
-    } else {
+    } 
+    ### not yet implemented #####
+    else {
       paste0(
         "Dateierweiterung: ",
         file_ext,
