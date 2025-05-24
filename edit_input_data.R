@@ -25,7 +25,9 @@ c_lengthMenu = c(5:20, 50, 100) # page length drop down options
 width_vectors <- list(# Define width vectors for specific tables
   "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px", "actors" = "100px"),
   "Programm" = c("Filmtitel" = "200px"),
-  "Einsatzplan" = c("Verantwortlich" = "150px", "Operateur*in" = "150px")
+  "Einsatzplan" = c("Verantwortlich" = "150px", "Operateur*in" = "150px"),
+  "Eintritt files" = c("file content" = "800px"),
+  "Kiosk files" = c("file content" = "800px")
 )
 
 # Data templates (for data type conversion) ####
@@ -38,6 +40,7 @@ l_template[c_select_input_data]
 
 c_select_dropdown_data <- 
   c("Kinoklubmitglieder", "Verleiher", "Verleiher mapping", "Lieferanten", 
+    "Eintritt files", "Kiosk files",
     "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
 l_template[c_select_dropdown_data]
 
