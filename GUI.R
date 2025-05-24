@@ -1113,7 +1113,7 @@ server <- function(input, output, session) {
             },
             warning = function(w) {
               # Capture warnings and store them in calculate_warnings
-              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              calculate_warnings(paste0("Warning: ", w$message))
               invokeRestart("muffleWarning")  # Suppress the warning from being printed
             }
           )
@@ -1793,10 +1793,10 @@ server <- function(input, output, session) {
           tryCatch({
             # read data an create new rows from it
             new_rows <- convert_data_kiosk_txt(file_name, DB_con())
-          }, warning = function(w) {
-            c_message <<- 
-              paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
-                     c_message, "\n")
+          # }, warning = function(w) {
+          #   c_message <<- 
+          #     paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
+          #            c_message, "\n")
           }, error = function(e) {
             c_message <<- 
               paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
