@@ -689,9 +689,13 @@ server <- function(input, output, session) {
       selection = "single",
       filter = "top",
       width = NULL,  # Let the container handle width
+      extensions = c('FixedHeader'),
       options = list(
+        fixedHeader = TRUE,  # This keeps headers visible
+        fixedColumns = list(leftColumns = 1),  # Optional: fixes first column
         scrollX = TRUE,  # Enable horizontal scrolling
-        autoWidth = TRUE,  # auto-width enable to controll columnwidth
+        # scrollY = "500px",
+        autoWidth = FALSE,  # auto-width enable to controll columnwidth
         columnDefs = l_columnDefs,
         scrollCollapse = TRUE,  # Better scrolling behavior
         pageLength = page_length_var(),
