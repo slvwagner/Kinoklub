@@ -1916,7 +1916,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Reder: Update table with all the dates in the selected range #####
+  ## Reder: Datatable Flim #####
   output$dateTable <-  DT::renderDT({
     df_temp <- DB_get_table("Programm", con)|>
       convert_to_template_types(l_template$Programm)|>
