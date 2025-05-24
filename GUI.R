@@ -1791,12 +1791,18 @@ server <- function(input, output, session) {
           
           # read data an create new rows from it
           tryCatch({
-            # read data an create new rows from it
-            new_rows <- convert_data_kiosk_txt(file_name, DB_con())
-          # }, warning = function(w) {
-          #   c_message <<- 
-          #     paste0("\nWarnung bei der Datei konvertierung:\n", file_name, "\n", conditionMessage(w), "\n", 
-          #            c_message, "\n")
+            test <- capture.output({
+              withCallingHandlers(
+                {
+                  new_rows <- convert_data_kiosk_txt(file_name, DB_con())
+                },
+                warning = function(w) {
+                  # Capture warnings and store them 
+                  c_message <<- paste0(c_message, "Warning: ", w$message)
+                  invokeRestart("muffleWarning")  # Suppress the warning from being printed
+                }
+              )
+            }, type = "message")
           }, error = function(e) {
             c_message <<- 
               paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
