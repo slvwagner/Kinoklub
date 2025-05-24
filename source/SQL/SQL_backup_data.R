@@ -17,8 +17,8 @@ l_data
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
-# l_template$`Eintritt files` <- l_data$`Eintritt files`
-# l_template$`Kiosk files` <- l_data$`Kiosk files`
+# l_template$`Eintritt files` <- l_data$`Eintritt files`[1,]
+# l_template$`Kiosk files` <- l_data$`Kiosk files`[1,]
 # 
 # # save template
 # saveRDS(l_template, "source/SQL/template.Rds")
