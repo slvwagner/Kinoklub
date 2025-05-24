@@ -688,38 +688,19 @@ server <- function(input, output, session) {
       editable = FALSE,
       selection = "single",
       filter = "top",
-      width = NULL,  # Let the container handle width
+      # width = NULL,  # Let the container handle width
       extensions = c('FixedHeader'),
       options = list(
         fixedHeader = TRUE,  # This keeps headers visible
-        fixedColumns = list(leftColumns = 1),  # Optional: fixes first column
         scrollX = TRUE,  # Enable horizontal scrolling
         # scrollY = "500px",
-        autoWidth = FALSE,  # auto-width enable to controll columnwidth
+        autoWidth = TRUE,  # auto-width enable to controll columnwidth
         columnDefs = l_columnDefs,
         scrollCollapse = TRUE,  # Better scrolling behavior
         pageLength = page_length_var(),
         lengthMenu = c_lengthMenu,
-        searchCols = last_user_filter(),
-        drawCallback = JS("Shiny.setInputValue('table_rendered', new Date().getTime());"),
-        initComplete = JS("
-          function(settings, json) {
-            var table = settings.oInstance.api();
-            table.on('length.dt', function(e, settings, len) {
-              Shiny.setInputValue('page_length', len);
-            });
-            // Adjust column widths after initialization
-            table.columns.adjust().draw();
-          }
-        "),
-        language = DT_language
-      ),
-      callback = JS("
-        table.columns().every(function() {
-          var column = this;
-          $(column.header()).css('white-space', 'normal');
-        });
-      ")
+        searchCols = last_user_filter()
+        )
     ) |> apply_conditional_formatting()
   }, server = TRUE)
   
