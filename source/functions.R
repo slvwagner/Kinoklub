@@ -394,6 +394,7 @@ inspect_link <- function(df_mapping, ID){
   else return(NULL)
 }
 
+# inspect link id`s ####
 inspect_link_ids <- function(df_mapping) {
   result <- vector("list", nrow(df_mapping))  # Initialize an empty list
   names(result) <- df_mapping$`Event ID`  # Set names to ID_Programm
@@ -947,6 +948,10 @@ convert_data_kiosk_txt <- function(fileName, con) {
 }
 
 # search procinem by a given Suisanummber
+# Example usage
+# suisa_number <- "1020.295"  # Example SUISA number
+# results <- search_procinema_by_suisa(suisa_number)
+# print(results)
 search_procinema_by_suisa <- function(suisa_number) {
   # Create the form POST request
   response <- POST(
@@ -1005,12 +1010,11 @@ search_procinema_by_suisa <- function(suisa_number) {
   return(results)
 }
 
-# # Example usage
-# suisa_number <- "1020.295"  # Example SUISA number
-# results <- search_procinema_by_suisa(suisa_number)
-# print(results)
-
 # get detailed information for a film ####
+# Example usage
+# result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
+# print(result$synopsis)
+# print(result)
 film_details <- function(url) {
   if(is_empty(url)) {
     return(NULL)
@@ -1110,14 +1114,7 @@ film_details <- function(url) {
   )
 }
 
-# # Example usage
-# result <- film_details("https://www.procinema.ch/de/statistics/filmdb/1020295.html")
-# print(result$synopsis)
-# print(result)
-
-
 # create empty line with correct data type ####
-
 create_empty_line <- function(df_data) {
   df_data|>
   slice(0) |>
@@ -1139,7 +1136,6 @@ create_empty_line <- function(df_data) {
     }))
 }
 
-
 # Initialize fast dictionary environment ####
 # The reason for using dictionaries in the first place is performance.
 # Although it is correct that you can use named vectors and lists for the task,
@@ -1151,7 +1147,6 @@ dict_init <- function(length)
   new.env(hash = TRUE, parent = emptyenv(), size = length)
 }
 
-
 # Assigne key and value to fast dictionary ####
 # The reason for using dictionaries in the first place is performance.
 # Although it is correct that you can use named vectors and lists for the task,
@@ -1159,7 +1154,6 @@ dict_init <- function(length)
 # Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
 # environments with the option hash = TRUE
 dict_assign_key_values <- Vectorize(assign, vectorize.args = c("x", "value"))
-
 
 # Get values from dictionary ####
 # The reason for using dictionaries in the first place is performance.
@@ -1169,7 +1163,6 @@ dict_assign_key_values <- Vectorize(assign, vectorize.args = c("x", "value"))
 # environments with the option hash = TRUE
 dict_get_values <- Vectorize(get, vectorize.args = "x")
 
-
 # Check if key is in dictionary ####
 # The reason for using dictionaries in the first place is performance.
 # Although it is correct that you can use named vectors and lists for the task,
@@ -1178,15 +1171,13 @@ dict_get_values <- Vectorize(get, vectorize.args = "x")
 # environments with the option hash = TRUE
 dict_exists_key <- Vectorize(exists, vectorize.args = "x")
 
-
 # Create a fast dictionary from data frame ####
 # The reason for using dictionaries in the first place is performance.
 # Although it is correct that you can use named vectors and lists for the task,
 # the issue is that they are becoming quite slow and memory hungry with more data.
 # Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
 # environments with the option hash = TRUE
-dict_from_data.frame <- function(df)
-{
+dict_from_data.frame <- function(df){
   df <- as.data.frame(df)
   if(!is.character(df[1,1])){
     c("dict_from_data.frame:\nkey is not character in column 1 of the dataframe argument")|>
@@ -1209,8 +1200,7 @@ dict_from_data.frame <- function(df)
 # the issue is that they are becoming quite slow and memory hungry with more data.
 # Yet what many people don't know is that R has indeed an inbuilt dictionary data structure
 # environments with the option hash = TRUE
-dict_update <- function(df, dict)
-{
+dict_update <- function(df, dict){
   df <- as.data.frame(df)
   if(nrow(df) == 1){
     dict[[df[1,1]]] <- df[1,2]
