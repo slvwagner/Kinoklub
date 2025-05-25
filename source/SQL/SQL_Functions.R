@@ -652,7 +652,6 @@ DB_create_files_table <- function(con, table_name) {
   }
 }
 
-# Function to upload a text file to the database ####
 # Function to upload a text file to the database with overwrite option ####
 DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FALSE) {
   # Validate inputs
@@ -766,26 +765,6 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
   message("File '", filename, "' downloaded to '", paste0(output_path,filename), "'.")
   return(NULL)
 }
-
-# ## Data base credentials from system variables ####
-# DB_host <- Sys.getenv("DB_host")
-# DB_name <- Sys.getenv("DB_name")
-# DB_user <- Sys.getenv("DB_user")
-# DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-# 
-# ## Connection ####
-# con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
-# 
-# DB_upload_file(con, "Input/advance tickets/Eintritte ID1.txt","Eintritt files", overwrite = T)
-
-# 
-# DB_upload_file(con, "Input/advance tickets/Kiosk ID1.txt","Kiosk files", overwrite = T)
-# 
-# DB_get_file(con, "Kiosk ID1.txt","Kiosk files")|>
-#   print()
-# 
-# DB_download_file(con, "Kiosk ID1.txt", "Input/advance tickets/", "Kiosk files")
-
 
 # Check if a table exists on a database ####
 DB_table_exists <- function(con, table_name, schema = NULL) {
