@@ -287,6 +287,12 @@ DB_describe_table <- function(con, table_name){
   dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
 }
 
+# number of rows for a database table ####
+DB_nrow <- function(con, my_table){
+  data <- dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ","`",my_table,"`"))
+  return(data$n)
+}
+
 # Function to edit a row in table ####
 DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values, c_class) {
   # Validate inputs
@@ -782,7 +788,7 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 
 
 # Check if a table exists on a database ####
-table_exists <- function(con, table_name, schema = NULL) {
+DB_table_exists <- function(con, table_name, schema = NULL) {
   if (is.null(schema)) {
     tables <- DBI::dbListTables(con)
     tolower(table_name) %in% tolower(tables)
