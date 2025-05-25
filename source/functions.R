@@ -1222,8 +1222,49 @@ dict_update <- function(df, dict)
   return(dict)
 }
 
-
-
+# Run function and capture message, warning and errors ####
+# Example: 
+# Function: DB_copy_table
+# Arguments: new_rows, DB_con(), "df_Eintritt"
+# Run_capture_error_warnings(DB_copy_table, new_rows, DB_con(), "df_Eintritt")
+# Returns list with results and all captured messages, warnings and errors
+Run_capture_error_warnings <- function(fun, ...) {
+  # function results
+  result <- NULL
+  c_message <- ""
+  # Run fuction 
+  tryCatch({
+    captured_output <- capture.output({
+      withCallingHandlers(
+        {
+          result <- fun(...)
+        },
+        warning = function(w) {
+          c_message <<- paste0(c_message, "Warning: ", w$message, "\n")
+          invokeRestart("muffleWarning")
+        },
+        message = function(m) {
+          c_message <<- paste0(c_message, "Message: ", m$message, "\n")
+          invokeRestart("muffleMessage")
+        }
+      )
+    }, type = "message")
+  }, error = function(e) {
+    c_message <<- paste0(
+      c_message,
+      "\nFehler bei Funktionsaufruf:\n",
+      fun,
+      "\nArgumente:\n",
+      ..., 
+      conditionMessage(e), "\n"
+    )
+  })
+  # Return list with results and captured message
+  list(
+    result = result,
+    messages = c_message
+  )
+}
 
 
 
