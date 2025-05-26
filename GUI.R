@@ -1819,6 +1819,7 @@ server <- function(input, output, session) {
                 # update so rendering can take place
                 df_temp_1(test)
                 df_temp_2(new_rows_)
+                last_uploaded_table_name("df_Eintritt")
                 
                 # Calculate modal size based on number of columns
                 num_cols <- ncol(test)
@@ -1872,17 +1873,12 @@ server <- function(input, output, session) {
         #### Kiosk #####
         else if (str_detect(file_name, pattern = "Kiosk")){
           # upload file to database 
-          c_message <- ""
-          tryCatch({
-            DB_upload_file(con, file_path = file_path, file_name, table_name = "Kiosk files", 
-                           overwrite = FALSE)
-          }, warning = function(w) {
-            c_message <<- paste0("\nWarnung bein Hochladen der Datei:\n", file_name, "\n", conditionMessage(w), "\n")
-          }, error = function(e) {
-            c_message <<- 
-              paste0("\nFehler beim Hochladen der Datei:\n", file_name, "\n",conditionMessage(e), "\n",
-                     c_message, "\n")
-          })
+          df_file_upload <- Run_capture_error_warnings(            
+            DB_upload_file, con, file_path = file_path, file_name, table_name = "Kiosk files", 
+            overwrite = FALSE
+            )
+          # Message 
+          c_message <- df_file_upload$messages
           
           # check if the file already exists
           test <- str_detect(c_message,"already exists")
@@ -1905,27 +1901,22 @@ server <- function(input, output, session) {
                 )
               )
             )
-            req(NULL)
-          } else { # upload to df_Eintritt
-            # convert file 
-            tryCatch({
-              test <- capture.output({
-                withCallingHandlers(
-                  {
-                    new_rows <- convert_data_kiosk_txt(last_uploaded_file(), DB_con())
-                  },
-                  warning = function(w) {
-                    # Capture warnings and store them
-                    c_message <<- paste0(c_message, "Warning: ", w$message)
-                    invokeRestart("muffleWarning")  # Suppress the warning from being printed
-                  }
-                )
-              }, type = "message")
-            }, error = function(e) {
-              c_message <<-
-                paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n",
-                       c_message ,"\n")
-            })
+            return(list(type = "txt", data = df_file_upload$results))
+          } 
+          else { # upload to df_Kiosk
+
+            # convert file and capture message, warnings and errors
+            result <- Run_capture_error_warnings(
+              convert_data_kiosk_txt, file_name, DB_con() 
+            )
+            # create new rows 
+            new_rows <- result$result
+            
+            # message 
+            c_message <- paste0(
+              result$messages, "\n",
+              df_file_upload$message
+            )
             
             if(DB_table_exists(DB_con(),"df_Kiosk")){
               # test if entries already exists
@@ -1972,6 +1963,7 @@ server <- function(input, output, session) {
                 # update so rendering can take place
                 df_temp_1(test)
                 df_temp_2(new_rows_)
+                last_uploaded_table_name("df_Kiosk")
                 
                 # Calculate modal size based on number of columns
                 num_cols <- ncol(test)
@@ -1993,33 +1985,53 @@ server <- function(input, output, session) {
                     ),
                     easyClose = FALSE,
                     footer = tagList(
-                      actionButton("upload_df_Kiosk", "Datensätze schreiben"),
+                      actionButton("update_entries", "Datensätze schreiben"),
                       actionButton("abort", "Abbrechen")
                     )
                   )
                 )
-                req(NULL)
+                
               }
-            } else stop("Tabelle wurde nicht in der Datenbank gefunden.")
+            } else {
+              # copy data DB_nrow(con,"df_Kiosk") == 0
+              new_rows <- 
+                bind_cols(ID = 1:nrow(new_rows),
+                          new_rows)
+              # upload to database
+              test <- Run_capture_error_warnings(
+                DB_copy_table, new_rows, DB_con(), "df_Kiosk"
+              )
+              # system reply message
+              paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+                     paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
+                     test$message,
+                     c_message
+              )|>
+                ausgabe_text()
+              
+              return(list(type = "txt", data = df_file_upload$result))
+            }
           }
 
         } else {
-          new_rows <- new_rows|>
-            mutate(ID = row_number())
-          DB_copy_table(new_rows, DB_con(), "df_Kiosk")
+          # copy data DB_nrow(con,"df_Kiosk") == 0
+          new_rows <- 
+            bind_cols(ID = 1:nrow(new_rows),
+                      new_rows)
+          # upload to database
+          test <- Run_capture_error_warnings(
+            DB_copy_table, new_rows, DB_con(), "df_Kiosk"
+          )
           # system reply message
-          paste0("Es wurde folgendes der Tabelle df_Kiosk hinzugefügt:\n",
-                 paste0(print(new_rows_), collapse = "\n"), 
+          paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+                 paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
+                 test$message,
                  c_message
           )|>
             ausgabe_text()
+          
+          return(list(type = "txt", data = df_file_upload$result))
         }
-    
-        c_raw <- DB_get_file(con, file_name, "Kiosk files")$`file content`|>
-          str_split("\n")|>
-          unlist()
-        
-        return(list(type = "txt", data = c_raw))
       }
     } 
     ### csv #####
@@ -2074,8 +2086,10 @@ server <- function(input, output, session) {
     results <- Run_capture_error_warnings(
       convert_data_Film_txt, last_uploaded_file(), DB_con()
     )
+    # new rows
     new_rows <- results$result
     
+    # message handling
     c_message <- paste0(c_message, "\n", results$messages, "\n", file_content$messages)
     
     
@@ -2185,46 +2199,22 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$upload_file_kiosk, {
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
-    tryCatch({
-      test <- capture.output({
-        withCallingHandlers(
-          {
-            # update database with new file
-            file_content <- DB_upload_file(con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
-                                           overwrite = TRUE)
-          },
-          warning = function(w) {
-            # Capture warnings and store them 
-            c_message <<- paste0("Warning: ", w$message)
-            invokeRestart("muffleWarning")  # Suppress the warning from being printed
-          }
-        )
-      }, type = "message")
-    }, error = function(e) {
-      c_message <<- 
-        paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n", 
-               c_message ,"\n")
-    })
+    
+    file_content <- Run_capture_error_warnings(
+      DB_upload_file,con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
+      overwrite = TRUE
+    )
     
     # convert file 
-    tryCatch({
-      test <- capture.output({
-        withCallingHandlers(
-          {
-            new_rows <- convert_data_kiosk_txt(last_uploaded_file(), DB_con())
-          },
-          warning = function(w) {
-            # Capture warnings and store them
-            c_message <<- paste0(c_message, "Warning: ", w$message)
-            invokeRestart("muffleWarning")  # Suppress the warning from being printed
-          }
-        )
-      }, type = "message")
-    }, error = function(e) {
-      c_message <<-
-        paste0("\nFehler bei der Datei konvertierung:\n", file_name, "\n", c_message, "\n",
-               c_message ,"\n")
-    })
+    results <- Run_capture_error_warnings(
+      convert_data_kiosk_txt, last_uploaded_file(), DB_con()
+    )
+    # new rows
+    new_rows <- results$result
+    
+    # message handling
+    c_message <- paste0(c_message, "\n", results$messages, "\n", file_content$messages)
+
     
     if(DB_table_exists(DB_con(),"df_Kiosk")){
       # test if entries already exists
@@ -2253,58 +2243,89 @@ server <- function(input, output, session) {
       # test if data is identical
       c_test <- identical(new_rows, test|>select(-ID))
       
-      if(c_test){
+      if(c_test){ # row entries are identical 
         paste0("Die Datensätze von der Datei: ",last_uploaded_file(), " sind indentisch mit den Datensätzen der Datenbank!\n",
                "Es wurde nichts geändert.")|>
           ausgabe_text()
         req(NULL)
-      } else {
+      } else { # row entries are different
         
-        c_ID <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
-          select(ID)|>
-          collect()|>
-          pull()|>
-          as.integer()|>
-          max()
-        c_ID <- c_ID + 1L
-        
-        new_rows_ <-
-          bind_cols(ID = c_ID:(c_ID + nrow(new_rows) - 1),
-                    new_rows
-          )
-        
-        # update so rendering can take place
-        df_temp_1(test)
-        df_temp_2(new_rows_)
-        
-        # Calculate modal size based on number of columns
-        num_cols <- ncol(test)
-        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-        modal_height <- ifelse(nrow(test) <= 5, "auto", "600px")
-        
-        showModal(
-          modalDialog(
-            title = paste0("Die Datensäze aus der Datei: ",last_uploaded_file(), " sind nicht gleich wie in der Datenbank!"),
-            tagList(
-              renderText("Daten aus der Datenbank:"),
-              shiny::hr(),
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                  dataTableOutput("modal_table_1")),
-              shiny::hr(),
-              renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                  dataTableOutput("modal_table_2")),
-            ),
-            easyClose = FALSE,
-            footer = tagList(
-              actionButton("upload_df_Kiosk", "Datensätze schreiben"),
-              actionButton("abort", "Abbrechen")
+        if(DB_nrow(DB_con(), "df_Kiosk") > 0){ # append data 
+          c_ID <- DB_get_max_pk(DB_con(), "df_Kiosk")
+          c_ID <- c_ID + 1L
+          
+          new_rows_ <-
+            bind_cols(ID = c_ID:(c_ID + nrow(new_rows) - 1),
+                      new_rows
+            )
+          
+          # update so rendering can take place
+          df_temp_1(test)
+          df_temp_2(new_rows_)
+          last_uploaded_table_name("df_Kiosk")
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(test)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(test) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Die Datensäze aus der Datei: ",last_uploaded_file(), " sind nicht gleich wie in der Datenbank!"),
+              tagList(
+                renderText("Daten aus der Datenbank:"),
+                shiny::hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table_1")),
+                shiny::hr(),
+                renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table_2")),
+              ),
+              easyClose = FALSE,
+              footer = tagList(
+                actionButton("update_entries", "Datensätze schreiben"),
+                actionButton("abort", "Abbrechen")
+              )
             )
           )
-        )
-        req(NULL)
+          req(NULL)
+        } 
+        else { # create new data
+          # copy data DB_nrow(con,"df_Kiosk") == 0
+          new_rows <- 
+            bind_cols(ID = 1:nrow(new_rows),
+                      new_rows)
+          # upload to database
+          test <- Run_capture_error_warnings(
+            DB_copy_table, new_rows, DB_con(), "df_Kiosk"
+          )
+          # system reply message
+          paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+                 paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
+                 test$message,
+                 c_message
+          )|>
+            ausgabe_text()
+        }
       }
-    } else stop("Tabelle wurde nicht in der Datenbank gefunden.")
+    } else {
+      # copy data DB_nrow(con,"df_Kiosk") == 0
+      new_rows <- 
+        bind_cols(ID = 1:nrow(new_rows),
+                  new_rows)
+      # upload to database
+      test <- Run_capture_error_warnings(
+        DB_copy_table, new_rows, DB_con(), "df_Kiosk"
+      )
+      # system reply message
+      paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+             paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
+             test$message,
+             c_message
+      )|>
+        ausgabe_text()
+    }
   })
   
   ## Delete old entries and upload new entries to database ####
