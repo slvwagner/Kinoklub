@@ -1722,13 +1722,15 @@ server <- function(input, output, session) {
           # Message 
           c_message <- df_file_upload$messages
           
+          # update last uploaded file name for later use
+          last_uploaded_file(file_name)
+          
           # check if the file already exists
           test <- str_detect(c_message,"already exists")
           if(test){
-            # update last uploaded file name for later use
-            last_uploaded_file(file_name)
+
             last_uploaded_file_path(file_path)
-            last_uploaded_table_name("Kiosk files")
+            last_uploaded_table_name("Eintritt files")
             
             showModal(
               modalDialog(
@@ -1880,11 +1882,13 @@ server <- function(input, output, session) {
           # Message 
           c_message <- df_file_upload$messages
           
+          # update last uploaded file name for later use
+          last_uploaded_file(file_name)
+          
           # check if the file already exists
           test <- str_detect(c_message,"already exists")
           if(test){
-            # update last uploaded file name for later use
-            last_uploaded_file(file_name)
+
             last_uploaded_file_path(file_path)
             last_uploaded_table_name("Kiosk files")
     
@@ -1901,10 +1905,14 @@ server <- function(input, output, session) {
                 )
               )
             )
+            
+            # system reply message
+            paste0(c_message)|>
+              ausgabe_text()
+            
             return(list(type = "txt", data = df_file_upload$results))
           } 
           else { # upload to df_Kiosk
-
             # convert file and capture message, warnings and errors
             result <- Run_capture_error_warnings(
               convert_data_kiosk_txt, file_name, DB_con() 
@@ -2311,9 +2319,9 @@ server <- function(input, output, session) {
       }
     } else {
       # copy data DB_nrow(con,"df_Kiosk") == 0
-      new_rows <- 
-        bind_cols(ID = 1:nrow(new_rows),
-                  new_rows)
+      new_rows <- new_rows |>
+        mutate(ID = row_number()
+               )
       # upload to database
       test <- Run_capture_error_warnings(
         DB_copy_table, new_rows, DB_con(), "df_Kiosk"
@@ -2354,7 +2362,7 @@ server <- function(input, output, session) {
       )
     # system reply message
     paste0("Es wurde folgendes der Tabelle ", last_uploaded_table_name(), " hinzugefügt:\n",
-           paste0(df_temp_2(), collapse = "\n"),
+           paste0(names(df_temp_2()), " = ",df_temp_2(), collapse = "\n"),
            test$message, c_message)|>
       ausgabe_text()
     
