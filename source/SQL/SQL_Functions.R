@@ -536,7 +536,7 @@ convert_DB_to_R <- function(data,template) {
 }
 
 # Add one or more rows to a database table ####
-DB_add_rows <- function(new_rows, table_name, con, batch_size = 50) {
+DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
   # Validate inputs
   if (!DBI::dbIsValid(con)) {
     stop("Invalid database connection.")
@@ -682,9 +682,9 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
       c_ID <- existing_files$ID
       
     } else {
-      stop("File '", filename, "' already exists in table '", 
+      warning("File '", filename, "' already exists in table '", 
               table_name, "'. Set overwrite = TRUE to replace it.")
-      return(invisible(FALSE))
+      c_ID <- DB_get_max_pk(con, table_name) + 1L
     }
   } else {
     # Get next ID
@@ -784,5 +784,45 @@ DB_table_exists <- function(con, table_name, schema = NULL) {
   }
 }
 
-
-
+# Get the maximum primary key value from a table ####
+DB_get_max_pk <- function(con, table_name, primary_key_col = NULL) {
+  # Validate inputs
+  if (!DBI::dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
+  if (!DBI::dbExistsTable(con, table_name)) {
+    stop("Table '", table_name, "' does not exist in the database.")
+  }
+  
+  # If primary key column not provided, try to determine it
+  if (is.null(primary_key_col)) {
+    table_info <- DB_describe_table(con, table_name)
+    pk_cols <- table_info[table_info$Key == "PRI", "Field"]
+    
+    if (length(pk_cols) == 0) {
+      stop("No primary key column found in table '", table_name, "'.")
+    }
+    
+    if (length(pk_cols) > 1) {
+      warning("Multiple primary keys found in table '", table_name, 
+              "'. Using the first one: ", pk_cols[1])
+    }
+    
+    primary_key_col <- pk_cols[1]
+  }
+  
+  # Construct and execute the query
+  query <- sprintf("SELECT MAX(`%s`) AS max_pk FROM `%s`", 
+                   primary_key_col, table_name)
+  
+  result <- DBI::dbGetQuery(con, query)
+  
+  # Handle case where table is empty
+  if (is.na(result$max_pk)) {
+    warning("Table '", table_name, "' appears to be empty. Returning NA.")
+    return(NA)
+  }
+  
+  return(result$max_pk)
+}
