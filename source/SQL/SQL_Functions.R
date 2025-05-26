@@ -684,7 +684,7 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
     } else {
       warning("File '", filename, "' already exists in table '", 
               table_name, "'. Set overwrite = TRUE to replace it.")
-      c_ID <- DB_get_max_pk(con, table_name) + 1L
+      c_ID <- DB_get_max_pk(con, table_name)
     }
   } else {
     # Get next ID
@@ -723,9 +723,10 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
   )
   
   # Use your existing function to add the file to the database
-  DB_add_rows(file_data, table_name, con)
-  
-  message("File '", filename, "' uploaded successfully to table '", table_name, "'.")
+  test <- Run_capture_error_warnings(
+    DB_add_rows,file_data, table_name, con
+    )
+  message(test$message)
   return(file_content)
 }
 
