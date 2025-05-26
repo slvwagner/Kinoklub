@@ -1780,12 +1780,14 @@ server <- function(input, output, session) {
               # system reply message
               paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
                      paste0(print(new_rows), collapse = "\n"), 
+                     paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"), "\n",
                      test$messages
               )|>
                 ausgabe_text()
               return(list(type = "txt", data = df_file_upload$result))
               
             } else { # add rows to database table
+              
               # find entries already existing
               test <- DB_get_table("df_Eintritt", DB_con(), download = FALSE)|>
                 filter(`Event ID` %in% new_rows$`Event ID`)|>
@@ -1799,11 +1801,11 @@ server <- function(input, output, session) {
                   test|>select(-ID)
                 )
               
-              if(c_test){
+              if(c_test){ # data is identical
                 paste0("Es sind keine neuen Datensätze im file ", file_name, " enthalten.\n",c_message)|>
                   ausgabe_text()
                 return(list(type = "txt", data = df_file_upload$result))
-              } else {
+              } else { # data is different
                 
                 # New primary key 
                 c_ID <- c_ID + 1L
@@ -1848,6 +1850,7 @@ server <- function(input, output, session) {
               }
             }
           } else {
+            # df_Eintritt table does not exist
             new_rows <- 
               bind_cols(ID = 1:nrow(new_rows),
                         new_rows)
@@ -1857,7 +1860,7 @@ server <- function(input, output, session) {
             )
             # system reply message
             paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                   paste0(print(new_rows), collapse = "\n"), 
+                   paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"), "\n",
                    test$message,
                    c_message
             )|>
@@ -2107,6 +2110,7 @@ server <- function(input, output, session) {
           # update so rendering can take place
           df_temp_1(test)
           df_temp_2(new_rows_)
+          last_uploaded_table_name("df_Eintritt")
           
           # Calculate modal size based on number of columns
           num_cols <- ncol(test)
@@ -2151,7 +2155,7 @@ server <- function(input, output, session) {
           )
           # system reply message
           paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                 paste0(new_rows, collapse = "\n"), 
+                 paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
                  test$message,
                  c_message
           )|>
@@ -2169,7 +2173,7 @@ server <- function(input, output, session) {
       )
       # system reply message
       paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-             paste0(new_rows, collapse = "\n"), 
+             paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"), 
              test$message,
              c_message
       )|>
@@ -2303,11 +2307,12 @@ server <- function(input, output, session) {
     } else stop("Tabelle wurde nicht in der Datenbank gefunden.")
   })
   
-  ## Delete old entries and upload df_Eintritt  ####
+  ## Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
     # find primary kes to delete from table
     c_IDs <- df_temp_1()$ID
+
     # Delete old entries 
     l_temp <- c_IDs|>
       lapply(function(ID){
