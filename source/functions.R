@@ -56,7 +56,7 @@ if (commandArgs()[1]=='RStudio'){
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
 #print(clc)                                      ##  when you load this source,
-##  it cleans all console
+# cls  it cleans all console
 
 # Inhaltsverzeichnis für Markdown ####
 r_toc_for_Rmd <- function(
