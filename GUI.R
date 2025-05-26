@@ -2092,12 +2092,10 @@ server <- function(input, output, session) {
           ausgabe_text()
         req(NULL)
       } else {
-        
-        if(DB_nrow(DB_con(), "df_Eintritt") > 0){
+        if(DB_nrow(DB_con(), "df_Eintritt") > 0){ # append data
           
           # check the number of rows in database table
           c_ID <- DB_get_max_pk(DB_con(),"df_Eintritt")
-          
           c_ID <- c_ID + 1L
           
           new_rows_ <-
@@ -2134,8 +2132,15 @@ server <- function(input, output, session) {
               )
             )
           )
+          
+          # system reply message
+          paste0(c_message)|>
+            ausgabe_text()
+          
           req(NULL)
-        }else {
+          
+        } else { 
+          # copy data DB_nrow(con,"df_Eintritt") == 0
           new_rows <- 
             bind_cols(ID = 1:nrow(new_rows),
                       new_rows)
@@ -2145,14 +2150,30 @@ server <- function(input, output, session) {
           )
           # system reply message
           paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                 paste0(print(new_rows), collapse = "\n"), 
+                 paste0(new_rows, collapse = "\n"), 
                  test$message,
                  c_message
           )|>
             ausgabe_text()
         }
       }
-    } else stop("Tabelle wurde nicht in der Datenbank gefunden.")
+    } else {
+      # copy data DB_nrow(con,"df_Eintritt") == 0
+      new_rows <- 
+        bind_cols(ID = 1:nrow(new_rows),
+                  new_rows)
+      # upload to database
+      test <- Run_capture_error_warnings(
+        DB_copy_table, new_rows, DB_con(), "df_Eintritt"
+      )
+      # system reply message
+      paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
+             paste0(new_rows, collapse = "\n"), 
+             test$message,
+             c_message
+      )|>
+        ausgabe_text()
+    }
   })
   
   ## Upload kiosk file already exists ####
@@ -2300,14 +2321,7 @@ server <- function(input, output, session) {
       ausgabe_text()
     
   })
-  
-  tibble(a = 1:3,
-         b = rep("pdf",3))|>
-    # print()|>
-    paste()|>
-    writeLines()
-  
-  
+
   
   ## Delete old entries and upload df_Kiosk  ####
   shiny::observeEvent(input$upload_df_Kiosk, {
@@ -2576,10 +2590,10 @@ server <- function(input, output, session) {
     } else {
       c_raw <- file_data()$type
       if(is.null(c_raw)){}
-      else c_raw|>writeLines()
+      else print(c_raw)
       c_raw <- file_data()$data
       if(is.null(c_raw)){}
-      else print(c_raw)
+      else writeLines(c_raw)
     }
     
   })
