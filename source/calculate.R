@@ -196,7 +196,15 @@ convert_data_kiosk_txt <- function(c_files) {
   ii <- 1
   for (ii in 1:length(l_Kiosk)) {
     if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
+      print(names(l_Kiosk)[ii])
+      print(l_Kiosk[[ii]])
+      if(nrow(l_Kiosk[[ii]]) == 1){
+        print("here")
+        l_Kiosk[[ii]] <- as.matrix(l_Kiosk[[ii]])
+      }
+      
       l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
+      
       x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
         apply(2, as.numeric)
       colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
