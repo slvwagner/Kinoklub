@@ -28,7 +28,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # c_Abrechnungsjahr <- 2024L
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2023L
 }
 
 # load data from Database ####

@@ -645,73 +645,9 @@ convert_data_Film_txt <- function(fileName, con) {
   return(df_Eintritt)
 }
 
-
-
-# search procinem by a given Suisanummber
-# Example usage
-# suisa_number <- "1020.295"  # Example SUISA number
-# results <- search_procinema_by_suisa(suisa_number)
-# print(results)
-search_procinema_by_suisa <- function(suisa_number) {
-  # Create the form POST request
-  response <- POST(
-    "https://www.procinema.ch/de/statistics/filmdb/",
-    body = list(
-      sta_fdb_movid = suisa_number,
-      sta_fdb_search = "Suchen",  # The search button value
-      process = "Filter"          # The submit action
-    ),
-    encode = "form"
-  )
-  
-  # Check if successful
-  if(status_code(response) != 200) {
-    message("Request failed with status: ", status_code(response))
-    return(tibble())
-  }
-  
-  # Parse the HTML content
-  html_content <- content(response, as = "text") %>% 
-    read_html()
-  
-  # Check if results were found
-  results_header <- html_content %>% 
-    html_node("h3") %>% 
-    html_text(trim = TRUE)
-  
-  if(is.na(results_header) || !str_detect(results_header, "Suchresultate")) {
-    message("No results found for SUISA number: ", suisa_number)
-    return(tibble())
-  }
-  
-  # Extract film information
-  film_nodes <- html_content %>% html_nodes(".listline")
-  
-  if(length(film_nodes) == 0) {
-    message("No film nodes found in the results")
-    return(tibble())
-  }
-  
-  # Process each film
-  results <- map_df(film_nodes, function(node) {
-    tibble(
-      Filmtitel = node %>% html_node(".fl a") %>% html_text(trim = TRUE),
-      link = node %>% html_node(".fl a") %>% html_attr("href") %>% 
-        paste0("https://www.procinema.ch", .),
-      Verleiher = node %>% html_node(".fc") %>% html_text(trim = TRUE) %>% 
-        str_replace_all("\\s+", " ") %>% str_trim(),
-      Suisanummer = node %>% html_node(".fdbsuisa") %>% html_text(trim = TRUE),
-      release_date = node %>% html_node(".fdbrelease") %>% html_text(trim = TRUE),
-      admissions = node %>% html_node(".fdbadm") %>% html_text(trim = TRUE) %>% 
-        str_remove_all("'") %>% as.integer()
-    )
-  })
-  
-  return(results)
-}
-
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {
+  if(length(fileName) ==  0) stop("No file names found in function convert_data_kiosk_txt")
   print("convert_data_kiosk_txt")
   # library(rebus)
   Programm <- DB_get_table("Programm",con)
@@ -815,8 +751,10 @@ convert_data_kiosk_txt <- function(fileName, con) {
       m_Kiosk
       
       # Get suisanummer
-      c_suisanummer <- c_Event_ID <- str_match(fileName, capture(one_or_more(DGT))%R%DOT%R%"txt")[,2]|>
-        as.integer()
+      c_suisanummer <- df_temp|>
+        filter(`Event ID` == ID)|>
+        select(Suisanummer)|>
+        pull()
       c_suisanummer
       
       # Wie viele Spalten
@@ -826,6 +764,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
       # extract according to nrow(m_Kiosk), not all files have the same number of columns
       if(c_lenght == 7){ # mit Korrekturbuchungen
         if(nrow(m_Kiosk) == 1){
+          # print(m_Kiosk)
           x <- m_Kiosk[c(2,4:5,7)]|>
             as.numeric()
           x <- matrix(x, ncol = 4)|>
@@ -840,6 +779,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
           m_Kiosk <- bind_cols(Verkaufsartikel = m_Kiosk[,1], x, tibble(Suisanummer = rep(c_suisanummer, nrow(m_Kiosk))))
           
         } else {
+          # print(m_Kiosk)
           x <- m_Kiosk[,c(2,4:5,7)]
           x <- apply(x, 2, as.numeric)
           colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
@@ -870,7 +810,7 @@ convert_data_kiosk_txt <- function(fileName, con) {
                           Datum = c_fileDate
         )
       } else {
-        stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(m_Kiosk)[ii],".txt",
+        stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(m_Kiosk),".txt",
                     "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
       }
       
@@ -880,7 +820,8 @@ convert_data_kiosk_txt <- function(fileName, con) {
       df_Kiosk <- m_Kiosk|>
         mutate(`Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
                `Betrag` = if_else(Anzahl == 0, 0, Betrag),
-               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`
+               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`,
+               Datum = df_temp$Datum
         )|>
         rename(`Einzelpreis [CHF]`= Einzelpreis,
                `Betrag [CHF]` = Betrag
@@ -992,13 +933,16 @@ convert_data_kiosk_txt <- function(fileName, con) {
         df_temp <- left_join(row_einkaufspreise,
                              row_kiosk,
                              by = c(`Artikelname-Kassensystem` = "Artikel-Kassensystem")
-        )|>
+        )
+        
+        df_temp <- df_temp|>
           mutate(`time deviation` = `Gültig ab Datum` - Datum)|>
           filter(`time deviation` == min(`time deviation`))|> # only keep the smallest `time deviation`
           mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
       }
       return(df_temp)
     })
+  
   df_temp <- bind_rows(l_temp)|>
     mutate(ID = row_number())|>
     select("ID", "Event ID", "Datum", "ID_Kioskartikel", "Artikelname-Kassensystem", "Verkaufsartikel", "Verkaufspreis [CHF]", "Menge", "Einkaufspreis [CHF]", "Lieferant", "Gültig ab Datum",
@@ -1021,6 +965,71 @@ convert_data_kiosk_txt <- function(fileName, con) {
   # function return
   return(df_temp)
 }
+
+# search procinem by a given Suisanummber
+# Example usage
+# suisa_number <- "1020.295"  # Example SUISA number
+# results <- search_procinema_by_suisa(suisa_number)
+# print(results)
+search_procinema_by_suisa <- function(suisa_number) {
+  # Create the form POST request
+  response <- POST(
+    "https://www.procinema.ch/de/statistics/filmdb/",
+    body = list(
+      sta_fdb_movid = suisa_number,
+      sta_fdb_search = "Suchen",  # The search button value
+      process = "Filter"          # The submit action
+    ),
+    encode = "form"
+  )
+  
+  # Check if successful
+  if(status_code(response) != 200) {
+    message("Request failed with status: ", status_code(response))
+    return(tibble())
+  }
+  
+  # Parse the HTML content
+  html_content <- content(response, as = "text") %>% 
+    read_html()
+  
+  # Check if results were found
+  results_header <- html_content %>% 
+    html_node("h3") %>% 
+    html_text(trim = TRUE)
+  
+  if(is.na(results_header) || !str_detect(results_header, "Suchresultate")) {
+    message("No results found for SUISA number: ", suisa_number)
+    return(tibble())
+  }
+  
+  # Extract film information
+  film_nodes <- html_content %>% html_nodes(".listline")
+  
+  if(length(film_nodes) == 0) {
+    message("No film nodes found in the results")
+    return(tibble())
+  }
+  
+  # Process each film
+  results <- map_df(film_nodes, function(node) {
+    tibble(
+      Filmtitel = node %>% html_node(".fl a") %>% html_text(trim = TRUE),
+      link = node %>% html_node(".fl a") %>% html_attr("href") %>% 
+        paste0("https://www.procinema.ch", .),
+      Verleiher = node %>% html_node(".fc") %>% html_text(trim = TRUE) %>% 
+        str_replace_all("\\s+", " ") %>% str_trim(),
+      Suisanummer = node %>% html_node(".fdbsuisa") %>% html_text(trim = TRUE),
+      release_date = node %>% html_node(".fdbrelease") %>% html_text(trim = TRUE),
+      admissions = node %>% html_node(".fdbadm") %>% html_text(trim = TRUE) %>% 
+        str_remove_all("'") %>% as.integer()
+    )
+  })
+  
+  return(results)
+}
+
+
 
 # get detailed information for a film ####
 # Example usage
