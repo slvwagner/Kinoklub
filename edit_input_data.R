@@ -779,7 +779,8 @@ server <- function(input, output, session) {
   ## Change in page length ####
   observeEvent(input$page_length, {
     req(input$page_length)
-    page_length_var(input$page_length)
+    as.integer(input$page_length)|>
+      page_length_var()
   })
   
   ## Select a row and find page and update   ####
@@ -851,10 +852,10 @@ server <- function(input, output, session) {
     df_temp <- df_temp |>
       mutate(index = row_number())
     row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
-    # has the page lenght changed? 
-    if(!is.null(input$page_length)){
-      page_length_var(input$page_length)
-    }
+    # # has the page lenght changed? 
+    # if(!is.null(input$page_length)){
+    #   page_length_var(input$page_length)
+    # }
     if(!is_empty(row_filtered)){
       # Calculate page 
       c_page <-  ceiling(row_filtered / page_length_var())  
