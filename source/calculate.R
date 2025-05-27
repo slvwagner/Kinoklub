@@ -205,7 +205,6 @@ convert_data_kiosk_txt <- function(c_files) {
         x <- matrix(x, ncol = 4)|>
           suppressWarnings()
         colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
-        print(x)
         
         x <- x|>
           as_tibble()|>
@@ -219,7 +218,6 @@ convert_data_kiosk_txt <- function(c_files) {
         x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
           apply(2, as.numeric)
         colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
-        print(x)
         
         x <- x|>
           as_tibble()|>
