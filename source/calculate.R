@@ -196,34 +196,47 @@ convert_data_kiosk_txt <- function(c_files) {
   ii <- 1
   for (ii in 1:length(l_Kiosk)) {
     if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
-      print(names(l_Kiosk)[ii])
-      print(l_Kiosk[[ii]])
+      # print(names(l_Kiosk)[ii])
+      # print(l_Kiosk[[ii]])
       if(nrow(l_Kiosk[[ii]]) == 1){
         print("here")
-        l_Kiosk[[ii]] <- as.matrix(l_Kiosk[[ii]])
+        x <- l_Kiosk[[ii]][c(2,4:5,7)]|>
+          as.numeric()
+        x <- matrix(x, ncol = 4)|>
+          suppressWarnings()
+        colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+        print(x)
+        
+        x <- x|>
+          as_tibble()|>
+          mutate(Anzahl = if_else(!is.na(Korrektur),  Anzahl + Korrektur, Anzahl))|>
+          select(-Korrektur)
+        
+        l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
+        
+      } else {
+        l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
+        x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
+          apply(2, as.numeric)
+        colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+        print(x)
+        
+        x <- x|>
+          as_tibble()|>
+          mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
+          select(-Korrektur)
+        
+        l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
       }
       
-      l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
-      
-      x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
-        apply(2, as.numeric)
-      colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
-      
-      x <- x|>
-        as_tibble()|>
-        mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
-        select(-Korrektur)
-      
-      l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
-      
-    }else if(c_lenght[ii] == 5){ # keine Korrekturbuchungen
+    } else if (c_lenght[ii] == 5){ # keine Korrekturbuchungen
       l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:3,5)]
       x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
         apply(2, as.numeric)
       colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
       
       l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
-    }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
+    } else if (c_lenght[ii] == 0){ # Keine Kioskverkäufe
       l_Kiosk[[ii]] <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
                               Einzelpreis = 0,
                               Anzahl = 0,
@@ -258,7 +271,9 @@ convert_data_kiosk_txt <- function(c_files) {
   
   
   # Error handling, compare filename date and date in file 
-  p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+  p1 <- or(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT),
+           one_or_more(DGT)%R%"/"%R%one_or_more(DGT)%R%"/"%R%one_or_more(DGT)
+           )
   
   file_datum <- l_raw|>
     lapply( function(x){
@@ -273,7 +288,7 @@ convert_data_kiosk_txt <- function(c_files) {
   c_test <- dmy(c_fileDate)%in%file_datum
   c_test
   
-  if(length(c_test)>sum(c_test)){
+  if(length(c_test) > sum(c_test)){
     stop(  
       paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum im Dateinamen nicht mit dem Datum welches im File gefunden wurde überein.")|>
         paste0(collapse = "\n")|>
