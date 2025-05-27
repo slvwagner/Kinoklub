@@ -26,6 +26,8 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
+# c_Abrechnungsjahr <- 2024L
+
 # load data from Database ####
 ## Programm ####
 Programm <- DB_get_table("Programm", con, download = FALSE)|>
@@ -81,6 +83,44 @@ Lieferant <- DB_get_table("Lieferanten",con)|>
 ## MWST ###
 MWST <- DB_get_table("MWST",con)|>
   convert_to_template_types(l_template$MWST)
+
+## Kiosk files ####
+c_eintritt <- tbl(con, "Eintritt files")|>
+  filter(ID %in% Programm$`Event ID`)|>
+  arrange(ID)|>
+  select(filename)|>
+  pull()
+c_eintritt
+
+## Eintritt files ####
+c_Kiosk <- tbl(con, "Kiosk files")|>
+  filter(ID %in% Programm$`Event ID`)|>
+  arrange(ID)|>
+  select(filename)|>
+  pull()
+c_Kiosk
+
+# check Eintritt conversion ####
+file_convert <- Run_capture_error_warnings(convert_data_Film_txt,c_eintritt, con)
+if(file_convert$messages != "") {
+  warning(file_convert$messages)
+  }
+
+# check Kiosk conversion ####
+file_convert <- Run_capture_error_warnings(convert_data_kiosk_txt,c_Kiosk, con)
+if(file_convert$messages != "") {
+  warning(file_convert$messages)
+}
+
+
+# check nb of files Eintritt vs Kiosk ####
+if(length(c_eintritt) != length(c_Kiosk)) {
+  if(length(c_eintritt) > length(c_Kiosk)){
+    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
+  }else {
+    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.")
+  }
+}
 
 # check nb of `Event ID` Eintritt vs Kiosk ####
 c_eintritt <- df_Eintritt|>
