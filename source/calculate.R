@@ -26,7 +26,8 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-## load data from Database
+# load data from Database ####
+## Programm ####
 Programm <- DB_get_table("Programm", con, download = FALSE)|>
   filter(`Verleiher Angefragt?` == "Bestätigt")|>
   collect()|>
@@ -34,44 +35,54 @@ Programm <- DB_get_table("Programm", con, download = FALSE)|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)
 Programm
 
+## df_Eintritt ####
 df_Eintritt <- DB_get_table("df_Eintritt", con)|>
   convert_to_template_types(l_template$df_Eintritt)|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)
 df_Eintritt
 
+##  df_Kiosk ####
 df_Kiosk <- DB_get_table("df_Kiosk", con)|>
   convert_to_template_types(l_template$df_Kiosk)|>
   filter(c_Abrechnungsjahr == lubridate::year(Datum))
 
+## Einnahmen ####
 Einnahmen <- DB_get_table("Einnahmen", con)|>
   convert_to_template_types(l_template$Einnahmen)|>
   filter(Abrechnungsjahr == c_Abrechnungsjahr)
 
+## Ausgaben ####
 Ausgaben <- DB_get_table("Ausgaben", con)|>
   convert_to_template_types(l_template$Ausgaben)|>
   filter(Abrechnungsjahr == c_Abrechnungsjahr)
 
+## `Einkauf Kiosk` ####
 `Einkauf Kiosk` <- DB_get_table("Einkauf Kiosk",con)|>
   convert_to_template_types(l_template$`Einkauf Kiosk` )
 
+## df_Spezialpreise ####
 df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con)|>
   convert_to_template_types(l_template$Spezialpreisekiosk )|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
   filter(`Event ID` %in% Programm$`Event ID`)
 
+## Verleiher ####
 Verleiher <- DB_get_table("Verleiher",con)|>
   convert_to_template_types(l_template$Verleiher)
 
+## Lieferant ####
 Lieferant <- DB_get_table("Lieferanten",con)|>
   convert_to_template_types(l_template$Lieferanten)
 
+## `Platzkategorien zum Verrechnen` ####
 `Platzkategorien zum Verrechnen` <- DB_get_table("Platzkategorien zum Verrechnen",con)|>
   convert_to_template_types(l_template$`Platzkategorien zum Verrechnen`)
 
+## MWST ###
 MWST <- DB_get_table("MWST",con)|>
   convert_to_template_types(l_template$MWST)
 
-# check nb of files Eintritt vs Kiosk ####
+# check nb of `Event ID` Eintritt vs Kiosk ####
 c_eintritt <- df_Eintritt|>
   distinct(`Event ID`)|>
   pull()
