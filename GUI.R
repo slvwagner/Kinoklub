@@ -2667,7 +2667,7 @@ server <- function(input, output, session) {
 # Run the app
 shiny::runApp(
   shiny::shinyApp(ui = ui, server = server),
-  port = 5000,
+  port = 5003,
   # Replace 8080 with your desired port
   launch.browser = TRUE, # Automatically open in the system's default browser
   host = "0.0.0.0"
