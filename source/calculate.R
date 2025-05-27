@@ -27,6 +27,9 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # c_Abrechnungsjahr <- 2024L
+if(!r_is.defined(c_Abrechnungsjahr)){
+  c_Abrechnungsjahr <- 2024L
+}
 
 # load data from Database ####
 ## Programm ####
