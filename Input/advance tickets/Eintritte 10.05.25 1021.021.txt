@@ -1,0 +1,35 @@
+
+KW 2025-19
+
+08/05/2025
+
+14/05/2025
+
+
+AtelierKino
+
+AtelierKino OV/d On Becoming a Guinea Fowl
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+trigon-film
+Limmatauweg 9
+5408	Ennetbaden
+1021.021	ON BECOMING A GUINEA FOWL
+OV/d	AtelierKino - Reinach
+1. Woche von 08.05.2025 bis 14.05.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Sa	10.05.2025	1	7	3	106.00
+Gesamt	1	7	3	106.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	5	80.00
+Ermässigt	13.00	0.0000	2	26.00
+Mitarbeiter*in	0.00	0.0000	3	0.00
+Gesamt	10	106.00
+Brutto	106.00
+Tax	-0.00
+Netto 1	106.00
+Netto 0.00%	-0.00
+Netto 2	106.00
+1.48% SUISA-Vorabzug	-1.57
+Netto 3	104.43

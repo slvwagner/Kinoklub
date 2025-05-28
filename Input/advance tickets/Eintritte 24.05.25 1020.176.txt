@@ -1,0 +1,38 @@
+
+KW 2025-21
+
+22/05/2025
+
+28/05/2025
+
+
+AtelierKino
+
+AtelierKino OV/d Niki
+TaB* AtelierKino
+Tunaustrasse 5
+5734	Reinach AG
+Praesens-Film AG
+Münchhaldenstrasse 10
+Postfach 919
+8034	Zürich
+1020.176	NIKI
+OV/d	AtelierKino - Reinach
+1. Woche von 22.05.2025 bis 28.05.2025
+Tag	Tag	Vorstellungen	Zahlend	Gratis	Umsatz
+Sa	24.05.2025	1	30	3	429.00
+Gesamt	1	30	3	429.00
+Platzkategorie	Preis	Tax	Anzahl	Umsatz
+Erwachsene	16.00	0.0000	13	208.00
+Ermässigt	13.00	0.0000	17	221.00
+Kinoförderer	0.00	0.0000	2	0.00
+Kinoklub-Mitglieder	0.00	0.0000	1	0.00
+Gesamt	33	429.00
+Brutto	429.00
+Tax	-0.00
+Netto 1	429.00
+Netto 0.00%	-0.00
+Netto 2	429.00
+1.48% SUISA-Vorabzug	-6.35
+Netto 3	422.65
+
