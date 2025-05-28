@@ -2066,9 +2066,22 @@ server <- function(input, output, session) {
         filter(Suisanummer == df_newrow$Suisanummer)|>
         collect()
       
+      # to render for modal dialog
+      df_temp_to_render(df_temp)
+      
       if(nrow(df_temp) > 0){
+        
+        # Calculate modal size based on number of columns
+        num_cols <- ncol(df_temp)
+        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+        modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+        
         showModal(modalDialog(
           title = "Film wurde bereits gezeit.",
+          tagList(
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table"))
+          ),
           footer = tagList(
             actionButton("Film_takover","Film dennoch übernehmen", class = "btn-danger"),
             actionButton("abort","Abbrechen")
