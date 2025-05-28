@@ -2076,7 +2076,7 @@ server <- function(input, output, session) {
         modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
         
         showModal(modalDialog(
-          title = paste0("Film \"", df_temp$Filmtitel[1],"\" wurde bereits gezeit."),
+          title = paste0("Film \"", df_newrow$Filmtitel[1],"\" wurde bereits gezeigt."),
           tagList(
             div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_table"))
@@ -2088,7 +2088,7 @@ server <- function(input, output, session) {
         ))
       } else {
         showModal(modalDialog(
-          title = paste0("Film: \"", df_temp$Filmtitel[1], "\" ins Programm übernehmen"),
+          title = paste0("Film: \"", df_newrow$Filmtitel[1], "\" ins Programm übernehmen"),
           footer = tagList(
             actionButton("Film_takover","Film übernehmen", class = "btn-success"),
             actionButton("abort","Abbrechen")
