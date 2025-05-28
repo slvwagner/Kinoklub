@@ -205,7 +205,6 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
         actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-        actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("procinema_search", "Procinema-Suche", class = "btn-info"),
         actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
