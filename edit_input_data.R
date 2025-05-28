@@ -2031,49 +2031,58 @@ server <- function(input, output, session) {
   #### user modal ####
   observeEvent(input$add_to_programm,{
     req(input$add_to_programm)
-    req(input$table_rows_selected)
     
-    # Find selected data
-    row <- current_data()[input$table_rows_selected, ]
-    
-    # get biggest ID from Programm
-    Last_Event_ID <- tbl(DB_con(), "Programm")|>
-      select(`Event ID`)|>
-      collect()|>
-      pull()|>
-      max()
-    
-    # paste0("\"",tbl(DB_con(), "Programm")|>
-    #   colnames(),"\"")|>
-    #   writeLines()
-    
-    df_newrow <- tibble("Event ID" = Last_Event_ID + 1L,
-           "Suisanummer" = row$Suisanummer,
-           "Filmtitel" = row$Filmtitel
-           )
-    df_newrow
-    
-    # Check if Suisanumber can be found in Programm
-    df_temp <- tbl(DB_con(), "Programm")|>
-      filter(Suisanummer == df_newrow$Suisanummer)|>
-      collect()
-    
-    if(nrow(df_temp) > 0){
+    if(is.null(input$table_rows_selected)){
       showModal(modalDialog(
-        title = "Film wurde bereits gezeit.",
+        title = "Bitte eine Zeile markieren!",
         footer = tagList(
-          actionButton("Film_takover","Film dennoch übernehmen", class = "btn-danger"),
-          actionButton("abort","Abbrechen")
-        )
+          modalButton("Abbrechen")),
+        easyClose = TRUE
       ))
-    } else {
-      showModal(modalDialog(
-        title = paste0("Film: \"", df_newrow$Filmtitel, "\" ins Programm übernehmen"),
-        footer = tagList(
-          actionButton("Film_takover","Film übernehmen", class = "btn-success"),
-          actionButton("abort","Abbrechen")
-        )
-      ))
+    }else{
+      req(input$table_rows_selected)
+      # Find selected data
+      row <- current_data()[input$table_rows_selected, ]
+      
+      # get biggest ID from Programm
+      Last_Event_ID <- tbl(DB_con(), "Programm")|>
+        select(`Event ID`)|>
+        collect()|>
+        pull()|>
+        max()
+      
+      # paste0("\"",tbl(DB_con(), "Programm")|>
+      #   colnames(),"\"")|>
+      #   writeLines()
+      
+      df_newrow <- tibble("Event ID" = Last_Event_ID + 1L,
+                          "Suisanummer" = row$Suisanummer,
+                          "Filmtitel" = row$Filmtitel
+      )
+      df_newrow
+      
+      # Check if Suisanumber can be found in Programm
+      df_temp <- tbl(DB_con(), "Programm")|>
+        filter(Suisanummer == df_newrow$Suisanummer)|>
+        collect()
+      
+      if(nrow(df_temp) > 0){
+        showModal(modalDialog(
+          title = "Film wurde bereits gezeit.",
+          footer = tagList(
+            actionButton("Film_takover","Film dennoch übernehmen", class = "btn-danger"),
+            actionButton("abort","Abbrechen")
+          )
+        ))
+      } else {
+        showModal(modalDialog(
+          title = paste0("Film: \"", df_newrow$Filmtitel, "\" ins Programm übernehmen"),
+          footer = tagList(
+            actionButton("Film_takover","Film übernehmen", class = "btn-success"),
+            actionButton("abort","Abbrechen")
+          )
+        ))
+      }
     }
   })
   
