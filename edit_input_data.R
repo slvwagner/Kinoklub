@@ -2070,14 +2070,13 @@ server <- function(input, output, session) {
       df_temp_to_render(df_temp)
       
       if(nrow(df_temp) > 0){
-        
         # Calculate modal size based on number of columns
         num_cols <- ncol(df_temp)
         modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
         modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
         
         showModal(modalDialog(
-          title = "Film wurde bereits gezeit.",
+          title = paste0("Film \"", df_temp$Filmtitel[1],"\" wurde bereits gezeit."),
           tagList(
             div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_table"))
@@ -2089,7 +2088,7 @@ server <- function(input, output, session) {
         ))
       } else {
         showModal(modalDialog(
-          title = paste0("Film: \"", df_newrow$Filmtitel, "\" ins Programm übernehmen"),
+          title = paste0("Film: \"", df_temp$Filmtitel[1], "\" ins Programm übernehmen"),
           footer = tagList(
             actionButton("Film_takover","Film übernehmen", class = "btn-success"),
             actionButton("abort","Abbrechen")
@@ -2099,10 +2098,11 @@ server <- function(input, output, session) {
     }
   })
   
-  #### takeover ####
+  #### define date ####
   observeEvent(input$Film_takover,{
     req(input$table_rows_selected)
-    
+    removeModal()
+
     # Find selected data
     row <- current_data()[input$table_rows_selected, ]
     
@@ -2122,11 +2122,61 @@ server <- function(input, output, session) {
       "KDM ja oder nein" = NA,
     )
     
+    # to render for modal dialog
+    df_temp_to_render(newrow)
+    
+    # Calculate modal size based on number of columns
+    num_cols <- ncol(newrow)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(newrow) <= 5, "auto", "600px")
+    
+    showModal(modalDialog(
+      title = "Film wurde bereits gezeit.",
+      tagList(
+        shiny::dateInput(
+          "Modal_Date","Spieldatum",
+          format = "dd.mm.yyyy",
+          language = "de",
+          weekstart = 1,
+          value = as.Date(Sys.Date())
+          ),
+        timeInput(
+          inputId = "Modal_time",
+          label = "Zeit",
+          value = "20:00:00",
+          seconds = FALSE
+        )
+      ),
+      footer = tagList(
+        actionButton("Film_takover_with_data","Übernehmen", class = "btn-danger"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+    req(NULL)
+  })  
+  
+  #### take over ####
+  observeEvent(input$Film_takover_with_data,{
+    removeModal()
+    req(input$Modal_Date)
+    req(input$Modal_time)
+    c_time <- input$Modal_time
+    c_time <- format(as.POSIXct(input$Modal_time, format = "%H:%M"), format = "%H:%M:%S")
+    
+    # change date and time according to user input
+    newrow <- df_temp_to_render()
+    newrow <- newrow|>
+      mutate(Datum = as.Date(input$Modal_Date),
+             Zeit = c_time)|>
+    convert_to_template_types(l_template$Programm)
+    
     # Add new row to Programm and update Einsatzplan
     DB_add_row(DB_con(),"Programm", newrow)
+
     # update joined data
-    c_class <- get_data_type(row)
+    c_class <- get_data_type(newrow)
     Update_Einsatzplan(newrow, c_class, new_row = TRUE)
+    
     # update data
     l_temp <- l_data()
     l_temp[["Programm"]] <- DB_get_table("Programm", DB_con())
