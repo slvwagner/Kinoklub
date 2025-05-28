@@ -2333,32 +2333,41 @@ server <- function(input, output, session) {
       # create new row
       new_row <- df_temp_to_render()|>
         rename(Procinema = link,
-               `Veröffentlichungs-Datum` = release_date)|>
-        mutate(Trailer = "",
-               `Veröffentlichungs-Datum` = dmy(`Veröffentlichungs-Datum`))|>
-        select(Suisanummer, Filmtitel, Procinema, Trailer, Verleiher, `Veröffentlichungs-Datum` )|>
-        bind_cols(`Eintritte eingespielt` = df_temp$admissions_ch,
-                  Inhalt = df_temp$Inhalt,
+               `Start-Datum` = release_date,
+               `Eintritte eingespielt` = admissions)|>
+        mutate(`Start-Datum` = dmy(`Start-Datum`))
+      new_row
+      
+      new_row <- new_row|>
+        bind_cols(Inhalt = df_temp$Inhalt,
                   director = df_temp$director,
-                  producer = df_temp$producer,
-                  actors = df_temp$actors,
-                  writer = df_temp$writer
+                  Regie = df_temp$producer,
+                  Schauspieler = df_temp$actors,
+                  Kategorie = "",
+                  Trailer = ""
         )
       new_row <- bind_cols(ID = max(current_data()$ID) + 1,
                            new_row
-      )
+      )|>
+        select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
+               "Schauspieler", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
+      
+      
+      # paste0(paste0("\"",names(new_row)), "\"", collapse = ", ")|>
+      #   writeLines()
+      # 
+      # df_temp1 <- DB_get_table("Filmvorschlag", DB_con())|>
+      #   slice(1)|>
+      #   collect()
+      # paste0(paste0("\"",names(df_temp1)), "\"", collapse = ", ")|>
+      #   writeLines()
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
       
-      # Update the list
-      l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
-      # update all data
-      l_data(l_temp)
-      
       # update to render
-      l_data()$Filmvorschlag|>
+      DB_get_table("Filmvorschlag", DB_con())|>
+        convert_to_template_types(l_template$Filmvorschlag)|>
         current_data()
       
       removeModal()
