@@ -947,7 +947,7 @@ server <- function(input, output, session) {
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
       
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
+      shiny::incProgress(1 / 3, detail = paste("data selection", 2, "of 3"))
       
       # Convert data types for each table
       convert_DB_to_R(l_data_sql,l_template)|>
@@ -970,8 +970,9 @@ server <- function(input, output, session) {
       last_selected_row(NA)
       # remove user filter 
       last_user_filter(NULL)
-      
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
+      # remove temp render
+      df_temp_to_render(NULL)
+      shiny::incProgress(1 / 3, detail = paste("data selection", 3, "of 3"))
       
     })
   })
@@ -980,47 +981,72 @@ server <- function(input, output, session) {
   observeEvent(input$dataset, {
     req(input$dataset)
     req(DB_con())
-    
-    df_temp <- DB_get_table(input$dataset, DB_con()) |>
-      convert_to_template_types(l_template[[input$dataset]])
-    
-    # Update reactive values
-    l_temp <- l_data()
-    
-    if(input$dataset %in% c("Programm", "Einsatzplan")) {
-      l_temp$Einsatzplan <- left_join(
-        df_temp |> select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
-        DB_get_table("Einsatzplan", DB_con()) |>
-          convert_to_template_types(l_template[[input$dataset]]) |>
-          select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
-        by = join_by(`Event ID`)
-      ) |> arrange(desc(Datum))
+    shiny::withProgress(message = "Input Datei", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Input Datei", 1, "of 3"))
+      df_temp <- DB_get_table(input$dataset, DB_con()) |>
+        convert_to_template_types(l_template[[input$dataset]])
       
-      l_temp$Programm <- l_temp$Programm |> arrange(desc(Datum))
-    } else {
-      l_temp[[input$dataset]] <- df_temp
-    }
-    
-    l_data(l_temp)
-    update_choices(l_data()) |> 
-      column_choices()
-    lastEdited_data_set_name(input$dataset)
-    
-    if(input$dataset == "Einsatzplan") {
-      l_temp[[input$dataset]]|>
-        filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-        current_data()
-    }else {
-      current_data(l_temp[[input$dataset]])
-    }
-    
-    # remove row and page selection 
-    last_selected_page(NA)
-    last_selected_row(NA)
-    # remove user filter 
-    last_user_filter(NULL)
-    # remove temp render
-    df_temp_to_render(NULL)
+      print(df_temp)
+      
+      # Update reactive values
+      l_temp <- l_data()
+      
+      if(input$dataset %in% c("Programm", "Einsatzplan")) {
+        l_temp$Einsatzplan <- left_join(
+          df_temp |> select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
+          DB_get_table("Einsatzplan", DB_con()) |>
+            convert_to_template_types(l_template[[input$dataset]]) |>
+            select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
+          by = join_by(`Event ID`)
+        ) |> arrange(desc(Datum))
+        
+        l_temp$Programm <- l_temp$Programm |> arrange(desc(Datum))
+      } else {
+        l_temp[[input$dataset]] <- df_temp
+      }
+      
+      l_data(l_temp)
+      update_choices(l_data()) |> 
+        column_choices()
+      lastEdited_data_set_name(input$dataset)
+      
+      if(input$dataset == "Einsatzplan") {
+        l_temp[[input$dataset]]|>
+          filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+          current_data()
+      }else {
+        current_data(l_temp[[input$dataset]])
+      }
+      shiny::incProgress(1 / 3, detail = paste("Input Datei", 2, "of 3"))
+      # get all data as defined in the template l_data
+      l_data_sql <- DB_get_Data(l_template, DB_con())
+      
+      
+      # Convert data types for each table
+      convert_DB_to_R(l_data_sql,l_template)|>
+        l_data()
+      
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      
+      # Input data set
+      l_data()[c_select_input_data]|>
+        l_data_input()
+      
+      # Drop down data set
+      l_data()[c_select_dropdown_data]|>
+        l_data_choices()
+      
+      # remove row and page selection 
+      last_selected_page(NA)
+      last_selected_row(NA)
+      # remove user filter 
+      last_user_filter(NULL)
+      # remove temp render
+      df_temp_to_render(NULL)
+      shiny::incProgress(1 / 3, detail = paste("Input Datei", 2, "of 3"))
+    })
   })
   
   ## Disconnect from DB ####
