@@ -2000,7 +2000,7 @@ server <- function(input, output, session) {
   #### Modal to delete row ####
   observeEvent(input$delete_row, {
     if(is.null(input$table_rows_selected)){
-      
+      # now row has been selected
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
@@ -2008,14 +2008,28 @@ server <- function(input, output, session) {
         easyClose = TRUE
       ))
     }else{
-      showModal(modalDialog(
-        title = "Selektierte Zeile löschen?",
-        footer = tagList(
-          modalButton("Abbrechen"),
-          actionButton("confirm_delete", "Löschen")
-        ),
-        easyClose = TRUE
-      ))
+      if(lastEdited_data_set_name() == "Programm"){
+        showModal(modalDialog(
+          title = "Selektierte Zeile löschen?",
+          shiny::div(
+            shiny::renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!")
+          ),
+          footer = tagList(
+            modalButton("Abbrechen"),
+            actionButton("confirm_delete", "Löschen")
+          ),
+          easyClose = TRUE
+        ))
+      } else {
+        showModal(modalDialog(
+          title = "Selektierte Zeile löschen?",
+          footer = tagList(
+            modalButton("Abbrechen"),
+            actionButton("confirm_delete", "Löschen")
+          ),
+          easyClose = TRUE
+        ))
+      }
     }
   })
   
