@@ -13,6 +13,14 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
+# update template
+l_template$MWST <- l_template$MWST|>
+  mutate(Abrechnungsjahr = 2023L)
+
+# save template
+saveRDS(l_template, "source/SQL/template.Rds")
+
+
 # Backup
 l_data <- DB_backup_DB(con)|>
   convert_DB_to_R(l_template)
