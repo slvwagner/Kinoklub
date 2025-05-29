@@ -2330,6 +2330,110 @@ server <- function(input, output, session) {
         }
         
       } 
+      ##### Buchhaltungskonten #### 
+      else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
+        df_temp <- current_data()
+        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        df_temp <- df_temp|>
+          filter(ID == c_ID)
+        
+        c_search <- df_temp$Buchungskontoname
+        
+        df_temp <- tbl(DB_con(), "Ausgaben")|>
+          filter(Buchungskonto == c_search)|>
+          collect()
+        df_temp
+        
+        if(nrow(df_temp) > 0){
+          # to render for modal 
+          df_temp_to_render(df_temp)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung der Lieferant \"",c_search,"\" wird in `Einkauf Kiosk` verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Lieferant muss zuerst in `Einkauf Kiosk`  gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
+        
+      } 
+      ##### Buchhaltungskonten #### 
+      else if (lastEdited_data_set_name() == "Spezialpreis"){
+        df_temp <- current_data()
+        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        df_temp <- df_temp|>
+          filter(ID == c_ID)
+        
+        c_search <- df_temp$Spezialpreisname
+        
+        df_temp <- tbl(DB_con(), "Spezialpreisekiosk")|>
+          filter(Spezialpreis == c_search)|>
+          collect()
+        df_temp
+        
+        if(nrow(df_temp) > 0){
+          # to render for modal 
+          df_temp_to_render(df_temp)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung der Spezialpreis \"",c_search,"\" wird in Spezialpreisekiosk verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Spezialpreis muss zuerst in Spezialpreisekiosk gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
+        
+      } 
       ##### anything else ####
       else {
         showModal(modalDialog(
