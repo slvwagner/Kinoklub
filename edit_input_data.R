@@ -673,7 +673,7 @@ server <- function(input, output, session) {
     last_rendered_DT(df_temp)
     
     # links to render in html
-    if(lastEdited_data_set_name() == "Filmvorschlag"){
+    if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag")){
       df_temp <- df_temp|>
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
@@ -2117,7 +2117,9 @@ server <- function(input, output, session) {
       
       df_newrow <- tibble("Event ID" = Last_Event_ID + 1L,
                           "Suisanummer" = row$Suisanummer,
-                          "Filmtitel" = row$Filmtitel
+                          "Filmtitel" = row$Filmtitel,
+                          "Procinema" = row$Procinema,
+                          "Trailer" = row$Trailer
       )
       df_newrow
       
@@ -2175,7 +2177,8 @@ server <- function(input, output, session) {
 
     newrow <- tibble(
       "Event ID" = Last_Event_ID + 1L, "Suisanummer" = row$Suisanummer, "Filmtitel" = row$Filmtitel,
-      "Datum" = NA, "Zeit" = NA, "Link to Event ID" = NA, "Verleiher" = row$Verleiher, "Verleiher Angefragt?" = "Anfrage läuft",
+      "Datum" = NA, "Zeit" = NA, "Link to Event ID" = NA, 
+      "Verleiher" = row$Verleiher, "Verleiher Angefragt?" = "Anfrage läuft", "Procinema" = row$Procinema, "Trailer" = row$Trailer,
       "Abzug [%]" = 30, "Minimal Abzug [CHF]" = 150, "Abzug fix [CHF]" = NA,
       "Verleihervertrag abgelegt" = NA, "Anzahl bestellter Poster und Flyer" = NA,"Poster und Flyer erhalten?" = NA,
       "Art der Filmlieferung" = NA, "Besucherzahlen an Verleiher gesendet" = NA, "Rechnung bezahlt und abgelegt" = NA,
