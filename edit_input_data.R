@@ -212,6 +212,7 @@ server <- function(input, output, session) {
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
       ) 
     } else if (data_set_select == "Programm"){
       tags$div(
@@ -234,6 +235,7 @@ server <- function(input, output, session) {
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     } else if(data_set_select == "Einsatzplan"){
       tags$div(
@@ -248,6 +250,7 @@ server <- function(input, output, session) {
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     } # Menue for drop downs 
     else if(data_set_select %in% names(l_data_choices())){
@@ -271,6 +274,7 @@ server <- function(input, output, session) {
           actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
           shiny::tags$hr(),
           actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+          shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       } else {
         tags$div(
@@ -292,6 +296,7 @@ server <- function(input, output, session) {
           actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
           shiny::tags$hr(),
           actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+          shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }
     } else {
@@ -313,6 +318,7 @@ server <- function(input, output, session) {
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
   }
@@ -1106,6 +1112,21 @@ server <- function(input, output, session) {
       easyClose = TRUE,
     ))
   })
+  
+  ## Button: Download Handler #####
+  output$table_export <- downloadHandler(
+    filename = function() {
+      paste0(lastEdited_data_set_name(), ".xlsx")
+    },
+    content = function(file) {
+      openxlsx::write.xlsx(
+        current_data(),
+        file = file,
+        asTable = TRUE,
+        overwrite = TRUE
+      )
+    }
+  )
   
   ## Abort changes and update ####
   observeEvent(input$abort_save, {
