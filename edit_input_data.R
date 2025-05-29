@@ -88,7 +88,7 @@ ui <- fluidPage(
     }
     #floating-panel-header {
       cursor: move;
-      background: #322f3b;
+      background: #46267d;
       padding: 8px;
       margin: -10px -10px 10px -10px;
       border-bottom: 1px solid #ddd;
