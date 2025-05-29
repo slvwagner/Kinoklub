@@ -12,14 +12,11 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
+l_template$Filmvorschlag
 
 # update template
 l_template$MWST <- l_template$MWST|>
   mutate(Abrechnungsjahr = 2023L)
-
-# save template
-saveRDS(l_template, "source/SQL/template.Rds")
-
 
 # Backup
 l_data <- DB_backup_DB(con)
@@ -34,16 +31,6 @@ l_data <- l_data|>
 
 l_data$Filmvorschlag
 
-# l_template$Filmvorschlag <- l_template$Filmvorschlag|>
-#   mutate(`Start-Datum` = as.Date(`Start-Datum`))|>
-#   slice(1)
-# 
-# identical(l_data$Filmvorschlag[1,], l_template$Filmvorschlag[1,])
-
-# l_template$`Eintritt files` <- l_data$`Eintritt files`[1,]
-# l_template$`Kiosk files` <- l_data$`Kiosk files`[1,]
-# 
-# # save template
 saveRDS(l_template, "source/SQL/template.Rds")
 
 ################################
