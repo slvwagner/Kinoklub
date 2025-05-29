@@ -67,7 +67,49 @@ shiny::addResourcePath("custom_styles", "source")
 # Define UI ####
 ui <- fluidPage(
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css")
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
+    tags$style(HTML("
+    #floating-panel {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 300px;
+      height: auto; /* Start with auto height */
+      border: 3px solid #000;
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: height 0.2s ease;
+      overflow: hidden; /* Hide content when collapsed */
+    }
+    #floating-panel.collapsed {
+      height: 37px; /* Just enough for the header */
+    }
+    #floating-panel-header {
+      cursor: move;
+      background: #322f3b;
+      padding: 8px;
+      margin: -10px -10px 10px -10px;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+      border-radius: 5px 5px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #floating-panel.collapsed .panel-content {
+      display: none;
+    }
+    #floating-panel.collapsed #floating-panel-header {
+      margin-bottom: -10px; /* Adjust for collapsed state */
+      border-bottom: none; /* Remove border when collapsed */
+    }
+    .toggle-panel {
+      cursor: pointer;
+      float: right;
+    }
+  "))
   ),
   shinyjs::useShinyjs(),
   # Input panel at top
@@ -194,7 +236,14 @@ server <- function(input, output, session) {
     if(data_set_select == "Filmvorschlag"){
       tags$div(
         id = "floating-panel",
-        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+                        )
+            ),
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -219,7 +268,14 @@ server <- function(input, output, session) {
     } else if (data_set_select == "Programm"){
       tags$div(
         id = "floating-panel",
-        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -244,7 +300,14 @@ server <- function(input, output, session) {
     } else if(data_set_select == "Einsatzplan"){
       tags$div(
         id = "floating-panel",
-        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -261,7 +324,14 @@ server <- function(input, output, session) {
       if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
         tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", "Werkzeuge"),
+          tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          div(class = "panel-content",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
           selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -283,7 +353,14 @@ server <- function(input, output, session) {
       } else {
         tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", "Werkzeuge"),
+          tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          div(class = "panel-content",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
           selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -306,7 +383,14 @@ server <- function(input, output, session) {
     } else {
       tags$div(
         id = "floating-panel",
-        tags$div(id = "floating-panel-header", "Werkzeuge"),
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
         selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection 
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
@@ -2853,17 +2937,34 @@ server <- function(input, output, session) {
           style = "width: 100%; overflow-x: auto;",
           DTOutput("table", width = "100%"),
           
+          tags$script(HTML("
+            $(function() {
+              // Make panel draggable
+              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+              
+              // Toggle collapse/expand
+              $('#togglePanel').click(function() {
+                $('#floating-panel').toggleClass('collapsed');
+                if ($('#floating-panel').hasClass('collapsed')) {
+                  $(this).html('<i class=\"fa fa-plus\"></i>');
+                } else {
+                  $(this).html('<i class=\"fa fa-minus\"></i>');
+                }
+              });
+            });
+          ")),
+          
           # Insert the JavaScript HERE - right after the table output
           tags$script(HTML(
             "$(function() {
               $('#floating-panel').draggable({ handle: '#floating-panel-header' });
             });",
-            "
+                      "
             $(document).on('change', '.dataTables_length select', function() {
               Shiny.setInputValue('page_length', $(this).val());
             });
             "
-            ))
+          ))
         )
       },
       if(c_connected_to_db()) {
