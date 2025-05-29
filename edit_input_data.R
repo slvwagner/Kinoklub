@@ -902,28 +902,34 @@ server <- function(input, output, session) {
   
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
-    req(input$DB_host)
-    req(input$DB_name)
-    req(input$DB_user)
-    req(input$DB_pw)
-    DB_host(input$DB_host)
-    DB_name(input$DB_name)
-    DB_user(input$DB_user)
-    DB_pw(input$DB_pw)
-    
-    tryCatch({
-      # Connect to data base 
-      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
-        DB_con()
+    shiny::withProgress(message = "Database connection", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+      req(input$DB_host)
+      req(input$DB_name)
+      req(input$DB_user)
+      req(input$DB_pw)
+      DB_host(input$DB_host)
+      DB_name(input$DB_name)
+      DB_user(input$DB_user)
+      DB_pw(input$DB_pw)
       
-      # After successful connection
-      c_connected_to_db(TRUE)
+      tryCatch({
+        # Connect to data base 
+        DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+          DB_con()
+        
+        # After successful connection
+        c_connected_to_db(TRUE)
+        
+        # Initial data load
+        load_initial_data()
+        
+      }, error = function(e) {
+        showNotification(paste("load data from data base failed:", e$message), type = "error")
+      })
       
-      # Initial data load
-      load_initial_data()
+      shiny::incProgress(1 / 2, detail = paste("data selection", 2, "of 2"))
       
-    }, error = function(e) {
-      showNotification(paste("load data from data base failed:", e$message), type = "error")
     })
   })
   
