@@ -211,6 +211,8 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       ) 
@@ -233,6 +235,8 @@ server <- function(input, output, session) {
         actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
@@ -316,6 +320,8 @@ server <- function(input, output, session) {
         actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
@@ -1159,13 +1165,25 @@ server <- function(input, output, session) {
   
   ## Check unique ####
   observeEvent(input$check_unique, {
-    # Find duplicates (keeping only duplicate rows)
-    df_temp <- current_data() |>
-      group_by(across(-ID)) |>
-      mutate(duplicate_flag = n() > 1) |>
-      ungroup() |>
-      filter(duplicate_flag)|>
-      select(-duplicate_flag)
+    if(lastEdited_data_set_name() == "Programm"){
+      # Find duplicates (keeping only duplicate rows)
+      df_temp <- current_data() |>
+        group_by(across(-`Event ID`)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+      
+    } else {
+      # Find duplicates (keeping only duplicate rows)
+      df_temp <- current_data() |>
+        group_by(across(-ID)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+      
+    }
     
     df_temp_to_render(df_temp)
     
