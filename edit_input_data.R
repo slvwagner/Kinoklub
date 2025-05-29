@@ -773,15 +773,21 @@ server <- function(input, output, session) {
         df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
           prettyNum(big.mark = "`") 
       }
-    } 
-    # mailto render in html
-    if("E-Mail" %in% names(df_temp)){
-      df_temp$`E-Mail` <- 
-        ifelse(is.na(df_temp$`E-Mail`),
+    } else if(lastEdited_data_set_name() %in% c("Verleiher")){
+      # mailto render in html
+      df_temp$Kontakt <- 
+        ifelse(is.na(df_temp$`Kontakt`),
                NA,
-               paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
-               )
+               paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Kontakt`, df_temp$`Kontakt`))
+        )
+
+      df_temp$Besucherzahlen <- 
+        ifelse(is.na(df_temp$`Besucherzahlen`),
+               NA,
+               paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Besucherzahlen`, df_temp$`Besucherzahlen`))
+        )
     }
+
 
     
     # Render Table
@@ -2973,12 +2979,12 @@ server <- function(input, output, session) {
   
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
