@@ -437,10 +437,16 @@ server <- function(input, output, session) {
           language = "de",
           weekstart = 1
         )
+      }  else if (col_data_type == "logical"){
+        l_temp[[ii + cnt]]  <- shiny::checkboxInput(
+          inputId = as.character(ii),
+          label = col_name,
+          value = col_value
+        )
       } else if (col_data_type == "hms") {
         l_temp[[ii + cnt]]  <- timeInput(
           inputId = as.character(ii),
-          label = "Zeit",
+          label = col_name,
           value = col_value,
           seconds = FALSE
         )
@@ -1261,7 +1267,7 @@ server <- function(input, output, session) {
         })
       } else {
         df_temp <- df_temp_to_render()
-        c_ID <- df_temp[input$modal_table_rows_selected]$ID
+        c_ID <- df_temp[input$modal_table_rows_selected,]$ID
         # update latest ID 
         ID_to_edit(c_ID)
         # Store HTML elements
@@ -1518,7 +1524,11 @@ server <- function(input, output, session) {
             c_time
             l_input[[ii]] <- readr::parse_time(c_time)
           }
-        } #### not yet implemented #### 
+        } ##### logical inputs ####
+        else if (c_input_class == "logical"){
+          l_input[[ii]] <- as.logical(c_input[ii]|>unlist())
+        }
+        #### not yet implemented #### 
         else {
           stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
         }
@@ -1529,7 +1539,7 @@ server <- function(input, output, session) {
       
       #### Handle columns containing `ID` in the column name ####
       c_col_is_factor <- df_updated|>
-        select(contains("ID"))|>
+        select(starts_with("ID"))|>
         names()
       # Convert `ID` columns to character
       if(length(c_col_is_factor) > 0){

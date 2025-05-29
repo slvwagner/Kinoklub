@@ -238,7 +238,20 @@ DB_add_row <- function(con, table_name, new_row) {
     })
   
   # Replace NA values with NULL for SQL
-  new_row <- lapply(new_row, function(x) if (is.na(x)) NULL else x)
+  new_row <- lapply(new_row, function(x) {
+    if (is.na(x)) NULL 
+    else x
+  })
+  
+  # Replace TRUE and FALSE with 1 or 0 for SQL
+  for (ii in 1:length(new_row)) {
+    if(names(new_row)[ii] == "Zahlend"){
+      if(new_row[[ii]] == "TRUE") new_row[[ii]] <- 1L 
+      else new_row[[ii]] <- 0L
+    }
+  }
+
+  new_row
 
   # Debug: Print new_row values
   # message("Values in new_row: ", paste(new_row, collapse = ", "))
@@ -265,7 +278,7 @@ DB_add_row <- function(con, table_name, new_row) {
         else if (is.character(x)) paste0("'", x, "'")
         else if (is.Date(x)) paste0("'", as.character(x), "'")
         else if (is_time(x)) paste0("'", as.character(x), "'")
-        else if (is.factor(x)) paste0("'", as.character(x), "'")
+        else if (is.factor(x)) paste0("'", as.character(x), "'") 
         else x
         }), 
       collapse = ", ")
