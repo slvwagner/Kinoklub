@@ -788,8 +788,6 @@ server <- function(input, output, session) {
         )
     }
 
-
-    
     # Render Table
     datatable(
       df_temp,
