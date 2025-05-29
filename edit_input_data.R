@@ -672,6 +672,11 @@ server <- function(input, output, session) {
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
                )
+        
+      if("Eintritte eingespielt" %in% names(df_temp)){
+        df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
+          prettyNum(big.mark = "`") 
+      }
     } 
     # mailto render in html
     if("E-Mail" %in% names(df_temp)){
@@ -681,6 +686,7 @@ server <- function(input, output, session) {
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
                )
     }
+
     
     # Render Table
     datatable(
@@ -1004,11 +1010,6 @@ server <- function(input, output, session) {
         l_temp[[input$dataset]] <- df_temp
       }
       
-      l_data(l_temp)
-      update_choices(l_data()) |> 
-        column_choices()
-      lastEdited_data_set_name(input$dataset)
-      
       if(input$dataset == "Einsatzplan") {
         l_temp[[input$dataset]]|>
           filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
@@ -1016,6 +1017,19 @@ server <- function(input, output, session) {
       }else {
         current_data(l_temp[[input$dataset]])
       }
+      
+      if(input$dataset == "Filmvorschlag"){
+        l_temp$Filmvorschlag|>
+          arrange(desc(ID))|>
+          current_data()
+      }
+      
+      # Update 
+      l_data(l_temp)
+      update_choices(l_data()) |> 
+        column_choices()
+      lastEdited_data_set_name(input$dataset)
+      
       shiny::incProgress(1 / 3, detail = paste("Input Datei", 2, "of 3"))
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
@@ -1217,7 +1231,10 @@ server <- function(input, output, session) {
               rownames = FALSE,
               selection = "single",
               options = list(
-                language = DT_language
+                searching = FALSE,     # removes search box
+                language = DT_language,
+                pageLength = nrow(df_temp_1()),
+                paging = FALSE        # disables pagination
               )
     )
   })
