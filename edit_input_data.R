@@ -1538,9 +1538,16 @@ server <- function(input, output, session) {
         as_tibble()
       
       #### Handle columns containing `ID` in the column name ####
-      c_col_is_factor <- df_updated|>
+      if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk")){
+        c_col_is_factor <- df_updated|>
         select(starts_with("ID"))|>
         names()
+      } else {
+        c_col_is_factor <- df_updated|>
+          select(contains("ID"))|>
+          names()
+      }
+      
       # Convert `ID` columns to character
       if(length(c_col_is_factor) > 0){
         for (ii in 1:length(c_col_is_factor)) {
