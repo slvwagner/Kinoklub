@@ -1223,7 +1223,7 @@ server <- function(input, output, session) {
   ## Button: Download Handler #####
   output$table_export <- downloadHandler(
     filename = function() {
-      paste0(lastEdited_data_set_name(), ".xlsx")
+      paste0(lastEdited_data_set_name(), " ", Sys.time(),".xlsx")
     },
     content = function(file) {
       openxlsx::write.xlsx(
