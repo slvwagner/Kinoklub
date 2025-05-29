@@ -1254,7 +1254,7 @@ server <- function(input, output, session) {
               options = list(
                 searching = FALSE,     # removes search box
                 language = DT_language,
-                pageLength = nrow(df_temp_1()),
+                pageLength = nrow(df_temp_to_render()),
                 paging = FALSE        # disables pagination
               )
     )
