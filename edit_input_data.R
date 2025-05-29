@@ -952,7 +952,9 @@ server <- function(input, output, session) {
         c_colors <- c("#FFFFFFFF", c_colors)
         
       }else{
-        current_data(l_data()[["Programm"]])
+        current_data(l_data()[["Programm"]]|>
+                       arrange(desc(`Event ID`))
+                       )
         lastEdited_data_set_name("Programm")
       }
       # get all data as defined in the template l_data
