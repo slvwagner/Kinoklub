@@ -88,7 +88,7 @@ ui <- fluidPage(
     }
     #floating-panel-header {
       cursor: move;
-      background: #322f3b;
+      background: #035757;
       padding: 8px;
       margin: -10px -10px 10px -10px;
       border-bottom: 1px solid #ddd;
@@ -244,7 +244,6 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
                         )
             ),
-        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
@@ -276,7 +275,6 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
-        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
@@ -308,7 +306,6 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
-        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
@@ -332,7 +329,6 @@ server <- function(input, output, session) {
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
-          selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                               choices = choices, selected = choices[choices_select]
@@ -361,7 +357,6 @@ server <- function(input, output, session) {
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
-          selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                               choices = choices, selected = choices[choices_select]
@@ -391,7 +386,6 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
-        selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)),
         # Function selection 
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
