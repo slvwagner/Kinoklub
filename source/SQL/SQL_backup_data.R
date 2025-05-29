@@ -10,18 +10,24 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-# Backup
-l_data <- DB_backup_DB(con)
-l_data
-
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
+
+# Backup
+l_data <- DB_backup_DB(con)|>
+  convert_DB_to_R(l_template)
+
+# l_template$Filmvorschlag <- l_template$Filmvorschlag|>
+#   mutate(`Start-Datum` = as.Date(`Start-Datum`))|>
+#   slice(1)
+# 
+# identical(l_data$Filmvorschlag[1,], l_template$Filmvorschlag[1,])
 
 # l_template$`Eintritt files` <- l_data$`Eintritt files`[1,]
 # l_template$`Kiosk files` <- l_data$`Kiosk files`[1,]
 # 
 # # save template
-# saveRDS(l_template, "source/SQL/template.Rds")
+saveRDS(l_template, "source/SQL/template.Rds")
 
 ################################
 # Convert to R data type
