@@ -1036,7 +1036,16 @@ server <- function(input, output, session) {
         l_temp$Filmvorschlag|>
           arrange(desc(ID))|>
           current_data()
+      } else if (input$dataset == "Einnahmen"){
+        l_temp$Einnahmen|>
+          arrange(desc(ID))|>
+          current_data()
+      } else if (input$dataset == "Ausgaben"){
+        l_temp$Ausgaben|>
+          arrange(desc(ID))|>
+          current_data()
       }
+      
       
       # Update 
       l_data(l_temp)
@@ -1655,6 +1664,10 @@ server <- function(input, output, session) {
             df_temp,
             by = join_by(`Event ID`)
           )|>
+            current_data()
+        } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben")){
+          df_temp|>
+            arrange(desc(ID))|>
             current_data()
         } else {
           df_temp|>
