@@ -12,26 +12,26 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
-l_template$Filmvorschlag
 
-# update template
-l_template$MWST <- l_template$MWST|>
-  mutate(Abrechnungsjahr = 2023L)
 
-# Backup
-l_data <- DB_backup_DB(con)
-
-l_template$Filmvorschlag <- l_data$Filmvorschlag|>
-  mutate(`Start-Datum` = as.Date(`Start-Datum`),
-         Verleiher = as.factor(Verleiher))|>
-  slice(1)
-
-l_data <- l_data|>
-  convert_DB_to_R(l_template)
-
-l_data$Filmvorschlag
-
-saveRDS(l_template, "source/SQL/template.Rds")
+# # update template
+# l_template$MWST <- l_template$MWST|>
+#   mutate(Abrechnungsjahr = 2023L)
+# 
+# # Backup
+# l_data <- DB_backup_DB(con)
+# 
+# l_template$Filmvorschlag <- l_data$Filmvorschlag|>
+#   mutate(`Start-Datum` = as.Date(`Start-Datum`),
+#          Verleiher = as.factor(Verleiher))|>
+#   slice(1)
+# 
+# l_data <- l_data|>
+#   convert_DB_to_R(l_template)
+# 
+# l_data$Filmvorschlag
+# 
+# saveRDS(l_template, "source/SQL/template.Rds")
 
 ################################
 # Convert to R data type
