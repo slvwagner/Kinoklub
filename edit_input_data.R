@@ -2082,15 +2082,18 @@ server <- function(input, output, session) {
   ### Delete selected row(s) ####
   #### Modal to delete row ####
   observeEvent(input$delete_row, {
+    ##### now row has been selected ####
     if(is.null(input$table_rows_selected)){
-      # now row has been selected
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
           modalButton("Abbrechen")),
         easyClose = TRUE
       ))
-    }else{
+    } 
+    ##### row has been selected ####
+    else {
+      ##### Programm ####
       if(lastEdited_data_set_name() == "Programm"){
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
@@ -2103,7 +2106,9 @@ server <- function(input, output, session) {
           ),
           easyClose = TRUE
         ))
-      } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      } 
+      ##### Kinoklubmitglieder #### 
+      else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
         df_temp <- current_data()
         c_ID <- df_temp[input$table_rows_selected,1]|>pull()
         df_temp <- df_temp|>
@@ -2157,7 +2162,9 @@ server <- function(input, output, session) {
           ))
         }
 
-      } else if (lastEdited_data_set_name() == "Verleiher"){
+      } 
+      ##### Verleiher ####
+      else if (lastEdited_data_set_name() == "Verleiher"){
         df_temp <- current_data()
         c_ID <- df_temp[input$table_rows_selected,1]|>pull()
         df_temp <- df_temp|>
@@ -2270,7 +2277,61 @@ server <- function(input, output, session) {
             easyClose = TRUE
           ))
         }
-      } else {
+      } 
+      ##### Lieferanten #### 
+      else if (lastEdited_data_set_name() == "Lieferanten"){
+        df_temp <- current_data()
+        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        df_temp <- df_temp|>
+          filter(ID == c_ID)
+        
+        c_search <- df_temp$Lieferantenname
+        
+        df_temp <- tbl(DB_con(), "Einkauf Kiosk")|>
+          filter(Lieferant == c_search)|>
+          collect()
+        df_temp
+        
+        if(nrow(df_temp) > 0){
+          # to render for modal 
+          df_temp_to_render(df_temp)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung der Lieferant \"",c_search,"\" wird in `Einkauf Kiosk` verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Lieferant muss zuerst in `Einkauf Kiosk`  gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
+        
+      } 
+      ##### anything else ####
+      else {
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
           footer = tagList(
