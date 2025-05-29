@@ -1231,31 +1231,58 @@ server <- function(input, output, session) {
   ## selected row modal data table ####
   observeEvent(input$modal_select_row, {
     if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
-      
-      df_temp <- df_temp_to_render()
-      c_ID <- df_temp[input$modal_table_rows_selected,]$ID
-      # update latest ID 
-      ID_to_edit(c_ID)
-      # Store HTML elements
-      l_temp <- list()
-      # only display
-      df_info <- current_data() |> 
-        filter(ID == c_ID)|>
-        select(1)
-      # editable
-      df_row <- current_data() |> 
-        filter(ID == c_ID)|>
-        select(2:ncol(current_data()))
-      # Display the display columns (read-only)
-      l_temp <- lapply(1:ncol(df_info), function(ii) {
-        fluidRow(
-          column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
-        )
-      })
+      removeModal()
+      if(lastEdited_data_set_name() == "Programm"){
+        df_temp <- df_temp_to_render()
+        
+        c_ID <- df_temp|>
+          slice(input$modal_table_rows_selected)|>
+          select(`Event ID`)|>
+          pull()
+        
+        # update latest ID 
+        ID_to_edit(c_ID)
+        
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> 
+          filter(`Event ID` == c_ID)|>
+          select(1)
+        # editable
+        df_row <- current_data() |> 
+          filter(`Event ID` == c_ID)|>
+          select(2:ncol(current_data()))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+          )
+        })
+      } else {
+        df_temp <- df_temp_to_render()
+        c_ID <- df_temp[input$modal_table_rows_selected]$ID
+        # update latest ID 
+        ID_to_edit(c_ID)
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> 
+          filter(ID == c_ID)|>
+          select(1)
+        # editable
+        df_row <- current_data() |> 
+          filter(ID == c_ID)|>
+          select(2:ncol(current_data()))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+          )
+        })
+      }
       
       l_temp <- create_modal_input(df_row, l_temp)
-      
-      removeModal()
       
       # User interaction to save
       showModal(
