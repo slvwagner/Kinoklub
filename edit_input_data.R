@@ -2103,6 +2103,173 @@ server <- function(input, output, session) {
           ),
           easyClose = TRUE
         ))
+      } else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
+        df_temp <- current_data()
+        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        df_temp <- df_temp|>
+          filter(ID == c_ID)
+
+        c_search <- paste(df_temp$Vorname, df_temp$Nachname)
+        
+        df_Einsatzplan <- tbl(DB_con(), "Einsatzplan")|>
+          filter((Verantwortlich %in% c_search) |
+                 (`Operateur*in` %in% c_search) |
+                 (`Kasse/Bar 1` %in% c_search) |
+                 (`Kasse/Bar 2` %in% c_search) |
+                 `Back-up` %in% c_search
+                 )|>
+          collect()
+        
+        if(nrow(df_Einsatzplan) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Einsatzplan)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_Einsatzplan)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_Einsatzplan) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung das Kinoklubmitglied \"",c_search,"\" wird im Einsatzplan verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Kinoklubmitglied muss zuerst im Einsatzplan gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
+
+      } else if (lastEdited_data_set_name() == "Verleiher"){
+        df_temp <- current_data()
+        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        df_temp <- df_temp|>
+          filter(ID == c_ID)
+        
+        c_search <- df_temp$Verleihername
+        
+        df_Programm <- tbl(DB_con(), "Programm")|>
+          filter(Verleiher == c_search)|>
+          collect()
+        df_Programm
+        
+        df_Filmvorschlag <- tbl(DB_con(), "Filmvorschlag")|>
+          filter(Verleiher == c_search)|>
+          collect()
+        df_Filmvorschlag
+        
+        df_VerleiherMapping <- tbl(DB_con(), "Verleiher mapping")|>
+          filter(Verleihername == c_search)|>
+          collect()
+        df_VerleiherMapping
+        
+        if(nrow(df_Programm) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Programm)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_Programm)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_Programm) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung der Verleiher \"",c_search,"\" wird im Programm verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Verleihereinträge müssen zuerst im Programm gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else if(nrow(df_Filmvorschlag) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Filmvorschlag)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_Filmvorschlag)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_Filmvorschlag) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung der Verleiher \"",c_search,"\" wird im Filmvorschlag verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Verleihereinträge müssen zuerst im Filmvorschlag gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+          
+        } else if(nrow(df_VerleiherMapping) > 0){
+          # to render for modal 
+          df_temp_to_render(df_VerleiherMapping)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_VerleiherMapping)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_VerleiherMapping) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung das Kinoklubmitglied \"",c_search,"\" wird im Einsatzplan verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Verleihereinträge muss zuerst im `Verleiher mapping` gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+          
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
       } else {
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
