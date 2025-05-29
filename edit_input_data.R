@@ -441,7 +441,7 @@ server <- function(input, output, session) {
         l_temp[[ii + cnt]]  <- shiny::checkboxInput(
           inputId = as.character(ii),
           label = col_name,
-          value = col_value
+          value = ifelse(is.na(col_value), FALSE, TRUE)
         )
       } else if (col_data_type == "hms") {
         l_temp[[ii + cnt]]  <- timeInput(
