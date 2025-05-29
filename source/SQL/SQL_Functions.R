@@ -231,6 +231,16 @@ DB_add_row <- function(con, table_name, new_row) {
     stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
   }
   
+  # Replace TRUE and FALSE with 1 or 0 for SQL
+  for (ii in 1:length(new_row)) {
+    if(names(new_row)[ii] == "Zahlend"){
+      if(!is.na(new_row[[ii]])) {
+        if(new_row[[ii]] == "TRUE") new_row[[ii]] <- 1L 
+        else new_row[[ii]] <- 0L
+      }
+    }
+  }
+  
   # Preplace single quotes "'" with "´" 
   new_row <- new_row|>
     lapply(function(x){
@@ -243,13 +253,7 @@ DB_add_row <- function(con, table_name, new_row) {
     else x
   })
   
-  # Replace TRUE and FALSE with 1 or 0 for SQL
-  for (ii in 1:length(new_row)) {
-    if(names(new_row)[ii] == "Zahlend"){
-      if(new_row[[ii]] == "TRUE") new_row[[ii]] <- 1L 
-      else new_row[[ii]] <- 0L
-    }
-  }
+
 
   new_row
 
