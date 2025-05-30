@@ -2246,8 +2246,6 @@ server <- function(input, output, session) {
                `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
         )
       
-      
-      
       # test if data is identical
       c_test <- identical(new_rows, test|>select(-ID))
       

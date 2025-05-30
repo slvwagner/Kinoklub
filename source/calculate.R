@@ -97,8 +97,6 @@ if(nrow(MWST) == 1){
 } else stop("Die Mehrwertsteuer konnte für das Abrechnungsjahr ",c_Abrechnungsjahr, " nicht gefunden werden.")
 
 
-
-
 ## Kiosk files ####
 c_eintritt <- tbl(con, "Eintritt files")|>
   filter(ID %in% Programm$`Event ID`)|>
