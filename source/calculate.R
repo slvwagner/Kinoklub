@@ -309,7 +309,7 @@ if(nrow(df_temp)>0){
 df_Abrechnung <- Programm|>
   select(1:11)|>
   left_join(Verleiher|>
-              select(-ID, -`E-Mail`, -Adresse, -PLZ, -Ort),
+              select(-ID, -Kontakt,-Besucherzahlen , -Adresse, -PLZ, -Ort),
             by = c(Verleiher = "Verleihername")
   )|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
