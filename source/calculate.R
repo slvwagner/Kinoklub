@@ -87,6 +87,18 @@ Lieferant <- DB_get_table("Lieferanten",con)|>
 MWST <- DB_get_table("MWST",con)|>
   convert_to_template_types(l_template$MWST)
 
+MWST <- MWST|>
+  filter(Abrechnungsjahr == c_Abrechnungsjahr)
+if(nrow(MWST) == 1){
+  c_MWST  <- MWST|>
+    filter(Abrechnungsjahr == c_Abrechnungsjahr)|>
+    select(MWST)|>
+    pull()
+} else stop("Die Mehrwertsteuer konnte für das Abrechnungsjahr ",c_Abrechnungsjahr, " nicht gefunden werden.")
+
+
+
+
 ## Kiosk files ####
 c_eintritt <- tbl(con, "Eintritt files")|>
   filter(ID %in% Programm$`Event ID`)|>
@@ -307,7 +319,6 @@ if(nrow(df_temp)>0){
 # Error handling ####
 ## Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?) ####
 df_Abrechnung <- Programm|>
-  select(1:11)|>
   left_join(Verleiher|>
               select(-ID, -Kontakt,-Besucherzahlen , -Adresse, -PLZ, -Ort),
             by = c(Verleiher = "Verleihername")
@@ -536,8 +547,8 @@ df_Abrechnung <- df_Abrechnung|>
          `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
          `MWST [CHF]` = if_else(
            is.na(`Verleiherrechnungsbetrag [CHF]`),
-           `Umsatz für Netto3 [CHF]` * (MWST$MWST / 100),
-           `Verleiherrechnungsbetrag [CHF]` / (1 + (MWST$MWST / 100)) 
+           `Umsatz für Netto3 [CHF]` * (c_MWST / 100),
+           `Verleiherrechnungsbetrag [CHF]` / (1 + (c_MWST / 100)) 
          ),
          `Verleiherabzug [CHF]` = 
            if_else(is.na(`Abzug fix [CHF]`),
