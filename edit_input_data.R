@@ -178,6 +178,20 @@ ui <- fluidPage(
       });
     });
   ")),
+  
+  # Initialize auto collaps after Login
+  tags$script(HTML("
+    // Function to collapse login panel
+    function collapseLoginPanel() {
+      $('#login-panel').addClass('collapsed');
+      $('#login_togglePanel').html('<i class=\"fa fa-plus\"></i>');
+    }
+    
+    // Make this function available to Shiny
+    Shiny.addCustomMessageHandler('collapseLoginPanel', function(message) {
+      collapseLoginPanel();
+    });
+  ")),
 
   shiny::titlePanel("Input Daten Kinoklub"),
   div(
@@ -1086,6 +1100,9 @@ server <- function(input, output, session) {
         
         # After successful connection
         c_connected_to_db(TRUE)
+        
+        # Collapse the login panel
+        session$sendCustomMessage(type = "collapseLoginPanel", message = list())
         
         # Initial data load
         load_initial_data()
