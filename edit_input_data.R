@@ -972,6 +972,17 @@ server <- function(input, output, session) {
     req(input$page_length)
     as.integer(input$page_length)|>
       page_length_var()
+    
+    # select row and page if possible
+    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
+      dataTableProxy('table')|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+    } else if (!is.na(last_selected_page())){
+      dataTableProxy('table')|>
+        selectPage(last_selected_page())
+    }
+    
   })
   
   ## Select a row and find page and update   ####
@@ -1123,7 +1134,6 @@ server <- function(input, output, session) {
       
       data_selection_(input$data_selection)
       if(input$data_selection == "Dropdowns"){
-        current_data(l_data()[["Kinoklubmitglieder"]])
         lastEdited_data_set_name("Kinoklubmitglieder")
         
         # Kinoklubmitgliederfarben
@@ -1141,9 +1151,6 @@ server <- function(input, output, session) {
         c_colors <- c("#FFFFFFFF", c_colors)
         
       }else{
-        current_data(l_data()[["Programm"]]|>
-                       arrange(desc(`Event ID`))
-                       )
         lastEdited_data_set_name("Programm")
       }
       # get all data as defined in the template l_data
