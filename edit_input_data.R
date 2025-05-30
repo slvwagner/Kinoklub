@@ -157,7 +157,7 @@ ui <- fluidPage(
     }
   ")),
   
-  # Initialize drag and drop functionality
+  # Initialize drag and collapse functionality
   tags$script(HTML("
     $(function() {
       // Wait for Shiny to be ready
@@ -1269,7 +1269,7 @@ server <- function(input, output, session) {
       shiny::radioButtons("Verteiler", "Verteiler", 
                           choices = Email_col_names
       ),
-      title = "Email-Verteiler wählen",
+      title = "E-Mail Verteiler wählen",
       footer = tagList(
         actionButton("get_email_verteiler","Email im Verteiler kopieren")
       )
@@ -1278,7 +1278,7 @@ server <- function(input, output, session) {
   
   ### Select email Verteiler and copy emails to clipboard ####
   observeEvent(input$get_email_verteiler,{
-    print("Email-Verteiler")
+    print("E-Mail Verteiler")
     generated_code <- paste0("l_data()[[\"Kinoklubmitglieder\"]]|>
         filter(\`",input$Verteiler,"\` == \"ja\")|>
         distinct(`E-Mail`)|>
@@ -1288,10 +1288,13 @@ server <- function(input, output, session) {
       paste0(collapse = ";")
     C_verteiler|>
       writeClipboard()
+    
+    C_verteiler <- paste0(str_split(C_verteiler, ";")|>unlist(), collapse = ";\n")
+    
     showModal(modalDialog(
-      modalButton("ok"),
       title = "Email-Verteiler wurde in die Zwischenablage kopiert",
-      footer = NULL,
+      shiny::renderText(C_verteiler),
+      footer = modalButton("ok"),
       easyClose = TRUE,
     ))
   })
