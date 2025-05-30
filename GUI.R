@@ -2406,19 +2406,12 @@ server <- function(input, output, session) {
   
   ## Reder: Datatable Flim #####
   output$dateTable <-  DT::renderDT({
-    df_temp <- DB_get_table("Programm", con)|>
-      convert_to_template_types(l_template$Programm)|>
-      distinct(`Event ID`, .keep_all = T)|>
-      filter(between(Datum, START_date_choose(), End_date_choose()), `Verleiher Angefragt?` == "Bestätigt") |>
+    df_temp <- data_env$df_Abrechnung|>
+      filter(between(Datum, START_date_choose(), End_date_choose()),
+             ) |>
       arrange(desc(Datum), desc(Zeit)) |>
       mutate(Datum = format(Datum, "%d.%m.%Y"),
              Zeit = format(Zeit, "%H%M")) 
-    
-    Verleiher <- DB_get_table("Verleiher", con)|>
-      convert_to_template_types(l_template$Verleiher )|>
-      select(Verleihername, `Kinoförderer gratis?`)
-    
-    df_temp <- left_join(df_temp, Verleiher, by = c(Verleiher = "Verleihername"))
     
     df_temp <- df_temp|>
       select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
