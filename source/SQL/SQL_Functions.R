@@ -29,6 +29,10 @@ DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL) {
 
 # Update all tables in DB with ID as Primary Key
 DB_update_all <- function(l_data, con) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
   if (!is.list(l_data) || is.null(names(l_data))) {
     stop("l_data must be a named list where names correspond to table names.")
   }
@@ -40,6 +44,9 @@ DB_update_all <- function(l_data, con) {
 
 # get all data defined by a template ####
 DB_get_Data <- function(l_template, con, download = TRUE) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   if(download){
     temp <- names(l_template)|>
       lapply(function(x){
@@ -58,6 +65,9 @@ DB_get_Data <- function(l_template, con, download = TRUE) {
 
 # get data from given table ####
 DB_get_table <- function(table_name, con, download = TRUE){
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   if(download){
     tbl(con, table_name)|>
       collect()
@@ -68,6 +78,10 @@ DB_get_table <- function(table_name, con, download = TRUE){
 
 # Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) ####
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
   library(DBI)
   library(hms)
   
@@ -301,11 +315,18 @@ DB_add_row <- function(con, table_name, new_row) {
 
 # Helper function to get column types from table ####
 DB_describe_table <- function(con, table_name){
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
 }
 
 # number of rows for a database table ####
 DB_nrow <- function(con, my_table){
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
   data <- dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ","`",my_table,"`"))
   return(data$n)
 }
@@ -649,6 +670,10 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
 
 # Function to create a table for storing files if it doesn't exist ####
 DB_create_files_table <- function(con, table_name) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  
   if (!dbExistsTable(con, table_name)) {
     create_query <- paste0(
       "CREATE TABLE `", table_name, "` (
@@ -671,6 +696,9 @@ DB_create_files_table <- function(con, table_name) {
 
 # Function to upload a text file to the database with overwrite option ####
 DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FALSE) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   # Validate inputs
   if (!file.exists(file_path)) {
     stop("File does not exist: ", file_path)
@@ -749,6 +777,9 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
 
 # Function to retrieve all files from the database ####
 DB_get_file <- function(con, filename, table_name ) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   # Query the database for the file
   query <- paste0(
     "SELECT * FROM `", table_name, "` ",
@@ -767,6 +798,9 @@ DB_get_file <- function(con, filename, table_name ) {
 
 # Function to download a file from the database to disk ####
 DB_download_file <- function(con, filename, output_path, table_name ) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   file_data <- DB_get_file(con, filename, table_name)
   
   # find end of line "\n"
@@ -786,6 +820,9 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 
 # Check if a table exists on a database ####
 DB_table_exists <- function(con, table_name, schema = NULL) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   if (is.null(schema)) {
     tables <- DBI::dbListTables(con)
     tolower(table_name) %in% tolower(tables)
@@ -804,6 +841,9 @@ DB_table_exists <- function(con, table_name, schema = NULL) {
 
 # Get the maximum primary key value from a table ####
 DB_get_max_pk <- function(con, table_name, primary_key_col = NULL) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
   # Validate inputs
   if (!DBI::dbIsValid(con)) {
     stop("Invalid database connection.")
