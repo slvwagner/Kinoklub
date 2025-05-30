@@ -119,6 +119,9 @@ if(file_convert$messages != "") {
   warning(file_convert$messages)
   }
 
+# read template
+l_template <- readRDS("source/SQL/template.RDS")
+
 # check Kiosk conversion ####
 file_convert <- Run_capture_error_warnings(convert_data_kiosk_txt,c_Kiosk, con)
 if(file_convert$messages != "") {
