@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 35
+ii <- 78
 ```
 
 
@@ -271,9 +271,10 @@ df_temp1|>
 ```
 
 ```{r}
-df_temp|>
-  select(`Gewinn aus Fimvorführung [CHF]`)|>
-  # rename(`Ticket Gewinn / Verlust [CHF]` = `Gewinn aus Fimvorführung [CHF]`)|>
+ticket <- df_temp|>
+  select(`Gewinn aus Fimvorführung [CHF]`)
+
+ticket|>
   knitr::kable(digits = 2)
 ```
 
@@ -388,10 +389,8 @@ Eventausgaben <- l_abrechnung[[as.character(ii)]]$Ausgaben
 
 
 if(nrow(Eventausgaben) == 0) {
-  if(abs(Event$`Summe [CHF]`) <= 0){
   writeLines("Achtung es gibt keine Eventausgaben obwohl Spezialverkaufsartikel verkauft wurden.
-             \nBitte die Einkäufe unter Eventausgaben im File .../Kinoklub/input/Einnahmen und Ausgaben.xlsx nachtragen")
-  }
+             \nBitte die Einkäufe unter Eventausgaben in den Ausgaben nachtragen")
 }
 
 ```
@@ -470,10 +469,10 @@ s_Kiosk|>
 
 ```{r}
 df_temp <- tibble(
-  Bezeichnung = c("Flimvorführung", "Eventeinnahmen", "Kiosk"),
-  `Betrag [CHF]` = c(Filmvorführungen,
-                     Eventeinnahmen,
-                     s_Kiosk
+  Bezeichnung = c("Ticket", "Eventeinnahmen", "Kiosk"),
+  `Betrag [CHF]` = c(ticket|>pull(),
+                     Eventeinnahmen|>pull(),
+                     s_Kiosk|>pull()
   )
 )
 

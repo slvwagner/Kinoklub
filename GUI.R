@@ -206,19 +206,12 @@ server <- function(input, output, session) {
     )
   }
   
-  ### Index pro Suisa-Nummer und Datum erstellen ####
-  Abrechnung_mapping <- function(data_env, start, end, ...) {
+  ### Abrechnungen mapping erstellen ####
+  Abrechnung_mapping <- function(data_env) {
     # Soll die Verleiherabrechnung erzeugt werden?
-    df_mapping <- data_env$df_Abrechnung |>
+    df_mapping <- data_env$Abrechnung |>
       select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
-      mutate(user_Datum = format(Datum, "%d.%m.%Y"))|>
-      filter(between(Datum, as.Date(start), as.Date(end)))
-    
-    if(!is.null(...)){
-      df_mapping <- df_mapping|>
-        filter(`Event ID` %in% ...)
-    }
-    
+      mutate(user_Datum = format(Datum, "%d.%m.%Y"))
     
     if(nrow(df_mapping) > 0){
       df_mapping <- df_mapping|>
@@ -1164,112 +1157,105 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
     c_time <- Sys.time()
-    if(is.null(input$dateTable_rows_selected)){
-      # User interaction
-      showModal(
-        modalDialog(
-          title = "Bitte eine Zeile in der Tabelle markieren",
-          easyClose = TRUE,
-          footer = modalButton("Abbrechen")
-        )
-      )
-      req(input$dateTable_rows_selected) # exit early from the function
-    }else{
-      df_mapping <- current_data()[input$dateTable_rows_selected,]
-      df_mapping
-    }
     
-    df_temp <- data_env$l_abrechnung[[as.character(df_mapping$`Event ID`)]]
-
-    if(!is.null(df_temp)){
-      shiny::withProgress(message = "Script running... ", value = 0, {
-        shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
-        ausgabe_text("")
-        start_datum <- input$dateRange |> min()
-        end_datum <- input$dateRange |> max()
-        
-        # Überprüfen, ob beide Daten gültig sind
-        if (start_datum <= end_datum) {
-          # Aktion ausführen
-          ausgabe_text(
-            paste0(
-              "Die Filmabrechnungen für den Zeitraum \n",
-              format(start_datum, "%d.%m.%Y"),
-              " bis ",
-              format(end_datum, "%d.%m.%Y"),
-              " wurden erstellt",
-              paste0("\n", getwd(), "/output")
-            )
+    shiny::withProgress(message = "Script running... ", value = 0, {
+      shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
+    
+      if(is.null(input$dateTable_rows_selected)){
+        # User interaction
+        showModal(
+          modalDialog(
+            title = "Bitte eine Zeile in der Tabelle markieren",
+            easyClose = TRUE,
+            footer = modalButton("Abbrechen")
           )
+        )
+        req(input$dateTable_rows_selected) # exit early from the function
+      }else{
+        df_mapping <- current_data()[input$dateTable_rows_selected,]
+      }
+      
+      df_temp <- data_env$l_abrechnung[[as.character(df_mapping$`Event ID`)]]
+  
+      if(!is.null(df_temp)){
+        if(FALSE){
           
-          # Filmabrechnungen erstellen mit dateRange user input
-          tryCatch({
-            if(r_is.defined(df_mapping)){
-              df_mapping__ <- 
-                Abrechnung_mapping(
-                  data_env,
-                  start_datum, end_datum,
-                  df_mapping$`Event ID`
-                )
-            } else {
-              df_mapping__ <- 
-                Abrechnung_mapping(
-                  data_env,
-                  start_datum, end_datum
-                )
-            }
-            
-            shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
-            AbrechnungErstellen(
-              df_mapping__,
-              data_env$df_Abrechnung
-            )
-            # webserver
+        } else {
+          ausgabe_text("")
+          req(input$dateRange)
+          start_datum <- input$dateRange |> min()
+          end_datum <- input$dateRange |> max()
+          
+          # Überprüfen, ob beide Daten gültig sind
+          if (start_datum <= end_datum) {
+            # Filmabrechnungen erstellen
             tryCatch({
-              webserver()
+              df_mapping__ <- 
+                Abrechnung_mapping(
+                  df_temp
+                )
+
+              shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
+              AbrechnungErstellen(
+                df_mapping__,
+                df_temp
+              )
+              
+              ausgabe_text(
+                paste0(
+                  "\nDie Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
+                  "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+                  " wurden erstellt."
+                )
+              )
+              
+              # webserver
+              tryCatch({
+                webserver()
+              }, error = function(e) {
+                ausgabe_text(
+                  paste0(
+                    ausgabe_text(),
+                    "\nWebserver erstellen, Fehler:\n",
+                    e$message
+                  )
+                )
+              })
             }, error = function(e) {
               ausgabe_text(
                 paste0(
-                  ausgabe_text(),
-                  "\nWebserver erstellen, Fehler:\n",
+                  "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
                   e$message
                 )
               )
             })
-          }, error = function(e) {
-            ausgabe_text(
-              paste0(
-                "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
-                e$message
-              )
-            )
-          })
-
-
-        } else {
-          ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-        }
-        file_exists(file.exists("output/webserver/index.html"))
+            
+          } else {
+            ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+          }
+          file_exists(file.exists("output/webserver/index.html"))
+          
+          # calculate execution time
+          c_time <- c(c_time,end = Sys.time())|>
+            diff()
+          paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+            ausgabe_text()
+        } 
+        
+  
+      }else{
+        paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
+               "Bitte Dateien einlesen und nochmals versuchen.")|>
+          ausgabe_text()
         
         # calculate execution time
         c_time <- c(c_time,end = Sys.time())|>
           diff()
         paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
           ausgabe_text()
-        
-        shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
-      })
-    }else{
-      paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
-             "Bitte Dateien einlesen und nochmals versuchen.")|>
-        ausgabe_text()
-      
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-        ausgabe_text()
-    }
+      }
+      shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
+    })
   })
   
   ## Button: Verleiherabrechnung(en) erstellen #####
