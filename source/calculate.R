@@ -6,9 +6,6 @@ library(tidyverse)
 
 writeLines("Daten werden einlesen und berechnet...")
 
-# clean
-# rm(list = ls())
-
 # load user settings
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")

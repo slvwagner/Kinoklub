@@ -1065,7 +1065,6 @@ server <- function(input, output, session) {
         ausgabe_text(capture.output({
           withCallingHandlers(
             {
-              data_env$c_Abrechnungsjahr <- Abrechungsjahr()
               source("source/calculate.R", local = data_env)
               shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
             },
@@ -1131,25 +1130,24 @@ server <- function(input, output, session) {
         ausgabe_text(capture.output({
           withCallingHandlers(
             {
-              data_env$c_Abrechnungsjahr <- Abrechungsjahr()
               source("source/calculate.R", local = data_env)
-              shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 3"))
+              shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
             },
             warning = function(w) {
               # Capture warnings and store them in calculate_warnings
-              calculate_warnings(paste0("Warning: ", w$message))
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
               invokeRestart("muffleWarning")  # Suppress the warning from being printed
             }
           )
         }, type = "message"))
       }, error = function(e) {
         ausgabe_text(
-            paste0(
-              error_calculate,
-              e$message,
-              collapse = ""
-            )
+          paste0(
+            error_calculate,
+            e$message,
+            collapse = ""
           )
+        )
       })
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
