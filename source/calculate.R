@@ -646,7 +646,7 @@ df_mapping <- df_Abrechnung|>
   mutate(`Link to Event ID` = as.character(`Link to Event ID`)|>as.integer())
 df_mapping
 
-## find all connected Filmvorführungen from Programm and remove all already connected ####
+# ## find all connected Filmvorführungen from Programm and remove all already connected ####
 l_abrechnung <- inspect_link_ids(df_mapping)
 l_abrechnung
 ii <- 1
@@ -662,7 +662,7 @@ while (TRUE) {
 l_abrechnung
 
 # Gemeinsame Abrechnung erstellen####
-ID <- 1
+ID <- "35"
 cnt <- 1
 for (ID in names(l_abrechnung)) {
   ### Event ID`s ####
@@ -689,10 +689,18 @@ for (ID in names(l_abrechnung)) {
   
   ## s_Eintritte ####
   s_Eintritte <- Eintritte|>
+    reframe(Besucherzahl = sum(Anzahl),
+            `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+            )
+  s_Eintritte
+  
+  s_Eintritte <- Eintritte|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     group_by(`Event ID`, Verteilschlüssel)|>
-    reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
-    mutate(`Umsatz [CHF]` = `Umsatz [CHF]` * Verteilschlüssel)
+    reframe(Besucherzahl = sum(Anzahl),
+            `Besucherzahl nach Umsatz [CHF] verteilt` = s_Eintritte$Besucherzahl * Verteilschlüssel[1],
+            `Umsatz [CHF]` = sum(`Umsatz [CHF]`)
+            )
   s_Eintritte
   
   # keine Verleiherrechnung vorhanden für gemeinsame Abrechnung
@@ -714,13 +722,9 @@ for (ID in names(l_abrechnung)) {
            "\nBitte in den Ausgaben Kategorie `Verleiher` korrigieren.\n"))
   }
   
-  
-  
   ## Eventeinnahmen ####
   temp_Einnahmen <- Einnahmen|>
-    filter(`Event ID` %in% IDs, 
-           Kategorie == "Event"
-           )|>
+    filter(`Event ID` %in% IDs, Kategorie == "Event")|>
     mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     mutate(`Betrag [CHF]` = `Betrag [CHF]` * Verteilschlüssel)
@@ -728,20 +732,28 @@ for (ID in names(l_abrechnung)) {
   
   ## Eventausgaben ####
   temp_Ausgaben <- Ausgaben|>
-    filter(`Event ID` %in% IDs)|>
+    filter(`Event ID` %in% IDs, Kategorie == "Event")|>
     mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     mutate(`Betrag [CHF]` = `Betrag [CHF]` * Verteilschlüssel)
   temp_Ausgaben
   
+  ## Manko/ Überschuss ####
+  manko <- df_Kiosk|>
+    filter(`Event ID` %in% IDs)|>
+    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
+    group_by(`Event ID`)|>
+    reframe(`Überschuss / Manko [CHF]` = `Überschuss / Manko [CHF]`[1])
+  
+  
   ## Kiosk ####
   Kiosk <- df_Kiosk|>
     filter(`Event ID` %in% IDs)|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    group_by(`Verkaufsartikel`)|>
-    reframe(Anzahl = Anzahl * Verteilschlüssel,
-            `Umsatz [CHF]` = `Umsatz [CHF]` * Verteilschlüssel,
-            `Gewinn [CHF]` = `Gewinn [CHF]` *  Verteilschlüssel
+    group_by(`Event ID`, `Artikelname-Kassensystem`, Verkaufsartikel)|>
+    reframe(Anzahl = sum(Anzahl),
+            `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+            `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
             )
   Kiosk
   
@@ -762,8 +774,8 @@ for (ID in names(l_abrechnung)) {
   df_temp
   
   Gewinn <- Kiosk|>
-    reframe(`Gewinn [CHF]` = sum(`Gewinn [CHF]`)
-    )|>
+    reframe(`Gewinn [CHF]` = sum(`Gewinn [CHF]`) - sum(temp_Ausgaben$`Betrag [CHF]`)
+            )|>
     pull()
   Gewinn
   
@@ -778,22 +790,18 @@ for (ID in names(l_abrechnung)) {
            `Gewinn [CHF] pro Gast` = Gewinn / Anzahl)
   s_Kiosk
   
-  ## Abrechnung ####
+  ## Abrechnung (Vertzeilen nach Verteilschlüssel) ####
   Abrechnung <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Link to Event ID`, 
-           -Verleiher, -Procinema, -Trailer, 
-           -`Abzug [%]`, -`Minimal Abzug [CHF]`, -`Abzug fix [CHF]`,
-           -`Besucherzahlen an Verleiher gesendet`, -`Rechnung bezahlt und abgelegt`,
+    select(-`Besucherzahlen an Verleiher gesendet`, -`Rechnung bezahlt und abgelegt`,
            - Abrechnungsjahr
-           )
-  
-  Abrechnung <- Abrechnung|>
+           )|>
     mutate(`Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]` ,na.rm = TRUE))
+  Abrechnung
   
   Abrechnung <- Abrechnung|>
-    reframe(`Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`) * Verteilschlüssel,
+    mutate(`Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`) * Verteilschlüssel,
             `Umsatz [CHF]` = sum(`Umsatz [CHF]`) * Verteilschlüssel,
             `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) * Verteilschlüssel,
             `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) * Verteilschlüssel,
@@ -806,29 +814,9 @@ for (ID in names(l_abrechnung)) {
             `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`) * Verteilschlüssel,
             `Gewinn aus Fimvorführung [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`) * Verteilschlüssel
             )
-  
-  Abrechnung <- bind_cols(
-    df_Abrechnung|>
-      filter(`Event ID` %in% IDs)|>
-      select(1:13, `Kinoförderer gratis?`,`SUISA-Vorabzug [%]`),
-    Abrechnung
-  )
   Abrechnung
-  
-  ## Summary Eintritte  ####
-  Eintritte <- Eintritte|>
-    group_by(Platzkategorie)|>
-    reframe(Anzahl = sum(Anzahl),
-            `Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
-    left_join(Eintritte|>
-                distinct(Platzkategorie, .keep_all = TRUE)|>
-                select(-Anzahl, - `Umsatz [CHF]`),
-              by = join_by(Platzkategorie)
-    )|>
-    select("Platzkategorie", "Anzahl", "Verkaufspreis", "Umsatz [CHF]")|>
-    rename(`Verkaufspreis [CHF]` = Verkaufspreis)
-  
-  ## return ####
+
+  ## Return values ####
   l_abrechnung[[cnt]] <- 
     list(
       Abrechnung = Abrechnung, 
@@ -838,6 +826,7 @@ for (ID in names(l_abrechnung)) {
       s_Eintritte = s_Eintritte,
       Kiosk = Kiosk,
       s_Kiosk = s_Kiosk,
+      manko = manko,
       `Summary Kiosk` = s_Eintritte,
       Verteilschlüssel = Verteilschlüssel
     )
@@ -850,20 +839,14 @@ remove(Eintritte,
        temp_Ausgaben,
        temp_Einnahmen,
        s_Eintritte,
-       s_Kiosk
+       s_Kiosk,
+       cnt, ID, p, Umsatz, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt, Gewinn,
+       df_Abrechnung
        )
 l_abrechnung
 l_abrechnung[["35"]]
 
-
 # Daten für Berichet #### 
-## Abrechnung ####
-df_Abrechnung <- l_abrechnung|>
-  lapply(function(x){
-    x$Abrechnung
-  })|>
-  bind_rows()
-
 ## Besucherzahlen  ####
 df_Besucherzahlen <- df_Eintritt|>
   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
