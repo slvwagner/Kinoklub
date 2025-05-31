@@ -1086,9 +1086,6 @@ server <- function(input, output, session) {
         )
       })
       
-     
-      
-      
       df_temp <- DB_get_table("Programm", DB_con())|>
         filter(year(Datum) == input$c_Abrechnungsjahr)
       if(nrow(df_temp) == 0){
@@ -1102,7 +1099,6 @@ server <- function(input, output, session) {
         START_date_choose()
         End_date_choose()
       }
-      
       
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time

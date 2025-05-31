@@ -28,7 +28,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # c_Abrechnungsjahr <- 2024L
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####
@@ -113,17 +113,6 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
   pull()
 c_Kiosk
 
-# # check Eintritt conversion ####
-# file_convert <- Run_capture_error_warnings(convert_data_Film_txt,c_eintritt, con)
-# if(file_convert$messages != "") {
-#   warning(file_convert$messages)
-#   }
-# 
-# # check Kiosk conversion ####
-# file_convert <- Run_capture_error_warnings(convert_data_kiosk_txt,c_Kiosk, con)
-# if(file_convert$messages != "") {
-#   warning(file_convert$messages)
-# }
 
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
@@ -324,13 +313,20 @@ if(nrow(df_temp)>0){
 
 # Error handling ####
 ## Wie muss mit dem Verleiher abgerechnet werden? (Sind die Kinoförderer gratis?) ####
+c_EventIDs_Eintritte <- df_Eintritt|>
+  distinct(`Event ID`,.keep_all = TRUE)|>
+  select(`Event ID`)|>
+  pull()
+
 df_Abrechnung <- Programm|>
+  filter(`Event ID` %in% c_EventIDs_Eintritte)|>
   left_join(Verleiher|>
               select(-ID, -Kontakt,-Besucherzahlen , -Adresse, -PLZ, -Ort),
             by = c(Verleiher = "Verleihername")
   )|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
-df_Abrechnung
+df_Abrechnung|>
+  tail()
 
 ## Verleiherrechnung ####
 df_Abrechnung <-
@@ -429,18 +425,18 @@ if(nrow(df_temp) > 0) {
   )
 }
 
-# ## error handling Verleiherrechnung nicht vorhanden ####
-# df_temp <- df_Abrechnung|>
-#   filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
-# df_temp
-# 
-# if(nrow(df_temp) > 0) {
-#   # Error handling: Keine Verleiherrechnung vorhanden
-#   warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
-#                  "\nmit der Suisanummer ", df_temp$Suisanummer,
-#                  " gibt es keine Verleiherrechnung.",
-#                  "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
-# }
+## error handling Verleiherrechnung nicht vorhanden ####
+df_temp <- df_Abrechnung|>
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))
+df_temp
+
+if(nrow(df_temp) > 0) {
+  # Error handling: Keine Verleiherrechnung vorhanden
+  warning(paste0("\nAchtung für den Film ID ",df_temp$`Event ID`," / ", df_temp$Filmtitel," am ", format(df_temp$Datum, "%d.%m.%Y"),
+                 "\nmit der Suisanummer ", df_temp$Suisanummer,
+                 " gibt es keine Verleiherrechnung.",
+                 "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
+}
 
 # check Programm ####
 df_Film <- Programm|>
