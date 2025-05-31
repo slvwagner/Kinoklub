@@ -37,7 +37,6 @@ source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
 # connect to data base ####
-
 ## Data base credentials from system variables ####
 DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
@@ -975,6 +974,11 @@ server <- function(input, output, session) {
   }
   
   ## Shiny reactive variables ####
+  
+  ### DB connection ####
+  DB_con <- shiny::reactiveVal(con)
+  
+  ### temp ####
   df_temp_1 <- shiny::reactiveVal(NULL)
   df_temp_2 <- shiny::reactiveVal(NULL)
   
@@ -1045,6 +1049,14 @@ server <- function(input, output, session) {
   ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
+    
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     
     # update Abrechnungsjahr 
     Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
@@ -1117,6 +1129,14 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$calculate, {
     # Execution time 
     c_time <- Sys.time()
+    
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
       ausgabe_text("Dateien wurden eingelesen.\n")
@@ -1699,6 +1719,14 @@ server <- function(input, output, session) {
     
   ## Upload handler #####
   file_data <- shiny::reactive({
+    
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     shiny::req(input$file)
     file_path <- input$file$datapath
     file_name <- input$file$name                  # Get file name
