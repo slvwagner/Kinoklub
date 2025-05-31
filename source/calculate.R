@@ -28,7 +28,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # c_Abrechnungsjahr <- 2024L
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2025L
+  c_Abrechnungsjahr <- 2024L
 }
 
 # load data from Database ####
@@ -671,11 +671,6 @@ for (ID in names(l_abrechnung)) {
   #   print("here")
   # }
   
-  ### Gemeinsame Abrechnung ####
-  Gemeinsame_Abrechnung <- df_Abrechnung|>
-    filter(`Event ID` %in% IDs)
-  Gemeinsame_Abrechnung
-  
   ### Eintritte ####
   Eintritte <- df_Eintritt|> 
     select(- `SUISA-Vorabzug [%]`)|>
@@ -816,7 +811,7 @@ for (ID in names(l_abrechnung)) {
 }
 remove(Eintritte, 
        df_mapping, df_temp,
-       Gemeinsame_Abrechnung,
+       
        Verteilschlüssel,
        Abrechnung,
        temp_Ausgaben,
@@ -824,7 +819,7 @@ remove(Eintritte,
        s_Eintritte
        )
 l_abrechnung
-l_abrechnung[["1"]]
+l_abrechnung[["35"]]
 
 #  Gemeinsame Abrechnung erstellen ####
 
