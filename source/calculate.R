@@ -241,7 +241,7 @@ df_spez_preis_na
 if(nrow(df_spez_preis_na) > 0){
   warning(paste0("\nFür `Event ID`", df_spez_preis$`Event ID`, " ", 
           df_spez_preis$Filmtitel, " ist der Spezialpreiskiosk Artikel `", 
-          df_spez_preis$`Artikelname-Kassensystem`,"` noch nicht  noch nicht definiet worden."))
+          df_spez_preis$`Artikelname-Kassensystem`,"` nicht  noch nicht definiet worden."))
 }
 
 
