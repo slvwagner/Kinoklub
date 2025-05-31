@@ -1103,7 +1103,7 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
              "Berechnung für das Jahr ", Abrechungsjahr()," durchgeführt\n",
              calculate_warnings())|>
         ausgabe_text()
@@ -1175,12 +1175,13 @@ server <- function(input, output, session) {
       )
       req(input$dateTable_rows_selected) # exit early from the function
     }else{
-      input$dateTable_cells_selected
       df_mapping <- current_data()[input$dateTable_rows_selected,]
       df_mapping
     }
     
-    if(!is.null(data_env$df_Abrechnung)){
+    df_temp <- data_env$l_abrechnung[[as.character(df_mapping$`Event ID`)]]
+
+    if(!is.null(df_temp)){
       shiny::withProgress(message = "Script running... ", value = 0, {
         shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
         ausgabe_text("")
@@ -2400,15 +2401,20 @@ server <- function(input, output, session) {
   
   ## Reder: Datatable Flim #####
   output$dateTable <-  DT::renderDT({
-    df_temp <- data_env$df_Abrechnung|>
-      filter(between(Datum, START_date_choose(), End_date_choose()),
-             ) |>
+    df_temp <- data_env$l_abrechnung|>
+      lapply(function(x){
+        x$Abrechnung
+      })|>
+      bind_rows()
+    
+    df_temp <- df_temp|>
+      filter(between(Datum, START_date_choose(), End_date_choose()))|>
       arrange(desc(Datum), desc(Zeit)) |>
       mutate(Datum = format(Datum, "%d.%m.%Y"),
              Zeit = format(Zeit, "%H%M")) 
     
     df_temp <- df_temp|>
-      select(`Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
+      select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
     
     current_data(df_temp)
     
