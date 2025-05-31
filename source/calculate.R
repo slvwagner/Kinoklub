@@ -125,7 +125,6 @@ c_Kiosk
 #   warning(file_convert$messages)
 # }
 
-
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
@@ -167,7 +166,7 @@ if(sum(c_test) != length(c_test)){
   c_Kiosk[c_index]
 } 
 
-# Programm check ####
+# check Programm ####
 df_temp <- Programm|>
   convert_to_template_types(l_template$Programm)
 df_temp
@@ -226,6 +225,7 @@ df_spez_preis <- df_Kiosk|>
   filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
   arrange(`Event ID`)
 df_spez_preis
+
 # join Filmtitel
 df_spez_preis <- df_spez_preis|>
   left_join(Programm|>
@@ -233,20 +233,28 @@ df_spez_preis <- df_spez_preis|>
             by = join_by(`Event ID`)
   )|>
   left_join( # look up Spezialpreise
-    df_Spezialpreisekiosk,
+    df_Spezialpreisekiosk|>
+      select(-ID),
     by = c("Event ID", `Verkaufsartikel` = "Spezialpreis")
   )
 df_spez_preis
 
-## Sind alle Spezialpreise pro `Event ID` definiert? ####
+# check Spezialpreise ####
 df_spez_preis_na <- df_spez_preis|>
   filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
   arrange(`Event ID`, `Artikelname-Kassensystem`)
 df_spez_preis_na
 
 df_spez_preis_na <- df_spez_preis_na|>
-  filter(is.na(Artikelname))
+  filter(is.na(Verkaufsartikel))
 df_spez_preis_na
+
+if(nrow(df_spez_preis_na) > 0){
+  warning(paste0("\nFür `Event ID`", df_spez_preis$`Event ID`, " ", 
+          df_spez_preis$Filmtitel, " ist der Spezialpreiskiosk Artikel `", 
+          df_spez_preis$`Artikelname-Kassensystem`,"` noch nicht  noch nicht definiet worden."))
+}
+
 
 # Abos und Kinogutscheine ####
 ## Kino-Abo ####
@@ -291,7 +299,7 @@ df_atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutsch
                                        trim_ws = TRUE)
 
 
-# Verleiherabgaben ####
+# check Verleiher in Programm ####
 df_temp <- Programm|>
   select(1:11,-`Link to Event ID`)|>
   left_join(Verleiher|>
@@ -434,7 +442,7 @@ if(nrow(df_temp) > 0) {
 #                  "\nBitte in den Ausgaben, Kategorie Verleiher korrigieren.\n"))
 # }
 
-# Programm check ####
+# check Programm ####
 df_Film <- Programm|>
   group_by(Suisanummer)|>
   reframe(n())|>
