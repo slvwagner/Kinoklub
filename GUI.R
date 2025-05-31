@@ -207,9 +207,9 @@ server <- function(input, output, session) {
   }
   
   ### Abrechnungen mapping erstellen ####
-  Abrechnung_mapping <- function(data_env) {
+  Abrechnung_mapping <- function(Abrechnung) {
     # Soll die Verleiherabrechnung erzeugt werden?
-    df_mapping <- data_env$Abrechnung |>
+    df_mapping <- Abrechnung |>
       select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
       mutate(user_Datum = format(Datum, "%d.%m.%Y"))
     
@@ -1175,85 +1175,117 @@ server <- function(input, output, session) {
         df_mapping <- current_data()[input$dateTable_rows_selected,]
       }
       
-      df_temp <- data_env$l_abrechnung[[as.character(df_mapping$`Event ID`)]]
-  
-      if(!is.null(df_temp)){
-        if(FALSE){
-          
-        } else {
-          ausgabe_text("")
-          req(input$dateRange)
-          start_datum <- input$dateRange |> min()
-          end_datum <- input$dateRange |> max()
-          
-          # Überprüfen, ob beide Daten gültig sind
-          if (start_datum <= end_datum) {
-            # Filmabrechnungen erstellen
-            tryCatch({
-              df_mapping__ <- 
-                Abrechnung_mapping(
-                  df_temp
-                )
-
-              shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
-              AbrechnungErstellen(
-                df_mapping__,
-                df_temp
-              )
-              
-              ausgabe_text(
-                paste0(
-                  "\nDie Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
-                  "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
-                  " wurden erstellt."
-                )
-              )
-              
-              # webserver
-              tryCatch({
-                webserver()
-              }, error = function(e) {
-                ausgabe_text(
-                  paste0(
-                    ausgabe_text(),
-                    "\nWebserver erstellen, Fehler:\n",
-                    e$message
-                  )
-                )
-              })
-            }, error = function(e) {
-              ausgabe_text(
-                paste0(
-                  "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
-                  e$message
-                )
-              )
-            })
-            
-          } else {
-            ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-          }
-          file_exists(file.exists("output/webserver/index.html"))
-          
-          # calculate execution time
-          c_time <- c(c_time,end = Sys.time())|>
-            diff()
-          paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-            ausgabe_text()
-        } 
-        
-  
-      }else{
-        paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
-               "Bitte Dateien einlesen und nochmals versuchen.")|>
+      l_temp <- df_mapping$`Event ID`|>
+        lapply( function(ii){
+          try({data_env$l_abrechnung[[as.character(ii)]]})
+        })
+      
+      df_temp <- l_temp|>
+        lapply(function(x){
+          x$Abrechnung
+        })|>
+        bind_rows()
+      df_temp
+      
+      # no report to create 
+      if(nrow(df_temp) == 0) {
+        # user information
+        paste0(
+          "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
+          "Wird dieser Film gemeinsam abgerechnet?, Zeigt eine `Link ID` auf diesen Film?\n",
+          "Bitte den Ausgansfilm wählen und dann die Filmabrechnung erstellen. "
+        )|>
           ausgabe_text()
-        
-        # calculate execution time
-        c_time <- c(c_time,end = Sys.time())|>
-          diff()
-        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-          ausgabe_text()
+        req(NULL)
       }
+      
+      # remove reports that have a `Event ID` link(s) 
+      if(is.na(df_temp$`Link to Event ID`)|>sum() < nrow(df_temp)){
+        ausgabe_text("")
+        ID_to_remove <- l_temp|>
+          lapply(function(x){
+            IDs <- x$IDs|>
+              arrange(IDs)
+            # only remove IDs if more than one can be found so a linked ID is found
+            if(nrow(IDs) > 1){
+              ID_to_remove <- x$Abrechnung|>
+                filter(is.na(`Link to Event ID`))|>
+                select(`Event ID`)|>
+                pull()
+              
+              # user information
+              paste0(ausgabe_text(),
+                     "Removed ID: ", ID_to_remove,
+                     "\n"
+              )|>
+                ausgabe_text()
+              
+              # return
+              return(ID_to_remove)
+              
+            } else {
+              return(NULL)
+            }
+          })|>
+          unlist()
+        
+        df_temp <- df_temp|>
+          filter(`Event ID` != ID_to_remove)
+        
+        if(nrow(df_temp) == 0) {
+          # user information
+          paste0(ausgabe_text(),
+                 "Es wird nur der haupt bericht erstellt", ID_to_remove,
+                 "\n"
+          )|>
+            ausgabe_text()
+          req(NULL) # early stop
+        }
+        
+      } else {
+        ausgabe_text("")
+      }
+      
+      # Filmabrechnungen erstellen
+      tryCatch({
+        df_mapping__ <- 
+          Abrechnung_mapping(
+            df_temp
+          )
+
+        shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
+        AbrechnungErstellen(
+          df_mapping__,
+          df_temp
+        )
+        paste0(
+          ausgabe_text(),
+          "\nDie Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
+          "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+          " wurden erstellt."
+          )|>
+          ausgabe_text( )
+        
+        # webserver
+        tryCatch({
+          webserver()
+        }, error = function(e) {
+          paste0(
+            ausgabe_text(),
+            "\nWebserver erstellen, Fehler:\n",
+            e$message
+            )|>
+            ausgabe_text()
+        })
+      }, error = function(e) {
+        paste0(
+          ausgabe_text(),
+          "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+          e$message
+          )|>
+          ausgabe_text()
+      })
+
       shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
     })
   })

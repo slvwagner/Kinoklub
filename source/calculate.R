@@ -819,6 +819,7 @@ for (ID in names(l_abrechnung)) {
   ## Return values ####
   l_abrechnung[[cnt]] <- 
     list(
+      IDs = tibble(IDs = IDs),
       Abrechnung = Abrechnung, 
       Einahmen = temp_Einnahmen,
       Ausgaben = temp_Ausgaben,
