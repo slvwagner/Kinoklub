@@ -109,7 +109,11 @@ if(r_is.defined(df_keine_Rechnung)){
     if (nrow(df_temp) > 0) {
       writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
     } else{
-      df_temp <- df_Abrechnung |>
+      df_temp <- l_abrechnung|>   
+        lapply(function(x){     
+          x$Abrechnung   
+          })|>
+        bind_rows()|>
         filter(`Event ID` == ii)
       df_temp
       if (!is.na(df_temp$`Link to Event ID`)) {
