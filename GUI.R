@@ -349,8 +349,10 @@ server <- function(input, output, session) {
   StatistikErstellen <- function() {
     # Einlesen
     c_raw <- readLines("source/Statistik.Rmd")
-    # Inhaltsverzeichnis
-
+    
+    # change title 
+    c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik Kinoklub ",c_Abrechnungsjahr,"\"")
+    
     # neues file schreiben mit toc
     c_raw |>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>

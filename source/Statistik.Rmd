@@ -34,8 +34,11 @@ Bericht wurde am `r act_date` erstellt.
 
 
 ```{r}
-df_temp <- df_Abrechnung |>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
   arrange(desc(Datum)) |>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
@@ -191,7 +194,12 @@ Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_pe
 
 
 ```{r }
-df_temp <- df_Abrechnung|>
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn aus Fimvorführung [CHF]`))
 
@@ -200,8 +208,7 @@ s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 
 
 ```{r fig.width=10, message=FALSE, warning=FALSE}
-if(nrow(df_Abrechnung)){
-  df_temp|>
+df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
@@ -210,17 +217,7 @@ if(nrow(df_Abrechnung)){
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
-}else{
-  df_temp|>
-  ggplot(aes(Datum, cumsum))+
-  geom_col(fill ="darkorange2")+
-  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
-  scale_x_date(limits = c(start_of_year, end_of_year))+
-  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
-       y = "Kumulierter Gewinn/Verlust [CHF]")+
-  my_template
-}
+
 
 ```
 
@@ -231,14 +228,16 @@ if(nrow(df_Abrechnung)){
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
-df_temp <- df_Abrechnung|>
+df_temp <- df_temp|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit), ":",
-                         lubridate::minute(Zeit) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                         )
-         # `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
+                         lubridate::minute(Zeit)|>
+                         as.character() |> 
+                         formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                         ),
+         `Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`, 2)
   )|>
   select(Datum, Datum_display,Zeit, Suisanummer, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)
 
@@ -330,9 +329,22 @@ df_temp|>
 
 ### Prognose
 ```{r }
-df_temp <- df_Abrechnung|>
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
+```
+
+
+```{r }
+df_temp <- df_temp|>
   select(Datum, Zeit, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)|>
   arrange(Datum)
+
 df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Ticketgewinn [CHF]`))
@@ -562,15 +574,14 @@ df_temp|>
 ### Filmabgaben
 
 ```{r echo=FALSE}
-df_temp <- df_Abrechnung|>
-  select(Datum, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`Verleiherrechnungsbetrag [CHF]`, `MWST [CHF]`)|>
-  arrange(desc(Datum))
-```
-
-
-```{r echo=FALSE}
-df_temp <- df_Abrechnung|>
+df_temp <-  l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit),":", 
@@ -642,11 +653,12 @@ df_temp|>
 
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
-df_temp <- df_Abrechnung|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  arrange(desc(Datum))|> 
-  # rename(`Umsatz [CHF]` = `Kassiert [CHF]`,
-  #        `Kiosk Gewinn [CHF]` = `Gewinn [CHF]`)|>
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
 
@@ -740,8 +752,6 @@ df_temp|>
 ### Prognose
 ```{r }
 df_temp <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn [CHF]`))
 
 if((df_temp$`Gewinn [CHF]`|>mean(na.rm = TRUE)) > (df_temp$`Gewinn [CHF]`|>median(na.rm = TRUE))){
