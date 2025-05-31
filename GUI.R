@@ -1171,6 +1171,21 @@ server <- function(input, output, session) {
           )
         )
       })
+      
+      df_temp <- DB_get_table("Programm", DB_con())|>
+        filter(year(Datum) == input$c_Abrechnungsjahr)
+      if(nrow(df_temp) == 0){
+        warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
+        START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+        End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+      }else{
+        START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
+        End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
+        
+        START_date_choose()
+        End_date_choose()
+      }
+      
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2425,6 +2440,21 @@ server <- function(input, output, session) {
     test <- Run_capture_error_warnings(    
       DB_add_rows, df_temp_2(), last_uploaded_table_name(), con, batch_size = 1
       )
+    
+    df_temp <- DB_get_table("Programm", DB_con())|>
+      filter(year(Datum) == input$c_Abrechnungsjahr)
+    if(nrow(df_temp) == 0){
+      warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
+      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+    }else{
+      START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
+      End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
+      
+      START_date_choose()
+      End_date_choose()
+    }
+    
     # system reply message
     paste0("Es wurde folgendes der Tabelle ", last_uploaded_table_name(), " hinzugefügt:\n",
            paste0(names(df_temp_2()), " = ",df_temp_2(), collapse = "\n"),
