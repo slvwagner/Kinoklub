@@ -193,7 +193,7 @@ ui <- fluidPage(
     });
   ")),
 
-  shiny::titlePanel("Input Daten Kinoklub"),
+  shiny::titlePanel(paste0("Input Daten Kinoklub")),
   div(
     id = "login-panel",
     tags$div(id = "login-panel-header", 
@@ -1119,39 +1119,6 @@ server <- function(input, output, session) {
     
   })
   
-  ## Changing user filter ####
-  observeEvent(input$table_search_columns,{
-    req(input$table_search_columns)
-    writeLines("table_search_columns")
-    column_filters_temp <- input$table_search_columns|>
-      lapply(function(x){
-        if(nchar(x) > 0) {
-          list(search = x)
-        } 
-        else {
-          NULL
-        }
-      })
-    # only update if changed
-    test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
-    if(!test) {
-      last_user_filter(column_filters_temp)
-    }
-    
-    # find page 
-    find_page()
-    
-    # select row and page if possible
-    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())|>
-        selectRows(last_selected_row())
-    } else if (!is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())
-    }
-    
-  })
   
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
@@ -1191,7 +1158,7 @@ server <- function(input, output, session) {
   
   ## Data set type selection ####
   observeEvent(input$data_selection,{
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -1256,7 +1223,7 @@ server <- function(input, output, session) {
   
   ## Dataset Selection ####
   observeEvent(input$dataset, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -1586,7 +1553,7 @@ server <- function(input, output, session) {
   ## Edit row ####
   ### Edit row modal Dialog ####
   observeEvent(input$edit_row, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2027,7 +1994,7 @@ server <- function(input, output, session) {
   ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2129,7 +2096,7 @@ server <- function(input, output, session) {
   
   ### add row below selected row ####
   observeEvent(input$add_row_bottom, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2226,7 +2193,7 @@ server <- function(input, output, session) {
   
   ### Duplicate selected row ####
   observeEvent(input$duplicate_row, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2288,7 +2255,7 @@ server <- function(input, output, session) {
   
   ### Duplicate Film and archive (Filmtitel ändern) ####
   observeEvent(input$archive_row,{
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2367,7 +2334,7 @@ server <- function(input, output, session) {
   ### Delete selected row(s) ####
   #### Modal to delete row ####
   observeEvent(input$delete_row, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2788,7 +2755,7 @@ server <- function(input, output, session) {
   ### Takeover Filmvorschlag to Programm ####
   #### user modal ####
   observeEvent(input$add_to_programm,{
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2986,7 +2953,7 @@ server <- function(input, output, session) {
   
   #### search and take over ####  
   observeEvent(input$procinema, {
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -3079,7 +3046,7 @@ server <- function(input, output, session) {
   
   #### takeover Film to Filmvorschlag by suisanummer ####
   observeEvent(input$takeover_suisa,{
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
