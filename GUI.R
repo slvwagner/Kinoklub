@@ -1175,30 +1175,40 @@ server <- function(input, output, session) {
         df_mapping <- current_data()[input$dateTable_rows_selected,]
       }
       
+      # get data for reports
       l_temp <- df_mapping$`Event ID`|>
         lapply( function(ii){
           try({data_env$l_abrechnung[[as.character(ii)]]})
         })
       
+      # Check for data  
+      c_select <- l_temp|>
+        lapply(is.null)|>
+        unlist()
+      
+      # remove from list if NULL
+      l_temp <- l_temp[!c_select]
+      
+      # no data do not create reports
+      if(length(c_select) == 0) {
+        # user information
+        paste0(
+          "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
+          "Wird dieser Film gemeinsam abgerechnet?, Zeigt eine `Link ID` auf diesen Film?\n",
+          "Bitte den Filmtitel wählen der die erste `Link ID` enthält und dann die Filmabrechnung erstellen. "
+        )|>
+          ausgabe_text()
+        req(NULL)
+      } 
+      
+      # Data to render
       df_temp <- l_temp|>
         lapply(function(x){
           x$Abrechnung
         })|>
         bind_rows()
       df_temp
-      
-      # no report to create 
-      if(nrow(df_temp) == 0) {
-        # user information
-        paste0(
-          "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
-          "Wird dieser Film gemeinsam abgerechnet?, Zeigt eine `Link ID` auf diesen Film?\n",
-          "Bitte den Ausgansfilm wählen und dann die Filmabrechnung erstellen. "
-        )|>
-          ausgabe_text()
-        req(NULL)
-      }
-      
+    
       # remove reports that have a `Event ID` link(s) 
       if(is.na(df_temp$`Link to Event ID`)|>sum() < nrow(df_temp)){
         ausgabe_text("")
@@ -1230,7 +1240,7 @@ server <- function(input, output, session) {
           unlist()
         
         df_temp <- df_temp|>
-          filter(`Event ID` != ID_to_remove)
+          filter(!(`Event ID` %in% ID_to_remove))
         
         if(nrow(df_temp) == 0) {
           # user information
