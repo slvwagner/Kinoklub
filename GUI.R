@@ -982,8 +982,9 @@ server <- function(input, output, session) {
   ### DB connection ####
   DB_con <- shiny::reactiveVal(con)
   
-  ### temp ####
+  ### render modla 1 ####
   df_temp_1 <- shiny::reactiveVal(NULL)
+  ### render modla 2 ####
   df_temp_2 <- shiny::reactiveVal(NULL)
   
   ### last uploaded filename ####
