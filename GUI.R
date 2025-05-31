@@ -262,32 +262,37 @@ server <- function(input, output, session) {
 
     }
     
-    library(furrr)
-    # Determine the number of cores to use
-    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-    if(num_cores > 4) num_cores <- 5
-    if(nrow(df_mapping) < num_cores) {
-      num_cores <- nrow(df_mapping)
-    }
-    
-    # Render in parallel Abrechnung
-    plan(multisession, workers = num_cores)
-    
-    # Render files in parallel
-    future_walk(1:nrow(df_mapping), function(ii) {
-      message("Processing ", ii, " of ", nrow(df_mapping))
+    if(nrow(df_mapping) == 1){
       render_single_file(
-        df_mapping$fileName_RMD[ii],
-        df_mapping$fileName_html[ii],
+        df_mapping$fileName_RMD[1],
+        df_mapping$fileName_html[1],
         data_env
       )
-    }, .options = furrr_options(seed = NULL))
-    
-    # remove temp files RMD files
-    file.remove(df_mapping$fileName_RMD)
-    
-    
-    return(NULL)
+    } else {
+      library(furrr)
+      # Determine the number of cores to use
+      num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+      if(num_cores > 4) num_cores <- 5
+      if(nrow(df_mapping) < num_cores) {
+        num_cores <- nrow(df_mapping)
+      }
+      
+      # Render in parallel Abrechnung
+      plan(multisession, workers = num_cores)
+      
+      # Render files in parallel
+      future_walk(1:nrow(df_mapping), function(ii) {
+        message("Processing ", ii, " of ", nrow(df_mapping))
+        render_single_file(
+          df_mapping$fileName_RMD[ii],
+          df_mapping$fileName_html[ii],
+          data_env
+        )
+      }, .options = furrr_options(seed = NULL))
+      
+      # remove temp files RMD files
+      file.remove(df_mapping$fileName_RMD)
+    }
   }
   
   ### Erstellen der Verleiherabrechnung pro Filmvorführung ####
@@ -1190,7 +1195,7 @@ server <- function(input, output, session) {
       l_temp <- l_temp[!c_select]
       
       # no data do not create reports
-      if(length(c_select) == 0) {
+      if(length(l_temp) == 0) {
         # user information
         paste0(
           "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
