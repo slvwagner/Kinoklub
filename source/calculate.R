@@ -668,9 +668,9 @@ for (ID in names(l_abrechnung)) {
   ### Event ID`s ####
   IDs <- l_abrechnung[[ID]]
 
-  if(length(IDs) > 1){
-    print("here")
-  }
+  # if(length(IDs) > 1){
+  #   print("here")
+  # }
   
   ## Eintritte ####
   Eintritte <- df_Eintritt|> 
