@@ -23,7 +23,8 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-# c_Abrechnungsjahr <- 2024L
+# This is used to run the code on its own
+# However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
   c_Abrechnungsjahr <- 2025L
 }
