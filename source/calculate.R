@@ -232,8 +232,8 @@ df_spez_preis_na <- df_spez_preis|>
 df_spez_preis_na
 
 if(nrow(df_spez_preis_na) > 0){
-  warning(paste0("\nFür `Event ID`", df_spez_preis_na$`Event ID`, " ", 
-                 df_spez_preis_na$Filmtitel, " ist der Spezialpreiskiosk Artikel `", 
+  warning(paste0("\nFür `Event ID`= ", df_spez_preis_na$`Event ID`, 
+                 ", `", df_spez_preis_na$Filmtitel, "`, ist der Spezialpreis `", 
                  df_spez_preis_na$`Artikelname-Kassensystem`,"` nicht  noch nicht definiet worden."
                  )
           )
@@ -715,8 +715,13 @@ for (ID in names(l_abrechnung)) {
   )
   
   if(df_temp$`Verleiherrechnungsbetrag [CHF]` == 0){
-    warning(paste0("\nFür `Event ID` = ", df_temp$`Event ID`, ", ", df_temp$Filmtitel, ", gibt es keine Verleiherrechnung.",
-           "\nBitte in den Ausgaben Kategorie `Verleiher` korrigieren.\n"))
+    warning(
+      paste0("\n",
+        paste0(
+          "\nFür `Event ID` = ", df_temp$`Event ID`, ", ", df_temp$Filmtitel, ", gibt es keine Verleiherrechnung.",
+          "\nBitte in den Ausgaben Kategorie `Verleiher` korrigieren.\n")
+        )
+      )
   }
   
   ## Eventeinnahmen ####
