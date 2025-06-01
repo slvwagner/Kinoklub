@@ -80,7 +80,7 @@ ui <- fluidPage(
       border-radius: 5px;
       padding: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
+      z-index: 999;
       transition: height 0.2s ease;
       overflow: hidden; /* Hide content when collapsed */
     }
@@ -90,7 +90,7 @@ ui <- fluidPage(
     #floating-panel-header {
       cursor: move;
       background: #46267d;
-      padding: 8px;
+      padding: 10px;
       margin: -10px -10px 10px -10px;
       border-bottom: 1px solid #ddd;
       font-weight: bold;
