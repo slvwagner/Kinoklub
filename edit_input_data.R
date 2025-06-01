@@ -112,6 +112,26 @@ ui <- fluidPage(
     }
   "))
   ),
+  
+  tags$head(
+    tags$style(HTML("
+      #table_export {
+        background-color: #65945f;  /* Green */
+        color: white;               /* Text color */
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      #table_export:hover {
+        background-color: #45a049; /* Darker green on hover */
+      }
+    "))
+  ),
 
   tags$style(HTML("
     #login-panel {
@@ -1092,16 +1112,16 @@ server <- function(input, output, session) {
   
   ## Change in page length ####
   observeEvent(input$page_length, {
+    writeLines("page_length")
     req(input$page_length)
     
-    writeLines("page_length")
-    
-    # calculate page 
-    find_page()
-    
+    # Update page length
     as.integer(input$page_length)|>
       page_length_var()
     
+    # calculate page 
+    find_page()
+        
     # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
       dataTableProxy('table')|>
@@ -1214,11 +1234,7 @@ server <- function(input, output, session) {
         l_temp[[input$dataset]]|>
           filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
           current_data()
-      }else {
-        current_data(l_temp[[input$dataset]])
-      }
-      
-      if(input$dataset == "Filmvorschlag"){
+      } else if(input$dataset == "Filmvorschlag"){
         l_temp$Filmvorschlag|>
           arrange(desc(ID))|>
           current_data()
@@ -1230,21 +1246,26 @@ server <- function(input, output, session) {
         l_temp$Ausgaben|>
           arrange(desc(ID))|>
           current_data()
+      } else {
+        current_data(l_temp[[input$dataset]])
       }
       
-      # updata data
-      l_data(l_temp)
-      update_choices(l_data()) |> 
-        column_choices()
-      lastEdited_data_set_name(input$dataset)
+      shiny::isolate({
+        # updata data
+        l_data(l_temp)
+        update_choices(l_data()) |> 
+          column_choices()
+        lastEdited_data_set_name(input$dataset)
+        
+        # remove row and page selection 
+        last_selected_page(NA)
+        last_selected_row(NA)
+        # remove user filter 
+        last_user_filter(NULL)
+        # remove temp render
+        df_temp_to_render(NULL)
+      })
 
-      # remove row and page selection 
-      last_selected_page(NA)
-      last_selected_row(NA)
-      # remove user filter 
-      last_user_filter(NULL)
-      # remove temp render
-      df_temp_to_render(NULL)
       shiny::incProgress(1 / 2, detail = paste("Datensatz", 2, "of 2"))
     })
   })
@@ -1297,25 +1318,28 @@ server <- function(input, output, session) {
 
       shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 2, "of 3"))
       
-      # update choices
-      update_choices(l_data())|>
-        column_choices()
-      
-      # Input data set
-      l_data()[c_select_input_data]|>
-        l_data_input()
-      
-      # Drop down data set
-      l_data()[c_select_dropdown_data]|>
-        l_data_choices()
-      
-      # remove row and page selection 
-      last_selected_page(NA)
-      last_selected_row(NA)
-      # remove user filter 
-      last_user_filter(NULL)
-      # remove temp render
-      df_temp_to_render(NULL)
+      shiny::isolate({
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        
+        # Input data set
+        l_data()[c_select_input_data]|>
+          l_data_input()
+        
+        # Drop down data set
+        l_data()[c_select_dropdown_data]|>
+          l_data_choices()
+        
+        # remove row and page selection 
+        last_selected_page(NA)
+        last_selected_row(NA)
+        # remove user filter 
+        last_user_filter(NULL)
+        # remove temp render
+        df_temp_to_render(NULL)
+      })
+
       shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 3, "of 3"))
       
     })
