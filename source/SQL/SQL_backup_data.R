@@ -12,26 +12,22 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
-names(l_template$Programm)
 
-# Backup
-l_data <- DB_backup_DB(con)
-
-# l_template$Programm <- l_data$Programm|>
-#   mutate(Datum = as.Date(Datum),
-#          Zeit = parse_time(Zeit),
-#          Verleiher = factor(Verleiher),
-#          `Verleiher Angefragt?` = as.factor(`Verleiher Angefragt?`)
-#          )|>
-#   slice(1)
-
-l_data <- l_data|>
-  convert_DB_to_R(l_template)
-
+# # change template
+# l_template$df_Kiosk <- l_template$df_Kiosk|>
+#   rename(ID_Kioskartikel = `Kioskartikel ID`)
+# 
+# names(l_template$df_Kiosk)
+# 
+# 
 # saveRDS(l_template, "source/SQL/template.Rds")
+
 
 ################################
 # Convert to R data type
+
+# Backup
+l_data <- DB_backup_DB(con)
 l_data <- convert_DB_to_R(l_data, l_template)
 
 # Update Programm and Einsatzplan
