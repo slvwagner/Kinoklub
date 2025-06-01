@@ -872,11 +872,16 @@ server <- function(input, output, session) {
 
   ## Render data table ####
   output$table <- DT::renderDT({
+    writeLines("renderDT")
+
+    if(is.null(current_data())){
+      print("here")
+    }
     req(current_data())
-    
     
     # Create User-Readable "Datum" Columns 
     df_temp <- current_data()
+    stopifnot(is.data.frame(df_temp))
     
     # Step 1: Identify "datum" columns
     datum_cols <- names(df_temp)[stringr::str_detect(names(df_temp), regex("datum", ignore_case = TRUE))]
@@ -953,7 +958,6 @@ server <- function(input, output, session) {
     }
 
     # Update last rendered DT 
-    stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
 
     # links to render in html
@@ -962,33 +966,33 @@ server <- function(input, output, session) {
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
                )
-        
+
       if("Eintritte eingespielt" %in% names(df_temp)){
         df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
-          prettyNum(big.mark = "`") 
+          prettyNum(big.mark = "`")
       }
     } else if(lastEdited_data_set_name() %in% c("Verleiher")){
       # mailto render in html
-      df_temp$Kontakt <- 
+      df_temp$Kontakt <-
         ifelse(is.na(df_temp$`Kontakt`),
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Kontakt`, df_temp$`Kontakt`))
         )
 
-      df_temp$Besucherzahlen <- 
+      df_temp$Besucherzahlen <-
         ifelse(is.na(df_temp$`Besucherzahlen`),
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Besucherzahlen`, df_temp$`Besucherzahlen`))
         )
     } else if(lastEdited_data_set_name() %in% c("Kinoklubmitglieder")){
       # mailto render in html
-      df_temp$`E-Mail` <- 
+      df_temp$`E-Mail` <-
         ifelse(is.na(df_temp$`E-Mail`),
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
         )
     }
-    
+  
     # Render Table
     datatable(
       df_temp,
@@ -1068,11 +1072,13 @@ server <- function(input, output, session) {
         )
       )
     ) |> apply_conditional_formatting()
+
   }, server = FALSE)
   
   
   ## Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
+    writeLines("Signal: Datatable has been rendered")
     # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
       dataTableProxy('table')|>
@@ -1130,8 +1136,9 @@ server <- function(input, output, session) {
   
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
+    writeLines("Database connection")
     shiny::withProgress(message = "Database connection", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+      shiny::incProgress(1 / 2, detail = paste("Database connection", 1, "of 2"))
       req(input$DB_host)
       req(input$DB_name)
       req(input$DB_user)
@@ -1159,88 +1166,28 @@ server <- function(input, output, session) {
         showNotification(paste("load data from data base failed:", e$message), type = "error")
       })
       
-      shiny::incProgress(1 / 2, detail = paste("data selection", 2, "of 2"))
+      shiny::incProgress(1 / 2, detail = paste("Database connection", 2, "of 2"))
       
     })
   })
-  
-  ## Data set type selection ####
-  observeEvent(input$data_selection,{
-    if (!dbIsValid(DB_con())) {
-      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
-        DB_con()
-      showNotification(paste("Database connection recovered"), type = "message")
-    }
-    shiny::withProgress(message = "data selection", value = 0, {
-      shiny::incProgress(1 / 3, detail = paste("data selection", 1, "of 3"))
-      
-      data_selection_(input$data_selection)
-      if(input$data_selection == "Dropdowns"){
-        lastEdited_data_set_name("Kinoklubmitglieder")
-        
-        # Kinoklubmitgliederfarben
-        c_Kinoklubmitglied <- l_data()[["Kinoklubmitglieder"]] |>
-          mutate(Mitglied = paste(Vorname, Nachname)) |>
-          select(Mitglied) |>
-          pull()
-        
-        c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
-        c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
-        
-        c_colors <- viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
-          colorspace::lighten(amount = 0.2)
-        
-        c_colors <- c("#FFFFFFFF", c_colors)
-        
-      }else{
-        lastEdited_data_set_name("Programm")
-      }
-      # get all data as defined in the template l_data
-      l_data_sql <- DB_get_Data(l_template, DB_con())
-      
-      shiny::incProgress(1 / 3, detail = paste("data selection", 2, "of 3"))
-      
-      # Convert data types for each table
-      convert_DB_to_R(l_data_sql,l_template)|>
-        l_data()
-      
-      # update choices
-      update_choices(l_data())|>
-        column_choices()
-      
-      # Input data set
-      l_data()[c_select_input_data]|>
-        l_data_input()
-      
-      # Drop down data set
-      l_data()[c_select_dropdown_data]|>
-        l_data_choices()
-      
-      # remove row and page selection 
-      last_selected_page(NA)
-      last_selected_row(NA)
-      # remove user filter 
-      last_user_filter(NULL)
-      # remove temp render
-      df_temp_to_render(NULL)
-      shiny::incProgress(1 / 3, detail = paste("data selection", 3, "of 3"))
-      
-    })
-  })
-  
-  ## Dataset Selection ####
+
+  ## Datensatz zum Editieren ####
   observeEvent(input$dataset, {
+    writeLines(paste0("Datensatz zum Editieren: `Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
+
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
+    
     req(input$dataset)
     req(DB_con())
-    shiny::withProgress(message = "Input Datei", value = 0, {
-      shiny::incProgress(1 / 3, detail = paste("Input Datei", 1, "of 3"))
+    
+    shiny::withProgress(message = "Datensatz", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Datensatz", 1, "of 2"))
+      
       df_temp <- DB_get_table(input$dataset, DB_con()) |>
         convert_to_template_types(l_template[[input$dataset]])
       
@@ -1285,21 +1232,70 @@ server <- function(input, output, session) {
           current_data()
       }
       
-      
-      # Update 
+      # updata data
       l_data(l_temp)
       update_choices(l_data()) |> 
         column_choices()
       lastEdited_data_set_name(input$dataset)
+
+      # remove row and page selection 
+      last_selected_page(NA)
+      last_selected_row(NA)
+      # remove user filter 
+      last_user_filter(NULL)
+      # remove temp render
+      df_temp_to_render(NULL)
+      shiny::incProgress(1 / 2, detail = paste("Datensatz", 2, "of 2"))
+    })
+  })
+
+  ## Inputdaten /Dropdowns ####
+  observeEvent(input$data_selection,{
+    writeLines(paste("Inputdaten /Dropdowns: `Data_selection` changed from", data_selection_(), "to", input$data_selection," **** ",
+                     "`Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
+    
+    # Only proceed if selection actually changed
+    req(input$data_selection != data_selection_())
+    
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    shiny::withProgress(message = "Inputdaten / Dropdown", value = 0, {
+      shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 1, "of 3"))
       
-      shiny::incProgress(1 / 3, detail = paste("Input Datei", 2, "of 3"))
+      # set data selection
+      data_selection_(input$data_selection)
+      
       # get all data as defined in the template l_data
       l_data_sql <- DB_get_Data(l_template, DB_con())
-      
-      
       # Convert data types for each table
       convert_DB_to_R(l_data_sql,l_template)|>
         l_data()
+      
+      
+      if(input$data_selection == "Dropdowns"){
+        # lastEdited_data_set_name("Kinoklubmitglieder")
+        
+        # Kinoklubmitgliederfarben
+        c_Kinoklubmitglied <- l_data()[["Kinoklubmitglieder"]] |>
+          mutate(Mitglied = paste(Vorname, Nachname)) |>
+          select(Mitglied) |>
+          pull()
+        
+        c_Kinoklubmitglied <- ifelse(c_Kinoklubmitglied == "NA NA", NA, c_Kinoklubmitglied)
+        c_Kinoklubmitglied <- c_Kinoklubmitglied[!is.na(c_Kinoklubmitglied)]
+        
+        c_colors <- viridis(n = length(c_Kinoklubmitglied), option = "turbo") |>
+          colorspace::lighten(amount = 0.2)
+        
+        c_colors <- c("#FFFFFFFF", c_colors)
+        
+      }
+
+      shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 2, "of 3"))
       
       # update choices
       update_choices(l_data())|>
@@ -1320,10 +1316,11 @@ server <- function(input, output, session) {
       last_user_filter(NULL)
       # remove temp render
       df_temp_to_render(NULL)
-      shiny::incProgress(1 / 3, detail = paste("Input Datei", 2, "of 3"))
+      shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 3, "of 3"))
+      
     })
   })
-  
+    
   ## Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
