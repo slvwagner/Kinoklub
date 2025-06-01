@@ -2304,8 +2304,12 @@ server <- function(input, output, session) {
       # test if entries already exists
       test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
         filter(`Event ID` %in% new_rows$`Event ID`)|>
-        collect()|>
-        convert_to_template_types(l_template$df_Kiosk)|>
+        collect()
+      
+      test <- test|>
+        convert_to_template_types(l_template$df_Kiosk)
+      
+      test <- test|>
         mutate(Lieferant = as.character(Lieferant),
                `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
                `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
@@ -2329,7 +2333,7 @@ server <- function(input, output, session) {
         )
       c_test <- identical(
         new_rows, 
-        test|>select(-ID)|>str()
+        test|>select(-ID)
         )
       
       if(c_test){ # row entries are identical 
