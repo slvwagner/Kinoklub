@@ -85,7 +85,7 @@ ui <- fluidPage(
       overflow: hidden; /* Hide content when collapsed */
     }
     #floating-panel.collapsed {
-      height: 40px; /* Just enough for the header */
+      height: 35px; /* Just enough for the header */
     }
     #floating-panel-header {
       cursor: move;
