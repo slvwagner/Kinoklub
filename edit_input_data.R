@@ -113,7 +113,6 @@ ui <- fluidPage(
   "))
   ),
 
-  
   # make login panel collapsible
   tags$style(HTML("
     #login-panel {
@@ -125,7 +124,7 @@ ui <- fluidPage(
       border: 3px solid #000;
       border-radius: 5px;
       padding: 10px;
-
+      background: #322f3b;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       z-index: 1000;
       transition: height 0.2s ease;
