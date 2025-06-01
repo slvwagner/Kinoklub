@@ -874,6 +874,7 @@ server <- function(input, output, session) {
   output$table <- DT::renderDT({
     req(current_data())
     
+    
     # Create User-Readable "Datum" Columns 
     df_temp <- current_data()
     
@@ -950,11 +951,11 @@ server <- function(input, output, session) {
         }
       }
     }
-    
+
     # Update last rendered DT 
     stopifnot(is.data.frame(df_temp))
     last_rendered_DT(df_temp)
-    
+
     # links to render in html
     if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag")){
       df_temp <- df_temp|>
@@ -979,8 +980,15 @@ server <- function(input, output, session) {
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Besucherzahlen`, df_temp$`Besucherzahlen`))
         )
+    } else if(lastEdited_data_set_name() %in% c("Kinoklubmitglieder")){
+      # mailto render in html
+      df_temp$`E-Mail` <- 
+        ifelse(is.na(df_temp$`E-Mail`),
+               NA,
+               paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
+        )
     }
-
+    
     # Render Table
     datatable(
       df_temp,
