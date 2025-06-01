@@ -2617,11 +2617,19 @@ server <- function(input, output, session) {
   
   ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
+    
+    # Abrechnungsjahr
+    choices_select <- lubridate::year(Sys.Date())
+    choices <- 2023:lubridate::year(Sys.Date())
+    
     shiny::tagList(
       # Abrechnungsjahr
-      shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
-                          value = Abrechungsjahr(),
-                          min = 2023, max = 3000, step = 1),
+      # shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
+      #                     value = Abrechungsjahr(),
+      #                     min = 2023, max = lubridate::year(Sys.Date()) , step = 1),
+      shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
+                          choices, choices_select
+      ),
       
       # File input handler
       shiny::fileInput(
