@@ -1190,6 +1190,128 @@ server <- function(input, output, session) {
     })
   })
   
+  ## Spezialpreise neu Einlesen ####
+  shiny::observeEvent(input$spezpreis_recalc,{
+    
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    print("here")
+    # Spez Verkaufsartikel / Spezialpreise einlesen 
+    df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk", DB_con())|>
+      convert_to_template_types(l_template$Spezialpreisekiosk)|>
+      mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+             Spezialpreis = as.character(Spezialpreis)
+      )|>
+      arrange(`Event ID`, Spezialpreis)
+    df_Spezialpreisekiosk
+    
+    # Spezialpreise in Kiosk daten finden
+    df_spez_preis <- DB_get_table("df_Kiosk", DB_con())|>
+      convert_to_template_types(l_template$df_Kiosk)|>
+      filter(is.na(ID_Kioskartikel)) |>
+      arrange(`Event ID`)
+    
+    # join Filmtitel
+    df_spez_preis <- df_spez_preis|>
+      # left_join(Programm|>
+      #             select(`Event ID`,Filmtitel),
+      #           by = join_by(`Event ID`)
+      # )|>
+      left_join( # look up Spezialpreise
+        df_Spezialpreisekiosk|>
+          select(-ID),
+        by = c("Event ID", `Verkaufsartikel` = "Spezialpreis")
+      )
+    df_spez_preis
+    
+    # check Spezialpreise 
+    df_spez_preis_na <- df_spez_preis|>
+      filter(is.na(Verkaufsartikel))|>
+      filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
+      arrange(`Event ID`, `Artikelname-Kassensystem`)|>
+      select(-Artikelname)|>
+      mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`, digits = 2))
+    
+    # get ISs
+    c_IDs <- distinct(df_spez_preis_na,`Event ID`)|>pull()
+    
+    # get file names
+    c_fileName <- tbl(DB_con(), "Kiosk files")|>
+      filter(`Event ID` %in% c_IDs)|>
+      select(filename)|>
+      pull()
+    
+    # reconvert files 
+    result <- convert_data_kiosk_txt(c_fileName, DB_con())|>
+      filter(is.na(ID_Kioskartikel))|>
+      mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`, digits = 2))
+    
+    
+    # test 
+    c_test <- identical(str(df_spez_preis_na|>select(-ID)), str(result|>select(-ID)))
+    c_test <- identical(df_spez_preis_na|>select(-ID), result|>select(-ID))
+    
+    if(c_test){
+      paste0("Es sind keinen weiteren Spezialpreisdefinitionen vorhanden.",
+             "\nNeue Definitionen können in der Tabelle `Spezialpreisekiosk` nachgetragen werden.")|>
+        ausgabe_text()
+    } else {
+      # update so rendering can take place
+      df_temp_1(df_spez_preis_na|>select(-ID))
+      
+      # filter only for changed rows
+      result <- result|>
+        filter(!is.na(Verkaufsartikel))|>
+        select(-ID)
+      result
+      
+      df_spez_preis_na <- df_spez_preis_na|>
+        filter(result$`Event ID` == `Event ID`)
+      df_spez_preis_na
+      
+      new_row <- bind_cols(df_spez_preis_na|>
+                  select(ID),result)
+      
+      # to render in Modal dialog
+      df_temp_1(df_spez_preis_na)
+      df_temp_2(new_row)
+      last_uploaded_table_name("df_Kiosk")
+      
+      # Calculate modal size based on number of columns
+      num_cols <- ncol(df_spez_preis_na)
+      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+      modal_height <- ifelse(nrow(df_spez_preis_na) <= 5, "auto", "600px")
+      
+      
+      showModal(
+        modalDialog(
+          title = paste0("Die Datensäze sind nicht gleich wie in der Datenbank!"),
+          tagList(
+            renderText("Daten aus der Datenbank:"),
+            shiny::hr(),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table_1")),
+            shiny::hr(),
+            renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table_2")),
+          ),
+          easyClose = FALSE,
+          footer = tagList(
+            actionButton("update_entries", "Datensätze schreiben"),
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    }
+    
+  })
+  
   ## Button: Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
     # Execution time 
@@ -2423,7 +2545,7 @@ server <- function(input, output, session) {
     l_temp <- c_IDs|>
       lapply(function(ID){
         Run_capture_error_warnings(        
-          DB_delete_row,con, last_uploaded_table_name(), "ID", ID
+          DB_delete_row,DB_con(), last_uploaded_table_name(), "ID", ID
           )
       })
     c_message <- l_temp|>
@@ -2638,6 +2760,7 @@ server <- function(input, output, session) {
       
       # Button Daten Einlesen
       shiny::actionButton("calculate", "Berechnen"),
+      shiny::actionButton("spezpreis_recalc", "Spezialpeise neu einlesen"),
       shiny::tags$hr(),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
