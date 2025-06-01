@@ -71,7 +71,7 @@ ui <- fluidPage(
     tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
     tags$style(HTML("
     #floating-panel {
-      position: absolute;
+      position: fixed;
       right: 20px;
       top: 20px;
       width: 300px;
