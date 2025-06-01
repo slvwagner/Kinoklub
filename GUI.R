@@ -978,12 +978,12 @@ server <- function(input, output, session) {
   }
   
   ## Shiny reactive variables ####
-  
   ### DB connection ####
   DB_con <- shiny::reactiveVal(con)
   
   ### render modla 1 ####
   df_temp_1 <- shiny::reactiveVal(NULL)
+  
   ### render modla 2 ####
   df_temp_2 <- shiny::reactiveVal(NULL)
   
@@ -2540,6 +2540,14 @@ server <- function(input, output, session) {
   ## Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
+    
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     # find primary kes to delete from table
     c_IDs <- df_temp_1()$ID
 
