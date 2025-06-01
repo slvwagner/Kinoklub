@@ -1280,6 +1280,8 @@ server <- function(input, output, session) {
       # to render in Modal dialog
       df_temp_1(df_spez_preis_na)
       df_temp_2(new_row)
+      
+      # update Table to insert the new data 
       last_uploaded_table_name("df_Kiosk")
       
       # Calculate modal size based on number of columns
