@@ -113,26 +113,6 @@ ui <- fluidPage(
   "))
   ),
 
-  # Download table button
-  tags$head(
-    tags$style(HTML("
-      #table_export {
-        background-color: #65945f;  /* Green */
-        color: white;               /* Text color */
-        border: none;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        cursor: pointer;
-        border-radius: 5px;
-      }
-      #table_export:hover {
-        background-color: #45a049; /* Darker green on hover */
-      }
-    "))
-  ),
   
   # make login panel collapsible
   tags$style(HTML("
@@ -3183,10 +3163,10 @@ server <- function(input, output, session) {
             });
           ")),
           
+          # style tool box
           shiny::tags$head(
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
           ),
-          
           
           # Toolbox floating and dragable 
           tags$script(HTML(
