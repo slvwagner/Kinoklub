@@ -26,7 +26,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####
@@ -199,7 +199,6 @@ df_manko_uerberschuss
 
 # Spez Verkaufsartikel / Spezialpreise einlesen ####
 ## Spezialpreise einlesen ####
-
 df_Spezialpreisekiosk <- df_Spezialpreisekiosk|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Spezialpreis = as.character(Spezialpreis)
@@ -209,9 +208,8 @@ df_Spezialpreisekiosk
 
 # Spezialpreise in Kiosk daten finden
 df_spez_preis <- df_Kiosk|>
-  filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
+  filter(is.na(ID_Kioskartikel)) |>
   arrange(`Event ID`)
-df_spez_preis
 
 # join Filmtitel
 df_spez_preis <- df_spez_preis|>
@@ -228,18 +226,17 @@ df_spez_preis
 
 # check Spezialpreise ####
 df_spez_preis_na <- df_spez_preis|>
+  filter(is.na(Verkaufsartikel))|>
   filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
   arrange(`Event ID`, `Artikelname-Kassensystem`)
 df_spez_preis_na
 
-df_spez_preis_na <- df_spez_preis_na|>
-  filter(is.na(Verkaufsartikel))
-df_spez_preis_na
-
 if(nrow(df_spez_preis_na) > 0){
-  warning(paste0("\nFür `Event ID`", df_spez_preis$`Event ID`, " ", 
-          df_spez_preis$Filmtitel, " ist der Spezialpreiskiosk Artikel `", 
-          df_spez_preis$`Artikelname-Kassensystem`,"` nicht  noch nicht definiet worden."))
+  warning(paste0("\nFür `Event ID`", df_spez_preis_na$`Event ID`, " ", 
+                 df_spez_preis_na$Filmtitel, " ist der Spezialpreiskiosk Artikel `", 
+                 df_spez_preis_na$`Artikelname-Kassensystem`,"` nicht  noch nicht definiet worden."
+                 )
+          )
 }
 
 
