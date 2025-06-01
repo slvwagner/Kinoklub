@@ -1182,9 +1182,6 @@ server <- function(input, output, session) {
       }else{
         START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
         End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
-        
-        START_date_choose()
-        End_date_choose()
       }
       
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
@@ -2507,6 +2504,13 @@ server <- function(input, output, session) {
       })|>
       bind_rows()
     
+    if(nrow(df_temp) == 0) {
+      paste0("Es wurden keine Datensätze für das Abrechnungsjahr: ", Abrechungsjahr(), " gefunden.",
+             "\nBitte Dateinen hochladen!")|>
+        ausgabe_text()
+      req(NULL) # early stop if no data available
+    }
+
     df_temp <- df_temp|>
       filter(between(Datum, START_date_choose(), End_date_choose()))|>
       arrange(desc(Datum), desc(Zeit)) |>
