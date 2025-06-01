@@ -1125,11 +1125,6 @@ server <- function(input, output, session) {
     })
   })
   
-  ### 2 ####
-  shiny::observe({
-    shiny::updateNumericInput(session, "c_Abrechnungsjahr", value = Abrechungsjahr())
-  })
-
   ##  Button: Berechnen #####
   shiny::observeEvent(input$calculate, {
     # Execution time 
@@ -2619,7 +2614,7 @@ server <- function(input, output, session) {
   output$dynamicContent_input_panel <- shiny::renderUI({
     
     # Abrechnungsjahr
-    choices_select <- lubridate::year(Sys.Date())
+    choices_select <- Abrechungsjahr()
     choices <- 2023:lubridate::year(Sys.Date())
     
     shiny::tagList(
