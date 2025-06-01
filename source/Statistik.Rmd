@@ -926,10 +926,6 @@ df_temp|>
 ```
 
 #### Wochentaganalyse
-```{r}
-df_temp
-```
-
 
 ```{r }
 if(nrow(df_temp)>1){
