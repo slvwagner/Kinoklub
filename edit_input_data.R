@@ -112,7 +112,8 @@ ui <- fluidPage(
     }
   "))
   ),
-  
+
+  # Download table button
   tags$head(
     tags$style(HTML("
       #table_export {
@@ -132,7 +133,8 @@ ui <- fluidPage(
       }
     "))
   ),
-
+  
+  # make login panel collapsible
   tags$style(HTML("
     #login-panel {
       position: absolute;
@@ -143,7 +145,7 @@ ui <- fluidPage(
       border: 3px solid #000;
       border-radius: 5px;
       padding: 10px;
-      background: #46267d;
+
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       z-index: 1000;
       transition: height 0.2s ease;
@@ -177,7 +179,12 @@ ui <- fluidPage(
     }
   ")),
   
-  # Initialize drag and collapse functionality
+  # style login panel
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  ),
+  
+  # Initialize drag and collapse functionality for the login panel
   tags$script(HTML("
     $(function() {
       // Wait for Shiny to be ready
@@ -213,6 +220,7 @@ ui <- fluidPage(
     });
   ")),
 
+  # Login Panle UI
   shiny::titlePanel(paste0("Input Daten Kinoklub")),
   div(
     id = "login-panel",
@@ -1091,7 +1099,7 @@ server <- function(input, output, session) {
           "}"
         )
       )
-    ) |> apply_conditional_formatting()
+    ) |> formatStyle(columns = colnames(df_temp), textAlign = 'left')
 
   }, server = FALSE)
   
@@ -3175,7 +3183,12 @@ server <- function(input, output, session) {
             });
           ")),
           
-          # Insert the JavaScript HERE - right after the table output
+          shiny::tags$head(
+            shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+          ),
+          
+          
+          # Toolbox floating and dragable 
           tags$script(HTML(
             "$(function() {
               $('#floating-panel').draggable({ handle: '#floating-panel-header' });
