@@ -847,7 +847,7 @@ server <- function(input, output, session) {
     if(!is_empty(row_filtered)){
       # Calculate page 
       c_page <-  ceiling(row_filtered / page_length_var())  
-      writeLines(paste0("Selected page ", c_page,"\n"))
+      writeLines(paste0("Selected row: ", c_row, ", ID: ", ID_to_edit(),", table: `", lastEdited_data_set_name(),"`, Selected page: ", c_page,"\n"))
       
       if(c_page == 0) c_page <- 1
       last_selected_page(c_page)
@@ -1106,9 +1106,9 @@ server <- function(input, output, session) {
     as.integer(input$page_length)|>
       page_length_var()
     
-    # calculate page 
+    # calculate page got an early stop if no rows have been selected 
     find_page()
-        
+    
     # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
       dataTableProxy('table')|>
@@ -1121,23 +1121,11 @@ server <- function(input, output, session) {
     
   })
   
-  ## Select a row and find page and update   ####
+  ## Select a row and find page ####
   observeEvent(input$table_rows_selected, {
     writeLines("table_rows_selected")
-    
     # find page 
     find_page()
-    
-    # select row and page if possible
-    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())|>
-        selectRows(last_selected_row())
-    } else if (!is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())
-    }
-    
   })
   
   
