@@ -1497,6 +1497,7 @@ server <- function(input, output, session) {
           ),
           easyClose = FALSE, 
           footer = tagList(
+            actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
             actionButton("modal_select_row", "Zeile editieren"),
             actionButton("abort", "Abbrechen")
           )
@@ -2465,16 +2466,21 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     ##### now row has been selected ####
-    if(is.null(input$table_rows_selected)){
+    if( !(sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0)){
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
           modalButton("Abbrechen")),
         easyClose = TRUE
       ))
+      req(NULL) # early exit
     } 
     ##### row has been selected ####
     else {
+      # depending from where you come
+      if (is.null(input$table_rows_selected)) selected_row <- input$modal_table_rows_selected
+      else selected_row <- input$table_rows_selected
+      
       ##### Programm ####
       if(lastEdited_data_set_name() == "Programm"){
         showModal(modalDialog(
@@ -2492,7 +2498,7 @@ server <- function(input, output, session) {
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
         df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
 
@@ -2548,7 +2554,7 @@ server <- function(input, output, session) {
       ##### Verleiher ####
       else if (lastEdited_data_set_name() == "Verleiher"){
         df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2663,7 +2669,7 @@ server <- function(input, output, session) {
       ##### Lieferanten #### 
       else if (lastEdited_data_set_name() == "Lieferanten"){
         df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2715,7 +2721,7 @@ server <- function(input, output, session) {
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
         df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2767,7 +2773,7 @@ server <- function(input, output, session) {
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Spezialpreis"){
         df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2832,47 +2838,53 @@ server <- function(input, output, session) {
   
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
-    req(input$table_rows_selected)
-    if(nrow(current_data()) <= 1){
-      showModal(modalDialog(
-        title = "Die letzte Zeile kannn nicht gelöscht werden",
-        footer = tagList(
-          modalButton("Abbrechen")
-        ),
-        easyClose = TRUE
-      ))
-    }
-    else {
-      # Find ID to delete
-      row <- current_data()[input$table_rows_selected, ]
-      updated_data <- current_data()
-      # Delete in current data 
-      updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
-      # update to render
-      current_data(updated_data)
+    if( sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0 ){
       
-      # Update SQL
-      DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
+      # depending from where you come
+      if (!is.null(input$modal_table_rows_selected)) selected_row <- input$modal_table_rows_selected
+      else selected_row <- input$table_rows_selected
       
-      # Update the list
-      l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
-
-      # joined tables 
-      if(lastEdited_data_set_name() == "Programm"){
-        df_temp <- DB_get_table("Einsatzplan",DB_con())
-        DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
-        df_temp <- DB_get_table("Einsatzplan",DB_con())
-        l_temp[["Einsatzplan"]] <- df_temp
+      if(nrow(current_data()) <= 1){
+        showModal(modalDialog(
+          title = "Die letzte Zeile kannn nicht gelöscht werden",
+          footer = tagList(
+            modalButton("Abbrechen")
+          ),
+          easyClose = TRUE
+        ))
       }
-      
-      # update all data
-      l_data(l_temp)
-      
-      ##### select last edited page ####
-      last_selected_row(NA)
-
-      removeModal()
+      else {
+        # Find ID to delete
+        row <- current_data()[selected_row, ]
+        updated_data <- current_data()
+        # Delete in current data 
+        updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+        # update to render
+        current_data(updated_data)
+        
+        # Update SQL
+        DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
+        
+        # Update the list
+        l_temp <- l_data()
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+        
+        # joined tables 
+        if(lastEdited_data_set_name() == "Programm"){
+          df_temp <- DB_get_table("Einsatzplan",DB_con())
+          DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
+          df_temp <- DB_get_table("Einsatzplan",DB_con())
+          l_temp[["Einsatzplan"]] <- df_temp
+        }
+        
+        # update all data
+        l_data(l_temp)
+        
+        ##### select last edited page ####
+        last_selected_row(NA)
+        
+        removeModal()
+      }
     }
   })
   
