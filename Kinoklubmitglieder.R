@@ -336,15 +336,14 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
                         )
             ),
-        # Function selection
-        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices[choices_select]
-        ),
+        # # Function selection
+        # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+        #                     choices = choices, selected = choices[choices_select]
+        # ),
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("procinema_search", "Procinema-Suche", class = "btn-info"),
-        actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
@@ -393,10 +392,10 @@ server <- function(input, output, session) {
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
-        # Function selection
-        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices[choices_select]
-        ),
+        # # Function selection
+        # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+        #                     choices = choices, selected = choices[choices_select]
+        # ),
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
