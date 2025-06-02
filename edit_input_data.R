@@ -1078,7 +1078,7 @@ server <- function(input, output, session) {
           "}"
         )
       )
-    ) |> formatStyle(columns = colnames(df_temp), textAlign = 'left')
+    ) |> apply_conditional_formatting()
 
   }, server = FALSE)
   
