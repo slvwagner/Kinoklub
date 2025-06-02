@@ -566,7 +566,7 @@ server <- function(input, output, session) {
     
     for (ii in 1:nrow(df_updated)) {
       if(c_class[ii] == "factor"){
-        df_updated[,ii] <- ifelse(df_updated[,ii] == "NA",NA,df_temp[,ii]) 
+        df_updated[,ii] <- ifelse(df_updated[,ii] == "NULL",NA,df_temp[,ii]) 
       }
     }
     # Update data 
@@ -1993,13 +1993,16 @@ server <- function(input, output, session) {
           
           # update all data
           l_data(l_temp)
+          
           # update choices
           update_choices(l_data())|>
             column_choices()
+          
           # update Einsatzplan
           Update_Einsatzplan(df_updated, c_class)
           
           df_temp|>
+            arrange(desc(`Event ID`))|>
             current_data()
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
@@ -2008,23 +2011,21 @@ server <- function(input, output, session) {
             filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
           
-          df_temp3 <- left_join(
-            df_temp2,
-            df_temp|>
-              select(-`Verleiher Angefragt?`),
-            by = join_by(`Event ID`)
-          )
-          df_temp2
+          df_temp3 <- 
+            left_join(
+              df_temp2,
+              df_temp|>
+                select(-`Verleiher Angefragt?`),
+              by = join_by(`Event ID`)
+              )|>
+            arrange(desc(`Event ID`))
           
           df_temp3|>
             current_data()
 
-        } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben")){
+        }  else {
           df_temp|>
             arrange(desc(ID))|>
-            current_data()
-        } else {
-          df_temp|>
             current_data()
         }
       }
