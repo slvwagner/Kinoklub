@@ -327,6 +327,7 @@ server <- function(input, output, session) {
   
   ### Toolbox for the user to interact ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
+    #### Filmvorschlag ####
     if(data_set_select == "Filmvorschlag"){
       tags$div(
         id = "floating-panel",
@@ -358,7 +359,9 @@ server <- function(input, output, session) {
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       ) 
-    } else if (data_set_select == "Programm"){
+    } 
+    #### Programm ####
+    else if (data_set_select == "Programm"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
@@ -389,7 +392,9 @@ server <- function(input, output, session) {
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
-    } else if(data_set_select == "Einsatzplan"){
+    } 
+    #### Einsatzplan ####
+    else if(data_set_select == "Einsatzplan"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
@@ -410,8 +415,39 @@ server <- function(input, output, session) {
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
-    } # Menue for drop downs 
+    } 
+    ### Spezialpreisekiosk ####
+    else if (data_set_select == "Spezialpreisekiosk") {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_row_bottom", "Eintrag hinzufügen", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    #### Menue for drop downs ####
     else if(data_set_select %in% names(l_data_choices())){
+      ##### Kinoklubmitglieder ####
       if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
         tags$div(
           id = "floating-panel",
@@ -440,7 +476,9 @@ server <- function(input, output, session) {
           actionButton("get_email", "Email-Verteiler", class = "btn-info"),
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
-      } else {
+      }
+      ##### anything else ####
+      else {
         tags$div(
           id = "floating-panel",
           tags$div(id = "floating-panel-header", 
@@ -469,7 +507,9 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }
-    } else {
+    }
+    ### anything else Input files ####
+    else {
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
@@ -566,8 +606,7 @@ server <- function(input, output, session) {
                `Kasse/Bar 1` = "",
                `Kasse/Bar 2` = "",
                `Back-up` = "",
-               Kommentar = "",
-               Trailer = "")
+               Kommentar = "")
       
       df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
                              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
@@ -1109,15 +1148,15 @@ server <- function(input, output, session) {
     # calculate page got an early stop if no rows have been selected 
     find_page()
     
-    # select row and page if possible
-    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())|>
-        selectRows(last_selected_row())
-    } else if (!is.na(last_selected_page())){
-      dataTableProxy('table')|>
-        selectPage(last_selected_page())
-    }
+    # # select row and page if possible
+    # if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
+    #   dataTableProxy('table')|>
+    #     selectPage(last_selected_page())|>
+    #     selectRows(last_selected_row())
+    # } else if (!is.na(last_selected_page())){
+    #   dataTableProxy('table')|>
+    #     selectPage(last_selected_page())
+    # }
     
   })
   
@@ -2082,6 +2121,7 @@ server <- function(input, output, session) {
           )
         }
       }
+
       # Update the list
       l_temp <- l_data()
       l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
