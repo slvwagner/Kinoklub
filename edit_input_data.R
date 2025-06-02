@@ -597,20 +597,16 @@ server <- function(input, output, session) {
       )
     }else{
       df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
-        select(-`Event ID`, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)|>
+        select(Verantwortlich, `Operateur*in`, `Kasse/Bar 1`, `Kasse/Bar 2`, `Back-up`, Kommentar)|>
         slice(1)|>
-        mutate(Verantwortlich = "", 
-               `Operateur*in` = "",
-               `Kasse/Bar 1` = "",
-               `Kasse/Bar 2` = "",
-               `Back-up` = "",
-               Kommentar = "")
+        mutate(across(everything(), ~ as.factor(NA)))
+      df_temp
       
       df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
                              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)|> 
                              filter(`Event ID` %in% df_updated$`Event ID`),
                            df_temp
-      )
+                           )
     }
     if (new_row) {
       DB_add_row(DB_con(), "Einsatzplan", df_temp)
@@ -2140,13 +2136,15 @@ server <- function(input, output, session) {
         updated_data <-
           bind_rows(new_row, 
                     current_data()[(input$table_rows_selected):nrow(current_data()), ]
-                    )
+                    )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       } else{
         updated_data <-
           bind_rows(current_data()[1:(input$table_rows_selected - 1), ], 
                     new_row, 
                     current_data()[(input$table_rows_selected):nrow(current_data()), ]
-                    )
+                    )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }
       
       # updata SQL DB and current data 
@@ -2249,7 +2247,8 @@ server <- function(input, output, session) {
         updated_data <- 
           bind_rows(current_data()[1:input$table_rows_selected,],
                     new_row
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         
         #### select last edited row and page ####
         last_selected_row(last_selected_row() + 1)
@@ -2259,7 +2258,8 @@ server <- function(input, output, session) {
           bind_rows(current_data()[1:(input$table_rows_selected),],
                     new_row,
                     current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         
       }
       #### Handling uniqueness checks for Dropdowns #####
@@ -2345,13 +2345,15 @@ server <- function(input, output, session) {
         updated_data <- 
           bind_rows(current_data()[1:input$table_rows_selected,],
                     new_row
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }else {
         updated_data <- 
           bind_rows(current_data()[1:(input$table_rows_selected),],
                     new_row,
                     current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }
       
       # updata SQL DB
