@@ -261,16 +261,6 @@ DB_add_row <- function(con, table_name, new_row) {
       str_replace_all(x, "'", "´")
     })
   
-  # Replace NA values with NULL for SQL
-  new_row <- lapply(new_row, function(x) {
-    if (is.na(x)) NULL 
-    else x
-  })
-  
-
-
-  new_row
-
   # Debug: Print new_row values
   # message("Values in new_row: ", paste(new_row, collapse = ", "))
   
@@ -292,20 +282,20 @@ DB_add_row <- function(con, table_name, new_row) {
   sql_vals <- 
     paste(
       sapply(new_row, function(x) {
-        if (is.null(x)) "NULL"
-        else if (is.character(x)) paste0("'", x, "'")
-        else if (is.Date(x)) paste0("'", as.character(x), "'")
-        else if (is_time(x)) paste0("'", as.character(x), "'")
-        else if (is.factor(x)) paste0("'", as.character(x), "'") 
-        else x
+        if (is.na(x)) "NULL" # Replace NA values with NULL for SQL
+        else paste0("'", x, "'")
         }), 
       collapse = ", ")
+  sql_vals
+  
   sql_query <- paste0(
     "INSERT INTO ", "`",table_name, "`"," (", sql_cols, ") VALUES (", sql_vals, ")"
-  )
+    )
+  sql_query
+
   
   # # Debug: Print SQL query
-  # message("Executing SQL query: ", sql_query)
+  message("Executing SQL query: ", sql_query)
   
   # Execute the query
   dbExecute(con, sql_query)
