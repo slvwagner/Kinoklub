@@ -2859,6 +2859,10 @@ server <- function(input, output, session) {
         updated_data <- current_data()
         # Delete in current data 
         updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+        # ensure correct data type
+        updated_data|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        
         # update to render
         current_data(updated_data)
         
@@ -2872,7 +2876,7 @@ server <- function(input, output, session) {
         # joined tables 
         if(lastEdited_data_set_name() == "Programm"){
           df_temp <- DB_get_table("Einsatzplan",DB_con())
-          DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
+          DB_delete_row(DB_con(), "Einsatzplan", names(row[,1]), pull(row[,1]))
           df_temp <- DB_get_table("Einsatzplan",DB_con())
           l_temp[["Einsatzplan"]] <- df_temp
         }
