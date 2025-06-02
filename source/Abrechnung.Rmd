@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 18
+ii <- 35
 ```
 
 
@@ -56,8 +56,7 @@ if(r_is.defined(df_keine_Rechnung)){
 ### Kino Umsatz
 
 ```{r echo=FALSE}
-df_temp <- df_Eintritt|>
-  filter(`Event ID` == ii)|>
+df_temp <- l_abrechnung[[as.character(ii)]]$Eintritt|>
   select(Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
 
 df_temp|>
