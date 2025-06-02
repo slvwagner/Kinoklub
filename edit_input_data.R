@@ -435,7 +435,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
-        actionButton("add_row_bottom", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
@@ -466,8 +466,7 @@ server <- function(input, output, session) {
           shiny::tags$hr(),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
           shiny::tags$hr(),
-          actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-          actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
           shiny::tags$hr(),
           actionButton("check_unique", "Prüfen", class = "btn-success"),
           shiny::tags$hr(),
@@ -496,8 +495,7 @@ server <- function(input, output, session) {
           shiny::tags$hr(),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
           shiny::tags$hr(),
-          actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-          actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
           shiny::tags$hr(),
           actionButton("check_unique", "Prüfen", class = "btn-success"),
           shiny::tags$hr(),
@@ -1161,15 +1159,15 @@ server <- function(input, output, session) {
     # calculate page got an early stop if no rows have been selected 
     find_page()
     
-    # # select row and page if possible
-    # if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
-    #   dataTableProxy('table')|>
-    #     selectPage(last_selected_page())|>
-    #     selectRows(last_selected_row())
-    # } else if (!is.na(last_selected_page())){
-    #   dataTableProxy('table')|>
-    #     selectPage(last_selected_page())
-    # }
+    # select row and page if possible
+    if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
+      dataTableProxy('table')|>
+        selectPage(last_selected_page())|>
+        selectRows(last_selected_row())
+    } else if (!is.na(last_selected_page())){
+      dataTableProxy('table')|>
+        selectPage(last_selected_page())
+    }
     
   })
   
@@ -2066,6 +2064,50 @@ server <- function(input, output, session) {
   })
   
   ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
+  
+  ###  add row ####
+  observeEvent(input$add_row, {
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+
+    # Create an empty row
+    new_row <- current_data()[1, ] |> 
+      mutate(across(everything(), ~ NA))|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    new_row[1,1] <- max(current_data()[,1]) + 1L
+
+    # add row on top
+    updated_data <-
+      bind_rows(new_row, 
+                current_data()
+      )|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    
+    # updata SQL DB and current data 
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+  
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    # update to render 
+    current_data(updated_data)
+    
+    #### select last edited row and page ####
+    last_selected_row(1)
+    last_selected_page(1)
+    
+  })
+  
+  
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     if (!dbIsValid(DB_con())) {
@@ -2220,7 +2262,7 @@ server <- function(input, output, session) {
           )
         
       }
-      ##### Handling uniqueness checks for Dropdowns #####
+      #### Handling uniqueness checks for Dropdowns #####
       if (data_selection_() == "Dropdowns") {
         # Find duplicates (keeping only duplicate rows)
         df_temp <- updated_data |>
