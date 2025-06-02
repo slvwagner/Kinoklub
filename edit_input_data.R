@@ -1007,7 +1007,7 @@ server <- function(input, output, session) {
     last_rendered_DT(df_temp)
 
     # links to render in html
-    if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag")){
+    if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag","Einsatzplan")){
       df_temp <- df_temp|>
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
@@ -1225,43 +1225,56 @@ server <- function(input, output, session) {
       df_temp <- DB_get_table(input$dataset, DB_con()) |>
         convert_to_template_types(l_template[[input$dataset]])
       
-      print(df_temp)
+      # Debug print
+      print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
       
       # Update reactive values
       l_temp <- l_data()
       
-      if(input$dataset %in% c("Programm", "Einsatzplan")) {
-        l_temp$Einsatzplan <- left_join(
-          df_temp |> select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
-          DB_get_table("Einsatzplan", DB_con()) |>
-            convert_to_template_types(l_template[[input$dataset]]) |>
-            select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
-          by = join_by(`Event ID`)
-        ) |> arrange(desc(Datum))
+      if(input$dataset == "Programm") {
+        # Programm
+        l_temp$Programm <- l_temp$Programm |> 
+          arrange(desc(`Event ID`))
         
-        l_temp$Programm <- l_temp$Programm |> arrange(desc(Datum))
+        # Einsatzplan
+        l_temp$Einsatzplan <- 
+          left_join(
+            df_temp |> 
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
+            DB_get_table("Einsatzplan", DB_con()) |>
+              convert_to_template_types(l_template[[input$dataset]]) |>
+              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer),
+            by = join_by(`Event ID`)
+            ) |> 
+          arrange(desc(`Event ID`))
+        
+        # render 
+        l_temp$Programm|>
+          current_data()
+        
+      } else if(input$dataset == "Einsatzplan") {
+        # Einsatzplan
+        l_temp$Einsatzplan <- 
+          left_join(
+            DB_get_table("Programm", DB_con()) |>
+              convert_to_template_types(l_template$Programm) |> 
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
+            DB_get_table("Einsatzplan", DB_con()) |>
+              convert_to_template_types(l_template[[input$dataset]]) |>
+              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer),
+            by = join_by(`Event ID`)
+          ) |> 
+          arrange(desc(`Event ID`))
+        
+        # render 
+        l_temp$Einsatzplan|>
+          current_data()
+        
       } else {
-        l_temp[[input$dataset]] <- df_temp
-      }
-      
-      if(input$dataset == "Einsatzplan") {
+        # render 
         l_temp[[input$dataset]]|>
-          filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-          current_data()
-      } else if(input$dataset == "Filmvorschlag"){
-        l_temp$Filmvorschlag|>
           arrange(desc(ID))|>
           current_data()
-      } else if (input$dataset == "Einnahmen"){
-        l_temp$Einnahmen|>
-          arrange(desc(ID))|>
-          current_data()
-      } else if (input$dataset == "Ausgaben"){
-        l_temp$Ausgaben|>
-          arrange(desc(ID))|>
-          current_data()
-      } else {
-        current_data(l_temp[[input$dataset]])
       }
       
       shiny::isolate({
@@ -1612,10 +1625,10 @@ server <- function(input, output, session) {
         l_temp <- list()
         # only display
         df_info <- df_temp |> 
-          select(1:6)
+          select(1:8)
         # editable
         df_row <- df_temp|> 
-          select(-(1:6))
+          select(-(1:8))
         # Display the display columns (read-only)
         l_temp <- lapply(1:ncol(df_info), function(ii) {
           fluidRow(
@@ -1688,7 +1701,7 @@ server <- function(input, output, session) {
       #### Special user input handling #####
       if(lastEdited_data_set_name() == "Einsatzplan"){
         # select columns to be updated 
-        c_select <- 7:ncol(df_temp)
+        c_select <- 8:ncol(df_temp)
         df_temp <- current_data()[,c_select]
         # input columns
         c_select_input <- 1:7
@@ -1990,14 +2003,22 @@ server <- function(input, output, session) {
             current_data()
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
-          left_join(
-            l_data()$Programm|>
-              filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-              select(1:8, -`Link to Event ID`,-Verleiher), 
-            df_temp,
+          
+          df_temp2 <- l_data()$Programm|>
+            filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+            select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
+          
+          df_temp3 <- left_join(
+            df_temp2,
+            df_temp|>
+              select(-`Verleiher Angefragt?`),
             by = join_by(`Event ID`)
-          )|>
+          )
+          df_temp2
+          
+          df_temp3|>
             current_data()
+
         } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben")){
           df_temp|>
             arrange(desc(ID))|>
