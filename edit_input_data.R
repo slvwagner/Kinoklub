@@ -2007,6 +2007,14 @@ server <- function(input, output, session) {
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           
+          # Update the list
+          l_temp <- l_data()
+          l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+          
+          # update all data
+          l_data(l_temp)
+          
+          
           df_temp2 <- l_data()$Programm|>
             filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
@@ -2087,13 +2095,15 @@ server <- function(input, output, session) {
       if (input$table_rows_selected == 1) {
         # add row on top
         updated_data <-
-          bind_rows(new_row, current_data()[(input$table_rows_selected):nrow(current_data()), ])
+          bind_rows(new_row, 
+                    current_data()[(input$table_rows_selected):nrow(current_data()), ]
+                    )
       } else{
         updated_data <-
           bind_rows(current_data()[1:(input$table_rows_selected - 1), ], 
                     new_row, 
                     current_data()[(input$table_rows_selected):nrow(current_data()), ]
-          )
+                    )
       }
       
       # updata SQL DB and current data 
@@ -2197,6 +2207,9 @@ server <- function(input, output, session) {
           bind_rows(current_data()[1:input$table_rows_selected,],
                     new_row
           )
+        
+        #### select last edited row and page ####
+        last_selected_row(last_selected_row() + 1)
         
       }else {
         updated_data <- 
