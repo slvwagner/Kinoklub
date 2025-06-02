@@ -13,12 +13,12 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
+
 # # change template
-# l_template$df_Kiosk <- l_template$df_Kiosk|>
-#   rename(ID_Kioskartikel = `Kioskartikel ID`)
-# 
-# names(l_template$df_Kiosk)
-# 
+# l_template$Programm
+# l_template$Programm <- l_template$Programm|>
+#   mutate(`Link to Event ID` = factor(`Link to Event ID`))
+# l_template$Programm
 # 
 # saveRDS(l_template, "source/SQL/template.Rds")
 
