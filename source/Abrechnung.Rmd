@@ -56,8 +56,7 @@ if(r_is.defined(df_keine_Rechnung)){
 ### Kino Umsatz
 
 ```{r echo=FALSE}
-df_temp <- l_abrechnung[[as.character(ii)]]$Eintritt|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
+df_temp <- l_abrechnung[[as.character(ii)]]$Eintritt
 
 df_temp|>
   knitr::kable(digits = 2)
@@ -75,22 +74,19 @@ Umsatz|>
 ### Kino Besucherzahlen
 
 ```{r echo=FALSE}
-df_temp <- df_Eintritt|>
-  filter(`Event ID` == ii)|>
-  group_by(Zahlend)|>
-  reframe(Anzahl = sum(Anzahl, na.rm = T))|>
-  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))
+df_temp <- l_abrechnung[[as.character(ii)]]$s_Eintritt
 
 ```
 
 ```{r echo=FALSE}
 df_temp|>
+  # select(-`Besucherzahl nach Umsatz [CHF] verteilt`)|>
   knitr::kable()
 ```
 
 ```{r echo=FALSE}
 df_temp|>
-  reframe(Summe = sum(Anzahl, na.rm = T))|>
+  reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
   knitr::kable()
 
 ```
@@ -133,7 +129,9 @@ if(r_is.defined(df_keine_Rechnung)){
 Filmabgaben <- l_abrechnung[[as.character(ii)]]$Abrechnung|>
   select(`Event ID`, Datum, Zeit, `Link to Event ID`, `Kinoförderer gratis?`,
          `Suisavorabzug [CHF]`, `Verleiherabzug [CHF]`,`Verleiherrechnungsbetrag [CHF]`, `Ticketgewinn [CHF]`
-         )
+         )|>
+  mutate(Datum = format(Datum, "%d.%m.%Y"),
+         `Kinoförderer gratis?` = if_else(`Kinoförderer gratis?`, "ja", "nein, müssen mit dem Verleiher abgerechnet werden"))
 Filmabgaben|>
   select(-`Ticketgewinn [CHF]`)|>
   knitr::kable(digits = 2)
@@ -142,18 +140,18 @@ Filmabgaben|>
 ```{r}
 Filmabgaben <- Filmabgaben|>
   ungroup()|>
-  reframe(`Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`),
-          `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`),
-          `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`),
-          `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`),
-          `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`)
+  reframe(`Summe Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`),
+          `Summe Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`),
+          `Summe Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`),
+          `Summe Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`),
+          `Summe Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`)
           )
 ```
 
 
 ```{r}
 Filmabgaben|>
-  select(-`Ticketgewinn [CHF]`)|>
+  select(-`Summe Ticketgewinn [CHF]`)|>
   knitr::kable(digits = 2)
 ```
 
