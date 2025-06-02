@@ -527,25 +527,6 @@ remove(df_Tickets)
 ### Umsatz und Verleiherabzug MWST und Ticketgewinn #####
 names(df_Abrechnung)
 
-test <- df_Abrechnung|>
-  filter(`Event ID` %in% c(35,36))|>
-  mutate(`Suisavorabzug [CHF]` = `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100),
-         `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
-         # Abzug fix?
-         `Verleiherabzug [CHF]` = 
-           if_else(is.na(`Abzug fix [CHF]`),
-                   `Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100),  
-                   `Umsatz Netto 3 [CHF]` - `Abzug fix [CHF]`
-                   ),
-         MWST = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                        `Verleiherabzug [CHF]` * (c_MWST / 100),
-                        `Verleiherabzug [CHF]` - (`Verleiherabzug [CHF]` / (1 + (c_MWST / 100)))
-                        ),
-         `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]` - MWST
-  )
-test
-
-
 df_Abrechnung <- df_Abrechnung|>
   mutate(`Suisavorabzug [CHF]` = `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100),
          `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
