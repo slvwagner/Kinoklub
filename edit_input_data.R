@@ -609,7 +609,7 @@ server <- function(input, output, session) {
                Kommentar = "")
       
       df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
-                             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)|> 
                              filter(`Event ID` %in% df_updated$`Event ID`),
                            df_temp
       )
@@ -805,6 +805,19 @@ server <- function(input, output, session) {
           target = "cell",
           backgroundColor = styleEqual(c_Kinoklubmitglied, member_colors),
           color = styleEqual(c_Kinoklubmitglied, text_colors)
+        )
+      # Verleiher anfrage
+      dt <- dt |> 
+        formatStyle(
+          "Verleiher Angefragt?", 
+          backgroundColor = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('lightgreen', '#ed716d', '#FFFF97')
+          ),
+          color = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('black', 'black', 'black')
+          )
         )
     } 
     return(dt)
@@ -1701,10 +1714,10 @@ server <- function(input, output, session) {
       #### Special user input handling #####
       if(lastEdited_data_set_name() == "Einsatzplan"){
         # select columns to be updated 
-        c_select <- 8:ncol(df_temp)
+        c_select <- 9:ncol(df_temp)
         df_temp <- current_data()[,c_select]
         # input columns
-        c_select_input <- 1:7
+        c_select_input <- 1:6
         # get the user input
         generated_code <- paste0("input$`",c_select_input, "`")
         c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
@@ -1987,34 +2000,17 @@ server <- function(input, output, session) {
         
         ##### update joined data sets and choices ####
         if(lastEdited_data_set_name() == "Programm"){
-          # Update the list
-          l_temp <- l_data()
-          l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-          
-          # update all data
-          l_data(l_temp)
-          
-          # update choices
-          update_choices(l_data())|>
-            column_choices()
           
           # update Einsatzplan
           Update_Einsatzplan(df_updated, c_class)
           
+          # render 
           df_temp|>
             arrange(desc(`Event ID`))|>
             current_data()
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
-          
-          # Update the list
-          l_temp <- l_data()
-          l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-          
-          # update all data
-          l_data(l_temp)
-          
-          
+          # update 
           df_temp2 <- l_data()$Programm|>
             filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
@@ -2022,12 +2018,17 @@ server <- function(input, output, session) {
           df_temp3 <- 
             left_join(
               df_temp2,
-              df_temp|>
-                select(-`Verleiher Angefragt?`),
+              df_temp,
               by = join_by(`Event ID`)
               )|>
             arrange(desc(`Event ID`))
           
+          # Debug print
+          df_temp3|>
+            lapply(class)|>
+            print()
+          
+          # render
           df_temp3|>
             current_data()
 
