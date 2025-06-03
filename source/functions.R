@@ -435,11 +435,13 @@ nullify_used_entries <- function(lst) {
 
 # Eintritte aus Advanced Tickets files #####
 convert_data_Film_txt <- function(fileName, con) {
+  paste0("convert_data_Film_txt, filename: ", fileName)|>
+    writeLines()
+
   library(rebus)
   Programm <- DB_get_table("Programm",con)
   Programm <- convert_to_template_types(Programm, l_template$Programm)
-  
-  print("convert_data_Film_txt")
+
   l_Eintritt <- fileName|>
     lapply(function(fileName){
       
@@ -648,7 +650,10 @@ convert_data_Film_txt <- function(fileName, con) {
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {
   if(length(fileName) ==  0) stop("No file names found in function convert_data_kiosk_txt")
-  print("convert_data_kiosk_txt")
+  
+  paste0("convert_data_kiosk_txt, filename: ", fileName)|>
+    writeLines()
+  
   # library(rebus)
   Programm <- DB_get_table("Programm",con)
   Programm <- convert_to_template_types(Programm, l_template$Programm)
