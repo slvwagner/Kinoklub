@@ -1043,6 +1043,11 @@ server <- function(input, output, session) {
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
         )
     }
+    
+    # Primary Key as factor
+    df_temp[,1] <- pull(df_temp[,1])|>
+      factor()
+      
   
     # Render Table
     datatable(

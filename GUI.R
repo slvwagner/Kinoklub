@@ -2697,8 +2697,18 @@ server <- function(input, output, session) {
   ## Reder: Datatable Flim #####
   output$dateTable <-  DT::renderDT({
     writeLines("DT::renderDT")
+    
+    # Primary key as factor
+    df_temp <- current_data()
+    # Primary Key as factor
+    df_temp[,1] <- pull(df_temp[,1])|>
+      factor()
+    # Link ID as factor
+    df_temp[,2] <- pull(df_temp[,2])|>
+      factor()
+    
     datatable(
-      current_data(),
+      df_temp,
       filter = "top",
       rownames = FALSE,
       class = 'datatables',
