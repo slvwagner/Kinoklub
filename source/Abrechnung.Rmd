@@ -81,13 +81,13 @@ df_temp <- l_abrechnung[[as.character(ii)]]$s_Eintritt
 ```{r echo=FALSE}
 df_temp|>
   # select(-`Besucherzahl nach Umsatz [CHF] verteilt`)|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 ```{r echo=FALSE}
 df_temp|>
   reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -159,15 +159,14 @@ Filmabgaben|>
 #### Abgaben
 
 ```{r}
-df_temp <- l_abrechnung[[as.character(ii)]]$Abrechnung[1,]
+df_temp <- l_abrechnung[[as.character(ii)]]$s_Abrechnung
 
 # Define your text only if the condition is TRUE
 if (is.na(df_temp$`Abzug fix [CHF]`)) {
   abgaben_text <- paste0(
-    "Der Suisa-Vorabzug ist **",df_temp$`SUISA-Vorabzug [%]`,"%** des Umsatz.", 
-    "Für diesen Film wurde mit dem Verleiher **", df_temp$Verleiher,", ", df_temp$`Abzug [%]`, "%** des Ticket-Umsatz als abgabe verhandelt.",
-    "Die minimalen Abgabegarantie an den Verleiher ist **", df_temp$`Minimal Abzug [CHF]`, ".-**. ",
-    "Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt werden.", 
+    "Der Suisa-Vorabzug ist **",df_temp$`SUISA-Vorabzug [%]`,"%** des Umsatz. ", 
+    "Für diesen Film wurde mit dem Verleiher **", df_temp$Verleiher,", ", df_temp$`Abzug [%]`, "%** des Ticket-Umsatz als Verleiherabgabe verhandelt. ",
+    "Die mindest Garantie an den Verleiher ist im Programm mit **", df_temp$`Minimal Abzug [CHF]`, ".-** definiert worden. ",
     collapse = ""
   )
 } else {
@@ -178,22 +177,20 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
 }
 ```
 
-
+`r  abgaben_text`
 
 ```{r}
-c_Umsatz <- l_abrechnung[[as.character(ii)]]$Abrechnung|>
+c_Umsatz <- l_abrechnung[[as.character(ii)]]$s_Abrechnung|>
   reframe(Umsatz = sum(`Umsatz [CHF]`,na.rm = T))|>
   pull()
 
-c_Umsatz_Kinoförderer <- l_abrechnung[[as.character(ii)]]$Abrechnung|>
+c_Umsatz_Kinoförderer <- l_abrechnung[[as.character(ii)]]$s_Abrechnung|>
   reframe(Umsatz = sum(`Umsatz für Netto3 [CHF]`))|>
   pull()
 
 c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 
 ```
-
-`r  abgaben_text`
 
 
 ### Ticket Gewinn / Verlust
@@ -273,7 +270,7 @@ df_temp1|>
 
 ```{r}
 ticket <- df_temp|>
-  select(`Gewinn aus Fimvorführung [CHF]`)
+  select(`Ticketgewinn [CHF]`)
 
 ticket|>
   knitr::kable(digits = 2)
@@ -484,7 +481,7 @@ df_temp|>
 ```{r}
 df_temp|>
   reframe(`Gewinn / Verlust [CHF]`=sum(`Betrag [CHF]`, na.rm = T))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 \

@@ -536,6 +536,12 @@ df_Abrechnung <- df_Abrechnung|>
                    `Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100),  
                    `Umsatz Netto 3 [CHF]` - `Abzug fix [CHF]`
            ),
+         `Verleiherabzug [CHF]` = 
+           if_else(
+             is.na(`Verleiherrechnungsbetrag [CHF]`),
+             `Verleiherabzug [CHF]`,
+             `Verleiherrechnungsbetrag [CHF]`
+           ),
          `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
                         `Verleiherabzug [CHF]` * (c_MWST / 100),
                         `Verleiherabzug [CHF]` - (`Verleiherabzug [CHF]` / (1 + (c_MWST / 100)))
@@ -842,57 +848,40 @@ for (ID in names(l_abrechnung)) {
     )
   }
   
-  ## Abrechnung (Verteilen nach Verteilschlüssel) ####
-  Abrechnung <- df_Abrechnung|>
-    filter(`Event ID` %in% IDs)|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    select(-`Besucherzahlen an Verleiher gesendet`, -`Rechnung bezahlt und abgelegt`,
-           - Abrechnungsjahr
-    )|>
-    mutate(`Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]` ,na.rm = TRUE))
-  Abrechnung
-  
-  df_Abrechnung|>
-    mutate(`Suisavorabzug [CHF]` = `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100),
-           `Umsatz Netto 3 [CHF]` =  `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
-           `MWST [CHF]` = if_else(
-             is.na(`Verleiherrechnungsbetrag [CHF]`),
-             `Umsatz für Netto3 [CHF]` * (c_MWST / 100),
-             `Verleiherrechnungsbetrag [CHF]` / (1 + (c_MWST / 100))
-           ),
-           `Verleiherabzug [CHF]` =
-             if_else(is.na(`Abzug fix [CHF]`),
-                     (`Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100)) + `MWST [CHF]`,
-                     `Umsatz für Netto3 [CHF]` - `Abzug fix [CHF]`
-             ),
-           # Verleiherrechnung verwenden falls vorhanden
-           `Verleiherabzug [CHF]` =
-             if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                     `Verleiherabzug [CHF]`,
-                     `Verleiherrechnungsbetrag [CHF]`
-             ),
-           `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`
+  ## Summary Abrechnung ####
+  s_Abrechnung <- Abrechnung|>
+    reframe(
+      Verleiher = Verleiher[1],
+      `Abzug [%]` = `Abzug [%]`[1],
+      `Minimal Abzug [CHF]` = `Minimal Abzug [CHF]`[1],
+      `Abzug fix [CHF]` = `Abzug fix [CHF]`[1],
+      `Kinoförderer gratis?` = `Kinoförderer gratis?`[1], 
+      `SUISA-Vorabzug [%]` = `SUISA-Vorabzug [%]`[1],
+      `Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1] ,
+      `Umsatz [CHF]` = sum(`Umsatz [CHF]`) , # this will not change anything because Verteilschlüssel was calculated by Umsatz
+      `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) ,
+      `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) ,
+      `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) ,
+      `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`),
+      `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) ,
+      `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`),
+      `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`),
+      `Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`),
+      `Eventeinnahmen [CHF]` = sum(`Eventeinnahmen [CHF]`),
+      `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`),
+      `Gewinn aus Fimvorführung [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`)
     )
+  s_Abrechnung
   
+  ## Abrechnung (Verteilen nach Verteilschlüssel) ####
   Abrechnung <- Abrechnung|>
     mutate(`Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1] * Verteilschlüssel,
            `Umsatz [CHF]` = sum(`Umsatz [CHF]`) * Verteilschlüssel, # this will not change anything because Verteilschlüssel was calculated by Umsatz
            `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) * Verteilschlüssel,
            `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) * Verteilschlüssel,
            `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) * Verteilschlüssel,
-           
+           `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`) * Verteilschlüssel,
            `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) * Verteilschlüssel,
-           `Verleiherabzug [CHF]` =
-             if_else(is.na(`Abzug fix [CHF]`[1]),
-                     (sum(`Umsatz Netto 3 [CHF]`) * (`Abzug [%]`[1] / 100)) + `MWST [CHF]`[1],
-                     sum(`Umsatz für Netto3 [CHF]`) - `Abzug fix [CHF]`[1]
-             ),
-           # Verleiherrechnung verwenden falls vorhanden
-           `Verleiherabzug [CHF]` =
-             if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                     `Verleiherabzug [CHF]`,
-                     `Verleiherrechnungsbetrag [CHF]`
-             ),
            `Ticketgewinn [CHF]` = sum(`Umsatz [CHF]`) - sum(`Verleiherabzug [CHF]`),
            `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`) * Verteilschlüssel,
            `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`) * Verteilschlüssel,
@@ -908,6 +897,7 @@ for (ID in names(l_abrechnung)) {
     list(
       IDs = tibble(IDs = IDs),
       Abrechnung = Abrechnung, 
+      s_Abrechnung = s_Abrechnung,
       Einahmen = event_einnahmen,
       Ausgaben = event_ausgaben,
       Verleiherrechnung = Verleiherrechnung,
