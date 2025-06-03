@@ -381,7 +381,7 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
       } else if (inherits(value, "difftime")) {
         paste0("`", col, "` = '", format(as.POSIXct(value, origin = "1970-01-01"), "%H:%M:%S"), "'")
       } else {
-        paste0("`", col, "` = ", value)
+        paste0("`", col, "` = ","'", value, "'")
       }
     }, character(1)),
     collapse = ", "

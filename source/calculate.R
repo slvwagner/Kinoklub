@@ -110,9 +110,6 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
   pull()
 c_Kiosk
 
-# Disconnect from DB ####
-dbDisconnect(con)
-
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
@@ -280,12 +277,12 @@ if(nrow(df_spez_preis_na) > 0){
           )
 }
 
-# look up Einkaufspreise per date ####
-ii <- 1
-l_temp <- 1:nrow(df_Kiosk)|>
+# look up Einkaufspreise per date (Gültig ab Datum?) ####
+ii <- 707
+l_temp <- df_Kiosk$ID|>
   lapply(function(ii){
     row_kiosk <- df_Kiosk|>
-      slice(ii)
+      filter(ID == ii)
     row_kiosk
     
     row_einkaufspreise <- `Einkauf Kiosk`|>
@@ -309,9 +306,19 @@ l_temp <- 1:nrow(df_Kiosk)|>
       df_temp
       
       df_temp <- df_temp|>
-        mutate(`time deviation` = `Gültig ab Datum` - Datum)|>
-        filter(`time deviation` == min(`time deviation`))|> # only keep the smallest `time deviation`
+        mutate(`time deviation` = abs(`Gültig ab Datum` - Datum))|>
+        filter(`time deviation` == min(abs(`time deviation`)))|> # only keep the smallest `time deviation`
         mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
+      
+      df_temp|>
+        select(-Menge, -Lieferant, -`Einzelpreis [CHF]`, -`Überschuss / Manko [CHF]`, -`Gewinn [CHF]`, - ID_Kioskartikel)|>
+        filter(`time deviation` == min(`time deviation`))
+      
+      # delete time defiation
+      df_temp <- df_temp|>
+        mutate(`time deviation` = NULL)
+     
+      
       return(df_temp)
     }
   })
@@ -321,8 +328,9 @@ df_temp <- bind_rows(l_temp)|>
   select("ID", "Event ID", "Datum", "ID_Kioskartikel", "Artikelname-Kassensystem", "Verkaufsartikel", "Verkaufspreis [CHF]", "Menge", "Einkaufspreis [CHF]", "Lieferant", "Gültig ab Datum",
          "Einzelpreis [CHF]", "Anzahl", "Umsatz [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]")
 df_temp
+df_temp$ID <- df_Kiosk$ID
 
-# V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
+## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
 df_temp <- bind_rows(df_temp|>
                        filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
                        mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
@@ -330,13 +338,43 @@ df_temp <- bind_rows(df_temp|>
                        filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz")))|>
   arrange(ID)
 
-df_Kiosk <- df_temp|>
+df_temp <- df_temp|>
   mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
                                    NA,
                                    Verkaufsartikel)
   )
 
+## Update data in data base ####
 
+# what has changed 
+df_temp <- anti_join(df_temp, 
+                     df_Kiosk,
+                     by = join_by(ID, `Gültig ab Datum`)
+                     )
+df_temp
+
+# updata database
+if(nrow(df_temp) > 0){
+  c_class <- lapply(df_temp, class)|>
+    unlist()
+  c_class
+  
+  ii <- 1
+  1:nrow(df_temp) |>
+    lapply(function(ii) {
+      DB_edit_row_in_table(
+        con = con,
+        table_name = "df_Kiosk",
+        primary_key_col = names(df_Kiosk[ii, 1]),
+        primary_key_value = pull(df_temp[ii, 1]),
+        updated_values = df_temp[ii,],
+        c_class
+      )
+    })
+}
+
+# Database disconnect
+DBI::dbDisconnect(con)
 
 # Abos und Kinogutscheine ####
 ## Kino-Abo ####
