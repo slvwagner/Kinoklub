@@ -524,7 +524,7 @@ df_Abrechnung <-left_join(df_Abrechnung,
 remove(df_Tickets)
 
 
-### Umsatz und Verleiherabzug MWST und Ticketgewinn #####
+### Berechnen von Umsatz und Verleiherabzug MWST und Ticketgewinn #####
 names(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
@@ -543,10 +543,16 @@ df_Abrechnung <- df_Abrechnung|>
              `Verleiherrechnungsbetrag [CHF]`
            ),
          `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                        `Verleiherabzug [CHF]` * (c_MWST / 100),
-                        `Verleiherabzug [CHF]` - (`Verleiherabzug [CHF]` / (1 + (c_MWST / 100)))
+                                `Verleiherabzug [CHF]` * (c_MWST / 100),
+                                `Verleiherabzug [CHF]` - (`Verleiherabzug [CHF]` / (1 + (c_MWST / 100)))
          ),
-         `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]` - `MWST [CHF]`
+         `Verleiherabzug [CHF]` = 
+           if_else(
+             is.na(`Verleiherrechnungsbetrag [CHF]`),
+             `Verleiherabzug [CHF]` + `MWST [CHF]`,
+             `Verleiherrechnungsbetrag [CHF]`
+           ),
+         `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`
   )
 
 df_Abrechnung|>
@@ -847,7 +853,7 @@ for (ID in names(l_abrechnung)) {
       )
     )
   }
-  
+
   ## Summary Abrechnung ####
   s_Abrechnung <- Abrechnung|>
     reframe(
@@ -857,20 +863,47 @@ for (ID in names(l_abrechnung)) {
       `Abzug fix [CHF]` = `Abzug fix [CHF]`[1],
       `Kinoförderer gratis?` = `Kinoförderer gratis?`[1], 
       `SUISA-Vorabzug [%]` = `SUISA-Vorabzug [%]`[1],
-      `Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1] ,
       `Umsatz [CHF]` = sum(`Umsatz [CHF]`) , # this will not change anything because Verteilschlüssel was calculated by Umsatz
       `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) ,
       `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) ,
       `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) ,
-      `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`),
-      `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) ,
-      `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`),
+      `Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1],
       `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`),
       `Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`),
       `Eventeinnahmen [CHF]` = sum(`Eventeinnahmen [CHF]`),
-      `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`),
-      `Gewinn aus Fimvorführung [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`)
+      `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`)
     )
+  
+  s_Abrechnung <- s_Abrechnung|>
+    mutate(           
+      # Abzug fix?
+      `Verleiherabzug [CHF]` =
+        if_else(is.na(`Abzug fix [CHF]`),
+                `Umsatz Netto 3 [CHF]` * (`Abzug [%]` / 100),
+                `Umsatz Netto 3 [CHF]` - `Abzug fix [CHF]`
+        ),
+      `Verleiherabzug [CHF]` =
+        if_else(
+          is.na(`Verleiherrechnungsbetrag [CHF]`),
+          `Verleiherabzug [CHF]`,
+          `Verleiherrechnungsbetrag [CHF]`
+        ),
+      `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
+                             `Verleiherabzug [CHF]` * (c_MWST / 100),
+                             `Verleiherabzug [CHF]` - (`Verleiherabzug [CHF]` / (1 + (c_MWST / 100)))
+      ),
+      `Verleiherabzug [CHF]` =
+        if_else(
+          is.na(`Verleiherrechnungsbetrag [CHF]`),
+          `Verleiherabzug [CHF]` + `MWST [CHF]`,
+          `Verleiherrechnungsbetrag [CHF]`
+        ),
+      `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`,
+      `Gewinn aus Fimvorführung [CHF]` = 
+        sum(`Ticketgewinn [CHF]`, `Kioskgewinn [CHF]`, 
+            `Eventeinnahmen [CHF]`, -`Eventausgaben [CHF]`, `Überschuss / Manko [CHF]`
+            )
+      )
   s_Abrechnung
   
   ## Abrechnung (Verteilen nach Verteilschlüssel) ####
@@ -882,7 +915,6 @@ for (ID in names(l_abrechnung)) {
            `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) * Verteilschlüssel,
            `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`) * Verteilschlüssel,
            `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) * Verteilschlüssel,
-           `Ticketgewinn [CHF]` = sum(`Umsatz [CHF]`) - sum(`Verleiherabzug [CHF]`),
            `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`) * Verteilschlüssel,
            `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`) * Verteilschlüssel,
            `Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`) * Verteilschlüssel,

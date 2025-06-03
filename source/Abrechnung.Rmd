@@ -334,11 +334,16 @@ Gewinn_Kiosk|>
 
 ```{r echo=FALSE}
 Spezialpreise <- l_abrechnung[[as.character(ii)]]$Kiosk|>
-  filter(str_detect(`Artikelname-Kassensystem`, rebus::or("spez", "Spez")))|>
+  filter(str_detect(`Artikelname-Kassensystem`, rebus::or("spez", "Spez")))
+
+Spezialpreise <- Spezialpreise|>
   group_by(`Artikelname-Kassensystem`, Verkaufsartikel)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` =  sum(`Umsatz [CHF]`)
-          )
+          )|>
+  mutate(`Verkaufspreis [CHF]` = `Umsatz [CHF]` / Anzahl)|>
+  select(`Artikelname-Kassensystem`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+
 Spezialpreise|>
     knitr::kable(digits = 2)
 ```
@@ -434,7 +439,7 @@ Manko|>
 s_Kiosk <-  bind_cols(tibble(
   Bezeichnung = c(
     "Gewinn Kioskartikel",
-    "Umsatz Spezialartike",
+    "Umsatz Spezialartikel",
     "Ausgaben für den Event",
     "Manko / Überschuss"
   )),
@@ -477,6 +482,13 @@ df_temp <- tibble(
 df_temp|>
   knitr::kable(digits = 2)
 ```
+
+
+```{r}
+
+```
+
+
 
 ```{r}
 df_temp|>
