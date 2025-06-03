@@ -26,7 +26,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####
@@ -715,11 +715,12 @@ for (ID in names(l_abrechnung)) {
       paste0("\n",
         paste0(
           "Für `Event ID` = ", df_temp$`Event ID`, ", ", df_temp$Filmtitel, ", gibt es keine Verleiherrechnung.",
-          "\nBitte in der Tabelle `Spezialpreisekiosk` korrigieren.\n", collapse = "\n"
+          "\nBitte in der Tabelle: `Ausgaben`, Kategorie: `Verleiher` korrigieren.\n", collapse = "\n"
           )
         )
       )
   }
+  
   ## Verleiherrechnung ###
   Verleiherrechnung <- Ausgaben|>
     filter(Kategorie == "Verleiher", 
