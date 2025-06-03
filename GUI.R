@@ -1095,8 +1095,62 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  ## Datenbank backup ####
+  shiny::observeEvent(input$DB_backup,{
+    # Execution time 
+    c_time <- Sys.time()
+    
+    # check DB connection
+    if (!dbIsValid(con)) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+
+    shiny::withProgress(message = "Datenbank backup", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Datenbank backup", 1, "of 3"))
+      ausgabe_text("Dateien wurden eingelesen.\n")
+      calculate_warnings("")
+      
+      # read data
+      tryCatch({
+        # Fehler abfangen
+        ausgabe_text(capture.output({
+          withCallingHandlers(
+            {
+              source("source/SQL/SQL_backup_data.R")
+            },
+            warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            }
+          )
+        }, type = "message"))
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            error_calculate,
+            e$message,
+            collapse = ""
+          )
+        )
+      })
+
+      shiny::incProgress(1 / 2, detail = paste("Datenbank backup", 3, "of 3"))
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+             "Datenbank-Backup durchgeführt!\n",
+             "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!",
+             calculate_warnings())|>
+        ausgabe_text()
+    })
+  })
+  
   ##  Button: Abrechnungsjahr #####
-  ### 1 ####  
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
@@ -2823,6 +2877,7 @@ server <- function(input, output, session) {
     shiny::tagList(
       shiny::actionButton("launch_app", "Input Daten editieren"),
       shiny::actionButton("stop_app", "Input Daten editieren stoppen"),
+      shiny::actionButton("DB_backup", "Datenbank backup"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
