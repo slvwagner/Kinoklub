@@ -94,7 +94,6 @@ if(nrow(MWST) == 1){
     pull()
 } else stop("Die Mehrwertsteuer konnte für das Abrechnungsjahr ",c_Abrechnungsjahr, " nicht gefunden werden.")
 
-
 ## Kiosk files ####
 c_eintritt <- tbl(con, "Eintritt files")|>
   filter(ID %in% Programm$`Event ID`)|>
@@ -111,6 +110,8 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
   pull()
 c_Kiosk
 
+# Disconnect from DB ####
+dbDisconnect(con)
 
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
@@ -995,8 +996,7 @@ remove(ii,
        c_filePath
 )
 
-# Disconnect from DB ####
-dbDisconnect(con)
+
 
 # user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
