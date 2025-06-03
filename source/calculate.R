@@ -712,6 +712,7 @@ for (ID in names(l_abrechnung)) {
   Verleiherrechnung <- Ausgaben|>
     filter(Kategorie == "Verleiher", 
            `Event ID` %in% IDs)
+  Verleiherrechnung
   
   ## Eventeinnahmen ####
   event_einnahmen <- Einnahmen|>
