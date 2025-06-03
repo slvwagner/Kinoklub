@@ -901,7 +901,7 @@ for (ID in names(l_abrechnung)) {
       `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`,
       `Gewinn aus Fimvorführung [CHF]` = 
         sum(`Ticketgewinn [CHF]`, `Kioskgewinn [CHF]`, 
-            `Eventeinnahmen [CHF]`, -`Eventausgaben [CHF]`, `Überschuss / Manko [CHF]`
+            `Eventeinnahmen [CHF]`, -`Eventausgaben [CHF]`, `Überschuss / Manko [CHF]`, na.rm = TRUE
             )
       )
   s_Abrechnung
@@ -947,13 +947,12 @@ remove(Eintritte,
        df_mapping, df_temp,
        Verteilschlüssel,
        Abrechnung,
-       temp_Ausgaben,
+       event_ausgaben,
        event_einnahmen,
        s_Eintritte,
        s_Kiosk,
        cnt, ID, p, Umsatz, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt, Gewinn,
-       df_Abrechnung, 
-       c_test
+       df_Abrechnung
        )
 l_abrechnung
 l_abrechnung[["35"]]
