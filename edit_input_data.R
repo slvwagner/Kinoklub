@@ -2494,6 +2494,62 @@ server <- function(input, output, session) {
           ),
           easyClose = TRUE
         ))
+      } ##### Spezialpreisekiosk #### 
+      else if (lastEdited_data_set_name() == "Spezialpreisekiosk"){
+        df_temp <- current_data()[selected_row,]
+        df_temp
+        
+        df_Kiosk <- tbl(DB_con(), "df_Kiosk")|>
+          filter(`Event ID` == df_temp$`Event ID`,
+                 Verkaufsartikel == df_temp$Artikelname
+                 )|>
+          collect()
+        
+        programm <- DB_get_table("Programm", DB_con())
+        
+        df_Kiosk <- df_Kiosk|>
+          left_join(
+            programm
+          )|>
+          select(ID, `Event ID`, `Artikelname-Kassensystem`, Verkaufsartikel, Filmtitel, Suisanummer, Datum)
+      
+        if(nrow(df_Kiosk) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Kiosk)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_Kiosk)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_Kiosk) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung die Spezialpreisdefinition ID = ", df_temp$ID,", `", df_temp$Spezialpreis,"` kann nicht gelöscht werden verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Die Definition wird in der Tabelle df_Kiosk verwendet und muss da zuerst gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(modalDialog(
+            title = "Selektierte Zeile löschen?",
+            footer = tagList(
+              modalButton("Abbrechen"),
+              actionButton("confirm_delete", "Löschen")
+            ),
+            easyClose = TRUE
+          ))
+        }
+        
       } 
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
