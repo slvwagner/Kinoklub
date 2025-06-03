@@ -1990,7 +1990,17 @@ server <- function(input, output, session) {
                              lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
                              c_class
                              )
-                             
+        
+        # Update the list
+        l_temp <- l_data()
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # update all data
+        l_data(l_temp)
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        
         # update to render 
         df_temp|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
