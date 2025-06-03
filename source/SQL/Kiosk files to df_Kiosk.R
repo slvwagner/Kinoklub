@@ -30,4 +30,4 @@ new_rows <- new_rows|>
 
 DB_copy_table(new_rows,con = con, table_name = "df_Kiosk")
 
-new_rows
+print("done")
