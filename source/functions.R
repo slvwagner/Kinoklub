@@ -954,18 +954,18 @@ convert_data_kiosk_txt <- function(fileName, con) {
            "Einzelpreis [CHF]", "Anzahl", "Umsatz [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]")
   df_temp
   
-  ## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
-  df_temp <- bind_rows(df_temp|>
-                         filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
-                         mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
-                       df_temp|>
-                         filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz")))|>
-    arrange(ID)
-  df_temp <- df_temp|>
-    mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
-                                     NA,
-                                     Verkaufsartikel)
-    )
+  # ## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
+  # df_temp <- bind_rows(df_temp|>
+  #                        filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
+  #                        mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
+  #                      df_temp|>
+  #                        filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz")))|>
+  #   arrange(ID)
+  # df_temp <- df_temp|>
+  #   mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
+  #                                    NA,
+  #                                    Verkaufsartikel)
+  #   )
   
   # function return
   return(df_temp)
