@@ -433,8 +433,6 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
-        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-        shiny::tags$hr(),
         actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
