@@ -26,7 +26,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2025L
+  c_Abrechnungsjahr <- 2023L
 }
 
 # load data from Database ####
@@ -278,7 +278,7 @@ if(nrow(df_spez_preis_na) > 0){
 }
 
 # look up Einkaufspreise per date (Gültig ab Datum?) ####
-ii <- 707
+ii <- 1
 l_temp <- df_Kiosk$ID|>
   lapply(function(ii){
     row_kiosk <- df_Kiosk|>
@@ -310,14 +310,34 @@ l_temp <- df_Kiosk$ID|>
         filter(`time deviation` == min(abs(`time deviation`)))|> # only keep the smallest `time deviation`
         mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
       
-      df_temp|>
-        select(-Menge, -Lieferant, -`Einzelpreis [CHF]`, -`Überschuss / Manko [CHF]`, -`Gewinn [CHF]`, - ID_Kioskartikel)|>
-        filter(`time deviation` == min(`time deviation`))
+      # df_temp|>
+      #   select(-Menge, -Lieferant, -`Einzelpreis [CHF]`, -`Überschuss / Manko [CHF]`, -`Gewinn [CHF]`, - ID_Kioskartikel)|>
+      #   filter(`time deviation` == min(`time deviation`))
+      
+      if(nrow(df_temp) > 1 | nrow(df_temp) == 0){
+        df_temp <-
+          left_join(
+            row_einkaufspreise ,
+            row_kiosk|>
+              select(-`Verkaufspreis [CHF]`, -Menge,  -`Einkaufspreis [CHF]`, -ID, -Lieferant, -`Gültig ab Datum`),
+            by = c(`Artikelname-Kassensystem` = "Verkaufsartikel")
+          )
+        df_temp
+        
+        df_temp <- df_temp|>
+          mutate(`time deviation` = abs(`Gültig ab Datum` - Datum))|>
+          filter(`time deviation` == min(abs(`time deviation`)))|> # only keep the smallest `time deviation`
+          mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
+      }
+      
+      # df_temp|>
+      #   select(-Menge, -Lieferant, -`Einzelpreis [CHF]`, -`Überschuss / Manko [CHF]`, -`Gewinn [CHF]`, - ID_Kioskartikel)|>
+      #   filter(`time deviation` == min(`time deviation`))
       
       # delete time defiation
       df_temp <- df_temp|>
         mutate(`time deviation` = NULL)
-     
+      df_temp
       
       return(df_temp)
     }
@@ -328,6 +348,8 @@ df_temp <- bind_rows(l_temp)|>
   select("ID", "Event ID", "Datum", "ID_Kioskartikel", "Artikelname-Kassensystem", "Verkaufsartikel", "Verkaufspreis [CHF]", "Menge", "Einkaufspreis [CHF]", "Lieferant", "Gültig ab Datum",
          "Einzelpreis [CHF]", "Anzahl", "Umsatz [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]")
 df_temp
+df_Kiosk
+
 df_temp$ID <- df_Kiosk$ID
 
 ## V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
