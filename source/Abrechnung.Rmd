@@ -485,7 +485,9 @@ df_temp|>
 
 
 ```{r}
-
+test <- l_abrechnung[[as.character(ii)]]$s_Abrechnung
+test|>
+  knitr::kable(digits = 2)
 ```
 
 
