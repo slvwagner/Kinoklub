@@ -1322,7 +1322,6 @@ server <- function(input, output, session) {
       filter(is.na(ID_Kioskartikel))|>
       mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`, digits = 2))
     
-    
     # test 
     c_test <- identical(str(df_spez_preis_na|>select(-ID)), str(result|>select(-ID)))
     c_test <- identical(df_spez_preis_na|>select(-ID), result|>select(-ID))
