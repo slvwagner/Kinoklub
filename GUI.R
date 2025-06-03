@@ -977,6 +977,51 @@ server <- function(input, output, session) {
     
   }
   
+  
+  ### Update Film table and date range to choose from ####
+  Update_Film_table <- function() {
+    
+    # Update date range to choose from
+    df_temp <- DB_get_table("Programm", DB_con())|>
+      filter(year(Datum) == input$c_Abrechnungsjahr)
+    if(nrow(df_temp) == 0){
+      warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
+      START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
+      End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
+    }else{
+      START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
+      End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
+    }
+    
+    # creat content to render 
+    df_temp <- data_env$l_abrechnung|>
+      lapply(function(x){
+        x$Abrechnung
+      })|>
+      bind_rows()
+    
+    if(nrow(df_temp) == 0) {
+      paste0("Es wurden keine Datensätze für das Abrechnungsjahr: ", Abrechungsjahr(), " gefunden.",
+             "\nBitte Dateinen hochladen!")|>
+        ausgabe_text()
+      req(NULL) # early stop if no data available
+    }
+    
+    df_temp <- df_temp|>
+      filter(between(Datum, START_date_choose(), End_date_choose()))|>
+      arrange(desc(Datum), desc(Zeit)) |>
+      mutate(Datum = format(Datum, "%d.%m.%Y"),
+             Zeit = format(Zeit, "%H%M")) 
+    
+    df_temp <- df_temp|>
+      select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
+    
+    # Render
+    current_data(df_temp)
+    
+  }
+  
+  
   ## Shiny reactive variables ####
   ### DB connection ####
   DB_con <- shiny::reactiveVal(con)
@@ -1100,19 +1145,7 @@ server <- function(input, output, session) {
         )
       })
       
-      df_temp <- DB_get_table("Programm", DB_con())|>
-        filter(year(Datum) == input$c_Abrechnungsjahr)
-      if(nrow(df_temp) == 0){
-        warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
-        START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
-        End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
-      }else{
-        START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
-        End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
-        
-        START_date_choose()
-        End_date_choose()
-      }
+      Update_Film_table()
       
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
@@ -1168,16 +1201,8 @@ server <- function(input, output, session) {
         )
       })
       
-      df_temp <- DB_get_table("Programm", DB_con())|>
-        filter(year(Datum) == input$c_Abrechnungsjahr)
-      if(nrow(df_temp) == 0){
-        warning("Es gibt noch keine Vorführung für das Jahr ", input$c_Abrechnungsjahr)
-        START_date_choose(paste0(input$c_Abrechnungsjahr,"-01-01")|>as.Date())
-        End_date_choose(paste0(input$c_Abrechnungsjahr,"-12-31")|>as.Date())
-      }else{
-        START_date_choose(paste0(min(df_temp$Datum),"-01-01")|>as.Date())
-        End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
-      }
+      Update_Film_table()
+
       
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
@@ -1199,8 +1224,7 @@ server <- function(input, output, session) {
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-    
-    print("here")
+
     # Spez Verkaufsartikel / Spezialpreise einlesen 
     df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk", DB_con())|>
       convert_to_template_types(l_template$Spezialpreisekiosk)|>
@@ -1218,10 +1242,6 @@ server <- function(input, output, session) {
     
     # join Filmtitel
     df_spez_preis <- df_spez_preis|>
-      # left_join(Programm|>
-      #             select(`Event ID`,Filmtitel),
-      #           by = join_by(`Event ID`)
-      # )|>
       left_join( # look up Spezialpreise
         df_Spezialpreisekiosk|>
           select(-ID),
@@ -2277,6 +2297,7 @@ server <- function(input, output, session) {
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
     
+    
     file_content <- Run_capture_error_warnings(
       DB_upload_file, con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
                      overwrite = TRUE
@@ -2625,32 +2646,9 @@ server <- function(input, output, session) {
   
   ## Reder: Datatable Flim #####
   output$dateTable <-  DT::renderDT({
-    df_temp <- data_env$l_abrechnung|>
-      lapply(function(x){
-        x$Abrechnung
-      })|>
-      bind_rows()
-    
-    if(nrow(df_temp) == 0) {
-      paste0("Es wurden keine Datensätze für das Abrechnungsjahr: ", Abrechungsjahr(), " gefunden.",
-             "\nBitte Dateinen hochladen!")|>
-        ausgabe_text()
-      req(NULL) # early stop if no data available
-    }
-
-    df_temp <- df_temp|>
-      filter(between(Datum, START_date_choose(), End_date_choose()))|>
-      arrange(desc(Datum), desc(Zeit)) |>
-      mutate(Datum = format(Datum, "%d.%m.%Y"),
-             Zeit = format(Zeit, "%H%M")) 
-    
-    df_temp <- df_temp|>
-      select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
-    
-    current_data(df_temp)
-    
+    writeLines("DT::renderDT")
     datatable(
-      df_temp,
+      current_data(),
       filter = "top",
       rownames = FALSE,
       class = 'datatables',
