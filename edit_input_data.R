@@ -2365,7 +2365,9 @@ server <- function(input, output, session) {
       }
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        
       # update all data
       l_data(l_temp)
       # update choices
