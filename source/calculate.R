@@ -715,7 +715,7 @@ for (ID in names(l_abrechnung)) {
       paste0("\n",
         paste0(
           "Für `Event ID` = ", df_temp$`Event ID`, ", ", df_temp$Filmtitel, ", gibt es keine Verleiherrechnung.",
-          "\nBitte in den Ausgaben Kategorie `Verleiher` korrigieren.\n", collapse = "\n"
+          "\nBitte in der Tabelle `Spezialpreisekiosk` korrigieren.\n", collapse = "\n"
           )
         )
       )
