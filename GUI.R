@@ -977,7 +977,6 @@ server <- function(input, output, session) {
     
   }
   
-  
   ### Update Film table and date range to choose from ####
   Update_Film_table <- function() {
     
@@ -1021,7 +1020,6 @@ server <- function(input, output, session) {
     
   }
   
-  
   ## Shiny reactive variables ####
   ### DB connection ####
   DB_con <- shiny::reactiveVal(con)
@@ -1041,7 +1039,6 @@ server <- function(input, output, session) {
   ### last uploaded file path #### 
   last_uploaded_table_name <- shiny::reactiveVal(NULL)
   
-    
   ### warning ####
   # calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
   calculate_warnings <- shiny::reactiveVal("")
