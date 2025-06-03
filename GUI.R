@@ -351,7 +351,7 @@ server <- function(input, output, session) {
     c_raw <- readLines("source/Statistik.Rmd")
     
     # change title 
-    c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",c_Abrechnungsjahr,"\"")
+    c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
     
     # neues file schreiben mit toc
     c_raw |>
@@ -383,7 +383,7 @@ server <- function(input, output, session) {
     c_raw <- readLines("source/Jahresrechnung.Rmd")
     
     # change title 
-    c_raw[str_detect(c_raw, "Jahresabrechnung Kinoklub")] <- paste0("title: \"Jahresrechnung ",c_Abrechnungsjahr,"\"")
+    c_raw[str_detect(c_raw, "Jahresabrechnung Kinoklub")] <- paste0("title: \"Jahresrechnung ",Abrechungsjahr(),"\"")
     
     # Inhaltsverzeichnis
     c_raw |>
