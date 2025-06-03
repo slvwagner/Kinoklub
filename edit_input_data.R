@@ -1989,18 +1989,18 @@ server <- function(input, output, session) {
         DB_edit_row_in_table(DB_con(), 
                              lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
                              c_class
-        )
+                             )
+                             
+        # update to render 
+        df_temp|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+          current_data()
         
         ##### update joined data sets and choices ####
         if(lastEdited_data_set_name() == "Programm"){
           
           # update Einsatzplan
           Update_Einsatzplan(df_updated, c_class)
-          
-          # render 
-          df_temp|>
-            arrange(desc(`Event ID`))|>
-            current_data()
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
           # update 
@@ -2023,13 +2023,10 @@ server <- function(input, output, session) {
           
           # render
           df_temp3|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
             current_data()
 
-        }  else {
-          df_temp|>
-            arrange(desc(ID))|>
-            current_data()
-        }
+        } 
       }
       
       shiny::incProgress(1 , detail = paste("data selection", 2, "of 2"))
