@@ -1090,12 +1090,12 @@ server <- function(input, output, session) {
   DB_pw <- shiny::reactiveVal(DB_pw)
 
   
-  ## Abort: do nothing! ####
+  ## Button: Abort, do nothing! ####
   observeEvent(input$abort,{
     removeModal()
   })
   
-  ## Datenbank backup ####
+  ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
     # Execution time 
     c_time <- Sys.time()
@@ -1269,7 +1269,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Spezialpreise neu Einlesen ####
+  ## Button: Spezialpreise neu Einlesen ####
   shiny::observeEvent(input$spezpreis_recalc,{
     
     if (!dbIsValid(con)) {
@@ -2346,7 +2346,7 @@ server <- function(input, output, session) {
     }
   })
 
-  ## Upload Eintritt file already exists ####
+  ## Button: Upload Eintritt file already exists ####
   shiny::observeEvent(input$upload_file_eintritt, {
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
@@ -2470,7 +2470,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Upload kiosk file already exists ####
+  ## Button: Upload kiosk file already exists ####
   shiny::observeEvent(input$upload_file_kiosk, {
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
@@ -2612,7 +2612,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Delete old entries and upload new entries to database ####
+  ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
     
@@ -2930,7 +2930,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## stop input data edit app #####
+  ## Button stop input data edit app #####
   observeEvent(input$stop_app, {
     # Execution time 
     c_time <- Sys.time()
