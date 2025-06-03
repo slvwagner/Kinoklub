@@ -1101,7 +1101,7 @@ server <- function(input, output, session) {
     c_time <- Sys.time()
     
     # check DB connection
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
