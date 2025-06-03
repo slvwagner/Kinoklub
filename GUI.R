@@ -2875,8 +2875,8 @@ server <- function(input, output, session) {
   ## Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      shiny::actionButton("launch_app", "Input Daten editieren"),
-      shiny::actionButton("stop_app", "Input Daten editieren stoppen"),
+      shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
+      shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
       shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
