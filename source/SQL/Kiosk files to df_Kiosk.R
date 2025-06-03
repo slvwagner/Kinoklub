@@ -15,7 +15,6 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-
 df_files <- tbl(con, "Kiosk files")|>
   select(`Event ID`, filename)|>
   arrange(`Event ID`)|>
@@ -29,6 +28,6 @@ new_rows <- new_rows|>
   bind_rows()|>
   mutate(ID = row_number())
 
-DB_copy_table(new_rows,"df_Kiosk")
+DB_copy_table(new_rows,con = con, table_name = "df_Kiosk")
 
 new_rows
