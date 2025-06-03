@@ -2877,7 +2877,7 @@ server <- function(input, output, session) {
     shiny::tagList(
       shiny::actionButton("launch_app", "Input Daten editieren"),
       shiny::actionButton("stop_app", "Input Daten editieren stoppen"),
-      shiny::actionButton("DB_backup", "Datenbank backup"),
+      shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
