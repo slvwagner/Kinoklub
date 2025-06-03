@@ -2087,12 +2087,14 @@ server <- function(input, output, session) {
   
     # Update the list
     l_temp <- l_data()
-    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
     # update all data
     l_data(l_temp)
     # update choices
     update_choices(l_data())|>
       column_choices()
+    
     # update to render 
     current_data(updated_data)
     
@@ -2196,7 +2198,8 @@ server <- function(input, output, session) {
 
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       # update all data
       l_data(l_temp)
       # update choices
@@ -2301,7 +2304,9 @@ server <- function(input, output, session) {
       }
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
       # update all data
       l_data(l_temp)
       # update choices
@@ -2927,7 +2932,8 @@ server <- function(input, output, session) {
         
         # Update the list
         l_temp <- l_data()
-        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         
         # joined tables 
         if(lastEdited_data_set_name() == "Programm"){
@@ -3293,16 +3299,6 @@ server <- function(input, output, session) {
       )|>
         select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
                "Schauspieler", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
-      
-      
-      # paste0(paste0("\"",names(new_row)), "\"", collapse = ", ")|>
-      #   writeLines()
-      # 
-      # df_temp1 <- DB_get_table("Filmvorschlag", DB_con())|>
-      #   slice(1)|>
-      #   collect()
-      # paste0(paste0("\"",names(df_temp1)), "\"", collapse = ", ")|>
-      #   writeLines()
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
