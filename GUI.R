@@ -1154,7 +1154,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$c_Abrechnungsjahr,{
     req(input$c_Abrechnungsjahr)
     
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -1217,7 +1217,7 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
     
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -1272,7 +1272,7 @@ server <- function(input, output, session) {
   ## Button: Spezialpreise neu Einlesen ####
   shiny::observeEvent(input$spezpreis_recalc,{
     
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -1930,7 +1930,7 @@ server <- function(input, output, session) {
   ## Upload handler #####
   file_data <- shiny::reactive({
     
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
@@ -2616,7 +2616,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$update_entries, {
     removeModal()
     
-    if (!dbIsValid(con)) {
+    if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
