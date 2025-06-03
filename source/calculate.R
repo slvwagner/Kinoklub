@@ -280,6 +280,63 @@ if(nrow(df_spez_preis_na) > 0){
           )
 }
 
+# look up Einkaufspreise per date ####
+ii <- 1
+l_temp <- 1:nrow(df_Kiosk)|>
+  lapply(function(ii){
+    row_kiosk <- df_Kiosk|>
+      slice(ii)
+    row_kiosk
+    
+    row_einkaufspreise <- `Einkauf Kiosk`|>
+      filter(`Artikelname-Kassensystem` == row_kiosk$Verkaufsartikel[1])
+    row_einkaufspreise
+    
+    if(nrow(row_einkaufspreise) == 0) { # Keine Aritkel gefunden (Spezialpreis)
+      return(row_kiosk)
+    } else { # Artikelabgleich
+      names(row_einkaufspreise) == names(row_kiosk)
+      names(row_einkaufspreise) 
+      names(row_kiosk)
+      
+      df_temp <-
+        left_join(
+          row_einkaufspreise ,
+          row_kiosk|>
+            select(-`Verkaufspreis [CHF]`, -Menge,  -`Einkaufspreis [CHF]`, -ID, -Lieferant, -`Gültig ab Datum`),
+          by = c(`Artikelname-Kassensystem` = "Artikelname-Kassensystem")
+        )
+      df_temp
+      
+      df_temp <- df_temp|>
+        mutate(`time deviation` = `Gültig ab Datum` - Datum)|>
+        filter(`time deviation` == min(`time deviation`))|> # only keep the smallest `time deviation`
+        mutate(`Gewinn [CHF]` = `Umsatz [CHF]`- (Anzahl * `Einkaufspreis [CHF]`))
+      return(df_temp)
+    }
+  })
+
+df_temp <- bind_rows(l_temp)|>
+  mutate(ID = row_number())|>
+  select("ID", "Event ID", "Datum", "ID_Kioskartikel", "Artikelname-Kassensystem", "Verkaufsartikel", "Verkaufspreis [CHF]", "Menge", "Einkaufspreis [CHF]", "Lieferant", "Gültig ab Datum",
+         "Einzelpreis [CHF]", "Anzahl", "Umsatz [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]")
+df_temp
+
+# V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch" ####
+df_temp <- bind_rows(df_temp|>
+                       filter(`Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz"))|>
+                       mutate(`Artikelname-Kassensystem` = "Popcorn frisch"),
+                     df_temp|>
+                       filter(! `Artikelname-Kassensystem` %in% c("Popcorn frisch", "Popcorn Salz")))|>
+  arrange(ID)
+
+df_Kiosk <- df_temp|>
+  mutate(Verkaufsartikel = if_else(str_detect(tolower(Verkaufsartikel),"spez"),
+                                   NA,
+                                   Verkaufsartikel)
+  )
+
+
 
 # Abos und Kinogutscheine ####
 ## Kino-Abo ####
