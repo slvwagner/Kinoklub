@@ -1109,13 +1109,13 @@ server <- function(input, output, session) {
   file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
   
   ### Does the Statistik.html file exist ####
-  file_exists_statistk <- shiny::reactiveVal(file.exists("output/Statistik.html"))
+  file_exists_statistk <- shiny::reactiveVal(file.exists("output/webserver/Statistik.html"))
   
   ### Does the Jahresrechnung.html file exist ####
-  file_exists_jahhresrechnung <- shiny::reactiveVal(file.exists("output/Jahresrechnung.html"))
+  file_exists_jahhresrechnung <- shiny::reactiveVal(file.exists("output/webserver/Jahresrechnung.html"))
   
   ### Does the Archiv.html file exist ####
-  file_exists_archiv <- shiny::reactiveVal(file.exists("output/Archiv.html"))
+  file_exists_archiv <- shiny::reactiveVal(file.exists("output/webserver/Archiv.html"))
   
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
@@ -1744,7 +1744,7 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
-      file_exists_statistk(file.exists("output/Statistik.html"))
+      file_exists_statistk(file.exists("output/webserver/Statistik.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1786,7 +1786,7 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
-      file_exists_jahhresrechnung(file.exists("output/Jahresrechnung.html"))
+      file_exists_jahhresrechnung(file.exists("output/webserver/Jahresrechnung.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1842,7 +1842,7 @@ server <- function(input, output, session) {
       })
       
       file_exists(file.exists("output/webserver/index.html"))
-      file_exists_archiv(file.exists("output/Archiv.html"))
+      file_exists_archiv(file.exists("output/webserver/Archiv.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2910,7 +2910,6 @@ server <- function(input, output, session) {
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
       shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
-
 
       shiny::tags$hr(),
       
