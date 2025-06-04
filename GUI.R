@@ -1108,6 +1108,15 @@ server <- function(input, output, session) {
   ### Does the index.html file exist, is the webserver ready ####
   file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
   
+  ### Does the Statistik.html file exist ####
+  file_exists_statistk <- shiny::reactiveVal(file.exists("output/Statistik.html"))
+  
+  ### Does the Jahresrechnung.html file exist ####
+  file_exists_jahhresrechnung <- shiny::reactiveVal(file.exists("output/Jahresrechnung.html"))
+  
+  ### Does the Archiv.html file exist ####
+  file_exists_archiv <- shiny::reactiveVal(file.exists("output/Archiv.html"))
+  
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
   End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
@@ -1735,6 +1744,7 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
+      file_exists_statistk(file.exists("output/Statistik.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1776,6 +1786,7 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       file_exists(file.exists("output/webserver/index.html"))
+      file_exists_jahhresrechnung(file.exists("output/Jahresrechnung.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1831,6 +1842,7 @@ server <- function(input, output, session) {
       })
       
       file_exists(file.exists("output/webserver/index.html"))
+      file_exists_archiv(file.exists("output/Archiv.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2914,7 +2926,7 @@ server <- function(input, output, session) {
       shiny::tags$hr(),
       
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      shiny::actionButton("wordpress", "Wordpress auswerten"),
+      shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
       
@@ -2939,21 +2951,27 @@ server <- function(input, output, session) {
             style = "font-size: 24px;"
           )
         },
-        shiny::tags$a(
-          href = "reports/Statistik.html", "Statistik",
-          target = "_blank",
-          style = "font-size: 24px;"
-        ),
-        shiny::tags$a(
-          href = "reports/Jahresrechnung.html", "Jahresrechnung",
-          target = "_blank",
-          style = "font-size: 24px;"
-        ),
-        shiny::tags$a(
-          href = "reports/Archiv.html", "Archiv",
-          target = "_blank",
-          style = "font-size: 24px;"
-        )
+        if(file_exists_statistk()){
+          shiny::tags$a(
+            href = "reports/Statistik.html", "Statistik",
+            target = "_blank",
+            style = "font-size: 24px;"
+          )
+        },
+        if(file_exists_jahhresrechnung()){
+          shiny::tags$a(
+            href = "reports/Jahresrechnung.html", "Jahresrechnung",
+            target = "_blank",
+            style = "font-size: 24px;"
+          )
+        },
+        if(file_exists_archiv()){
+          shiny::tags$a(
+            href = "reports/Archiv.html", "Archiv",
+            target = "_blank",
+            style = "font-size: 24px;"
+          )
+        }
       ),
       
       shiny::hr(),
