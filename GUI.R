@@ -1015,6 +1015,48 @@ server <- function(input, output, session) {
     df_temp <- df_temp|>
       select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
     
+    
+    
+    # Render
+    current_data(df_temp)
+    Report_links()
+    
+  }
+  
+  ### Create report links in datatable ####
+  Report_links <- function(){
+    
+    df_Abrechnungen <- 
+      tibble(
+        Abrechnung = list.files(path = "output", pattern = "Abrechnung")
+      )
+
+    p <- "([\\d]+)\\.html"
+    
+    df_Abrechnungen <- df_Abrechnungen|>
+      mutate(
+        url = URLencode(paste0("reports/",Abrechnung)),
+        Abrechnung = paste0("<a href='", url, "' target='_blank'>Abrechnung</a>"),
+        ID = str_match(df_Abrechnungen$Abrechnung,p)[,2]|>as.integer())
+    df_Abrechnungen
+    
+    df_temp <- current_data()
+    
+    if("Abrechnung" %in% names(df_temp)){ 
+      df_temp <- df_temp|>
+        select(-Abrechnung)|>
+        left_join(df_Abrechnungen|>
+                    select(ID, Abrechnung),
+                  by = c(`Event ID` = "ID")
+        )
+      
+    } else { # First time run
+      df_temp <- df_temp|>
+        left_join(df_Abrechnungen|>
+                    select(ID, Abrechnung),
+                  by = c(`Event ID` = "ID")
+        )
+    }
     # Render
     current_data(df_temp)
     
@@ -1526,6 +1568,8 @@ server <- function(input, output, session) {
           )|>
           ausgabe_text()
       })
+      
+      Report_links()
 
       shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
     })
@@ -1536,8 +1580,8 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
     
-    # Execution time 
-    c_time <- Sys.time()
+    Report_links()
+    
     if(is.null(input$dateTable_rows_selected)){
       # User interaction
       showModal(
@@ -2712,6 +2756,7 @@ server <- function(input, output, session) {
       filter = "top",
       rownames = FALSE,
       class = 'datatables',
+      escape = FALSE,
       options = list(
         pageLength = 5,
         lengthMenu = c_lengthMenu,
@@ -2884,16 +2929,36 @@ server <- function(input, output, session) {
       shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
       shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
       shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
-      if (file_exists()) {
-        shiny::tags$h4("Berichte:")
-      },
-      if (file_exists()) {
-        shiny::tags$a(href = "reports/index.html", "Site-map",
-                      target = "_blank",
-                      style = "font-size: 24px;")
-      },
-      shiny::tags$h4("Filme im gewählten Abrechnungsjahr"),
+      shiny::hr(),
+      shiny::div(
+        style = "display: flex; gap: 20px; align-items: center;",
+        if (file_exists()) {
+          shiny::tags$a(
+            href = "reports/index.html", "Site-map",
+            target = "_blank",
+            style = "font-size: 24px;"
+          )
+        },
+        shiny::tags$a(
+          href = "reports/Statistik.html", "Statistik",
+          target = "_blank",
+          style = "font-size: 24px;"
+        ),
+        shiny::tags$a(
+          href = "reports/Jahresrechnung.html", "Jahresrechnung",
+          target = "_blank",
+          style = "font-size: 24px;"
+        ),
+        shiny::tags$a(
+          href = "reports/Archiv.html", "Archiv",
+          target = "_blank",
+          style = "font-size: 24px;"
+        )
+      ),
+      
+      shiny::hr(),
       if(!startup_error)DT::DTOutput("dateTable"),
+      shiny::hr(),
       shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
