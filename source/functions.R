@@ -648,6 +648,228 @@ convert_data_Film_txt <- function(fileName, con) {
 }
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
+convert_kiosk_txt <- function(fileName, con, l_template) {
+  if(length(fileName) ==  0) stop("No file names found in function convert_data_kiosk_txt")
+  
+  paste0("convert_data_kiosk_txt, filename: ", fileName)|>
+    writeLines()
+  
+  # library(rebus)
+  # p <- capture(one_or_more(DGT))%R%DOT%R%"txt"
+  
+  p <- "([\\d]+)\\.txt"
+  
+  IDs <- str_match(fileName, p)[,2]|>
+    as.integer()
+  
+  Programm <- tbl(con,"Programm")|>
+    filter(`Event ID` %in% IDs)|>
+    collect()|>
+    convert_to_template_types(l_template$Programm)
+  
+  `Einkauf Kiosk` <- DB_get_table("Einkauf Kiosk", con)|>
+    convert_to_template_types(l_template$`Einkauf Kiosk`)
+  
+  Spezialpreise <- DB_get_table("Spezialpreis", con)|>
+    select(Spezialpreisname)|>
+    pull()
+  
+  # library(rebus)
+  # p <- DOT%R%DOT%R%DOT
+  # as.character(p)
+  p <- "\\.\\.\\."
+  Spezialpreise <- Spezialpreise[!str_detect(Spezialpreise, p)]
+  
+  l_temp <- fileName|>
+    lapply(function(fileName){
+      c_raw <- DB_get_file(con, fileName, "Kiosk files")$`file content`|>
+        str_split("\n")|>
+        unlist()
+      # p <- "ID"%R%optional(SPC)%R%capture(one_or_more(DGT))
+      p <- "ID[\\s]?([\\d]+)"
+      as.character(p)
+      # find ID_Program from file name
+      ID <- str_match(fileName, p)[2]|>
+        as.integer()
+      
+      # find ID_Program
+      df_temp <- Programm|>
+        filter(`Event ID` == ID)
+      
+      # Extract Datum from file
+      # p <- or("\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", # format 01.01.2025
+      #         "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b" # # format 01/01/2025
+      # )
+      p <- "(?:\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b|\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b)"
+      
+      index <- c_raw|>
+        str_detect(p)
+      index
+      
+      if(sum(index) == 0) {
+        stop("\nIn der Datei: ",fileName, " kann kein Datum gefunden werden.","\nBitte der Datei ein korrektes Datum hinzufügen")
+      }
+      
+      c_fileDate <- c_raw[index]|>
+        str_split("\t")|>
+        unlist()|>
+        dmy()
+      c_fileDate
+      
+      if(c_fileDate != df_temp$Datum) {
+        stop("\nIn der Datei: .../Kinoklub/", fileName,
+             "\nwurde das Datum ",format(c_fileDate, "%d.%m.%Y")," gefunden.",
+             "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n" )
+      }
+      
+      # Detect Verkaufarikel in string
+      # Arikel erfasst im Kassensystem (Advanced tickets). 
+      # Achtung muss in der Tabelle `Einkauf Kiosk` `Artickelname-Kassensystem` erfasst sein ansonsten wird der Artikel nicht erkannt
+      
+      p1 <- rebus::or1(paste0(`Einkauf Kiosk`$`Artikelname-Kassensystem`))
+      
+      # detect Spez Preise
+      # library(rebus)
+      # p <- "Spez"%R%SPC
+      # as.character(p)
+      
+      # Detect Spezialartikel
+      # Achtung muss in der Tabelle Spezialpreis erfasst sein sonst wird es nicht erkannt
+      p2 <- rebus::or1(Spezialpreise)
+      
+      
+      # create list to store data
+      l_extracted <- list()
+      ii <- 1L
+      
+      # get all lines with Verkauf
+      l_extracted[[ii]] <-
+        list(Verkaufsartikel =
+               tibble(Verkaufartikel_string = c(c_raw[str_detect(c_raw, p1)], ## Arikel erfasst im Kassensystem (Advanced tickets). Achtung muss in der Tabelle `Einkauf Kiosk` `Artickelname-Kassensystem` erfasst sein ansonsten wird der Artikel nicht erkannt
+                                                c_raw[str_detect(c_raw, p2)]  ## Spez Arikel
+               )
+               )
+        )
+      
+      # Extract Überschuss Manko der Kasse
+      # Detect Überschuss Manko
+      # p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
+      p3 <- "[-]?[\\d]+[\\.]?[\\d]+" 
+      
+      ii <- ii + 1L
+      l_extracted[[ii]] <-
+        list(
+          `Überschuss / Manko` =
+            tibble(`Überschuss / Manko` =
+                     c_raw[str_detect(c_raw, "Manko")]|>
+                     str_extract(p3)|>
+                     as.numeric()
+            )|>
+            mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`), 0, `Überschuss / Manko`))
+        )
+      # `Event ID`
+      ii <- ii + 1L
+      l_extracted[[ii]] <-
+        list(`Event ID` =  ID)
+      
+      # File date
+      ii <- ii + 1L
+      l_extracted[[ii]] <-
+        list(Datum = c_fileDate)
+      
+      # extract Verkauf
+      m_Kiosk <-
+        l_extracted[[1]][["Verkaufsartikel"]]$Verkaufartikel_string |>
+        str_split(pattern = "\t", simplify = T)
+      m_Kiosk
+      
+      # Wie viele Spalten
+      c_lenght <- ncol(m_Kiosk)
+      c_lenght
+      
+      # extract according to nrow(m_Kiosk), not all files have the same number of columns
+      if(c_lenght == 7){ # mit Korrekturbuchungen
+        if(nrow(m_Kiosk) == 1){
+          # print(m_Kiosk)
+          x <- m_Kiosk[c(2,4:5,7)]|>
+            as.numeric()
+          x <- matrix(x, ncol = 4)|>
+            suppressWarnings()
+          colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+          
+          x <- x|>
+            as_tibble()|>
+            mutate(Anzahl = if_else(!is.na(Korrektur),  Anzahl + Korrektur, Anzahl))|>
+            select(-Korrektur)
+          
+          m_Kiosk <- bind_cols(Verkaufsartikel = m_Kiosk[,1], x)
+          
+        } else {
+          # print(m_Kiosk)
+          x <- m_Kiosk[,c(2,4:5,7)]
+          x <- apply(x, 2, as.numeric)
+          colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+          
+          x <- x|>
+            as_tibble()|>
+            mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
+            select(-Korrektur)
+          
+          m_Kiosk <- bind_cols(Verkaufsartikel = m_Kiosk[,1], x)
+        }
+      }else if(c_lenght == 5){ # keine Korrekturbuchungen
+        m_Kiosk <- m_Kiosk[,c(1:3,5)]
+        x <- m_Kiosk[,2:ncol(m_Kiosk)]|>
+          apply(2, as.numeric)
+        colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
+        
+        m_Kiosk <-
+          bind_cols(
+            Verkaufsartikel = m_Kiosk[,1], x,
+            tibble(Datum = c_fileDate)
+          )
+      }else if(c_lenght == 0){ # Keine Kioskverkäufe
+        m_Kiosk <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
+                          Einzelpreis = 0,
+                          Anzahl = 0,
+                          Betrag = 0,
+                          Datum = c_fileDate
+        )
+      } else {
+        stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(m_Kiosk),".txt",
+                    "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
+      }
+      
+      m_Kiosk
+      
+      # Data returned by function
+      df_Kiosk <- m_Kiosk|>
+        mutate(`Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+               `Betrag` = if_else(Anzahl == 0, 0, Betrag),
+               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`,
+               Datum = df_temp$Datum
+        )|>
+        rename(`Einzelpreis [CHF]`= Einzelpreis,
+               `Betrag [CHF]` = Betrag
+        )
+      return(df_Kiosk)
+    })
+  # p <- capture(one_or_more(DGT))%R%DOT%R%"txt"
+  p <- "([\\d]+)\\.txt"
+  names(l_temp) <- str_match(fileName, p)[,2]
+  
+  # Kiosk data 
+  df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
+    mutate(`Event ID` = as.integer(`Event ID`))|>
+    rename("Artikel-Kassensystem" = Verkaufsartikel)|>
+    select(`Event ID`, Datum, `Artikel-Kassensystem`, `Einzelpreis [CHF]`, Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)|>
+    arrange(`Event ID`)
+  df_Kiosk
+  
+  return(df_Kiosk)
+}
+
+# Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_data_kiosk_txt <- function(fileName, con) {
   if(length(fileName) ==  0) stop("No file names found in function convert_data_kiosk_txt")
   
