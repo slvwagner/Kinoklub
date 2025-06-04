@@ -638,12 +638,7 @@ server <- function(input, output, session) {
   
   ### Selected rows in data table ####
   last_selected_rows <- shiny::reactiveVal(NA)
-  
-  ## Button: Abort, do nothing! ####
-  observeEvent(input$abort,{
-    removeModal()
-  })
-  
+
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
     # Execution time 
@@ -2127,6 +2122,11 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Button: Abort, do nothing! ####
+  observeEvent(input$abort,{
+    removeModal()
+  })
+  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
@@ -2309,6 +2309,16 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Change in page length ####
+  observeEvent(input$dateTable_state$length, {
+    req(input$dateTable_state$length)
+    writeLines(paste("Page length changed to:", input$dateTable_state$length))
+    
+    # Update page length
+    as.integer(input$dateTable_state$length) |>
+      page_length_var()
+  })
+  
   ## Render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
@@ -2407,17 +2417,7 @@ server <- function(input, output, session) {
       shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
     )
   })
-  
-  ## Change in page length ####
-  observeEvent(input$dateTable_state$length, {
-    req(input$dateTable_state$length)
-    writeLines(paste("Page length changed to:", input$dateTable_state$length))
-    
-    # Update page length
-    as.integer(input$dateTable_state$length) |>
-      page_length_var()
-  })
-  
+
   ## Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
