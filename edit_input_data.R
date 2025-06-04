@@ -1042,6 +1042,13 @@ server <- function(input, output, session) {
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
         )
+    } else if(lastEdited_data_set_name() %in% c("df_Eintritt")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`))
+    } else if(lastEdited_data_set_name() %in% c("df_Kiosk")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`),
+               ID_Kioskartikel = factor(ID_Kioskartikel))
     }
     
     # Primary Key as factor
@@ -3380,12 +3387,12 @@ server <- function(input, output, session) {
   
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
