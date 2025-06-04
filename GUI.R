@@ -2773,7 +2773,6 @@ server <- function(input, output, session) {
       df_temp,
       filter = "top",
       rownames = FALSE,
-      class = 'datatables',
       escape = FALSE,
       options = list(
         pageLength = page_length_var(),  # Use the reactive value here
@@ -2848,7 +2847,7 @@ server <- function(input, output, session) {
     # select row and page if possible
     if(!is.null(last_selected_rows())){
       m <- last_selected_rows()
-      dataTableProxy('datatables')|>
+      dataTableProxy('dateTable')|>
         selectRows(last_selected_rows())
     }
   })
