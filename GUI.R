@@ -2127,6 +2127,24 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  ## Button: Dateien anzeigen ####
+  observeEvent(input$explore_files,{
+    os_name <- Sys.info()[["sysname"]]
+    
+    if(os_name == "Windows"){
+      shell.exec(normalizePath("output"))
+    } else if (os_name == "Darwin"){ # MAC OS
+      path <- "~/output"
+      system(paste("open", shQuote(path)))
+    } else if (os_name == "Linux"){
+      path <- "~/output"
+      system(paste("xdg-open", shQuote(path)))
+    } else {
+      stop("Operating system: ", os_name, " was not implemented for shell actions")
+    }
+  })
+  
+  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
@@ -2430,36 +2448,30 @@ server <- function(input, output, session) {
       shiny::hr(),
       shiny::div(
         style = "display: flex; gap: 20px; align-items: center;",
-        # if (file_exists()) {
-        #   shiny::tags$a(
-        #     href = "reports/index.html", "Site-map",
-        #     target = "_blank",
-        #     style = "font-size: 24px;"
-        #   )
-        # },
         if(file_exists_statistk()){
           shiny::tags$a(
             href = "reports/Statistik.html", "Statistik",
             target = "_blank",
             style = "font-size: 24px;"
-          )
-        },
+            )
+          },
         if(file_exists_jahhresrechnung()){
           shiny::tags$a(
             href = "reports/Jahresrechnung.html", "Jahresrechnung",
             target = "_blank",
             style = "font-size: 24px;"
-          )
-        },
+            )
+          },
         if(file_exists_archiv()){
           shiny::tags$a(
             href = "reports/Archiv.html", "Archiv",
             target = "_blank",
             style = "font-size: 24px;"
-          )
-        }
+            )
+          },
+        shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"), 
       ),
-      
+       
       shiny::hr(),
       if(!startup_error){
         shiny::div(
