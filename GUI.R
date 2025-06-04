@@ -2140,7 +2140,7 @@ server <- function(input, output, session) {
       path <- "/output"
       system(paste("open", shQuote(path)))
     } else if (os_name == "Linux"){
-      path <- "/output"
+      path <- "output"
       system(paste("xdg-open", shQuote(path)))
     } else {
       stop("Operating system: ", os_name, " was not implemented for shell actions")
