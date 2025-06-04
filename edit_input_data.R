@@ -3332,7 +3332,7 @@ server <- function(input, output, session) {
         div(
           style = "width: 100%; overflow-x: auto;",
           DTOutput("table", width = "100%"),
-          
+          # Make panel draggable
           tags$script(HTML("
             $(function() {
               // Make panel draggable
@@ -3355,7 +3355,7 @@ server <- function(input, output, session) {
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
           ),
           
-          # Toolbox floating and dragable 
+          # Toolbox floating and dragable and page lenght captue 
           tags$script(HTML(
             "$(function() {
               $('#floating-panel').draggable({ handle: '#floating-panel-header' });
