@@ -3,11 +3,28 @@ library(DBI)
 library(tidyverse)
 source("source/functions.R")
 
-# Database functions  ####
-# connection to Database
+# Database functions to work with mysql
+ 
+
+# connection to Database ####
 DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL) {
   # Check if connection already exists and is valid
   if (!is.null(con)) {
+    if (!dbIsValid(con)) {
+      # Create a new connection
+      con <- tryCatch({
+        dbConnect(
+          MySQL(),
+          host = DB_host,
+          user = DB_user,
+          password = DB_PW,
+          dbname = DB_name,
+          port = 3306
+        )
+      }, error = function(e) {
+        stop("Failed to connect to the database: ", e$message)
+      })
+    }
     return(con)
   } else {
     # Create a new connection
