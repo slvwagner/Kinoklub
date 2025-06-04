@@ -892,7 +892,6 @@ convert_data_kiosk_txt <- function(fileName, con) {
       )
     )
   }
-  bind_rows(df_spez_preis, df_spez_preis_na)
   
   ## join Spezpreise mit Verkaufsartikel ####
   df_Kiosk <- df_Kiosk|>
