@@ -2029,13 +2029,12 @@ server <- function(input, output, session) {
       
       # test if data is identical
       c_test <- identical(
-        new_rows|>str(), 
-        test|>select(-ID)|>str()
-        )
-      c_test <- identical(
         new_rows, 
         test|>select(-ID)
         )
+      
+      new_rows$`Einkaufspreis [CHF]`
+      test$`Einkaufspreis [CHF]`
       
       if(c_test){ # row entries are identical 
         paste0("Die Datensätze von der Datei: ",last_uploaded_file(), " sind indentisch mit den Datensätzen der Datenbank!\n",
