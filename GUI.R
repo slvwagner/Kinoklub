@@ -1137,6 +1137,11 @@ server <- function(input, output, session) {
   ### Database password ####
   DB_pw <- shiny::reactiveVal(DB_pw)
 
+  ### Page length of data table ####
+  page_length_var <- shiny::reactiveVal(5L)
+  
+  ### Selected rows in data table ####
+  last_selected_rows <- shiny::reactiveVal(NULL)
   
   ## Button: Abort, do nothing! ####
   observeEvent(input$abort,{
@@ -1455,6 +1460,7 @@ server <- function(input, output, session) {
         req(input$dateTable_rows_selected) # exit early from the function
       }else{
         df_mapping <- current_data()[input$dateTable_rows_selected,]
+        last_selected_rows(input$dateTable_rows_selected)
       }
       
       # get data for reports
@@ -2770,32 +2776,34 @@ server <- function(input, output, session) {
       class = 'datatables',
       escape = FALSE,
       options = list(
-        pageLength = 5,
+        pageLength = page_length_var(),  # Use the reactive value here
         lengthMenu = c_lengthMenu,
         dom = 'lftip',
         language = DT_language,
         initComplete = JS(
           "function(settings, json) {",
           "// One-time header/body styles",
-          "$(this.api().table().header()).css({",
-          "'background-color': '#2d3e50',",
-          "'color': '#ffffff'",
-          "});",
-          "$(this.api().table().body()).css({",
-          "'background-color': '#34495e',",
-          "'color': '#ecf0f1'",
-          "});",
-          "// One-time search/length styling",
-          "$('div.dataTables_filter input').css({",
-          "'background-color': '#2c3e50',",
-          "'color': '#ecf0f1',",
-          "'border': '1px solid #7f8c8d'",
-          "});",
-          "$('div.dataTables_length select').css({",
-          "'background-color': '#2c3e50',",
-          "'color': '#ecf0f1',",
-          "'border': '1px solid #7f8c8d'",
-          "});",
+          "  $(this.api().table().header()).css({",
+          "    'background-color': '#2d3e50',",
+          "    'color': '#ffffff'",
+          "  });",
+          "  $(this.api().table().body()).css({",
+          "    'background-color': '#34495e',",
+          "    'color': '#ecf0f1'",
+          "  });",
+          "  // One-time search/length styling",
+          "  $('div.dataTables_filter input').css({",
+          "    'background-color': '#2c3e50',",
+          "    'color': '#ecf0f1',",
+          "    'border': '1px solid #7f8c8d'",
+          "  });",
+          "  $('div.dataTables_length select').css({",
+          "    'background-color': '#2c3e50',",
+          "    'color': '#ecf0f1',",
+          "    'border': '1px solid #7f8c8d'",
+          "  });",
+          "  // Signal that table has been rendered",
+          "  Shiny.setInputValue('table_rendered', new Date().getTime());",
           "}"
         ),
         drawCallback = JS(
@@ -2832,7 +2840,17 @@ server <- function(input, output, session) {
         )
       )
     )
-    
+  })
+  
+  ## Signal: Datatable has been rendered ####
+  observeEvent(input$table_rendered, {
+    writeLines("Signal: Datatable has been rendered")
+    # select row and page if possible
+    if(!is.null(last_selected_rows())){
+      m <- last_selected_rows()
+      dataTableProxy('datatables')|>
+        selectRows(last_selected_rows())
+    }
   })
   
   ## Render: txt file rendering ####
@@ -2934,6 +2952,16 @@ server <- function(input, output, session) {
     )
   })
   
+  ## Change in page length ####
+  observeEvent(input$dateTable_state$length, {
+    req(input$dateTable_state$length)
+    writeLines(paste("Page length changed to:", input$dateTable_state$length))
+    
+    # Update page length
+    as.integer(input$dateTable_state$length) |>
+      page_length_var()
+  })
+  
   ## Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
@@ -2974,7 +3002,11 @@ server <- function(input, output, session) {
       ),
       
       shiny::hr(),
-      if(!startup_error)DT::DTOutput("dateTable"),
+      if(!startup_error){
+        shiny::div(
+          DT::DTOutput("dateTable")
+        )
+      },
       shiny::hr(),
       shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
@@ -2982,8 +3014,8 @@ server <- function(input, output, session) {
       shiny::tags$h4("Inhalt der hochgeladen Datei:"),
       shiny::tableOutput("table_output"),
       shiny::verbatimTextOutput("text_output")
+      
     )
-    
   })
 
   ## launch the Dateien editieren App #####
