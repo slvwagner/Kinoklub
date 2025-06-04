@@ -199,7 +199,7 @@ ui <- fluidPage(
     });
   ")),
 
-  # Login Panle UI
+  # Login Panel UI
   shiny::titlePanel(paste0("Input Daten Kinoklub")),
   div(
     id = "login-panel",
