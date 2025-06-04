@@ -637,7 +637,7 @@ server <- function(input, output, session) {
   page_length_var <- shiny::reactiveVal(5L)
   
   ### Selected rows in data table ####
-  last_selected_rows <- shiny::reactiveVal(NA)
+  last_selected_rows <- shiny::reactiveVal(NULL)
 
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
@@ -746,7 +746,7 @@ server <- function(input, output, session) {
       })
       
       Update_Film_table()
-      last_selected_rows(NA)
+      last_selected_rows(NULL)
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2231,7 +2231,10 @@ server <- function(input, output, session) {
       filter = "top",
       rownames = FALSE,
       escape = FALSE,
+      extensions = c('FixedHeader'),
       options = list(
+        fixedHeader = TRUE,  # This keeps headers visible
+        scrollX = TRUE,  # Enable horizontal scrolling
         pageLength = page_length_var(),  # Use the reactive value here
         lengthMenu = c_lengthMenu,
         dom = 'lftip',
@@ -2302,7 +2305,7 @@ server <- function(input, output, session) {
   observeEvent(input$table_rendered, {
     writeLines("Signal: Datatable has been rendered")
     # select row and page if possible
-    if(!is.na(last_selected_rows())){
+    if(!is.null(last_selected_rows())){
       m <- last_selected_rows()
       dataTableProxy('dateTable')|>
         selectRows(last_selected_rows())
