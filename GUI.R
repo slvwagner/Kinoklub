@@ -893,8 +893,12 @@ server <- function(input, output, session) {
         filter(result$`Event ID` == `Event ID`)
       df_spez_preis_na
       
-      new_row <- bind_cols(df_spez_preis_na|>
-                  select(ID),result)
+      new_row <- 
+        bind_cols(
+          df_spez_preis_na|>
+            select(ID),
+          result
+          )
       
       # to render in Modal dialog
       df_temp_1(df_spez_preis_na)
