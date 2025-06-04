@@ -2302,7 +2302,7 @@ server <- function(input, output, session) {
   observeEvent(input$table_rendered, {
     writeLines("Signal: Datatable has been rendered")
     # select row and page if possible
-    if(!is.null(last_selected_rows())){
+    if(!is.na(last_selected_rows())){
       m <- last_selected_rows()
       dataTableProxy('dateTable')|>
         selectRows(last_selected_rows())
