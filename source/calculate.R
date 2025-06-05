@@ -14,16 +14,16 @@ source("source/SQL/SQL_Functions.R")
 l_template <- readRDS("source/SQL/template.Rds")
 
 # connect to data base ####
-if((!r_is.defined(DB_host)) | (!r_is.defined(con))){
-  ## Data base user password from system variables ####
-  DB_host <- Sys.getenv("DB_host")
-  DB_name <- Sys.getenv("DB_name")
-  DB_user <- Sys.getenv("DB_user")
-  DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-  
-  ## Connection ####
-  con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
-}
+
+## Data base user password from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+
 
 if (!dbIsValid(con)) {
   stop("Invalid database connection.")

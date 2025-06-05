@@ -43,7 +43,6 @@ DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
-## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # read template
@@ -709,10 +708,9 @@ server <- function(input, output, session) {
     }
     
     
-    # update Abrechnungsjahr 
-    Abrechungsjahr(input$c_Abrechnungsjahr) # used to choose start and end date 
-    data_env$c_Abrechnungsjahr <- input$c_Abrechnungsjahr # export to date_env used by Statistik and Jahresrechnung
-    
+    # Export Abrechnungsjahr 
+    Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
+    data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) # export to date_env used by Statistik and Jahresrechnung
     
     shiny::withProgress(message = "Berechnung...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
@@ -770,6 +768,10 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     
+    # Export Abrechnungsjahr 
+    Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
+    data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) # export to date_env used by Statistik and Jahresrechnung
+    
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
       ausgabe_text("Dateien wurden eingelesen.\n")
@@ -825,116 +827,104 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
 
-    # Spez Verkaufsartikel / Spezialpreise einlesen 
-    df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk", DB_con())|>
-      convert_to_template_types(l_template$Spezialpreisekiosk)|>
-      mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
-             Spezialpreis = as.character(Spezialpreis)
-      )|>
-      arrange(`Event ID`, Spezialpreis)
-    df_Spezialpreisekiosk
-    
-    # Spezialpreise in Kiosk daten finden
-    df_spez_preis <- DB_get_table("df_Kiosk", DB_con())|>
-      convert_to_template_types(l_template$df_Kiosk)|>
-      filter(is.na(ID_Kioskartikel)) |>
-      arrange(`Event ID`)
-    
-    # join Filmtitel
-    df_spez_preis <- df_spez_preis|>
-      left_join( # look up Spezialpreise
-        df_Spezialpreisekiosk|>
-          select(-ID),
-        by = c("Event ID", `Verkaufsartikel` = "Spezialpreis")
-      )
-    df_spez_preis
-    
-    # check Spezialpreise 
-    df_spez_preis_na <- df_spez_preis|>
-      filter(is.na(Verkaufsartikel))|>
-      filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
-      arrange(`Event ID`, `Artikelname-Kassensystem`)|>
-      select(-Artikelname)|>
-      mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`, digits = 2))
-    
-    # get ISs
-    c_IDs <- distinct(df_spez_preis_na,`Event ID`)|>pull()
-    
-    # get file names
-    c_fileName <- tbl(DB_con(), "Kiosk files")|>
-      filter(`Event ID` %in% c_IDs)|>
-      select(filename)|>
-      pull()
-    
-    # reconvert files 
-    result <- convert_data_kiosk_txt(c_fileName, DB_con())|>
-      filter(is.na(ID_Kioskartikel))|>
-      mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`, digits = 2))
-    
-    # test 
-    # c_test <- identical(str(df_spez_preis_na|>select(-ID)), str(result|>select(-ID)))
-    c_test <- identical(df_spez_preis_na|>select(-ID), result|>select(-ID))
-    
-    if(c_test){
-      paste0("Es sind keinen weiteren Spezialpreisdefinitionen vorhanden.",
-             "\nNeue Definitionen können in der Tabelle `Spezialpreisekiosk` nachgetragen werden.")|>
-        ausgabe_text()
-    } else {
-      # update so rendering can take place
-      df_temp_1(df_spez_preis_na|>select(-ID))
+    shiny::withProgress(message = "Neu einlesen", value = 0, {
+      shiny::incProgress(1 / 5, detail = paste("Text-Dateien Konvertieren ", 1, "of 5"))
+      ausgabe_text("Dateien werden eingelesen.\n")
+      calculate_warnings("")
       
-      # filter only for changed rows
-      result <- result|>
-        filter(!is.na(Verkaufsartikel))|>
-        select(-ID)
-      result
+      # get all entries for this Abrechnungsjahr()
+      df_Kiosk <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
+        left_join(DB_get_table("Programm", DB_con(), download = FALSE)|>
+                    select(`Event ID`, Datum),
+                  by = join_by(`Event ID`)
+                  )|>
+        collect()|>
+        # filter(lubridate::year(Datum) == (Abrechungsjahr()))|>
+        select(-Datum)|>
+        convert_to_template_types(l_template$df_Kiosk)
+      df_Kiosk
       
-      df_spez_preis_na <- df_spez_preis_na|>
-        filter(result$`Event ID` == `Event ID`)
+      IDs <- df_Kiosk|>
+        distinct(`Event ID`, .keep_all = TRUE)|>
+        select(`Event ID`)|>
+        pull()
+      
+      # get file names
+      files <- DB_get_table("Kiosk files", DB_con(), download = FALSE)|>
+        # filter(ID %in% IDs)|>
+        select(filename)|>
+        pull()
+      files
+      
+      # Extract data from file 
+      df_converted <- convert_kiosk_txt(files,con, l_template)
+      df_converted
+      
+      # extract data from kiosk files
+      shiny::incProgress(1 / 5, detail = paste("Spezialpreise ", 2, "of 5"))
+      df_extracted <- Spezialpreisekiosk(df_converted, con, l_template)
+      
+      # look up Einkaufspreise
+      shiny::incProgress(1 / 5, detail = paste("Einkaufspreise ", 3, "of 5"))
+      df_joined <- Einkaufspreise(df_extracted, con, l_template)
+      
+      # check data base for changed Spezialpreise entries 
+      shiny::incProgress(1 / 5, detail = paste("identical ", 4, "of 5"))
+      df_spez_preis_na_DB <- df_Kiosk|>
+        filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel))|>
+        mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,6))
+      df_spez_preis_na_DB
+      
+      df_spez_preis_na <- df_joined|>
+        filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel))|>
+        mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,6))|>
+        convert_to_template_types(l_template$df_Kiosk)
       df_spez_preis_na
       
-      new_row <- 
-        bind_cols(
-          df_spez_preis_na|>
-            select(ID),
-          result
-          )
+      # identical(str(df_spez_preis_na_DB), str(df_spez_preis_na))  
+      shiny::incProgress(1 / 5, detail = paste("Update DB ", 5, "of 5"))
+      c_test <- identical(df_spez_preis_na_DB, df_spez_preis_na)  
       
-      # to render in Modal dialog
-      df_temp_1(df_spez_preis_na)
-      df_temp_2(new_row)
-      
-      # update Table to insert the new data 
-      last_uploaded_table_name("df_Kiosk")
-      
-      # Calculate modal size based on number of columns
-      num_cols <- ncol(df_spez_preis_na)
-      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-      modal_height <- ifelse(nrow(df_spez_preis_na) <= 5, "auto", "600px")
-      
-      
-      showModal(
-        modalDialog(
-          title = paste0("Die Datensäze sind nicht gleich wie in der Datenbank!"),
-          tagList(
-            renderText("Daten aus der Datenbank:"),
-            shiny::hr(),
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                dataTableOutput("modal_table_1")),
-            shiny::hr(),
-            renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                dataTableOutput("modal_table_2")),
-          ),
-          easyClose = FALSE,
-          footer = tagList(
-            actionButton("update_entries", "Datensätze schreiben"),
-            actionButton("abort", "Abbrechen")
+      if(c_test) {
+        paste0("Es sind keine neuen Spezialpreis-Definitionen vorhanden.\n",
+               "Bitte in der Tabelle Spezialpreisekiosk nachtragen fall nötig und dann nochmals einlesen.\n",
+               "Nach dem `Spezialpreise neu einlesen` muss `Berechnen` nochmals ausgeführt werden!"
+               )|>
+          ausgabe_text()
+      } else {
+        print("here")
+        
+        # update so rendering can take place
+        df_temp_1(df_spez_preis_na_DB)
+        df_temp_2(df_spez_preis_na)
+        
+        # Calculate modal size based on number of columns
+        num_cols <- ncol(test)
+        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+        modal_height <- ifelse(nrow(test) <= 5, "auto", "600px")
+        
+        showModal(
+          modalDialog(
+            title = paste0("Die Datensäze sind nicht gleich wie in der Datenbank!"),
+            tagList(
+              renderText("Daten aus der Datenbank:"),
+              shiny::hr(),
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table_1")),
+              shiny::hr(),
+              renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table_2")),
+            ),
+            easyClose = FALSE,
+            footer = tagList(
+              actionButton("update_entries", "Datensätze schreiben"),
+              actionButton("abort", "Abbrechen")
+            )
           )
         )
-      )
-    }
-    
+      }
+    })
   })
   
   ## Button: Filmabrechnung(en) erstellen #####
