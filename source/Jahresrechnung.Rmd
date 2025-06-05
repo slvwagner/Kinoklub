@@ -301,13 +301,22 @@ Event|>
 ### Einahmen
 
 ```{r}
-KioskEinnahmen <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  group_by(Verkaufsartikel, `Verkaufspreis [CHF]`)|>
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+```
+
+
+```{r}
+KioskEinnahmen <- df_temp|>
+  group_by(Artikelname, `Einzelpreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
-          `Betrag [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))|>
-  arrange(desc(`Betrag [CHF]`))|>
-  filter(Verkaufsartikel != "Keine Kioskverkäufe")
+          `Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
+  arrange(desc(`Betrag [CHF]`))
 
 KioskEinnahmen|>
   knitr::kable(digits = 2)
@@ -327,10 +336,20 @@ KioskEinnahmen|>
 #### Einkauf Getränke
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+```
+
+
+```{r}
 EinkaufGetränke <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   filter(Lieferant == "Schüwo")|>
-  group_by(`Verkaufsartikel`,`Verkaufspreis [CHF]`, `Einkaufspreis [CHF]`)|>
+  group_by(`Artikelname`,`Einzelpreis [CHF]`, `Einkaufspreis [CHF]`)|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(`Einkaufspreis [CHF]`))|>
   arrange(desc(Anzahl))
