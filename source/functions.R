@@ -696,32 +696,6 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
       df_temp <- Programm|>
         filter(`Event ID` == ID)
       
-      # Extract Datum from file
-      # p <- or("\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", # format 01.01.2025
-      #         "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b" # # format 01/01/2025
-      # )
-      p <- "(?:\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b|\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b)"
-      
-      index <- c_raw|>
-        str_detect(p)
-      index
-      
-      if(sum(index) == 0) {
-        stop("\nIn der Datei: ",fileName, " kann kein Datum gefunden werden.","\nBitte der Datei ein korrektes Datum hinzufügen")
-      }
-      
-      c_fileDate <- c_raw[index]|>
-        str_split("\t")|>
-        unlist()|>
-        dmy()
-      c_fileDate
-      
-      if(c_fileDate != df_temp$Datum) {
-        stop("\nIn der Datei: .../Kinoklub/", fileName,
-             "\nwurde das Datum ",format(c_fileDate, "%d.%m.%Y")," gefunden.",
-             "\nIm Programm wurde aber das Datum ",format(df_temp$Datum, "%d.%m.%Y")," für Programm ID: ", ID," / ",df_temp$Filmtitel," definiert\n" )
-      }
-      
       # Detect Verkaufarikel in string
       # Arikel erfasst im Kassensystem (Advanced tickets). 
       # Achtung muss in der Tabelle `Einkauf Kiosk` `Artickelname-Kassensystem` erfasst sein ansonsten wird der Artikel nicht erkannt
@@ -767,15 +741,14 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
             )|>
             mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`), 0, `Überschuss / Manko`))
         )
+      
+      if(nrow(l_extracted[[ii]]$`Überschuss / Manko`) != 1) stop("Überschuss / Manko konnte nicht in der Datei:", fileName, " gefunden werden")
+      
+      
       # `Event ID`
       ii <- ii + 1L
       l_extracted[[ii]] <-
         list(`Event ID` =  ID)
-      
-      # File date
-      ii <- ii + 1L
-      l_extracted[[ii]] <-
-        list(Datum = c_fileDate)
       
       # extract Verkauf
       m_Kiosk <-
@@ -824,17 +797,27 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
         colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
         
         m_Kiosk <-
-          bind_cols(
-            Verkaufsartikel = m_Kiosk[,1], x,
-            tibble(Datum = c_fileDate)
-          )
+          bind_cols(Verkaufsartikel = m_Kiosk[,1], x)
       }else if(c_lenght == 0){ # Keine Kioskverkäufe
         m_Kiosk <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
                           Einzelpreis = 0,
                           Anzahl = 0,
-                          Betrag = 0,
-                          Datum = c_fileDate
+                          Betrag = 0
         )
+      } else if (c_lenght == 9){
+        temp <- l_extracted[[1]]$Verkaufsartikel$Verkaufartikel_string|>
+          str_split("\t")|>
+          lapply(matrix, ncol = 9)|>
+          lapply(as.data.frame)|>
+          bind_rows()
+        
+        m_Kiosk <- tibble(
+          Verkaufsartikel = temp$V1,
+          Einzelpreis = as.numeric(temp$V2),
+          Anzahl = as.numeric(temp$V4),
+          Betrag = as.numeric(temp$V5)
+        )
+        
       } else {
         stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(m_Kiosk),".txt",
                     "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
@@ -846,8 +829,7 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
       df_Kiosk <- m_Kiosk|>
         mutate(`Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
                `Betrag` = if_else(Anzahl == 0, 0, Betrag),
-               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`,
-               Datum = df_temp$Datum
+               `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`
         )|>
         rename(`Einzelpreis [CHF]`= Einzelpreis,
                `Betrag [CHF]` = Betrag
@@ -862,7 +844,7 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
   df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
     mutate(`Event ID` = as.integer(`Event ID`))|>
     rename("Artikel-Kassensystem" = Verkaufsartikel)|>
-    select(`Event ID`, Datum, `Artikel-Kassensystem`, `Einzelpreis [CHF]`, Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)|>
+    select(`Event ID`, `Artikel-Kassensystem`, `Einzelpreis [CHF]`, Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)|>
     arrange(`Event ID`)
   df_Kiosk
   
