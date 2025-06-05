@@ -1682,134 +1682,28 @@ server <- function(input, output, session) {
             
             return(list(type = "txt", data = df_file_upload$results))
           } 
-          else { # upload to df_Kiosk
-            # convert file and capture message, warnings and errors
-            result <- Run_capture_error_warnings(
-              convert_data_kiosk_txt, file_name, DB_con() 
-            )
-            # create new rows 
-            new_rows <- result$result
+          else { # upload file
+            last_uploaded_file_path(file_path)
+            last_uploaded_table_name("Kiosk files")
             
-            # message 
-            c_message <- paste0(
-              result$messages, "\n",
-              df_file_upload$message
-            )
-            
-            if(DB_table_exists(DB_con(),"df_Kiosk")){
-              # test if entries already exists
-              test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
-                filter(`Event ID` %in% new_rows$`Event ID`)|>
-                collect()|>
-                convert_to_template_types(l_template$df_Kiosk)|>
-                mutate(Lieferant = as.character(Lieferant),
-                       `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
-                       `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
-                       `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
-                       `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
+            showModal(
+              modalDialog(
+                title = paste0("Soll die Datei: ",file_name," wird auf der Datenbank gespeichert werden?"),
+                easyClose = FALSE, 
+                footer = tagList(
+                  actionButton("upload_file_kiosk", "Speichern"),
+                  actionButton("abort", "Abbrechen")
                 )
-              
-              new_rows <- new_rows|>
-                select(-ID)|>
-                mutate(Lieferant = as.character(Lieferant),
-                       `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
-                       `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
-                       `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
-                       `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
-                )
-              
-              
-              
-              # test if data is identical
-              c_test <- identical(new_rows, test|>select(-ID))
-              
-              if(c_test){
-                paste0("Die Datensätze von der Datei: ",last_uploaded_file(), " sind indentisch mit den Datensätzen der Datenbank!\n",
-                       "Es wurde nichts geändert.")|>
-                  ausgabe_text()
-                req(NULL)
-              } else {
-                
-                c_ID <- DB_get_max_pk(DB_con(), "df_Kiosk")
-                c_ID <- c_ID + 1L
-                
-                new_rows_ <-
-                  bind_cols(ID = c_ID:(c_ID + nrow(new_rows) - 1),
-                            new_rows
-                  )
-                
-                # update so rendering can take place
-                df_temp_1(test)
-                df_temp_2(new_rows_)
-                last_uploaded_table_name("df_Kiosk")
-                
-                # Calculate modal size based on number of columns
-                num_cols <- ncol(test)
-                modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-                modal_height <- ifelse(nrow(test) <= 5, "auto", "600px")
-                
-                showModal(
-                  modalDialog(
-                    title = paste0("Die Datensäze aus der Datei: ",last_uploaded_file(), " sind nicht gleich wie in der Datenbank!"),
-                    tagList(
-                      renderText("Daten aus der Datenbank:"),
-                      shiny::hr(),
-                      div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                          dataTableOutput("modal_table_1")),
-                      shiny::hr(),
-                      renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
-                      div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                          dataTableOutput("modal_table_2")),
-                    ),
-                    easyClose = FALSE,
-                    footer = tagList(
-                      actionButton("update_entries", "Datensätze schreiben"),
-                      actionButton("abort", "Abbrechen")
-                    )
-                  )
-                )
-                
-              }
-            } else {
-              # copy data DB_nrow(con,"df_Kiosk") == 0
-              new_rows <- 
-                bind_cols(ID = 1:nrow(new_rows),
-                          new_rows)
-              # upload to database
-              test <- Run_capture_error_warnings(
-                DB_copy_table, new_rows, DB_con(), "df_Kiosk"
               )
-              # system reply message
-              paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                     paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
-                     test$message,
-                     c_message
-              )|>
-                ausgabe_text()
-              
-              return(list(type = "txt", data = df_file_upload$result))
-            }
+            )
+            
+            # system reply message
+            paste0(c_message)|>
+              ausgabe_text()
+            
+            return(list(type = "txt", data = df_file_upload$results))
           }
-
-        } else {
-          # copy data DB_nrow(con,"df_Kiosk") == 0
-          new_rows <- 
-            bind_cols(ID = 1:nrow(new_rows),
-                      new_rows)
-          # upload to database
-          test <- Run_capture_error_warnings(
-            DB_copy_table, new_rows, DB_con(), "df_Kiosk"
-          )
-          # system reply message
-          paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                 paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
-                 test$message,
-                 c_message
-          )|>
-            ausgabe_text()
-          
-          return(list(type = "txt", data = df_file_upload$result))
-        }
+        } 
       }
     } 
     ### csv #####
@@ -1986,8 +1880,17 @@ server <- function(input, output, session) {
     
     # convert file 
     results <- Run_capture_error_warnings(
-      convert_data_kiosk_txt, last_uploaded_file(), DB_con()
+      convert_kiosk_txt, last_uploaded_file(), DB_con(), l_template
     )
+    # get Spezialpreise
+    results <- Run_capture_error_warnings(
+      Spezialpreisekiosk, results$result, DB_con(), l_template
+    )
+    # get Einkaufspeise
+    results <- Run_capture_error_warnings(
+      Einkaufspreise, results$result, DB_con(), l_template
+    )
+
     # new rows
     new_rows <- results$result
     
@@ -1999,37 +1902,31 @@ server <- function(input, output, session) {
       # test if entries already exists
       test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
         filter(`Event ID` %in% new_rows$`Event ID`)|>
-        collect()
-      
-      test <- test|>
+        collect()|>
         convert_to_template_types(l_template$df_Kiosk)
       
       test <- test|>
         mutate(Lieferant = as.character(Lieferant),
-               `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
-               `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
-               `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
-               `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
-        )
+               `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,4),
+               `Gewinn [CHF]` = round(`Gewinn [CHF]`)
+               )
       
       new_rows <- new_rows|>
         select(-ID)|>
+        convert_to_template_types(l_template$df_Kiosk)|>
         mutate(Lieferant = as.character(Lieferant),
-               `Verkaufspreis [CHF]` = round(`Verkaufspreis [CHF]`,2),
                `Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,2),
-               `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
-               `Gewinn [CHF]` = round(`Gewinn [CHF]`,2)
-        )
+               `Gewinn [CHF]` = round(`Gewinn [CHF]`)
+               )
       
       # test if data is identical
+      c_test <- all.equal(new_rows, test|>select(-ID))
+      
       c_test <- identical(
         new_rows, 
         test|>select(-ID)
         )
-      
-      new_rows$`Einkaufspreis [CHF]`
-      test$`Einkaufspreis [CHF]`
-      
+
       if(c_test){ # row entries are identical 
         paste0("Die Datensätze von der Datei: ",last_uploaded_file(), " sind indentisch mit den Datensätzen der Datenbank!\n",
                "Es wurde nichts geändert.")|>
