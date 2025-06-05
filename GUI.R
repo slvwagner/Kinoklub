@@ -1688,7 +1688,7 @@ server <- function(input, output, session) {
             
             showModal(
               modalDialog(
-                title = paste0("Soll die Datei: ",file_name," wird auf der Datenbank gespeichert werden?"),
+                title = paste0("Soll die Datei: ",file_name," auf der Datenbank gespeichert werden?"),
                 easyClose = FALSE, 
                 footer = tagList(
                   actionButton("upload_file_kiosk", "Speichern"),
