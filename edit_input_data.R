@@ -1048,7 +1048,8 @@ server <- function(input, output, session) {
     } else if(lastEdited_data_set_name() %in% c("df_Kiosk")){
       df_temp <- df_temp|>
         mutate(`Event ID` = factor(`Event ID`),
-               ID_Kioskartikel = factor(ID_Kioskartikel))
+               ID_Kioskartikel = factor(ID_Kioskartikel),
+               ID_Spezialpreisekiosk = factor(ID_Spezialpreisekiosk))
     }
     
     # Primary Key as factor
