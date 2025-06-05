@@ -359,13 +359,13 @@ Spezialpreise|>
 
 ```{r echo=FALSE}
 df_temp <- l_abrechnung[[as.character(ii)]]$Kiosk|>
-  filter(str_detect(`Artikelname-Kassensystem`, rebus::or("spez", "Spez")))|>
-  group_by(`Artikelname-Kassensystem`, Verkaufsartikel)|>
+  filter(str_detect(`Artikel-Kassensystem`, rebus::or("spez", "Spez")))|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` =  sum(`Umsatz [CHF]`)
           )
 df_temp <- df_temp|>
-  filter(is.na(Verkaufsartikel) | (Verkaufsartikel == "" ))
+  filter(is.na(Artikelname) | (Artikelname == "" ))
 ```
 
 
@@ -373,7 +373,7 @@ df_temp <- df_temp|>
 if(df_temp|>nrow() > 0){
   paste0(
       "Für die Filmvorführung `Event ID`", ii, 
-      " wurde der Artikel ", df_temp$`Artikelname-Kassensystem`," nicht definiert.",
+      " wurde der Artikel ", df_temp$Artikel-Kassensystem," nicht definiert.",
       "\nBitte korrigieren in Spezialpreisekiosk\n"
   )|>
     writeLines()
