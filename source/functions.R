@@ -1006,10 +1006,16 @@ Einkaufspreise <- function(df_extracted, con, l_template) {
   
   df_joined|>
     filter(!is.na(ID_Spezialpreisekiosk))
-  
+
   df_joined <- df_joined|>
-    select("ID", "Event ID", "ID_Spezialpreisekiosk", "ID_Kioskartikel", "Artikel-Kassensystem", "Artikelname", "Einzelpreis [CHF]", "Anzahl", "Betrag [CHF]", "Überschuss / Manko [CHF]",
-           "Artikel", "Artikelname-Kassensystem", "Verkaufspreis [CHF]", "Einkaufspreis [CHF]", "Menge", "Lieferant", "Gültig ab Datum")
+    mutate(`Gewinn [CHF]` = (`Einzelpreis [CHF]` - `Einkaufspreis [CHF]`) *  Anzahl)
+    
+  df_joined <- df_joined|>
+    select("ID", "Event ID", "ID_Spezialpreisekiosk", "ID_Kioskartikel", 
+           "Artikel-Kassensystem", "Artikelname", "Einzelpreis [CHF]", "Anzahl", "Betrag [CHF]", `Gewinn [CHF]`,
+           "Überschuss / Manko [CHF]",
+           "Verkaufspreis [CHF]", "Einkaufspreis [CHF]", "Menge", "Lieferant", "Gültig ab Datum")
+  
   return(df_joined)
 }
 
