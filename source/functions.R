@@ -1353,7 +1353,51 @@ Run_capture_error_warnings <- function(fun, ...) {
   )
 }
 
-
-
+# FTP file upload to reports server ####
+ftp_upload <- function(file) {
+  library(curl)
+  if(!file.exists(file)) stop("file: ", file, " does not exist")
+  
+  # Define parameters
+  server   <- "ftp://lx51.hoststar.hosting/"
+  path     <- "kinoklub.ch/public_html/kkTeam/reports/"
+  user     <- Sys.getenv("ftp_user")
+  password <- Sys.getenv("ftp_pw")
+  
+  # Open file connection
+  file_conn <- file(file, "rb")
+  
+  # Build FTP URL
+  ftp_url <- paste0(server,path, basename(file))
+  
+  # Create curl handle
+  h <- new_handle(
+    upload = TRUE,
+    username = user,
+    password = password,
+    readfunction = function(n) readBin(file_conn, "raw", n)
+  )
+  
+  # Try upload
+  res <- tryCatch({
+    curl_fetch_memory(ftp_url, handle = h)
+  }, error = function(e) {
+    message("❌ Upload failed: ", e$message)
+    return(NULL)
+  })
+  
+  # Close file
+  close(file_conn)
+  
+  # Check result
+  if (!is.null(res)) {
+    if (res$status_code >= 200 && res$status_code < 300) {
+      message("✅ Upload succeeded (HTTP ", res$status_code, ")")
+    } else {
+      message("⚠️ Upload failed with status: ", res$status_code)
+      cat(rawToChar(res$content))
+    }
+  }
+}
 
 
