@@ -1019,6 +1019,30 @@ Einkaufspreise <- function(df_extracted, con, l_template) {
   return(df_joined)
 }
 
+# Do complett conversion of Advanced tickest Kiosk files ####
+Convert_Kiosk_files <- function(last_uploaded_file, DB_con, l_template){
+  
+  c_messages <- rep("",3)
+  
+  # convert file 
+  results <- Run_capture_error_warnings(
+    convert_kiosk_txt, last_uploaded_file, DB_con, l_template
+  )
+  c_messages[1] <- results$messages
+  
+  # get Spezialpreise
+  results <- Run_capture_error_warnings(
+    Spezialpreisekiosk, results$result, DB_con, l_template
+  )
+  c_messages[2] <- results$messages
+  
+  # get Einkaufspeise
+  results <- Run_capture_error_warnings(
+    Einkaufspreise, results$result, DB_con, l_template
+  )
+  c_messages[3] <- results$messages
+  return(results)
+}
 
 # search procinem by a given Suisanummber
 # Example usage
