@@ -14,14 +14,16 @@ source("source/SQL/SQL_Functions.R")
 l_template <- readRDS("source/SQL/template.Rds")
 
 # connect to data base ####
-## Data base user password from system variables ####
-DB_host <- Sys.getenv("DB_host")
-DB_name <- Sys.getenv("DB_name")
-DB_user <- Sys.getenv("DB_user")
-DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-
-## Connection ####
-con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+if(!r_is.defined(DB_host)){
+  ## Data base user password from system variables ####
+  DB_host <- Sys.getenv("DB_host")
+  DB_name <- Sys.getenv("DB_name")
+  DB_user <- Sys.getenv("DB_user")
+  DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+  
+  ## Connection ####
+  con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+}
 
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
@@ -45,9 +47,15 @@ df_Eintritt <- DB_get_table("df_Eintritt", con)|>
 df_Eintritt
 
 ##  df_Kiosk ####
-df_Kiosk <- DB_get_table("df_Kiosk", con)|>
-  convert_to_template_types(l_template$df_Kiosk)|>
-  filter(c_Abrechnungsjahr == lubridate::year(Datum))
+df_Kiosk <- tbl(con, "df_Kiosk")|>
+  left_join(tbl(con, "Programm")|>
+              select(`Event ID`, Datum, Filmtitel),
+            by = join_by(`Event ID`)
+            )|>
+  filter(c_Abrechnungsjahr == lubridate::year(Datum))|>
+  select(-Datum)|>
+  collect()
+df_Kiosk
 
 ## Einnahmen ####
 Einnahmen <- DB_get_table("Einnahmen", con)|>
@@ -110,6 +118,9 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
   pull()
 c_Kiosk
 
+## Disconnect from database ####
+DBI::dbDisconnect(con)
+
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
@@ -126,7 +137,6 @@ c_eintritt <- df_Eintritt|>
 c_eintritt
 
 c_Kiosk <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   distinct(`Event ID`)|>
   pull()
 
@@ -235,51 +245,18 @@ df_manko_uerberschuss <- df_Kiosk|>
   select(`Event ID`, `Überschuss / Manko [CHF]`)
 df_manko_uerberschuss
 
-# Spez Verkaufsartikel / Spezialpreise einlesen ####
-## Spezialpreise einlesen ####
-df_Spezialpreisekiosk <- df_Spezialpreisekiosk|>
-  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
-         Spezialpreis = as.character(Spezialpreis)
-  )|>
-  arrange(`Event ID`, Spezialpreis)
-df_Spezialpreisekiosk
-
-# Spezialpreise in Kiosk daten finden
-df_spez_preis <- df_Kiosk|>
-  filter(is.na(ID_Kioskartikel)) |>
-  arrange(`Event ID`)
-
-# join Filmtitel
-df_spez_preis <- df_spez_preis|>
-  left_join(Programm|>
-              select(`Event ID`,Filmtitel),
-            by = join_by(`Event ID`)
-  )|>
-  left_join( # look up Spezialpreise
-    df_Spezialpreisekiosk|>
-      select(-ID),
-    by = c("Event ID", `Verkaufsartikel` = "Spezialpreis")
-  )
-df_spez_preis
-
 # check Spezialpreise ####
-df_spez_preis_na <- df_spez_preis|>
-  filter(is.na(Verkaufsartikel))|>
-  filter(str_detect(`Artikelname-Kassensystem`, "Spez")) |>
-  arrange(`Event ID`, `Artikelname-Kassensystem`)
+df_spez_preis_na <- df_Kiosk|>
+  filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel ))
 df_spez_preis_na
 
 if(nrow(df_spez_preis_na) > 0){
   warning(paste0("\nFür `Event ID`= ", df_spez_preis_na$`Event ID`, 
                  ", `", df_spez_preis_na$Filmtitel, "`, ist der Spezialpreis `", 
-                 df_spez_preis_na$`Artikelname-Kassensystem`,"` nicht  noch nicht definiet worden."
+                 df_spez_preis_na$`Artikel-Kassensystem`,"` nicht  noch nicht definiet worden."
                  )
           )
 }
-
-
-# Database disconnect
-DBI::dbDisconnect(con)
 
 # Abos und Kinogutscheine ####
 ## Kino-Abo ####
@@ -655,7 +632,7 @@ while (TRUE) {
 l_abrechnung
 
 # Gemeinsame Abrechnung erstellen ####
-ID <- "35"
+ID <- "5"
 cnt <- 1
 for (ID in names(l_abrechnung)) {
   ## Event ID`s ####
@@ -756,9 +733,9 @@ for (ID in names(l_abrechnung)) {
   Kiosk <- df_Kiosk|>
     filter(`Event ID` %in% IDs)|>
     left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    group_by(`Event ID`, `Artikelname-Kassensystem`, Verkaufsartikel)|>
+    group_by(`Event ID`, `Artikel-Kassensystem`, Artikelname)|>
     reframe(Anzahl = sum(Anzahl),
-            `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+            `Umsatz [CHF]` = sum(`Betrag [CHF]`),
             `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
             )
   
