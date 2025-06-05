@@ -1520,7 +1520,9 @@ server <- function(input, output, session) {
             # system reply message
             paste0(c_message)|>
               ausgabe_text()
+            
             return(list(type = "txt", data = df_file_upload$results))
+            
           } else {
             showModal(
               modalDialog(
@@ -1530,7 +1532,7 @@ server <- function(input, output, session) {
                 ),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file_eintritt", "Speichern"),
+                  actionButton("upload_file", "Speichern"),
                   actionButton("abort", "Abbrechen")
                 )
               )
@@ -1540,8 +1542,6 @@ server <- function(input, output, session) {
               ausgabe_text()
             return(list(type = "txt", data = df_file_upload$results))
           } 
-          
-          
         } 
         #### Kiosk #####
         else if (str_detect(file_name, pattern = "Kiosk")){
@@ -1570,7 +1570,7 @@ server <- function(input, output, session) {
                 ),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file_kiosk", "Überschreiben"),
+                  actionButton("upload_file", "Überschreiben"),
                   actionButton("abort", "Abbrechen")
                 )
               )
@@ -1787,25 +1787,7 @@ server <- function(input, output, session) {
           paste0(c_message)|>
             ausgabe_text()
           
-          req(NULL)
-          
-        } else { 
-          # copy data DB_nrow(con,"df_Eintritt") == 0
-          new_rows <- 
-            bind_cols(ID = 1:nrow(new_rows),
-                      new_rows)
-          # upload to database
-          test <- Run_capture_error_warnings(
-            DB_copy_table, new_rows, DB_con(), "df_Eintritt"
-          )
-          # system reply message
-          paste0("Es wurde folgendes der Tabelle df_Eintritt hinzugefügt:\n",
-                 paste0(paste(names(new_rows),"=",new_rows), collapse = "\n"),"\n", 
-                 test$message,
-                 c_message
-          )|>
-            ausgabe_text()
-        }
+        } 
       }
     } else {
       # copy data DB_nrow(con,"df_Eintritt") == 0
@@ -1839,7 +1821,6 @@ server <- function(input, output, session) {
     # message handling
     c_message <- paste0(c_message, "\n", results$messages, "\n", results$messages)
 
-    
     if(DB_table_exists(DB_con(),"df_Kiosk")){
       # test if entries already exists
       test <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
