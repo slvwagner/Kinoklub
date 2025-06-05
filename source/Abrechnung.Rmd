@@ -316,7 +316,7 @@ Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, 
 
 ```{r echo=FALSE}
 Gewinn_Kiosk <- l_abrechnung[[as.character(ii)]]$Kiosk|>
-  filter(!str_detect(`Artikelname-Kassensystem`, rebus::or("spez", "Spez")))
+  filter(!str_detect(`Artikel-Kassensystem`, rebus::or("spez", "Spez")))
 
 Gewinn_Kiosk|>
   knitr::kable(digits = 2)
@@ -334,15 +334,15 @@ Gewinn_Kiosk|>
 
 ```{r echo=FALSE}
 Spezialpreise <- l_abrechnung[[as.character(ii)]]$Kiosk|>
-  filter(str_detect(`Artikelname-Kassensystem`, rebus::or("spez", "Spez")))
+  filter(str_detect(`Artikel-Kassensystem`, rebus::or("spez", "Spez")))
 
 Spezialpreise <- Spezialpreise|>
-  group_by(`Artikelname-Kassensystem`, Verkaufsartikel)|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` =  sum(`Umsatz [CHF]`)
           )|>
   mutate(`Verkaufspreis [CHF]` = `Umsatz [CHF]` / Anzahl)|>
-  select(`Artikelname-Kassensystem`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+  select(`Artikel-Kassensystem`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
 
 Spezialpreise|>
     knitr::kable(digits = 2)
