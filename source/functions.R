@@ -649,7 +649,10 @@ convert_data_Film_txt <- function(fileName, con) {
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
 convert_kiosk_txt <- function(fileName, con, l_template) {
-  if(length(fileName) ==  0) stop("No file names found in function convert_data_kiosk_txt")
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  if(length(fileName) ==  0) stop("No file names found in function convert_kiosk_txt")
   
   paste0("convert_data_kiosk_txt, filename: ", fileName)|>
     writeLines()
@@ -827,7 +830,8 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
       
       # Data returned by function
       df_Kiosk <- m_Kiosk|>
-        mutate(`Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+        mutate(Datum = df_temp$Datum,
+               `Einzelpreis` = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
                `Betrag` = if_else(Anzahl == 0, 0, Betrag),
                `Überschuss / Manko [CHF]` = l_extracted[[2]]$`Überschuss / Manko`$`Überschuss / Manko`
         )|>
@@ -844,11 +848,169 @@ convert_kiosk_txt <- function(fileName, con, l_template) {
   df_Kiosk <- bind_rows(l_temp, .id = "Event ID")|>
     mutate(`Event ID` = as.integer(`Event ID`))|>
     rename("Artikel-Kassensystem" = Verkaufsartikel)|>
-    select(`Event ID`, `Artikel-Kassensystem`, `Einzelpreis [CHF]`, Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)|>
+    select(`Event ID`, Datum,`Artikel-Kassensystem`, `Einzelpreis [CHF]`, Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)|>
     arrange(`Event ID`)
   df_Kiosk
   
   return(df_Kiosk)
+}
+
+# Spezialpreise abgleichen ####
+Spezialpreisekiosk <- function(df_Kiosk, con, l_template) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  # Spez Verkaufsartikel / Spezialpreise einlesen ####
+  df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk", con )|>
+    convert_to_template_types(l_template$Spezialpreisekiosk)|>
+    mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+           Spezialpreis = as.character(Spezialpreis)
+    )|>
+    arrange(`Event ID`, Spezialpreis)
+  df_Spezialpreisekiosk
+  
+  c_Event_IDs <- df_Kiosk|>
+    distinct(`Event ID`)|>
+    pull()
+  c_Event_IDs
+  
+  # Spezialpreisekiosk abgleichen
+  l_temp <- lapply(c_Event_IDs, function(ii){
+    # Spezialpreisekiosk per `Event ID`
+    df_temp1 <- df_Spezialpreisekiosk|>
+      filter(`Event ID` == ii)
+    
+    # Kiosk daten per `Event ID`
+    df_temp2 <- df_Kiosk|>
+      filter(`Event ID` == ii)
+    
+    if((nrow(df_temp2) == 0) & (nrow(df_temp1) > 0)) {
+      stop("Es sind Spezialpreise in der Tabelle `Spezialpreisekiosk` 
+           definiert aber es wurden keine Spezialpreise in der extrahierten Datei gefunden!", 
+           paste0(df_temp2$`Artikel-Kassensystem`, collapse = TRUE),
+      )
+    }
+    
+    # sind spezialpreise vorhanden?
+    if((sum(str_detect(df_temp2$`Artikel-Kassensystem`, rebus::or("Spez", "spez"))) > 0) & (nrow(df_temp1) > 0)){
+      df_temp <- left_join(
+        df_temp2,
+        df_temp1, 
+        by = c("Event ID" = "Event ID", "Artikel-Kassensystem" = "Spezialpreis")
+      )|>
+        rename(ID_Spezialpreisekiosk = ID)
+      df_temp
+    } else {
+      df_temp <- df_temp2|>
+        mutate(ID_Spezialpreisekiosk = NA,
+               Artikelname = NA)
+    }
+    return(df_temp)
+  })
+  
+  df_extracted <- l_temp|>
+    bind_rows()|>
+    select(`Event ID`,Datum, `Artikel-Kassensystem`, ID_Spezialpreisekiosk, Artikelname, `Einzelpreis [CHF]`, 
+           Anzahl, `Betrag [CHF]`, `Überschuss / Manko [CHF]`)
+  
+  df_extracted <- bind_cols(
+    ID = 1:nrow(df_extracted),
+    df_extracted
+  )
+  
+  return(df_extracted)
+}
+
+# Einkaufspreise abgleichen ####
+Einkaufspreise <- function(df_extracted, con, l_template) {
+  if (!dbIsValid(con)) {
+    stop("Invalid database connection.")
+  }
+  # Einkauf Kiosk
+  Einkauf_Kiosk <- DB_get_table("Einkauf Kiosk", con )|>
+    convert_to_template_types(l_template$`Einkauf Kiosk` )|>
+    arrange(ID)
+  Einkauf_Kiosk
+  
+  # look up Einkaufspreise per date (Gültig ab Datum?) ####
+  ii <- 1
+  l_temp2 <- df_extracted$ID|>
+    lapply(function(ii){
+      row_kiosk <- df_extracted|>
+        filter(`ID` == ii)
+      row_kiosk
+      
+      row_einkaufspreise <- Einkauf_Kiosk|>
+        filter(`Artikelname-Kassensystem` == row_kiosk$`Artikel-Kassensystem`)
+      row_einkaufspreise
+      
+      if(nrow(row_kiosk)  )
+        
+        if(nrow(row_einkaufspreise) == 0) { # Keine Artikel gefunden (Spezialpreis)
+          df_temp <- tibble(
+            ID_Kioskartikel = NA,
+            Artikel = NA,
+            `Artikelname-Kassensystem` = NA,
+            `Verkaufspreis [CHF]` = NA,
+            Menge = NA,
+            `Einkaufspreis [CHF]` = NA,
+            Lieferant = NA,
+            `Gültig ab Datum` = NA,
+            `Event ID` = NA,
+            Artikelname = NA,
+            Datum = NA
+          )
+          df_temp
+          return(df_temp)
+        } else { # Artikelabgleich
+          df_temp <-
+            left_join(
+              row_einkaufspreise ,
+              row_kiosk|>
+                select(`Event ID`,`Artikel-Kassensystem`, Artikelname, Datum),
+              by = c(`Artikelname-Kassensystem` = "Artikel-Kassensystem")
+            )|>
+            rename(ID_Kioskartikel = ID)
+          df_temp
+          
+          df_temp <- df_temp|>
+            mutate(`time deviation` = (`Gültig ab Datum` - Datum))
+          df_temp
+          
+          df_temp <- df_temp|>
+            filter(`time deviation` == min(`time deviation`)) # only keep the smallest `time deviation`
+          df_temp
+          
+          # delete time deviation
+          df_temp <- df_temp|>
+            mutate(`time deviation` = NULL)
+          df_temp
+          
+          return(df_temp)
+        }
+    })
+  
+  df_temp <- bind_rows(l_temp2, .id = "ID")|>
+    mutate(ID = as.integer(ID))
+  
+  df_temp <- df_temp|>
+    select(ID, ID_Kioskartikel, Artikel, `Artikelname-Kassensystem`, `Verkaufspreis [CHF]`, `Einkaufspreis [CHF]`, Menge, Lieferant, `Gültig ab Datum`)
+  df_temp
+  
+  # join 
+  df_joined <- df_extracted|>
+    left_join(df_temp, by = join_by(ID))|>
+    mutate(Artikelname = if_else(is.na(ID_Kioskartikel),Artikelname, Artikel)
+    )
+  df_joined
+  
+  df_joined|>
+    filter(!is.na(ID_Spezialpreisekiosk))
+  
+  df_joined <- df_joined|>
+    select("ID", "Event ID", "ID_Spezialpreisekiosk", "ID_Kioskartikel", "Artikel-Kassensystem", "Artikelname", "Einzelpreis [CHF]", "Anzahl", "Betrag [CHF]", "Überschuss / Manko [CHF]",
+           "Artikel", "Artikelname-Kassensystem", "Verkaufspreis [CHF]", "Einkaufspreis [CHF]", "Menge", "Lieferant", "Gültig ab Datum")
+  return(df_joined)
 }
 
 # Extrakt Kioskverkauf und Überschuss / Manko #####
