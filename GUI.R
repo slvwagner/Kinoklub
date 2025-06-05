@@ -1957,6 +1957,14 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Button: FTP upload ####
+  observeEvent(input$ftp_upload,{
+    
+    list.files(path = "output", pattern = "html",full.names = TRUE)|>
+      lapply(ftp_upload)
+
+  })
+  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
@@ -2151,21 +2159,9 @@ server <- function(input, output, session) {
       page_length_var()
   })
   
-  ## Render: txt file rendering ####
+  ## file upload render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
-    shiny::req(file_data()$type %in% c("txt", "csv"))
-    if(is.null(file_data())){
-      ""|>
-        writeLines()
-    } else {
-      c_raw <- file_data()$type
-      if(is.null(c_raw)){}
-      else print(c_raw)
-      c_raw <- file_data()$data
-      if(is.null(c_raw)){}
-      else writeLines(c_raw)
-    }
-    
+    shiny::req(file_data())
   })
   
   ## Render: Systemrückmeldungen aktualisieren #####
@@ -2281,6 +2277,7 @@ server <- function(input, output, session) {
             )
           },
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"), 
+        shiny::actionButton("ftp_upload", "Dateien auf Webserver laden",class = "btn-info"), 
       ),
        
       shiny::hr(),
@@ -2293,10 +2290,7 @@ server <- function(input, output, session) {
       shiny::tags$h4("Systemrückmeldungen"),
       shiny::verbatimTextOutput("ausgabe"),
       shiny::tags$hr(),
-      shiny::tags$h4("Inhalt der hochgeladen Datei:"),
-      shiny::tableOutput("table_output"),
       shiny::verbatimTextOutput("text_output")
-      
     )
   })
 

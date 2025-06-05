@@ -1398,6 +1398,9 @@ ftp_upload <- function(file) {
       cat(rawToChar(res$content))
     }
   }
+  
+  filename <- sub(".*/", "", file)
+  return(paste0("https://kinoklub.ch/kkTeam/reports/", utils::URLencode(filename)))
 }
 
 
