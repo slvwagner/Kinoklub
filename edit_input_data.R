@@ -1052,7 +1052,7 @@ server <- function(input, output, session) {
                ID_Spezialpreisekiosk = factor(ID_Spezialpreisekiosk))
     }
     
-    # Primary Key as factor
+    # Primary Key always as factor
     df_temp[,1] <- pull(df_temp[,1])|>
       factor()
       
