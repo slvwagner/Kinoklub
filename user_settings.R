@@ -40,13 +40,12 @@
 rm(list = ls())
 source("source/functions.R")
 c_script_version <- "V3.00"
-c_Abrechnungsjahr <- lubridate::year(Sys.Date())
 
 #############################################################################################################################################
 # Packages loading
 #############################################################################################################################################
 
-packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "webshot", "xml2", "tidyverse", "data.table")
+packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "tidyverse", "data.table")
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages)
 

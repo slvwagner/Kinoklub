@@ -77,6 +77,8 @@ if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
 # include some function into data_env
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
+# Export render template
+data_env$my_template <- my_template
 
 # Serve the custom_styles directory
 shiny::addResourcePath("custom_styles", "source")

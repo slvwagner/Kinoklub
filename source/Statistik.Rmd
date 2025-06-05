@@ -751,8 +751,14 @@ df_temp|>
 
 ### Prognose
 ```{r }
-df_temp <- df_Kiosk|>
-  mutate(cumsum = cumsum(`Gewinn [CHF]`))
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
+    mutate(cumsum = cumsum(`Gewinn [CHF]`))
 
 if((df_temp$`Gewinn [CHF]`|>mean(na.rm = TRUE)) > (df_temp$`Gewinn [CHF]`|>median(na.rm = TRUE))){
   gewinn <- df_temp$`Gewinn [CHF]`|>median(na.rm = TRUE)
@@ -784,15 +790,23 @@ df_temp|>
 ### Verkaufsartikel 
 
 ```{r }
-df_temp <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  group_by(Verkaufsartikel)|>
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+
+df_temp|>
+  filter(is.na(ID_Spezialpreisekiosk))|>
+  group_by(Artikelname)|>
   reframe(Anzahl = sum(Anzahl), 
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`)|>round(2)
+          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
           )|>
   arrange(desc(Anzahl))|>
-  filter(Verkaufsartikel != "Keine Kioskverkäufe")
+  filter(Artikelname != "Keine Kioskverkäufe")
 
 ```
 
@@ -803,24 +817,34 @@ df_temp|>
 ```
 
 
+
 ```{r}
-df_temp <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  group_by(Verkaufsartikel)|>
+df_temp|>
+  filter(is.na(ID_Spezialpreisekiosk))|>
+  # group_by(Artikelname)|>
   reframe(Anzahl = sum(Anzahl), 
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
+          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
           )|>
-  filter(Verkaufsartikel != "Keine Kioskverkäufe")|>
-  arrange((Anzahl))
+  arrange(desc(Anzahl))
 ```
 
 
 
 ```{r fig.height=8, fig.width=10}
-df_temp|>
-  mutate(Verkaufsartikel = factor(Verkaufsartikel, levels = Verkaufsartikel))|>
-  ggplot(aes(Verkaufsartikel,Anzahl))+
+df_plot <-df_temp|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  filter(!is.na(Artikelname))|>
+  arrange(Anzahl)
+
+df_plot|>
+  mutate(Artikelname = factor(Artikelname, levels = df_plot$Artikelname)
+         )|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(desc(Anzahl))|>
+  ggplot(aes(Artikelname,Anzahl))+
   geom_col(show.legend = F, fill = "cyan4")+
   coord_flip()+
   theme_bw()+
@@ -840,9 +864,9 @@ df_temp|>
 df_temp <- `Einkauf Kiosk`|>
   distinct(`Artikelname-Kassensystem`)|>
   left_join(df_Kiosk|>
-            group_by(Verkaufsartikel)|>
+            group_by(Artikelname)|>
               reframe(Anzahl = sum(Anzahl)),
-            by = c("Artikelname-Kassensystem"="Verkaufsartikel")
+            by = c("Artikelname-Kassensystem"="Artikelname")
             )
   
 df_temp|>
@@ -854,11 +878,21 @@ df_temp|>
 
 ### Kiosk Umsatz pro Gast
 ```{r }
-df_temp <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
+    mutate(cumsum = cumsum(`Gewinn [CHF]`))
+
+df_temp <- df_temp|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(Datum_display, Datum,`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+  rename(`Umsatz [CHF]` = `Betrag [CHF]`)|>
+  select(Datum_display, Datum,`Event ID`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
 
 ```
 
@@ -876,50 +910,64 @@ df_temp|>
   )
 ```
 
-```{r }
-df_temp <- left_join(
-    df_temp,
-    df_Besucherzahlen|>
-      select(`Event ID`, Besucher),
-    by = join_by(`Event ID`)
-    )
-
-```
 
 ```{r }
-df_temp1 <- df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))
-df_temp1|>
+df_temp|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = 
+            sum(`Umsatz [CHF]`, na.rm = T) / sum(Anzahl, na.rm = T)
+          )|>
   knitr::kable(digits = 2)
 ```
 
 
 ```{r fig.width=10}
-df_temp <- df_Kiosk|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(`Event ID`, Verkaufsartikel, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum, Zeit),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
+  mutate(cumsum = cumsum(`Gewinn [CHF]`))
+
+df_temp <- df_temp|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+         Datum_display = format(Datum, "%d.%m.%Y"))|>
+  rename(`Umsatz [CHF]` = `Betrag [CHF]`)|>
+  select(Datum_display, Datum, Zeit,`Event ID`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
 ```
 
 
-```{r fig.width=10}
-df_temp <- left_join(
-    df_temp,
-    Programm,
-    by = join_by(`Event ID`)
-    )
+```{r }
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$s_Kiosk
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.integer(`Event ID`))|>
+  left_join(Programm|>
+              select(1:5), 
+            by = c("Event ID"))
+
+```
+
+
+```{r }
+s_df_temp <- df_temp|>
+  group_by(Zahlend)|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`) / sum(Anzahl))
+s_df_temp|>
+  knitr::kable(digits = 2)
 ```
 
 
 ```{r fig.width=10}
 df_temp|>
-  group_by(`Event ID`, Datum)|>
-  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = T))|>
   ggplot()+
-  geom_col(aes(x = Datum, y = `Umsatz [CHF]`, fill = as.factor(`Event ID`)),
-           color = "black",
+  geom_col(aes(x = Datum, y = `Umsatz [CHF] pro Gast`, fill = as.factor(Zahlend)),
+           position = "jitter",
            show.legend =  FALSE)+
-  geom_hline(yintercept = mean(df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+
+  geom_hline(data = s_df_temp, aes(yintercept = `Durchschnittlicher Umsatz pro Gast [CHF]`, color = Zahlend), linewidth =2 )+
   labs(title = "Umsatz pro Gast aus Kioskverkäufen",
        y = "Kumulierter Umsatz [CHF]")+
   my_template
