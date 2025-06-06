@@ -210,7 +210,7 @@ server <- function(input, output, session) {
   Abrechnung_mapping <- function(Abrechnung) {
     # Soll die Verleiherabrechnung erzeugt werden?
     df_mapping <- Abrechnung |>
-      select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel, `Kinoförderer gratis?`)|>
+      select(`Event ID`, Datum , Zeit, Suisanummer, Filmtitel)|>
       mutate(user_Datum = format(Datum, "%d.%m.%Y"))
     
     if(nrow(df_mapping) > 0){
@@ -467,9 +467,8 @@ server <- function(input, output, session) {
              Zeit = format(Zeit, "%H%M")) 
     
     df_temp <- df_temp|>
-      select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher,`Kinoförderer gratis?`)
-    
-    
+      select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher)
+  
     
     # Render
     current_data(df_temp)
@@ -479,7 +478,7 @@ server <- function(input, output, session) {
   
   ### Create report links in datatable ####
   Report_links <- function(){
-    
+    # Links für Abrechnungen 
     df_Abrechnungen <- 
       tibble(
         Abrechnung = list.files(path = "output", pattern = "Abrechnung")
@@ -514,6 +513,41 @@ server <- function(input, output, session) {
                   by = c(`Event ID` = "ID")
         )
     }
+    
+    # Links für Verleiherabrechnung 
+    df_Abrechnungen <- 
+      tibble(
+        Abrechnung = list.files(path = "output", pattern = "Verleiher")
+      )
+    # library(rebus)
+    # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
+    # as.character(p)
+    p <- "([\\d]+)\\.html"
+    
+    df_Abrechnungen <- df_Abrechnungen|>
+      mutate(
+        ID = str_match(Abrechnung, p)[,2]|>as.integer(),
+        url = paste0("https://kinoklub.ch/kkTeam/reports/", utils::URLencode(df_Abrechnungen$Abrechnung)),
+        Verleiherabrechnung = paste0("<a href='", url, "' target='_blank'>Verleiher</a>")
+      )
+    df_Abrechnungen
+    
+    if("Verleiherabrechnung" %in% names(df_temp)){ 
+      df_temp <- df_temp|>
+        select(-Verleiherabrechnung)|>
+        left_join(df_Abrechnungen|>
+                    select(ID, Verleiherabrechnung),
+                  by = c(`Event ID` = "ID")
+        )
+      
+    } else { # First time run
+      df_temp <- df_temp|>
+        left_join(df_Abrechnungen|>
+                    select(ID, Verleiherabrechnung),
+                  by = c(`Event ID` = "ID")
+        )
+    }
+    
     # Render
     current_data(df_temp)
     
@@ -1104,6 +1138,34 @@ server <- function(input, output, session) {
             VerleiherabrechnungErstellen(
               df_mapping__
             )
+            
+            # upload ftp
+            if(nrow(df_mapping__) == 1){
+              c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")[[1]][2]
+            } else {
+              c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")|>
+                lapply(function(x){
+                  x[2]
+                })|>
+                unlist()
+            }
+            
+            # upload to ftp server
+            c_filesPath <- paste0("output/", c_filenames)
+            n <- length(c_filenames)
+            
+            shiny::withProgress(message = "Ftp upload:", value = 0, {
+              l_links <- list()
+              for (ii in 1:n) {
+                shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+                c_link <- ftp_upload(c_filesPath[ii])
+                l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+              }
+            })
+            l_links|>
+              unlist()|>
+              links_to_webserver()
+
           }, error = function(e) {
             ausgabe_text(
               paste0(
