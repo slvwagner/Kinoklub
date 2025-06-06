@@ -745,6 +745,16 @@ server <- function(input, output, session) {
       
       Update_Film_table()
       last_selected_rows(NULL)
+      
+      # check if file is available for this Abrechnungsjahr
+      paste0("output/Jahresrechnung ", Abrechungsjahr(),".html")|>
+        file.exists()|>
+        file_exists_jahhresrechnung()
+
+      paste0("output/Statistik ", Abrechungsjahr(),".html")|>
+        file.exists()|>
+        file_exists_statistk()
+      
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1225,7 +1235,6 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           c_link <- StatistikErstellen()
-          file_exists_statistk(TRUE)
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1239,6 +1248,11 @@ server <- function(input, output, session) {
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+      
+      # update links
+      paste0("output/Statistik ", Abrechungsjahr(),".html")|>
+        file.exists()|>
+        file_exists_statistk()
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1280,7 +1294,10 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
-      file_exists_jahhresrechnung(file.exists(paste("source/Jahresrechnung ", Abrechungsjahr(),".html")))
+      # update links to show
+      paste0("output/Jahresrechnung ", Abrechungsjahr(),".html")|>
+        file.exists()|>
+        file_exists_jahhresrechnung()
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
