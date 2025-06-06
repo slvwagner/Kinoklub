@@ -597,10 +597,14 @@ server <- function(input, output, session) {
   df_Render <- shiny::reactiveVal(NULL)
   
   ### Does the Statistik.html file exist ####
-  file_exists_statistk <- shiny::reactiveVal(file.exists("output/Statistik.html"))
-  
+  file_exists_statistk <- paste0("output/Statistik ", year(Sys.Date()),".html")|>
+    file.exists()|>
+    shiny::reactiveVal()
+
   ### Does the Jahresrechnung.html file exist ####
-  file_exists_jahhresrechnung <- shiny::reactiveVal(file.exists("output/Jahresrechnung.html"))
+  file_exists_jahhresrechnung <- paste0("output/Jahresrechnung ", year(Sys.Date()),".html")|>
+    file.exists()|>
+    shiny::reactiveVal()
   
   ### Does the Archiv.html file exist ####
   file_exists_archiv <- shiny::reactiveVal(file.exists("output/Archiv.html"))
@@ -1255,7 +1259,7 @@ server <- function(input, output, session) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
           JahresrechnungErstellen()
-          file_exists_jahhresrechnung(TRUE)
+          
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1269,6 +1273,8 @@ server <- function(input, output, session) {
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+      
+      file_exists_jahhresrechnung(file.exists(paste("source/Jahresrechnung ", Abrechungsjahr(),".html")))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2293,6 +2299,7 @@ server <- function(input, output, session) {
       shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
       shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
       shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
+      shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"),
       shiny::hr(),
       shiny::div(
         style = "display: flex; gap: 20px; align-items: center;",
@@ -2316,8 +2323,7 @@ server <- function(input, output, session) {
             target = "_blank",
             style = "font-size: 24px;"
             )
-          },
-        shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info")
+          }
       ),
       shiny::uiOutput("link_output"),
       shiny::hr(),
