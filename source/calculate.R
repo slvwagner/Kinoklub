@@ -32,7 +32,7 @@ if (!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2025L
+  c_Abrechnungsjahr <- 2024L
 }
 
 # load data from Database ####
@@ -503,7 +503,6 @@ df_Abrechnung <-left_join(df_Abrechnung,
                           df_temp,
                           by = join_by(`Event ID`)
 )
-remove(df_Tickets)
 
 
 ### Berechnen von Umsatz und Verleiherabzug MWST und Ticketgewinn #####
