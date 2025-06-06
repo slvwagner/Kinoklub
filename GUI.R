@@ -708,7 +708,6 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     
-    
     # Export Abrechnungsjahr 
     Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
     data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) # export to date_env used by Statistik and Jahresrechnung
@@ -1066,6 +1065,7 @@ server <- function(input, output, session) {
             l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
           }
         })
+        
         l_links|>
           unlist()|>
           links_to_webserver()
@@ -1166,6 +1166,7 @@ server <- function(input, output, session) {
                 l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
               }
             })
+            
             l_links|>
               unlist()|>
               links_to_webserver()
@@ -1191,6 +1192,10 @@ server <- function(input, output, session) {
           ausgabe_text()
         
         shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
+        
+        # update links in table
+        Report_links()
+        
       })
     }else{
       paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
@@ -1203,6 +1208,7 @@ server <- function(input, output, session) {
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
         ausgabe_text()
     }
+    
   })
   
   ## Button: Statistik #####
@@ -2305,14 +2311,14 @@ server <- function(input, output, session) {
         style = "display: flex; gap: 20px; align-items: center;",
         if(file_exists_statistk()){
           shiny::tags$a(
-            href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik ",Abrechungsjahr(),".html")|>utils::URLencode(), "Statistik",
+            href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Statistik", Abrechungsjahr()),
             target = "_blank",
             style = "font-size: 24px;"
             )
           },
         if(file_exists_jahhresrechnung()){
           shiny::tags$a(
-            href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), "Jahresrechnung",
+            href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Jahresrechnung", Abrechungsjahr()),
             target = "_blank",
             style = "font-size: 24px;"
             )
