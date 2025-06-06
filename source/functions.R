@@ -1355,6 +1355,7 @@ Run_capture_error_warnings <- function(fun, ...) {
 
 # FTP file upload to reports server ####
 ftp_upload <- function(file) {
+  file <- "output/Abrechnung ID38.html"
   library(curl)
   if(!file.exists(file)) stop("file: ", file, " does not exist")
   
@@ -1368,7 +1369,8 @@ ftp_upload <- function(file) {
   file_conn <- file(file, "rb")
   
   # Build FTP URL
-  ftp_url <- paste0(server,path, basename(file))
+  ftp_url <- paste0(server,path, basename(file))|>
+    utils::URLencode()
   
   # Create curl handle
   h <- new_handle(
