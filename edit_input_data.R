@@ -2490,8 +2490,26 @@ server <- function(input, output, session) {
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
+    
+    req(input$delete_row)
+    # get selected row
+    selected_row <- input$table_rows_selected
+    # get row to delete 
+    df_temp <- current_data()[selected_row,]
+    
+    # row to render for user information
+    df_temp|>
+      df_temp_to_render()
+    
+    # Calculate modal size based on number of columns
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    
     ##### now row has been selected ####
     if( !(sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0)){
+      
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
@@ -2502,23 +2520,8 @@ server <- function(input, output, session) {
     } 
     ##### row has been selected ####
     else {
-      req(input$delete_row)
-      selected_row <- input$table_rows_selected
-      # get row to delets 
-      df_temp <- current_data()[selected_row,]
-      
-      # row to render for user information
-      df_temp|>
-        df_temp_to_render()
-      
       ##### Programm ####
       if(lastEdited_data_set_name() == "Programm"){
-
-        # Calculate modal size based on number of columns
-        num_cols <- ncol(df_temp)
-        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-        modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-        
         showModal(
           modalDialog(
             title = "Zeile löschen?",
@@ -2540,8 +2543,6 @@ server <- function(input, output, session) {
   
       } ##### Spezialpreisekiosk #### 
       else if (lastEdited_data_set_name() == "Spezialpreisekiosk"){
-        df_temp <- current_data()[selected_row,]
-        df_temp
         
         df_Kiosk <- tbl(DB_con(), "df_Kiosk")|>
           filter(`Event ID` == df_temp$`Event ID`,
@@ -2584,12 +2585,6 @@ server <- function(input, output, session) {
             )
           )
         } else {
-          
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-          
           showModal(
             modalDialog(
               title = "Zeile löschen?",
@@ -2610,8 +2605,9 @@ server <- function(input, output, session) {
       } 
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-        df_temp <- current_data()
+
         c_ID <- df_temp[selected_row,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
 
@@ -2654,7 +2650,12 @@ server <- function(input, output, session) {
           )
         } else {
           showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",
+            title = "Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2666,7 +2667,7 @@ server <- function(input, output, session) {
       } 
       ##### Verleiher ####
       else if (lastEdited_data_set_name() == "Verleiher"){
-        df_temp <- current_data()
+
         c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
@@ -2770,7 +2771,12 @@ server <- function(input, output, session) {
           
         } else {
           showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",
+            title = "Selektierte Zeile löschen?",              
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2781,7 +2787,7 @@ server <- function(input, output, session) {
       } 
       ##### Lieferanten #### 
       else if (lastEdited_data_set_name() == "Lieferanten"){
-        df_temp <- current_data()
+
         c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
@@ -2822,6 +2828,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2833,7 +2844,7 @@ server <- function(input, output, session) {
       } 
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-        df_temp <- current_data()
+
         c_ID <- df_temp[selected_row,1]|>pull()
         df_temp <- df_temp|>
           filter(ID == c_ID)
@@ -2846,14 +2857,6 @@ server <- function(input, output, session) {
         df_temp
         
         if(nrow(df_temp) > 0){
-          # to render for modal 
-          df_temp_to_render(df_temp)
-          
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-          
           showModal(
             modalDialog(
               title = paste0("Achtung der Lieferant \"",c_search,"\" wird in `Einkauf Kiosk` verwendet!"),
@@ -2874,6 +2877,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2926,6 +2934,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2938,6 +2951,11 @@ server <- function(input, output, session) {
       else {
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
+          tagList(
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+            )
+          ),
           footer = tagList(
             modalButton("Abbrechen"),
             actionButton("confirm_delete", "Löschen")
