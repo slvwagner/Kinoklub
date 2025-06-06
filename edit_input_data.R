@@ -2481,14 +2481,16 @@ server <- function(input, output, session) {
   observeEvent(input$delete_row, {
     # get selected row
     selected_row <- input$table_rows_selected
-    delete_row(selected_row)
   })
   
   #### Delete row from Modal input ####
   observeEvent(input$delete_row_modal, {
     # get selected row
     selected_row <- input$modal_table_rows_selected
-    delete_row(selected_row)
+    selected_row <- pull(df_temp_to_render()[selected_row,][1,1])
+    
+    selected_row|>
+      delete_row()
   })
   
   #### Delete row helper function ####
@@ -2501,7 +2503,10 @@ server <- function(input, output, session) {
     }
 
     # get row to delete 
-    df_temp <- current_data()[selected_row,]
+    df_temp <- current_data()
+    ID <- pull(df_temp[,1]) == selected_row
+    
+    df_temp <- current_data()[ID,]
     
     # row to render for user information
     df_temp|>
