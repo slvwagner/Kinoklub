@@ -358,9 +358,16 @@ server <- function(input, output, session) {
     c_raw |>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
+    
+    c_filePath <- paste0("output/Statistik ",Abrechungsjahr(),".html")
 
     # Render
-    render_single_file(input = "source/temp.Rmd", output = "Statistik.html", envir = data_env)
+    render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+    
+    # Ftp upload
+    c_link <- c_filePath|>
+      ftp_upload()
+    return(c_link)
   }
   
   ### Filmvorschlag erstellen ####
@@ -374,8 +381,15 @@ server <- function(input, output, session) {
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
 
+    c_filePath <- paste0("output/Archiv ",Abrechungsjahr(),".html")
+    
     # Render
-    render_single_file(input = "source/Archiv.Rmd", output = "Archiv.html", envir = data_env)
+    render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = data_env)
+    
+    # Ftp upload
+    c_link <- c_filePath|>
+      ftp_upload()
+    return(c_link)
   }
   
   ### Jahresrechnung-Bericht erstellen ####
@@ -391,91 +405,17 @@ server <- function(input, output, session) {
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
 
+    c_filePath <- paste0("output/Jahresrechnung ",Abrechungsjahr(),".html")
+    
     # Render
-    render_single_file(input = "source/temp.Rmd", output = "Jahresrechnung.html", envir = data_env)
+    render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+    
+    # Ftp upload
+    c_link <- c_filePath|>
+      ftp_upload()
+    return(c_link)
   }
-  
-  ### function to edit Site-Map: insert pictures ####
-  instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
-    # create link to pict and link to file
-    if (length(raw_rmd) == index) {
-      for (ii in 1:(length(fileNames))) {
-        if (ii == 1) {
-          # letzte Zeile von Rmd
-          raw_rmd <- c(
-            raw_rmd[1:index],
-            paste0(
-              "[",
-              "![",
-              fileNames[ii],
-              "](",
-              output_dir,
-              fileNames[ii],
-              ".png)",
-              "](",
-              url[ii],
-              ")"
-            ) # ,"  \\\n\\")," "
-          )
-        } else {
-          # normales einfügen
-          raw_rmd <- c(
-            raw_rmd[1:index],
-            paste0(
-              "[",
-              "![",
-              fileNames[ii],
-              "](",
-              output_dir,
-              fileNames[ii],
-              ".png)",
-              "](",
-              url[ii],
-              ")",
-              if ((ii %% 2) == 0) {
-                " \\"
-              }
-            ),
-            # ,"  \\\n\\"),
-            if ((ii %% 2) == 0) {
-              "\\"
-            },
-            # if index is even put additional spacing
-            raw_rmd[(index + 1):length(raw_rmd)]
-          )
-        }
-      }
-    } else {
-      # normales einfügen
-      for (ii in 1:(length(fileNames))) {
-        raw_rmd <- c(
-          raw_rmd[1:index],
-          paste0(
-            "[",
-            "![",
-            fileNames[ii],
-            "](",
-            output_dir,
-            fileNames[ii],
-            ".png)",
-            "](",
-            url[ii],
-            ")",
-            if ((ii %% 2) == 0) {
-              " \\"
-            }
-          ),
-          # ,"  \\\n\\"),
-          if ((ii %% 2) == 0) {
-            "\\"
-          },
-          # if index is even put additional spacing
-          raw_rmd[(index + 1):length(raw_rmd)]
-        )
-      }
-    }
-    return(raw_rmd)
-  }
+
   
   ### Update Film table and date range to choose from ####
   Update_Film_table <- function() {
@@ -530,14 +470,17 @@ server <- function(input, output, session) {
       tibble(
         Abrechnung = list.files(path = "output", pattern = "Abrechnung")
       )
-
+    # library(rebus)
+    # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
+    # as.character(p)
     p <- "([\\d]+)\\.html"
     
     df_Abrechnungen <- df_Abrechnungen|>
       mutate(
-        url = URLencode(paste0("reports/",Abrechnung)),
-        Abrechnung = paste0("<a href='", url, "' target='_blank'>Abrechnung</a>"),
-        ID = str_match(df_Abrechnungen$Abrechnung,p)[,2]|>as.integer())
+        ID = str_match(Abrechnung, p)[,2]|>as.integer(),
+        url = paste0("https://kinoklub.ch/kkTeam/reports/", utils::URLencode(df_Abrechnungen$Abrechnung)),
+        Abrechnung = paste0("<a href='", url, "' target='_blank'>Abrechnung</a>")
+        )
     df_Abrechnungen
     
     df_temp <- current_data()
@@ -1049,6 +992,24 @@ server <- function(input, output, session) {
           df_mapping__,
           df_temp
         )
+        # upload ftp
+        c_filenames <- str_split(df_mapping__$fileName_html,"/")[[1]][2]
+        c_filesPath <- paste0("output/", c_filenames)
+        n <- length(c_filenames)
+        
+        shiny::withProgress(message = "Ftp upload:", value = 0, {
+          l_links <- list()
+          for (ii in 1:n) {
+            shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+            c_link <- ftp_upload(c_filesPath[ii])
+            l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+          }
+        })
+        l_links|>
+          unlist()|>
+          links_to_webserver()
+        ftp_upload()
+        
         paste0(
           ausgabe_text(),
           "\nDie Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
@@ -1195,7 +1156,8 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          StatistikErstellen()
+          c_link <- StatistikErstellen()
+          file_exists_statistk(TRUE)
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1209,8 +1171,6 @@ server <- function(input, output, session) {
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-
-      file_exists_statistk(file.exists("output/Statistik.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1237,6 +1197,7 @@ server <- function(input, output, session) {
         tryCatch({
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
           JahresrechnungErstellen()
+          file_exists_jahhresrechnung(TRUE)
           shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
@@ -1250,7 +1211,6 @@ server <- function(input, output, session) {
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-      file_exists_jahhresrechnung(file.exists("output/Jahresrechnung.html"))
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1964,15 +1924,15 @@ server <- function(input, output, session) {
   ## Button: FTP upload ####
   observeEvent(input$ftp_upload,{
     
-    s_files <- list.files(path = "output", pattern = "html",full.names = TRUE)
+    c_filesPath <- list.files(path = "output", pattern = "html",full.names = TRUE)
     c_filenames <- list.files(path = "output", pattern = "html")
-    n <- length(s_files)
+    n <- length(c_filenames)
     
     shiny::withProgress(message = "Ftp upload:", value = 0, {
       l_links <- list()
       for (ii in 1:n) {
         shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-        c_link <- ftp_upload(s_files[ii])
+        c_link <- ftp_upload(c_filesPath[ii])
         l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
       }
     })
@@ -2280,27 +2240,26 @@ server <- function(input, output, session) {
         style = "display: flex; gap: 20px; align-items: center;",
         if(file_exists_statistk()){
           shiny::tags$a(
-            href = "reports/Statistik.html", "Statistik",
+            href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik ",Abrechungsjahr(),".html")|>utils::URLencode(), "Statistik",
             target = "_blank",
             style = "font-size: 24px;"
             )
           },
         if(file_exists_jahhresrechnung()){
           shiny::tags$a(
-            href = "reports/Jahresrechnung.html", "Jahresrechnung",
+            href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), "Jahresrechnung",
             target = "_blank",
             style = "font-size: 24px;"
             )
           },
         if(file_exists_archiv()){
           shiny::tags$a(
-            href = "reports/Archiv.html", "Archiv",
+            href = "https://kinoklub.ch/kkTeam/reports/Archiv.html", "Archiv",
             target = "_blank",
             style = "font-size: 24px;"
             )
           },
-        shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"), 
-        shiny::actionButton("ftp_upload", "Dateien auf Webserver laden",class = "btn-info"), 
+        shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info")
       ),
       shiny::uiOutput("link_output"),
       shiny::hr(),
