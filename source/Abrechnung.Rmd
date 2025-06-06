@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 35
+ii <- 81
 ```
 
 
@@ -373,7 +373,7 @@ df_temp <- df_temp|>
 if(df_temp|>nrow() > 0){
   paste0(
       "Für die Filmvorführung `Event ID`", ii, 
-      " wurde der Artikel ", df_temp$Artikel-Kassensystem," nicht definiert.",
+      " wurde der Artikel ", df_temp$`Artikel-Kassensystem`," nicht definiert.",
       "\nBitte korrigieren in Spezialpreisekiosk\n"
   )|>
     writeLines()
