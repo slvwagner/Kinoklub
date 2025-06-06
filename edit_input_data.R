@@ -2502,23 +2502,42 @@ server <- function(input, output, session) {
     } 
     ##### row has been selected ####
     else {
-      # depending from where you come
-      if (is.null(input$table_rows_selected)) selected_row <- input$modal_table_rows_selected
-      else selected_row <- input$table_rows_selected
+      req(input$delete_row)
+      selected_row <- input$table_rows_selected
+      # get row to delets 
+      df_temp <- current_data()[selected_row,]
+      
+      # row to render for user information
+      df_temp|>
+        df_temp_to_render()
       
       ##### Programm ####
       if(lastEdited_data_set_name() == "Programm"){
-        showModal(modalDialog(
-          title = "Selektierte Zeile löschen?",
-          shiny::div(
-            shiny::renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!")
-          ),
-          footer = tagList(
-            modalButton("Abbrechen"),
-            actionButton("confirm_delete", "Löschen")
-          ),
-          easyClose = TRUE
-        ))
+
+        # Calculate modal size based on number of columns
+        num_cols <- ncol(df_temp)
+        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+        modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+        
+        showModal(
+          modalDialog(
+            title = "Zeile löschen?",
+            size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+            tagList(
+              renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!"),
+              hr(),
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
+            easyClose = FALSE, 
+            footer = tagList(
+              actionButton("confirm_delete", "Löschen"),
+              modalButton("Abbrechen")
+            ),
+          )
+        )
+  
       } ##### Spezialpreisekiosk #### 
       else if (lastEdited_data_set_name() == "Spezialpreisekiosk"){
         df_temp <- current_data()[selected_row,]
@@ -2537,11 +2556,11 @@ server <- function(input, output, session) {
             programm
           )|>
           select(ID, `Event ID`, `Artikelname-Kassensystem`, Verkaufsartikel, Filmtitel, Suisanummer, Datum)
+        
+        # to render for modal 
+        df_temp_to_render(df_Kiosk)
       
         if(nrow(df_Kiosk) > 0){
-          # to render for modal 
-          df_temp_to_render(df_Kiosk)
-          
           # Calculate modal size based on number of columns
           num_cols <- ncol(df_Kiosk)
           modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
@@ -2565,16 +2584,29 @@ server <- function(input, output, session) {
             )
           )
         } else {
-          showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",
-            footer = tagList(
-              modalButton("Abbrechen"),
-              actionButton("confirm_delete", "Löschen")
-            ),
-            easyClose = TRUE
-          ))
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = "Zeile löschen?",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("confirm_delete", "Löschen"),
+                modalButton("Abbrechen")
+              ),
+            )
+          )
         }
-        
       } 
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
@@ -2901,7 +2933,6 @@ server <- function(input, output, session) {
             easyClose = TRUE
           ))
         }
-        
       } 
       ##### anything else ####
       else {
@@ -2916,61 +2947,62 @@ server <- function(input, output, session) {
       }
     }
   })
-  
+
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
-    if( sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0 ){
+    if(nrow(current_data()) <= 1){
+      removeModal()
+      showModal(modalDialog(
+        title = "Die letzte Zeile kannn nicht gelöscht werden",
+        footer = tagList(
+          modalButton("Abbrechen")
+        ),
+        easyClose = TRUE
+      ))
+    }
+    else {
+      # this is the ID to delete
+      selected_ID <- pull(df_temp_to_render()[1,1])
+
+      # find row to delete
+      selected_row <- pull(current_data()[,1]) == selected_ID
       
-      # depending from where you come
-      if (!is.null(input$modal_table_rows_selected)) selected_row <- input$modal_table_rows_selected
-      else selected_row <- input$table_rows_selected
+      # Find ID to delete
+      row <- current_data()[selected_row, ]
+      updated_data <- current_data()
       
-      if(nrow(current_data()) <= 1){
-        showModal(modalDialog(
-          title = "Die letzte Zeile kannn nicht gelöscht werden",
-          footer = tagList(
-            modalButton("Abbrechen")
-          ),
-          easyClose = TRUE
-        ))
+      # Delete in current data 
+      updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+      # ensure correct data type
+      updated_data|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
+      # update to render
+      current_data(updated_data)
+      
+      # Update SQL
+      DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
+      
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
+      # joined tables 
+      if(lastEdited_data_set_name() == "Programm"){
+        df_temp <- DB_get_table("Einsatzplan",DB_con())
+        DB_delete_row(DB_con(), "Einsatzplan", names(row[,1]), pull(row[,1]))
+        df_temp <- DB_get_table("Einsatzplan",DB_con())
+        l_temp[["Einsatzplan"]] <- df_temp
       }
-      else {
-        # Find ID to delete
-        row <- current_data()[selected_row, ]
-        updated_data <- current_data()
-        # Delete in current data 
-        updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
-        # ensure correct data type
-        updated_data|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-        
-        # update to render
-        current_data(updated_data)
-        
-        # Update SQL
-        DB_delete_row(DB_con(), lastEdited_data_set_name(), names(updated_data[,1]), pull(row[,1]))
-        
-        # Update the list
-        l_temp <- l_data()
-        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-        
-        # joined tables 
-        if(lastEdited_data_set_name() == "Programm"){
-          df_temp <- DB_get_table("Einsatzplan",DB_con())
-          DB_delete_row(DB_con(), "Einsatzplan", names(row[,1]), pull(row[,1]))
-          df_temp <- DB_get_table("Einsatzplan",DB_con())
-          l_temp[["Einsatzplan"]] <- df_temp
-        }
-        
-        # update all data
-        l_data(l_temp)
-        
-        ##### select last edited page ####
-        last_selected_row(NA)
-        
-        removeModal()
-      }
+      
+      # update all data
+      l_data(l_temp)
+      
+      ##### select last edited page ####
+      last_selected_row(NA)
+      
+      removeModal()
     }
   })
   
