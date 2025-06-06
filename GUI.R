@@ -381,7 +381,7 @@ server <- function(input, output, session) {
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
 
-    c_filePath <- paste0("output/Archiv ",Abrechungsjahr(),".html")
+    c_filePath <- paste0("output/Archiv.html")
     
     # Render
     render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = data_env)
