@@ -2546,7 +2546,7 @@ server <- function(input, output, session) {
         
         df_Kiosk <- tbl(DB_con(), "df_Kiosk")|>
           filter(`Event ID` == df_temp$`Event ID`,
-                 Verkaufsartikel == df_temp$Artikelname
+                 Artikelname == df_temp$Artikelname
                  )|>
           collect()
         
@@ -2556,12 +2556,12 @@ server <- function(input, output, session) {
           left_join(
             programm
           )|>
-          select(ID, `Event ID`, `Artikelname-Kassensystem`, Verkaufsartikel, Filmtitel, Suisanummer, Datum)
-        
-        # to render for modal 
-        df_temp_to_render(df_Kiosk)
-      
+          select(ID, `Event ID`, `Artikel-Kassensystem`, Artikelname, Filmtitel, Suisanummer, Datum)
+
         if(nrow(df_Kiosk) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Kiosk)
+          
           # Calculate modal size based on number of columns
           num_cols <- ncol(df_Kiosk)
           modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
@@ -2572,7 +2572,7 @@ server <- function(input, output, session) {
               title = paste0("Achtung die Spezialpreisdefinition ID = ", df_temp$ID,", `", df_temp$Spezialpreis,"` kann nicht gelöscht werden verwendet!"),
               size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
               tagList(
-                renderText("Die Definition wird in der Tabelle df_Kiosk verwendet und muss da zuerst gelöscht werden!"),
+                renderText("Die Definition wird in der Tabelle `df_Kiosk` verwendet und muss da zuerst gelöscht werden!"),
                 hr(),
                 div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
@@ -2606,10 +2606,7 @@ server <- function(input, output, session) {
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
 
-        c_ID <- df_temp[selected_row,1]|>pull()
-        
-        df_temp <- df_temp|>
-          filter(ID == c_ID)
+        c_ID <- df_temp[1,1]|>pull()
 
         c_search <- paste(df_temp$Vorname, df_temp$Nachname)
         
@@ -2668,7 +2665,8 @@ server <- function(input, output, session) {
       ##### Verleiher ####
       else if (lastEdited_data_set_name() == "Verleiher"){
 
-        c_ID <- df_temp[selected_row,1]|>pull()
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2788,7 +2786,8 @@ server <- function(input, output, session) {
       ##### Lieferanten #### 
       else if (lastEdited_data_set_name() == "Lieferanten"){
 
-        c_ID <- df_temp[selected_row,1]|>pull()
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2845,7 +2844,8 @@ server <- function(input, output, session) {
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
 
-        c_ID <- df_temp[selected_row,1]|>pull()
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2893,8 +2893,9 @@ server <- function(input, output, session) {
       } 
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Spezialpreis"){
-        df_temp <- current_data()
-        c_ID <- df_temp[selected_row,1]|>pull()
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
