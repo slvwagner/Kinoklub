@@ -1185,7 +1185,6 @@ server <- function(input, output, session) {
     find_page()
   })
   
-  
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
     writeLines("Database connection")
@@ -1463,151 +1462,6 @@ server <- function(input, output, session) {
   ## Abort: do nothing! ####
   observeEvent(input$abort,{
     removeModal()
-  })
-  
-  ## Check unique ####
-  observeEvent(input$check_unique, {
-    if(lastEdited_data_set_name() == "Programm"){
-      # Find duplicates (keeping only duplicate rows)
-      df_temp <- current_data() |>
-        group_by(across(-`Event ID`)) |>
-        mutate(duplicate_flag = n() > 1) |>
-        ungroup() |>
-        filter(duplicate_flag)|>
-        select(-duplicate_flag)
-      
-    } else {
-      # Find duplicates (keeping only duplicate rows)
-      df_temp <- current_data() |>
-        group_by(across(-ID)) |>
-        mutate(duplicate_flag = n() > 1) |>
-        ungroup() |>
-        filter(duplicate_flag)|>
-        select(-duplicate_flag)
-      
-    }
-    
-    df_temp_to_render(df_temp)
-    
-    if(nrow(df_temp) > 1){
-      # Calculate modal size based on number of columns
-      num_cols <- ncol(df_temp)
-      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-      modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-      
-      showModal(
-        modalDialog(
-          title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
-          size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
-          tagList(
-            renderText("Bitte Zeile selektieren und anpassen!"),
-            hr(),
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                dataTableOutput("modal_table")
-            )
-          ),
-          easyClose = FALSE, 
-          footer = tagList(
-            actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-            actionButton("modal_select_row", "Zeile editieren"),
-            actionButton("abort", "Abbrechen")
-          )
-        )
-      )
-    } else {
-      showModal(
-        modalDialog(
-          title = "Daten sind eindeutig.",
-          tagList(
-          ),
-          easyClose = TRUE, 
-          footer = tagList(
-            actionButton("abort", "Abbrechen")
-          )
-        )
-      )
-    }
-    # # Trigger the edit_row button click
-    # shinyjs::click("check_unique")
-  })
-  
-  ## selected row modal data table ####
-  observeEvent(input$modal_select_row, {
-    if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
-      removeModal()
-      if(lastEdited_data_set_name() == "Programm"){
-        df_temp <- df_temp_to_render()
-        
-        c_ID <- df_temp|>
-          slice(input$modal_table_rows_selected)|>
-          select(`Event ID`)|>
-          pull()
-        
-        # update latest ID 
-        ID_to_edit(c_ID)
-        
-        # Store HTML elements
-        l_temp <- list()
-        # only display
-        df_info <- current_data() |> 
-          filter(`Event ID` == c_ID)|>
-          select(1)
-        # editable
-        df_row <- current_data() |> 
-          filter(`Event ID` == c_ID)|>
-          select(2:ncol(current_data()))
-        # Display the display columns (read-only)
-        l_temp <- lapply(1:ncol(df_info), function(ii) {
-          fluidRow(
-            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
-          )
-        })
-      } else {
-        df_temp <- df_temp_to_render()
-        c_ID <- df_temp[input$modal_table_rows_selected,]$ID
-        # update latest ID 
-        ID_to_edit(c_ID)
-        # Store HTML elements
-        l_temp <- list()
-        # only display
-        df_info <- current_data() |> 
-          filter(ID == c_ID)|>
-          select(1)
-        # editable
-        df_row <- current_data() |> 
-          filter(ID == c_ID)|>
-          select(2:ncol(current_data()))
-        # Display the display columns (read-only)
-        l_temp <- lapply(1:ncol(df_info), function(ii) {
-          fluidRow(
-            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
-          )
-        })
-      }
-      
-      l_temp <- create_modal_input(df_row, l_temp)
-      
-      # User interaction to save
-      showModal(
-        modalDialog(
-          title = "Zeile editieren",
-          l_temp,
-          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
-          easyClose = FALSE,
-          footer = NULL
-        )
-      )
-    } else {
-      # User interaction
-      showModal(
-        modalDialog(
-          title = "Bitte eine Zeile markieren",
-          easyClose = TRUE,
-          footer = modalButton("Abbrechen")
-        )
-      )
-    }
   })
   
   ## Render modal table ####
@@ -2078,8 +1932,150 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
+  ## Check unique ####
+  observeEvent(input$check_unique, {
+    if(lastEdited_data_set_name() == "Programm"){
+      # Find duplicates (keeping only duplicate rows)
+      df_temp <- current_data() |>
+        group_by(across(-`Event ID`)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+      
+    } else {
+      # Find duplicates (keeping only duplicate rows)
+      df_temp <- current_data() |>
+        group_by(across(-ID)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+      
+    }
+    
+    df_temp_to_render(df_temp)
+    
+    if(nrow(df_temp) > 1){
+      # Calculate modal size based on number of columns
+      num_cols <- ncol(df_temp)
+      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+      modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+      
+      showModal(
+        modalDialog(
+          title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+          size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+          tagList(
+            renderText("Bitte Zeile selektieren und anpassen!"),
+            hr(),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+            )
+          ),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("delete_row_modal", "Zeile Löschen", class = "btn-danger"),
+            actionButton("modal_select_row", "Zeile editieren"),
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    } else {
+      showModal(
+        modalDialog(
+          title = "Daten sind eindeutig.",
+          tagList(
+          ),
+          easyClose = TRUE, 
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+    }
+  })
   
+  ## selected row modal data table ####
+  observeEvent(input$modal_select_row, {
+    if (!is.null(input$modal_table_rows_selected)){ # comming from add row top / bottom
+      removeModal()
+      if(lastEdited_data_set_name() == "Programm"){
+        df_temp <- df_temp_to_render()
+        
+        c_ID <- df_temp|>
+          slice(input$modal_table_rows_selected)|>
+          select(`Event ID`)|>
+          pull()
+        
+        # update latest ID 
+        ID_to_edit(c_ID)
+        
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> 
+          filter(`Event ID` == c_ID)|>
+          select(1)
+        # editable
+        df_row <- current_data() |> 
+          filter(`Event ID` == c_ID)|>
+          select(2:ncol(current_data()))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+          )
+        })
+      } else {
+        df_temp <- df_temp_to_render()
+        c_ID <- df_temp[input$modal_table_rows_selected,]$ID
+        # update latest ID 
+        ID_to_edit(c_ID)
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- current_data() |> 
+          filter(ID == c_ID)|>
+          select(1)
+        # editable
+        df_row <- current_data() |> 
+          filter(ID == c_ID)|>
+          select(2:ncol(current_data()))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), c_ID)
+          )
+        })
+      }
+      
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort_save", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } else {
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
+  })
+  
+  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
   ###  add row ####
   observeEvent(input$add_row, {
     if (!dbIsValid(DB_con())) {
@@ -2123,7 +2119,6 @@ server <- function(input, output, session) {
     last_selected_page(1)
     
   })
-  
   
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
@@ -2482,18 +2477,29 @@ server <- function(input, output, session) {
   })
   
   ### Delete selected row(s) ####
-  #### Modal to delete row ####
+  #### Delete row ####
   observeEvent(input$delete_row, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    delete_row(selected_row)
+  })
+  
+  #### Delete row from Modal input ####
+  observeEvent(input$delete_row_modal, {
+    # get selected row
+    selected_row <- input$modal_table_rows_selected
+    delete_row(selected_row)
+  })
+  
+  #### Delete row helper function ####
+  delete_row <- function(selected_row) {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-    
-    req(input$delete_row)
-    # get selected row
-    selected_row <- input$table_rows_selected
+
     # get row to delete 
     df_temp <- current_data()[selected_row,]
     
@@ -2506,10 +2512,8 @@ server <- function(input, output, session) {
     modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
     modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
     
-    
-    ##### now row has been selected ####
+    ##### no row has been selected ####
     if( !(sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0)){
-      
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
@@ -2540,14 +2544,14 @@ server <- function(input, output, session) {
             ),
           )
         )
-  
+        
       } ##### Spezialpreisekiosk #### 
       else if (lastEdited_data_set_name() == "Spezialpreisekiosk"){
         
         df_Kiosk <- tbl(DB_con(), "df_Kiosk")|>
           filter(`Event ID` == df_temp$`Event ID`,
                  Artikelname == df_temp$Artikelname
-                 )|>
+          )|>
           collect()
         
         programm <- DB_get_table("Programm", DB_con())
@@ -2557,7 +2561,7 @@ server <- function(input, output, session) {
             programm
           )|>
           select(ID, `Event ID`, `Artikel-Kassensystem`, Artikelname, Filmtitel, Suisanummer, Datum)
-
+        
         if(nrow(df_Kiosk) > 0){
           # to render for modal 
           df_temp_to_render(df_Kiosk)
@@ -2605,18 +2609,18 @@ server <- function(input, output, session) {
       } 
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-
+        
         c_ID <- df_temp[1,1]|>pull()
-
+        
         c_search <- paste(df_temp$Vorname, df_temp$Nachname)
         
         df_Einsatzplan <- tbl(DB_con(), "Einsatzplan")|>
           filter((Verantwortlich %in% c_search) |
-                 (`Operateur*in` %in% c_search) |
-                 (`Kasse/Bar 1` %in% c_search) |
-                 (`Kasse/Bar 2` %in% c_search) |
-                 `Back-up` %in% c_search
-                 )|>
+                   (`Operateur*in` %in% c_search) |
+                   (`Kasse/Bar 1` %in% c_search) |
+                   (`Kasse/Bar 2` %in% c_search) |
+                   `Back-up` %in% c_search
+          )|>
           collect()
         
         if(nrow(df_Einsatzplan) > 0){
@@ -2660,11 +2664,11 @@ server <- function(input, output, session) {
             easyClose = TRUE
           ))
         }
-
+        
       } 
       ##### Verleiher ####
       else if (lastEdited_data_set_name() == "Verleiher"){
-
+        
         c_ID <- df_temp[1,1]|>pull()
         
         df_temp <- df_temp|>
@@ -2785,7 +2789,7 @@ server <- function(input, output, session) {
       } 
       ##### Lieferanten #### 
       else if (lastEdited_data_set_name() == "Lieferanten"){
-
+        
         c_ID <- df_temp[1,1]|>pull()
         
         df_temp <- df_temp|>
@@ -2843,7 +2847,7 @@ server <- function(input, output, session) {
       } 
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-
+        
         c_ID <- df_temp[1,1]|>pull()
         
         df_temp <- df_temp|>
@@ -2965,7 +2969,7 @@ server <- function(input, output, session) {
         ))
       }
     }
-  })
+  }
 
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
