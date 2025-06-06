@@ -639,6 +639,10 @@ server <- function(input, output, session) {
   
   ### Selected rows in data table ####
   last_selected_rows <- shiny::reactiveVal(NULL)
+  
+  ### Links to webserver ####
+  links_to_webserver <- shiny::reactiveVal(NULL)
+  
 
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
@@ -1960,9 +1964,28 @@ server <- function(input, output, session) {
   ## Button: FTP upload ####
   observeEvent(input$ftp_upload,{
     
-    list.files(path = "output", pattern = "html",full.names = TRUE)|>
-      lapply(ftp_upload)
+    s_files <- list.files(path = "output", pattern = "html",full.names = TRUE)
+    c_filenames <- list.files(path = "output", pattern = "html")
+    n <- length(s_files)
+    
+    shiny::withProgress(message = "Ftp upload:", value = 0, {
+      l_links <- list()
+      for (ii in 1:n) {
+        shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+        c_link <- ftp_upload(s_files[ii])
+        l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+      }
+    })
+   l_links|>
+     unlist()|>
+      links_to_webserver()
 
+  })
+  
+  ## Render liks ####
+  output$link_output <- renderUI({
+    links_to_webserver()|>
+      HTML()
   })
   
   ## Button: Delete old entries and upload new entries to database ####
@@ -2279,7 +2302,7 @@ server <- function(input, output, session) {
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"), 
         shiny::actionButton("ftp_upload", "Dateien auf Webserver laden",class = "btn-info"), 
       ),
-       
+      shiny::uiOutput("link_output"),
       shiny::hr(),
       if(!startup_error){
         shiny::div(
