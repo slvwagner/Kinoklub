@@ -216,6 +216,7 @@ df_temp <- Einnahmen|>
 
 if(nrow(df_temp) > 0) {
   df_temp <- df_temp|>
+    mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
     left_join(Programm,
               by = join_by(`Event ID`)
               ) |>
