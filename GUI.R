@@ -2269,7 +2269,7 @@ server <- function(input, output, session) {
           },
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info")
       ),
-      shiny::uiOutput("link_output"),
+      # shiny::uiOutput("link_output"),
       shiny::hr(),
       if(!startup_error){
         shiny::div(
