@@ -32,7 +32,7 @@ if (!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####

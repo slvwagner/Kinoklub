@@ -993,7 +993,16 @@ server <- function(input, output, session) {
           df_temp
         )
         # upload ftp
-        c_filenames <- str_split(df_mapping__$fileName_html,"/")[[1]][2]
+        if(nrow(df_mapping__) == 1){
+          c_filenames <- str_split(df_mapping__$fileName_html,"/")[[1]][2]
+        } else {
+          c_filenames <- str_split(df_mapping__$fileName_html,"/")|>
+            lapply(function(x){
+              x[2]
+            })|>
+            unlist()
+        }
+        
         c_filesPath <- paste0("output/", c_filenames)
         n <- length(c_filenames)
         
@@ -1008,7 +1017,6 @@ server <- function(input, output, session) {
         l_links|>
           unlist()|>
           links_to_webserver()
-        ftp_upload()
         
         paste0(
           ausgabe_text(),
