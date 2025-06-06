@@ -216,7 +216,7 @@ df_temp <- Einnahmen|>
 
 if(nrow(df_temp) > 0) {
   df_temp <- df_temp|>
-    left_join(l_data$Programm,
+    left_join(Programm,
               by = join_by(`Event ID`)
               ) |>
     arrange(Datum)|>
