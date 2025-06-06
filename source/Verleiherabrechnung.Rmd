@@ -13,7 +13,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
 ```{r variablen, include=FALSE}
-ii <- 17
+ii <- 35
 ```
 
 
@@ -26,13 +26,13 @@ Tunaustrasse 5 \
 
 
 ```{r}
-df_temp <- l_abrechnung[[as.character(ii)]]$Gemeinsame_Abrechnung
+df_temp <- l_abrechnung[[as.character(ii)]]$Abrechnung
 ```
 
 ```{r}
 df_temp <- left_join(
   df_temp, 
-  l_data$Verleiher, 
+  Verleiher, 
   by = c("Verleiher"="Verleihername")
   )
 ```
@@ -52,32 +52,31 @@ Reinach , `r act_date`
 ```{r}
 df_temp1 <- df_temp|>
   mutate(Datum = format(Datum,"%d.%m.%Y"))|>
-  select(Suisanummer, Filmtitel, Datum, Zeit)
+  select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit)
 
 df_temp1|>
   knitr::kable()
 ```
 
 ### Eintritte und Umsatz
+
 ```{r}
-df_temp <- l_abrechnung[[as.character(ii)]]$Eintritte
+c_suisa_prozent <- df_temp|>
+  select(`SUISA-Vorabzug [%]`)|>
+  pull()
+c_suisa_prozent <- c_suisa_prozent[1]
+
 ```
 
 
 ```{r}
-c_suisa_prozent <- df_Abrechnung|>
-  filter(`Event ID` == ii)|>
-  distinct(`SUISA-Vorabzug [%]`)
-
-
-```
-
-
-```{r}
-df_temp1 <- l_abrechnung[[as.character(ii)]]$Eintritte
+df_temp1 <- df_Tickets|>
+  filter(`Event ID` %in% df_temp$`Event ID`)|>
+  select(`Event ID`, Platzkategorie, Anzahl,`Verkaufspreis für Netto3 [CHF]`)|>
+  rename(`Verkaufspreis [CHF]` = `Verkaufspreis für Netto3 [CHF]`)|>
+  mutate(`Umsatz [CHF]` = Anzahl * `Verkaufspreis [CHF]`)
 
 ```
-
 
 
 ```{r}

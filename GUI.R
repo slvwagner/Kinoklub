@@ -314,34 +314,48 @@ server <- function(input, output, session) {
         writeLines(c_fileName)
     }
     
-    # Determine the number of cores to use
-    num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-    if (num_cores > 4) num_cores <- 5
-    
-    # Adjust cores based on workload
-    if (nrow(df_mapping) < num_cores) {
-      num_cores <- nrow(df_mapping)
-    }
-    
-    # Render in parallel Verleiherabrechnung
-    library(future)
-    plan(multisession, workers = num_cores)
-    
-    # Render files in parallel
-    library(furrr)
-    future_walk(1:nrow(df_mapping), function(ii) {
+    if(nrow(df_mapping) == 1){
       render_single_file(
-        df_mapping$fileName_RMD_Verleiher[ii],
-        df_mapping$fileName_html_Verleiher[ii],
+        df_mapping$fileName_RMD_Verleiher[1],
+        df_mapping$fileName_html_Verleiher[1],
         data_env
       )
-    })
-    
-    # Delete selected files
-    if (all(file.exists(df_mapping$fileName_RMD_Verleiher))) {
-      file.remove(df_mapping$fileName_RMD_Verleiher)
+      
+      paste0("Die Datei: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
+        ausgabe_text()
     } else {
-      warning("Some files to delete do not exist.")
+      # Determine the number of cores to use
+      num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
+      if (num_cores > 4) num_cores <- 5
+      
+      # Adjust cores based on workload
+      if (nrow(df_mapping) < num_cores) {
+        num_cores <- nrow(df_mapping)
+      }
+      
+      # Render in parallel Verleiherabrechnung
+      library(future)
+      plan(multisession, workers = num_cores)
+      
+      # Render files in parallel
+      library(furrr)
+      future_walk(1:nrow(df_mapping), function(ii) {
+        render_single_file(
+          df_mapping$fileName_RMD_Verleiher[ii],
+          df_mapping$fileName_html_Verleiher[ii],
+          data_env
+        )
+      })
+      
+      # Delete selected files
+      if (all(file.exists(df_mapping$fileName_RMD_Verleiher))) {
+        file.remove(df_mapping$fileName_RMD_Verleiher)
+      } else {
+        warning("Some files to delete do not exist.")
+      }
+      
+      paste0("Die Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
+        ausgabe_text()
     }
     return(NULL)
   }
@@ -1060,11 +1074,17 @@ server <- function(input, output, session) {
       req(input$dateTable_rows_selected) # exit early from the function
     }else{
       input$dateTable_cells_selected
-      df_mapping <- current_data()[input$dateTable_rows_selected,]
-      df_mapping
+      df_mapping <- current_data()[input$dateTable_rows_selected,]|>
+        mutate(Datum = lubridate::dmy(Datum))
     }
     
-    if(!is.null(data_env$df_Abrechnung)){
+    # get data for reports
+    l_temp <- df_mapping$`Event ID`|>
+      lapply( function(ii){
+        try({data_env$l_abrechnung[[as.character(ii)]]})
+      })
+    
+    if(!is.null(l_temp)){
       shiny::withProgress(message = "Script running... ", value = 0, {
         shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
         ausgabe_text("")
@@ -1073,49 +1093,17 @@ server <- function(input, output, session) {
         
         # Überprüfen, ob beide Daten gültig sind
         if (start_datum <= end_datum) {
-          # Aktion ausführen
-          ausgabe_text(
-            paste0(
-              "Die Filmabrechnungen für den Zeitraum \n",
-              format(start_datum, "%d.%m.%Y"),
-              " bis ",
-              format(end_datum, "%d.%m.%Y"),
-              " wurden erstellt",
-              paste0("\n", getwd(), "/output")
-            )
-          )
-          
           # Verleiherrechnung erstellen mit dateRange user input
           tryCatch({
-            
-            if(r_is.defined(df_mapping)){
-              df_mapping__ <- 
-                Abrechnung_mapping(
-                  data_env,
-                  start_datum, end_datum,
-                  df_mapping$`Event ID`
+            df_mapping__ <- 
+              Abrechnung_mapping(
+                df_mapping
                 )
-            } else {
-              df_mapping__ <- 
-                Abrechnung_mapping(
-                  data_env,
-                  start_datum, end_datum
-                )
-            }
- 
-            df_mapping__ <- df_mapping__|>
-              filter(!`Kinoförderer gratis?`)
-            
-            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
-            if(nrow(df_mapping__) > 0){
 
-              VerleiherabrechnungErstellen(
-                df_mapping__
-              )
-            } else {
-              ausgabe_text("\nFür diesen Film muss keine Verleiherrechnug erzeugt werden.
-                           \nFall doch muss die Tabelle `Verleiher` in der Sektion Dropdowns geändert werden: Spalte `Kinoförderer gratis`")
-            }
+            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
+            VerleiherabrechnungErstellen(
+              df_mapping__
+            )
           }, error = function(e) {
             ausgabe_text(
               paste0(
@@ -1129,11 +1117,11 @@ server <- function(input, output, session) {
         } else {
           ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
         }
-        
+
         # calculate execution time
         c_time <- c(c_time,end = Sys.time())|>
           diff()
-        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        c(paste0("Ausführungszeit: ",r_signif(c_time)), "\n",paste0(ausgabe_text(),"\n"))|>
           ausgabe_text()
         
         shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
@@ -2269,7 +2257,7 @@ server <- function(input, output, session) {
           },
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info")
       ),
-      # shiny::uiOutput("link_output"),
+      shiny::uiOutput("link_output"),
       shiny::hr(),
       if(!startup_error){
         shiny::div(
