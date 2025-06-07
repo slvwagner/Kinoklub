@@ -129,28 +129,6 @@ ui <-
       )
     )
   )
-
-# # UI-Definition bs4Dash ####
-# library(bs4Dash)
-# ui <- dashboardPage(
-#   help = TRUE,
-#   dark = TRUE,  # Force dark mode
-#   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
-#   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
-#   dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
-#   controlbar = dashboardControlbar(
-#     id = "controlbar",
-#     skin = "dark",
-#     controlbarMenu(
-#       id = "controlbarMenu",
-#       controlbarItem(
-#         title = "Help",
-#         icon = icon("question-circle"),
-#         p("This is a custom help section.")
-#       )
-#     )
-#   )
-# )
  
 # Server-Logik ####
 server <- function(input, output, session) {
