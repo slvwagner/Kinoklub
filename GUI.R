@@ -693,24 +693,32 @@ server <- function(input, output, session) {
   ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
 
-  ### Init links to for Statistik, Jahresrechnung and Archiv ####
-  # Show links if file is available on ftp server
-  ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
-  
-  #### Does the Statistik.html file exist ####
-  if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
-    file_exists_statistk <- shiny::reactiveVal(TRUE)
-  else file_exists_statistk <- shiny::reactiveVal(FALSE)
-  
-  #### Does the Jahresrechnung.html file exist ####
-  if(sum(ftp_files == paste0("Jahresrechnung ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1)
-    file_exists_jahhresrechnung <- shiny::reactiveVal(TRUE)
-  else file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
-  
-  #### Does the Archiv.html file exist ####
-  if(sum(ftp_files == paste0("Archiv.html.html"), na.rm = TRUE) == 1){
-    file_exists_archiv <- shiny::reactiveVal(TRUE)
-  } else file_exists_archiv <- shiny::reactiveVal(FALSE)
+  tryCatch({
+    ### Init links to for Statistik, Jahresrechnung and Archiv ####
+    # Show links if file is available on ftp server
+    ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+    
+    #### Does the Statistik.html file exist ####
+    if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
+      file_exists_statistk <- shiny::reactiveVal(TRUE)
+    else file_exists_statistk <- shiny::reactiveVal(FALSE)
+    
+    #### Does the Jahresrechnung.html file exist ####
+    if(sum(ftp_files == paste0("Jahresrechnung ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1)
+      file_exists_jahhresrechnung <- shiny::reactiveVal(TRUE)
+    else file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
+    
+    #### Does the Archiv.html file exist ####
+    if(sum(ftp_files == paste0("Archiv.html.html"), na.rm = TRUE) == 1){
+      file_exists_archiv <- shiny::reactiveVal(TRUE)
+    } else file_exists_archiv <- shiny::reactiveVal(FALSE)
+    
+  }, error = function(e) {
+    file_exists_statistk <- shiny::reactiveVal(FALSE)
+    file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
+    file_exists_archiv <- shiny::reactiveVal(FALSE)
+  })
+
   
 
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
