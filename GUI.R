@@ -2376,81 +2376,88 @@ server <- function(input, output, session) {
   
   ## Render: Dynamically update the input panel content #####
   output$dynamicContent_input_panel <- shiny::renderUI({
-    
-    # Abrechnungsjahr
-    choices_select <- Abrechungsjahr()
-    choices <- 2023:lubridate::year(Sys.Date())
-    
-    shiny::tagList(
+    if(DB_FTP_credentials_not_compleat){
+      shiny::tagList(
+        renderText("this is a test")
+      )
+    } else {
+      
       # Abrechnungsjahr
-      # shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
-      #                     value = Abrechungsjahr(),
-      #                     min = 2023, max = lubridate::year(Sys.Date()) , step = 1),
-      shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
-                          choices, choices_select
-      ),
-      shiny::tags$hr(),
+      choices_select <- Abrechungsjahr()
+      choices <- 2023:lubridate::year(Sys.Date())
       
-      # File input handler
-      shiny::fileInput(
-        "file",
-        "Datei hochladen:",
-        accept = c(".csv", ".txt"),
-        multiple = FALSE,
-        buttonLabel = "Datei auswählen",
-        placeholder = "Drag & drop file"
-      ),
-
-      shiny::tags$hr(),
-      # Button Daten Einlesen
-      shiny::actionButton("calculate", "Berechnen"),
-      shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
-      shiny::tags$hr(),
-      
-      # # Datumsbereich auswählen für die Abrechnung Filmvorführungen
-      # shiny::dateRangeInput(
-      #   inputId = "dateRange",
-      #   label = "Wählen Sie einen Datumsbereich aus:",
-      #   start = START_date_choose(),
-      #   # Default start date (one week ago)
-      #   end = End_date_choose(),
-      #   # Default end date (last show)
-      #   min = START_date_choose(),
-      #   # Earliest selectable date
-      #   max = End_date_choose(),
-      #   # Latest selectable date
-      #   format = "dd.mm.yyyy",
-      #   # Set input format to German (DD.MM.YYYY)
-      #   separator = " bis ", # Separator for the two dates in German
-      #   language = "de",
-      #   weekstart = 1
-      # ),
-      
-      # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
-      shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
-      shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
-
-      shiny::tags$hr(),
-      
-      # Button zum Ausführen von Code Statistik erstellen
-      shiny::actionButton("Statistik", "Statistik erstellen"),
-      
-      # Button zum Ausführen von Code Jahresrechnung erstellen
-      shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
-      shiny::tags$hr(),
-      
-      # Button zum Download der Werbung
-      shiny::downloadButton("downloadExcel", "Download Werbung"),
-      shiny::tags$hr(),
-      
-      # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
-      shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
-      # shiny::tags$hr(),
-      
-      # # Button zum Ausführen von Code Alles erstellen mit Webserver
-      # shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
-    )
+      shiny::tagList(
+        # Abrechnungsjahr
+        # shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
+        #                     value = Abrechungsjahr(),
+        #                     min = 2023, max = lubridate::year(Sys.Date()) , step = 1),
+        shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
+                            choices, choices_select
+        ),
+        shiny::tags$hr(),
+        
+        # File input handler
+        shiny::fileInput(
+          "file",
+          "Datei hochladen:",
+          accept = c(".csv", ".txt"),
+          multiple = FALSE,
+          buttonLabel = "Datei auswählen",
+          placeholder = "Drag & drop file"
+        ),
+        
+        shiny::tags$hr(),
+        # Button Daten Einlesen
+        shiny::actionButton("calculate", "Berechnen"),
+        shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
+        shiny::tags$hr(),
+        
+        # # Datumsbereich auswählen für die Abrechnung Filmvorführungen
+        # shiny::dateRangeInput(
+        #   inputId = "dateRange",
+        #   label = "Wählen Sie einen Datumsbereich aus:",
+        #   start = START_date_choose(),
+        #   # Default start date (one week ago)
+        #   end = End_date_choose(),
+        #   # Default end date (last show)
+        #   min = START_date_choose(),
+        #   # Earliest selectable date
+        #   max = End_date_choose(),
+        #   # Latest selectable date
+        #   format = "dd.mm.yyyy",
+        #   # Set input format to German (DD.MM.YYYY)
+        #   separator = " bis ", # Separator for the two dates in German
+        #   language = "de",
+        #   weekstart = 1
+        # ),
+        
+        # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
+        shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
+        shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
+        
+        shiny::tags$hr(),
+        
+        # Button zum Ausführen von Code Statistik erstellen
+        shiny::actionButton("Statistik", "Statistik erstellen"),
+        
+        # Button zum Ausführen von Code Jahresrechnung erstellen
+        shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
+        shiny::tags$hr(),
+        
+        # Button zum Download der Werbung
+        shiny::downloadButton("downloadExcel", "Download Werbung"),
+        shiny::tags$hr(),
+        
+        # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
+        shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
+        shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
+        # shiny::tags$hr(),
+        
+        # # Button zum Ausführen von Code Alles erstellen mit Webserver
+        # shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
+      )
+    }
+    
   })
 
   ## Render: Dynamically update the output panel content #####
