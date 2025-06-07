@@ -48,7 +48,7 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # ftp server connection ####
 ftp_server   <- "ftp://lx51.hoststar.hosting/"
 ftp_user     <- Sys.getenv("ftp_user")
-ftp_password <- Sys.getenv("ftp_pw")
+ftp_password <- Sys.getenv("ftp_password")
 
 # Base path where to put the files (Must be a public html folder)
 ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
