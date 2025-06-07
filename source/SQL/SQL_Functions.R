@@ -54,8 +54,10 @@ DB_update_all <- function(l_data, con) {
 
 # get all data defined by a template ####
 DB_get_Data <- function(l_template, con, download = TRUE) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_get_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if(download){
     temp <- names(l_template)|>
@@ -75,8 +77,10 @@ DB_get_Data <- function(l_template, con, download = TRUE) {
 
 # get data from given table ####
 DB_get_table <- function(table_name, con, download = TRUE){
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if(download){
     tbl(con, table_name)|>
@@ -88,8 +92,10 @@ DB_get_table <- function(table_name, con, download = TRUE){
 
 # Copy a data frame to SQL DB (slow because it is done for each row => DB batch restrictions) ####
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   library(DBI)
@@ -207,9 +213,10 @@ DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
 
 # Function to add a row to any table ####
 DB_add_row <- function(con, table_name, new_row) {
-  # Validate inputs
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_add_row(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if (!dbExistsTable(con, table_name)) {
     stop("Table '", table_name, "' does not exist in the database.")
@@ -315,16 +322,20 @@ DB_add_row <- function(con, table_name, new_row) {
 
 # Helper function to get column types from table ####
 DB_describe_table <- function(con, table_name){
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
 }
 
 # number of rows for a database table ####
 DB_nrow <- function(con, my_table){
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   data <- dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ","`",my_table,"`"))
@@ -333,9 +344,10 @@ DB_nrow <- function(con, my_table){
 
 # Function to edit a row in table ####
 DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_value, updated_values, c_class) {
-  # Validate inputs
-  if (!DBI::dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   if (!DBI::dbExistsTable(con, table_name)) {
@@ -416,11 +428,15 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
 
 # Function to delete a row from any table ####
 DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
-  if(length(primary_key_value)> 1) stop("DB_delete_row() function can only handle single primary key values. If you need to delete more than one use lapply.")
-  # Validate inputs
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_add_row(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
+  
+  if(length(primary_key_value)> 1) 
+    stop("DB_delete_row() function can only handle single primary key values. If you need to delete more than one use lapply.")
+
   if (!dbExistsTable(con, table_name)) {
     stop("Table '", table_name, "' does not exist in the database.")
   }
@@ -456,9 +472,10 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
 
 # Function to update a single cell in a table ####
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
-  # Validate inputs
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if (!dbExistsTable(con, table_name)) {
     stop("Table '", table_name, "' does not exist in the database.")
@@ -506,19 +523,22 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
 
 # Back up all tables from database ####
 DB_backup_DB <- function(con) {
-  if(dbIsValid(con)){
-    # List all tables in the connected database
-    tables <- dbListTables(con)
-    
-    # Backup all data 
-    l_data <- tables|>
-      lapply(DB_get_table, con)
-    
-    names(l_data) <- tables
-    message("Downloaded the following tables from the Database:\n", paste(tables, collapse = "\n"))
-  } else {
-    stop("Database connection is not valid")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
+  
+  # List all tables in the connected database
+  tables <- dbListTables(con)
+  
+  # Backup all data 
+  l_data <- tables|>
+    lapply(DB_get_table, con)
+  
+  names(l_data) <- tables
+  message("Downloaded the following tables from the Database:\n", paste(tables, collapse = "\n"))
+
   return(l_data)
 }
 
@@ -578,9 +598,10 @@ convert_DB_to_R <- function(data,template) {
 
 # Add one or more rows to a database table ####
 DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
-  # Validate inputs
-  if (!DBI::dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   if (!DBI::dbExistsTable(con, table_name)) {
@@ -673,8 +694,10 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
 
 # Function to create a table for storing files if it doesn't exist ####
 DB_create_files_table <- function(con, table_name) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   if (!dbExistsTable(con, table_name)) {
@@ -699,8 +722,10 @@ DB_create_files_table <- function(con, table_name) {
 
 # Function to upload a text file to the database with overwrite option ####
 DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FALSE) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Validate inputs
   if (!file.exists(file_path)) {
@@ -780,8 +805,10 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
 
 # Function to retrieve all files from the database ####
 DB_get_file <- function(con, filename, table_name ) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Query the database for the file
   query <- paste0(
@@ -801,8 +828,10 @@ DB_get_file <- function(con, filename, table_name ) {
 
 # Function to download a file from the database to disk ####
 DB_download_file <- function(con, filename, output_path, table_name ) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   file_data <- DB_get_file(con, filename, table_name)
   
@@ -823,8 +852,10 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 
 # Check if a table exists on a database ####
 DB_table_exists <- function(con, table_name, schema = NULL) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if (is.null(schema)) {
     tables <- DBI::dbListTables(con)
@@ -844,8 +875,10 @@ DB_table_exists <- function(con, table_name, schema = NULL) {
 
 # Get the maximum primary key value from a table ####
 DB_get_max_pk <- function(con, table_name, primary_key_col = NULL) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Validate inputs
   if (!DBI::dbIsValid(con)) {
