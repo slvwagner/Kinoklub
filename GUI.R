@@ -828,7 +828,34 @@ server <- function(input, output, session) {
   })
   
   ## Button: Advace-Tickets neu Einlesen ####
+  shiny::observeEvent(input$advance_tickets,{
+    showModal(
+      modalDialog(
+        title = paste0("Advaced-Ticket Dateien neu einlesen?"),
+        tagList(
+          renderText("Dieser Vorgang muss nur ausgeführt werden wenn Änerungen and den folgenden Tabellen vorgenommen wurden:"),
+          shiny::hr(),
+          renderTable(
+            tibble(
+              Tabelle = c("Spezialpreisekiosk", "Einkauf Kiosk")
+            )
+          ),
+          shiny::hr(),
+          renderText("Nach dem neu einlesen muss die Berechnung nochmals ausgeführt werden!"),
+        ),
+        easyClose = FALSE, 
+        footer = tagList(
+          actionButton("recalc_advance", "Neu einlesen"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+  })
+  
+  ## Advace-Tickets neu Einlesen ####
   shiny::observeEvent(input$recalc_advance,{
+    
+    removeModal()
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
@@ -994,7 +1021,8 @@ server <- function(input, output, session) {
       
     })
     paste0("Die Advanced-Ticket Dateinen wurden neu eingelesen.\n",
-           "Alle Ausgabedatensätze sind aktuell für das Abrechnungjahr ", Abrechungsjahr())|>
+           "Alle Ausgabedatensätze sind aktuell für das Abrechnungjahr ", Abrechungsjahr(),"\n",
+           "Bitte neu Berechnen!")|>
       ausgabe_text()
   })
   
@@ -2328,7 +2356,7 @@ server <- function(input, output, session) {
       
       # Button Daten Einlesen
       shiny::actionButton("calculate", "Berechnen"),
-      shiny::actionButton("recalc_advance", "Advance Ticket neu einlesen"),
+      shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
       shiny::tags$hr(),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
