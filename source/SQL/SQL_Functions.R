@@ -423,6 +423,7 @@ DB_edit_row_in_table <- function(con, table_name, primary_key_col, primary_key_v
 
 # Function to delete a row from any table ####
 DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
+  if(length(primary_key_value)> 1) stop("DB_delete_row() function can only handle single primary key values. If you need to delete more than one use lapply.")
   # Validate inputs
   if (!dbIsValid(con)) {
     stop("Invalid database connection.")
@@ -454,11 +455,13 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
   # Execute the query
   test <- dbExecute(con, sql_query)
   
-  if(test)  message("Row with ", primary_key_col, " = ", primary_key_value, " deleted successfully from table '", table_name, "'.")
+  if(test){
+    warning(paste0("Row with ", primary_key_col, " = ", paste0(primary_key_value, collapse = ",\n"), " deleted successfully from table '", table_name, "'."))
+  }
   else stop("Row with ", primary_key_col, " = ", primary_key_value, " have not been deleted from table '", table_name, "'.")
 }
 
-# Function to update a single cell in a table
+# Function to update a single cell in a table ####
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
   # Validate inputs
   if (!dbIsValid(con)) {
@@ -508,7 +511,7 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
           " (Row where ", primary_key_col, " = ", primary_key_value, ").")
 }
 
-# Back up all tables from database 
+# Back up all tables from database ####
 DB_backup_DB <- function(con) {
   if(dbIsValid(con)){
     # List all tables in the connected database

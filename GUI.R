@@ -827,8 +827,8 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button: Spezialpreise neu Einlesen ####
-  shiny::observeEvent(input$spezpreis_recalc,{
+  ## Button: Advace-Tickets neu Einlesen ####
+  shiny::observeEvent(input$recalc_advance,{
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
@@ -837,104 +837,165 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
 
-    shiny::withProgress(message = "Neu einlesen", value = 0, {
-      shiny::incProgress(1 / 5, detail = paste("Text-Dateien Konvertieren ", 1, "of 5"))
-      ausgabe_text("Dateien werden eingelesen.\n")
-      calculate_warnings("")
+    shiny::withProgress(message = "Einlesen", value = 0, {
       
-      # get all entries for this Abrechnungsjahr()
-      df_Kiosk <- DB_get_table("df_Kiosk", DB_con(), download = FALSE)|>
-        left_join(DB_get_table("Programm", DB_con(), download = FALSE)|>
-                    select(`Event ID`, Datum),
+      # Save Abrechnungsjahr to enable fast SQL query
+      select_year <- Abrechungsjahr()
+      
+      ### Eintritt  ####
+      shiny::incProgress(1 / 5, detail = paste("Eintritt", 1, "of 5"))
+      # get files via fast sql query
+      df_files <- DB_get_table("Eintritt files",DB_con(), download = FALSE)|>
+        select(`Event ID`, filename)|>
+        left_join(
+          DB_get_table("Programm",DB_con(), download = FALSE)|>
+            select(`Event ID`, Datum),
+          by = join_by(`Event ID`)
+          )|>
+        filter(lubridate::year(Datum) == select_year)|>
+        arrange(`Event ID`)|>
+        collect()
+      df_files
+      
+      if(nrow(df_files) == 0) {
+        showNotification(paste("Es sind keine `Eintritt` Dateien für dieses Jahr vorhanden. Bitte hochladen!"), type = "message")
+        req(NULL) # early exit
+        }
+      
+      #### convert Eintritt files ####
+      shiny::withProgress(message = "Convert Eintritt", value = 0, {
+        n <- nrow(df_files)
+        l_Eintritt <- list()
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datei", ii, "of", n))
+          
+          # convert file 
+          results <- Run_capture_error_warnings(
+            convert_data_Film_txt, df_files$filename[ii], DB_con()
+          )
+          # new rows
+          l_Eintritt[[ii]] <- results$result
+        }
+        df_Eintritt <- bind_rows(l_Eintritt)
+      })
+      
+      shiny::incProgress(1 / 5, detail = paste("Upload Eintritt", 2, "of 5"))
+      #### delete existing entries for the `selected_year` ####
+      IDs <- DB_get_table("df_Eintritt",DB_con(), download = FALSE)|>
+        filter(year(Datum) == select_year)|>
+        select(ID)|>
+        pull()
+      
+      #### check if the same IDs can be used ####
+      if(length(IDs) != nrow(df_Eintritt)){
+        # Create new IDs 
+        last_pk <- DB_get_max_pk(con, "df_Eintritt")
+        df_Eintritt <- bind_cols(ID = (last_pk + 1):(last_pk + nrow(df_Kiosk)), df_Kiosk)
+      } else {
+        # add IDs that have been uses before
+        df_Eintritt <- bind_cols(ID = IDs, df_Eintritt)
+      }
+      
+      # Delete rows for this year in df_Eintritt
+      shiny::withProgress(message = "Löschen", value = 0, {
+        n <- length(IDs)
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datensatz", ii, "of", n))
+          DB_delete_row(con, "df_Eintritt", "ID", IDs[ii])
+        }
+      })
+
+      #### upload df_Eintritt ####
+      shiny::withProgress(message = "Laden", value = 0, {
+        n <- nrow(df_Eintritt)
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datensatz", ii, "of", n))
+          DB_add_row(DB_con(),"df_Eintritt", df_Eintritt[ii,])
+        }
+      })
+      
+      ### Kiosk ####
+      shiny::incProgress(1 / 5, detail = paste("Kiosk", 3, "of 5"))
+      # get files via fast sql query
+      df_files <- DB_get_table("Kiosk files",DB_con(), download = FALSE)|>
+        select(`Event ID`, filename)|>
+        left_join(
+          DB_get_table("Programm",DB_con(), download = FALSE)|>
+            select(`Event ID`, Datum),
+          by = join_by(`Event ID`)
+        )|>
+        filter(lubridate::year(Datum) == select_year)|>
+        arrange(`Event ID`)|>
+        collect()
+      df_files
+      
+      if(nrow(df_files) == 0) {
+        showNotification(paste("Es sind keine `Eintritt` Dateien für dieses Jahr vorhanden. Bitte hochladen!"), type = "message")
+        req(NULL) # early exit
+      }
+      
+      #### Convert Kiosk ####
+      shiny::withProgress(message = "Convert Kiosk", value = 0, {
+        shiny::incProgress(1 / 5, detail = paste("Kiosk", 1, "of 5"))
+        n <- nrow(df_files)
+        l_Kiosk <- list()
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datei", ii, "of", n))
+          
+          # convert file 
+          results <- Run_capture_error_warnings(
+            Convert_Kiosk_files, df_files$filename[ii], DB_con(), l_template
+          )
+          # new rows
+          l_Kiosk[[ii]] <- results$result$result
+        }
+        df_Kiosk <- bind_rows(l_Kiosk)|>
+          select(-ID)
+      })
+      
+      shiny::incProgress(1 / 5, detail = paste("Upload Kiosk", 4, "of 5"))
+      #### delete existing entries for the `selected_year` ####
+      IDs <- DB_get_table("df_Kiosk", con, download = FALSE)|>
+        left_join(DB_get_table("Programm", con, download = FALSE),
                   by = join_by(`Event ID`)
                   )|>
-        collect()|>
-        # filter(lubridate::year(Datum) == (Abrechungsjahr()))|>
-        select(-Datum)|>
-        convert_to_template_types(l_template$df_Kiosk)
-      df_Kiosk
-      
-      IDs <- df_Kiosk|>
-        distinct(`Event ID`, .keep_all = TRUE)|>
-        select(`Event ID`)|>
+        filter(lubridate::year(Datum) == select_year)|>
+        select(ID)|>
         pull()
+
+      # Delete rows for this year in df_Kiosk
+      shiny::withProgress(message = "Löschen", value = 0, {
+        n <- length(IDs)
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datensatz", ii, "of", n))
+          DB_delete_row(con, "df_Kiosk", "ID", IDs[ii])
+        }
+      })
       
-      # get file names
-      files <- DB_get_table("Kiosk files", DB_con(), download = FALSE)|>
-        # filter(ID %in% IDs)|>
-        select(filename)|>
-        pull()
-      files
-      
-      # Extract data from file 
-      df_converted <- convert_kiosk_txt(files,con, l_template)
-      df_converted
-      
-      # extract data from kiosk files
-      shiny::incProgress(1 / 5, detail = paste("Spezialpreise ", 2, "of 5"))
-      df_extracted <- Spezialpreisekiosk(df_converted, con, l_template)
-      
-      # look up Einkaufspreise
-      shiny::incProgress(1 / 5, detail = paste("Einkaufspreise ", 3, "of 5"))
-      df_joined <- Einkaufspreise(df_extracted, con, l_template)
-      
-      # check data base for changed Spezialpreise entries 
-      shiny::incProgress(1 / 5, detail = paste("identical ", 4, "of 5"))
-      df_spez_preis_na_DB <- df_Kiosk|>
-        filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel))|>
-        mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,6))
-      df_spez_preis_na_DB
-      
-      df_spez_preis_na <- df_joined|>
-        filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel))|>
-        mutate(`Einzelpreis [CHF]` = round(`Einzelpreis [CHF]`,6))|>
-        convert_to_template_types(l_template$df_Kiosk)
-      df_spez_preis_na
-      
-      # identical(str(df_spez_preis_na_DB), str(df_spez_preis_na))  
-      shiny::incProgress(1 / 5, detail = paste("Update DB ", 5, "of 5"))
-      c_test <- identical(df_spez_preis_na_DB, df_spez_preis_na)  
-      
-      if(c_test) {
-        paste0("Es sind keine neuen Spezialpreis-Definitionen vorhanden.\n",
-               "Bitte in der Tabelle Spezialpreisekiosk nachtragen fall nötig und dann nochmals einlesen.\n",
-               "Nach dem `Spezialpreise neu einlesen` muss `Berechnen` nochmals ausgeführt werden!"
-               )|>
-          ausgabe_text()
+      #### check if the same IDs can be used ####
+      if(length(IDs) != nrow(df_Kiosk)){
+        # Create new IDs 
+        last_pk <- DB_get_max_pk(con, "df_Kiosk")
+        df_Kiosk <- bind_cols(ID = (last_pk + 1):(last_pk + nrow(df_Kiosk)), df_Kiosk)
       } else {
-        print("here")
-        
-        # update so rendering can take place
-        df_temp_1(df_spez_preis_na_DB)
-        df_temp_2(df_spez_preis_na)
-        
-        # Calculate modal size based on number of columns
-        num_cols <- ncol(test)
-        modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-        modal_height <- ifelse(nrow(test) <= 5, "auto", "600px")
-        
-        showModal(
-          modalDialog(
-            title = paste0("Die Datensäze sind nicht gleich wie in der Datenbank!"),
-            tagList(
-              renderText("Daten aus der Datenbank:"),
-              shiny::hr(),
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                  dataTableOutput("modal_table_1")),
-              shiny::hr(),
-              renderText("Daten Sätze die aus der Datei extrahiert wurden:"),
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                  dataTableOutput("modal_table_2")),
-            ),
-            easyClose = FALSE,
-            footer = tagList(
-              actionButton("update_entries", "Datensätze schreiben"),
-              actionButton("abort", "Abbrechen")
-            )
-          )
-        )
+        # add IDs that have been uses before
+        df_Kiosk <- bind_cols(ID = IDs, df_Kiosk)
       }
+      
+      #### upload df_Eintritt ####
+      shiny::withProgress(message = "Laden", value = 0, {
+        n <- nrow(df_Kiosk)
+        for (ii in 1:n) {
+          shiny::incProgress(1 / n, detail = paste("Datensatz", ii, "of", n))
+          DB_add_row(DB_con(),"df_Kiosk", df_Kiosk[ii,])
+        }
+      })
+      shiny::incProgress(1 / 5, detail = paste("Upload Eintritt", 4, "of 5"))  
+      
     })
+    paste0("Die Advanced-Ticket Dateinen wurden neu eingelesen.\n",
+           "Alle Ausgabedatensätze sind aktuell für das Abrechnungjahr ", Abrechungsjahr())|>
+      ausgabe_text()
   })
   
   ## Button: Filmabrechnung(en) erstellen #####

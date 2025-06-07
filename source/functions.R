@@ -1019,7 +1019,7 @@ Einkaufspreise <- function(df_extracted, con, l_template) {
   return(df_joined)
 }
 
-# Do complett conversion of Advanced tickest Kiosk files ####
+# Do complete conversion of Advanced tickest Kiosk files ####
 Convert_Kiosk_files <- function(last_uploaded_file, DB_con, l_template){
   
   c_messages <- rep("",3)
