@@ -47,15 +47,26 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 # ftp server connection ####
 ftp_server   <- "ftp://lx51.hoststar.hosting/"
-ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
 ftp_user     <- Sys.getenv("ftp_user")
 ftp_password <- Sys.getenv("ftp_pw")
 
+# Base path where to put the files (Must be a public html folder)
+ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
 
-DB_FTP_credentials <- TRUE
-
-
-
+# check if all credentials are defined on the machine the code is executed
+c_credentials <- c(DB_host = DB_host, DB_name = DB_name, DB_user = DB_user, DB_pw = DB_pw, 
+                   ftp_server = ftp_server, ftp_user = ftp_user, ftp_password = ftp_password)
+n <- c_credentials|>
+  lapply(function(x){
+    nchar(x) > 0
+  })|>
+  unlist()|>
+  sum()
+if(n != length(c_credentials)) {
+  DB_FTP_credentials_not_compleat <- TRUE
+} else {
+  DB_FTP_credentials_not_compleat <- FALSE
+}
 
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
@@ -2436,49 +2447,55 @@ server <- function(input, output, session) {
 
   ## Render: Dynamically update the output panel content #####
   output$dynamicContent_output_panel <- shiny::renderUI({
-    shiny::tagList(
-      shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
-      shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
-      shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
-      shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"),
-      shiny::hr(),
-      shiny::div(
-        style = "display: flex; gap: 20px; align-items: center;",
-        if(file_exists_statistk()){
-          shiny::tags$a(
-            href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Statistik", Abrechungsjahr()),
-            target = "_blank",
-            style = "font-size: 24px;"
+    if(DB_FTP_credentials_not_compleat){
+      shiny::tagList(
+        renderText("this is a test")
+      )
+    } else {
+      shiny::tagList(
+        shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
+        shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
+        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
+        shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"),
+        shiny::hr(),
+        shiny::div(
+          style = "display: flex; gap: 20px; align-items: center;",
+          if(file_exists_statistk()){
+            shiny::tags$a(
+              href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Statistik", Abrechungsjahr()),
+              target = "_blank",
+              style = "font-size: 24px;"
             )
           },
-        if(file_exists_jahhresrechnung()){
-          shiny::tags$a(
-            href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Jahresrechnung", Abrechungsjahr()),
-            target = "_blank",
-            style = "font-size: 24px;"
+          if(file_exists_jahhresrechnung()){
+            shiny::tags$a(
+              href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Jahresrechnung", Abrechungsjahr()),
+              target = "_blank",
+              style = "font-size: 24px;"
             )
           },
-        if(file_exists_archiv()){
-          shiny::tags$a(
-            href = "https://kinoklub.ch/kkTeam/reports/Archiv.html", "Archiv",
-            target = "_blank",
-            style = "font-size: 24px;"
+          if(file_exists_archiv()){
+            shiny::tags$a(
+              href = "https://kinoklub.ch/kkTeam/reports/Archiv.html", "Archiv",
+              target = "_blank",
+              style = "font-size: 24px;"
             )
           }
-      ),
-      # shiny::uiOutput("link_output"),
-      shiny::hr(),
-      if(!startup_error){
-        shiny::div(
-          DT::DTOutput("dateTable")
-        )
-      },
-      shiny::hr(),
-      shiny::tags$h4("Systemrückmeldungen"),
-      shiny::verbatimTextOutput("ausgabe"),
-      shiny::tags$hr(),
-      shiny::verbatimTextOutput("text_output")
-    )
+        ),
+        # shiny::uiOutput("link_output"),
+        shiny::hr(),
+        if(!startup_error){
+          shiny::div(
+            DT::DTOutput("dateTable")
+          )
+        },
+        shiny::hr(),
+        shiny::tags$h4("Systemrückmeldungen"),
+        shiny::verbatimTextOutput("ausgabe"),
+        shiny::tags$hr(),
+        shiny::verbatimTextOutput("text_output")
+      )
+    }
   })
 
   ## launch the Dateien editieren App #####
