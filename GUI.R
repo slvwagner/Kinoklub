@@ -478,16 +478,21 @@ server <- function(input, output, session) {
   
   ### Create report links in datatable ####
   Report_links <- function(){
-    # Links für Abrechnungen 
-    df_Abrechnungen <- 
-      tibble(
-        Abrechnung = list.files(path = "output", pattern = "Abrechnung")
-      )
+    
+    # get all files from ftp server 
+    ftp_files <- ftp_list_files()
+
     # library(rebus)
     # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
     # as.character(p)
-    p <- "([\\d]+)\\.html"
+    p <- "([\\d]+)\\.html" # extract file name
     
+    # Links für Abrechnungen 
+    df_Abrechnungen <- 
+      tibble(
+        Abrechnung = ftp_files[str_detect(ftp_files, ("Abrechnung"))]
+      )
+
     df_Abrechnungen <- df_Abrechnungen|>
       mutate(
         ID = str_match(Abrechnung, p)[,2]|>as.integer(),
@@ -517,12 +522,8 @@ server <- function(input, output, session) {
     # Links für Verleiherabrechnung 
     df_Abrechnungen <- 
       tibble(
-        Abrechnung = list.files(path = "output", pattern = "Verleiher")
+        Abrechnung = ftp_files[str_detect(ftp_files, ("Verleiher"))]
       )
-    # library(rebus)
-    # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
-    # as.character(p)
-    p <- "([\\d]+)\\.html"
     
     df_Abrechnungen <- df_Abrechnungen|>
       mutate(
@@ -1196,9 +1197,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Verleiherrechnung, {
     # Execution time 
     c_time <- Sys.time()
-    
-    Report_links()
-    
+
     if(is.null(input$dateTable_rows_selected)){
       # User interaction
       showModal(

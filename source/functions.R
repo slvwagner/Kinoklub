@@ -1432,7 +1432,9 @@ ftp_list_files <- function(path = "") {
   
   if (!is.null(res)) {
     files <- rawToChar(res$content)
-    return(strsplit(files, "\r?\n")[[1]])
+    files <- strsplit(files, "\r?\n")[[1]]
+    files <- files[!(files %in% c(".",".."))]
+    return(files)
   } else {
     return(character(0))
   }
