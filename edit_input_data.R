@@ -33,14 +33,19 @@ width_vectors <- list(# Define width vectors for specific tables
 # Data templates (for data type conversion) ####
 l_template <- readRDS("source/SQL/template.Rds")
 
-# Split data to input and dropdown ####
+# Split data ####
+## Input tables ####
 c_select_input_data <- 
   c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk", "df_Eintritt", "df_Kiosk")
 l_template[c_select_input_data]
 
+## Avanced tickets files ####
+c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk")
+l_template[c_select_input_advanced_tickets]
+
+## Drop down data and calculation definitions ####
 c_select_dropdown_data <- 
   c("Kinoklubmitglieder", "Verleiher", "Verleiher mapping", "Lieferanten", 
-    "Eintritt files", "Kiosk files",
     "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
 l_template[c_select_dropdown_data]
 
@@ -228,7 +233,8 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   ## Reactive Values ####
   l_data_input <- reactiveVal(list())
-  l_data_choices <- reactiveVal(list())
+  l_data_advance_tickets <- reactiveVal(list())
+  l_data_dropdown <- reactiveVal(list())
   l_data <- reactiveVal(list())
   column_choices <- reactiveVal(list())
   ### data frame to render ####
@@ -325,8 +331,17 @@ server <- function(input, output, session) {
     )
   }
   
+  # if(data_selection_() == "Inputdaten") {
+  #   tool_box(l_data_input(), lastEdited_data_set_name(), c_select_input_data)
+  # } else if (data_selection_() == "Advance-Ticket"){
+  #   tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
+  # } else {
+  #   tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_input_advanced_tickets, 3)
+  # }
+  # 
+  
   ### Toolbox for the user to interact ####
-  tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
+  tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Advance-Tickets", "Dropdowns")) {
     #### Filmvorschlag ####
     if(data_set_select == "Filmvorschlag"){
       tags$div(
@@ -444,7 +459,7 @@ server <- function(input, output, session) {
       )
     }
     #### Menue for drop downs ####
-    else if(data_set_select %in% names(l_data_choices())){
+    else if(data_set_select %in% names(l_data_dropdown())){
       ##### Kinoklubmitglieder ####
       if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
         tags$div(
@@ -744,7 +759,7 @@ server <- function(input, output, session) {
         l_data(l_data_ready)
         update_choices(l_data_ready) |> column_choices()
         l_data_input(l_data_ready[c_select_input_data])
-        l_data_choices(l_data_ready[c_select_dropdown_data])
+        l_data_dropdown(l_data_ready[c_select_dropdown_data])
         current_data(l_data_ready[["Programm"]] |> arrange(desc(Datum)))
         lastEdited_data_set_name("Programm")
         data_selection_("Inputdaten")
@@ -1314,7 +1329,7 @@ server <- function(input, output, session) {
     })
   })
 
-  ## Inputdaten /Dropdowns ####
+  ## Inputdaten / Advance-Tickets / Dropdowns ####
   observeEvent(input$data_selection,{
     writeLines(paste("Inputdaten /Dropdowns: `Data_selection` changed from", data_selection_(), "to", input$data_selection," **** ",
                      "`Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
@@ -1371,9 +1386,13 @@ server <- function(input, output, session) {
         l_data()[c_select_input_data]|>
           l_data_input()
         
+        # Advace-Tickets
+        l_data()[c_select_input_advanced_tickets]|>
+          l_data_advance_tickets()
+        
         # Drop down data set
         l_data()[c_select_dropdown_data]|>
-          l_data_choices()
+          l_data_dropdown()
         
         # remove row and page selection 
         last_selected_page(NA)
@@ -3442,8 +3461,10 @@ server <- function(input, output, session) {
       if(c_connected_to_db()) {
         if(data_selection_() == "Inputdaten") {
           tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data)
+        } else if (data_selection_() == "Advance-Tickets"){
+          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
         } else {
-          tool_box(l_data_choices(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
+          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 3)
         }
       }
     )
