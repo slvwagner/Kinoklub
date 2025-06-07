@@ -688,20 +688,27 @@ server <- function(input, output, session) {
   
   ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
-  
-  ### Does the Statistik.html file exist ####
-  file_exists_statistk <- paste0("output/Statistik ", year(Sys.Date()),".html")|>
-    file.exists()|>
-    shiny::reactiveVal()
 
-  ### Does the Jahresrechnung.html file exist ####
-  file_exists_jahhresrechnung <- paste0("output/Jahresrechnung ", year(Sys.Date()),".html")|>
-    file.exists()|>
-    shiny::reactiveVal()
+  ### Init links to for Statistik, Jahresrechnung and Archiv ####
+  # Show links if file is available on ftp server
+  ftp_files <- ftp_list_files()
   
-  ### Does the Archiv.html file exist ####
-  file_exists_archiv <- shiny::reactiveVal(file.exists("output/Archiv.html"))
+  #### Does the Statistik.html file exist ####
+  if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
+    file_exists_statistk <- shiny::reactiveVal(TRUE)
+  else file_exists_statistk <- shiny::reactiveVal(FALSE)
   
+  #### Does the Jahresrechnung.html file exist ####
+  if(sum(ftp_files == paste0("Jahresrechnung ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1)
+    file_exists_jahhresrechnung <- shiny::reactiveVal(TRUE)
+  else file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
+  
+  #### Does the Archiv.html file exist ####
+  if(sum(ftp_files == paste0("Archiv.html.html"), na.rm = TRUE) == 1){
+    file_exists_archiv <- shiny::reactiveVal(TRUE)
+  } else file_exists_archiv <- shiny::reactiveVal(FALSE)
+  
+
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
   End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
@@ -839,14 +846,20 @@ server <- function(input, output, session) {
       Update_Film_table()
       last_selected_rows(NULL)
       
-      # check if file is available for this Abrechnungsjahr
-      paste0("output/Jahresrechnung ", Abrechungsjahr(),".html")|>
-        file.exists()|>
-        file_exists_jahhresrechnung()
-
-      paste0("output/Statistik ", Abrechungsjahr(),".html")|>
-        file.exists()|>
-        file_exists_statistk()
+      # Show links if file is available on ftp server
+      ftp_files <- ftp_list_files()
+      
+      if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_jahhresrechnung(TRUE)
+      else file_exists_jahhresrechnung(FALSE)
+      
+      if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_statistk(TRUE)
+      else file_exists_statistk(FALSE)
+      
+      if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
+        file_exists_archiv(TRUE)
+      else file_exists_archiv(FALSE)
       
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
@@ -1324,10 +1337,12 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
-      # update links
-      paste0("output/Statistik ", Abrechungsjahr(),".html")|>
-        file.exists()|>
-        file_exists_statistk()
+      # Show links if file is available 
+      ftp_files <- ftp_list_files()
+
+      if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_statistk(TRUE)
+      else file_exists_statistk(FALSE)
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1369,11 +1384,13 @@ server <- function(input, output, session) {
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
-      # update links to show
-      paste0("output/Jahresrechnung ", Abrechungsjahr(),".html")|>
-        file.exists()|>
-        file_exists_jahhresrechnung()
+      # Show links if file is available 
+      ftp_files <- ftp_list_files()
       
+      if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_jahhresrechnung(TRUE)
+      else file_exists_jahhresrechnung(FALSE)
+
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
@@ -1425,9 +1442,14 @@ server <- function(input, output, session) {
           e$message
         ))
       })
+
+      # Show links if file is available 
+      ftp_files <- ftp_list_files()
       
-      file_exists_archiv(file.exists("output/Archiv.html"))
-      
+      if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
+        file_exists_archiv(TRUE)
+      else file_exists_archiv(FALSE)
+
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
