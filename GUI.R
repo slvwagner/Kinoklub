@@ -2330,6 +2330,7 @@ server <- function(input, output, session) {
       shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
                           choices, choices_select
       ),
+      shiny::tags$hr(),
       
       # File input handler
       shiny::fileInput(
@@ -2340,30 +2341,31 @@ server <- function(input, output, session) {
         buttonLabel = "Datei auswählen",
         placeholder = "Drag & drop file"
       ),
-      
+
+      shiny::tags$hr(),
       # Button Daten Einlesen
       shiny::actionButton("calculate", "Berechnen"),
       shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
       shiny::tags$hr(),
       
-      # Datumsbereich auswählen für die Abrechnung Filmvorführungen
-      shiny::dateRangeInput(
-        inputId = "dateRange",
-        label = "Wählen Sie einen Datumsbereich aus:",
-        start = START_date_choose(),
-        # Default start date (one week ago)
-        end = End_date_choose(),
-        # Default end date (last show)
-        min = START_date_choose(),
-        # Earliest selectable date
-        max = End_date_choose(),
-        # Latest selectable date
-        format = "dd.mm.yyyy",
-        # Set input format to German (DD.MM.YYYY)
-        separator = " bis ", # Separator for the two dates in German
-        language = "de",
-        weekstart = 1
-      ),
+      # # Datumsbereich auswählen für die Abrechnung Filmvorführungen
+      # shiny::dateRangeInput(
+      #   inputId = "dateRange",
+      #   label = "Wählen Sie einen Datumsbereich aus:",
+      #   start = START_date_choose(),
+      #   # Default start date (one week ago)
+      #   end = End_date_choose(),
+      #   # Default end date (last show)
+      #   min = START_date_choose(),
+      #   # Earliest selectable date
+      #   max = End_date_choose(),
+      #   # Latest selectable date
+      #   format = "dd.mm.yyyy",
+      #   # Set input format to German (DD.MM.YYYY)
+      #   separator = " bis ", # Separator for the two dates in German
+      #   language = "de",
+      #   weekstart = 1
+      # ),
       
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
@@ -2385,10 +2387,10 @@ server <- function(input, output, session) {
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
-      shiny::tags$hr(),
+      # shiny::tags$hr(),
       
-      # Button zum Ausführen von Code Alles erstellen mit Webserver
-      shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
+      # # Button zum Ausführen von Code Alles erstellen mit Webserver
+      # shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
     )
   })
 
