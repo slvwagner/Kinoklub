@@ -58,8 +58,15 @@ df_files
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 # Data base user password from system variables 
-pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
-con <- DB_connect(pw, "ch367079_flo")
+
+## Data base user password from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 c_suisa <- DB_get_table("Programm", con)|>
   distinct(Suisanummer)|>
@@ -191,15 +198,5 @@ Filmvorschlag <- df_Filmvorschlag|>
   select("ID", "Suisanummer","Filmtitel", "link", "Trailer", "Verleiher", "Veröffentlichungs-Datum", 
          "Eintritte eingespielt", "Inhalt", "director", "producer", "actors", "writer")|>
   rename(Procinema = link)
-
-
-
-# DB_copy_table(Filmvorschlag, con, "Filmvorschlag")
-# 
-# 
-# l_template <- readRDS("source/SQL/template.Rds")
-# l_template[["Filmvorschlag"]] <- Filmvorschlag|>
-#   slice(1)
-# saveRDS(l_template,"source/SQL/template.Rds")
 
 
