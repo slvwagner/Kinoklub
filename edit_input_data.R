@@ -458,68 +458,57 @@ server <- function(input, output, session) {
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
-    #### Menue for drop downs ####
-    else if(data_set_select %in% names(l_data_dropdown())){
-      ##### Kinoklubmitglieder ####
-      if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
-        tags$div(
-          id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
-                   "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-          ),
-          div(class = "panel-content",
-              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-              )
-          ),
-          # Function selection
-          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
-          ),
-          shiny::tags$hr(),
-          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("check_unique", "Prüfen", class = "btn-success"),
-          shiny::tags$hr(),
-          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-          shiny::tags$hr(),
-          actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-          shiny::downloadButton("table_export", "Tabelle herunterladen")
-        )
-      }
-      ##### anything else ####
-      else {
-        tags$div(
-          id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
-                   "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-          ),
-          div(class = "panel-content",
-              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-              )
-          ),
-          # Function selection
-          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
-          ),
-          shiny::tags$hr(),
-          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("check_unique", "Prüfen", class = "btn-success"),
-          shiny::tags$hr(),
-          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-          shiny::tags$hr(),
-          actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-          shiny::downloadButton("table_export", "Tabelle herunterladen")
-        )
-      }
+    ##### Kinoklubmitglieder ####
+    else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
     }
-    ### anything else Input files ####
+    ##### df_Eintritt df_Kiosk ####
+    else if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk","Eintritt files", "Kiosk files")){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "panel-content",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ### anything else ####
     else {
       tags$div(
         id = "floating-panel",
