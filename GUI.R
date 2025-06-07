@@ -346,17 +346,17 @@ server <- function(input, output, session) {
           data_env
         )
       })
-      
-      # Delete selected files
-      if (all(file.exists(df_mapping$fileName_RMD_Verleiher))) {
-        file.remove(df_mapping$fileName_RMD_Verleiher)
-      } else {
-        warning("Some files to delete do not exist.")
-      }
-      
-      paste0("Die Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
-        ausgabe_text()
     }
+    # Delete selected files
+    if (all(file.exists(df_mapping$fileName_RMD_Verleiher))) {
+      file.remove(df_mapping$fileName_RMD_Verleiher)
+    } else {
+      warning("Some files to delete do not exist.")
+    }
+    
+    paste0("Die Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
+      ausgabe_text()
+    
     return(NULL)
   }
   
