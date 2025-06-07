@@ -1243,7 +1243,7 @@ server <- function(input, output, session) {
 
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -1339,7 +1339,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -1503,7 +1503,7 @@ server <- function(input, output, session) {
   observeEvent(input$edit_row, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2099,7 +2099,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_row, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2143,7 +2143,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_row_top, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2251,7 +2251,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_row_bottom, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2355,7 +2355,7 @@ server <- function(input, output, session) {
   observeEvent(input$duplicate_row, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2421,7 +2421,7 @@ server <- function(input, output, session) {
   observeEvent(input$archive_row,{
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2522,7 +2522,7 @@ server <- function(input, output, session) {
   delete_row <- function(selected_row) {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -3061,7 +3061,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_to_programm,{
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -3259,7 +3259,7 @@ server <- function(input, output, session) {
   observeEvent(input$procinema, {
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -3352,7 +3352,7 @@ server <- function(input, output, session) {
   observeEvent(input$takeover_suisa,{
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
