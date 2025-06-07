@@ -39,8 +39,10 @@ DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL, max_attempt
 
 # Update all tables in DB with ID as Primary Key
 DB_update_all <- function(l_data, con) {
-  if (!dbIsValid(con)) {
-    stop("Invalid database connection.")
+  # Add connection validation at start
+  if(!dbIsValid(con)) {
+    warning("Connection lost in DB_get_table(), attempting to reconnect...")
+    con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
   if (!is.list(l_data) || is.null(names(l_data))) {

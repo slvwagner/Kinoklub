@@ -25,8 +25,10 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
 
-if (!dbIsValid(con)) {
-  stop("Invalid database connection.")
+# Add connection validation at start
+if(!dbIsValid(con)) {
+  warning("Connection lost in DB_get_table(), attempting to reconnect...")
+  con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 }
 
 # This is used to run the code on its own
@@ -61,6 +63,12 @@ df_Kiosk <- tbl(con, "df_Kiosk")|>
   collect()
 df_Kiosk
 
+# Add connection validation at start
+if(!dbIsValid(con)) {
+  warning("Connection lost in DB_get_table(), attempting to reconnect...")
+  con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+}
+
 ## Einnahmen ####
 Einnahmen <- DB_get_table("Einnahmen", con)|>
   convert_to_template_types(l_template$Einnahmen)|>
@@ -84,6 +92,12 @@ df_Spezialpreisekiosk <- DB_get_table("Spezialpreisekiosk",con)|>
 ## Verleiher ####
 Verleiher <- DB_get_table("Verleiher",con)|>
   convert_to_template_types(l_template$Verleiher)
+
+# Add connection validation at start
+if(!dbIsValid(con)) {
+  warning("Connection lost in DB_get_table(), attempting to reconnect...")
+  con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+}
 
 ## Lieferant ####
 Lieferant <- DB_get_table("Lieferanten",con)|>

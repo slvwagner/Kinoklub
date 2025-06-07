@@ -433,6 +433,13 @@ server <- function(input, output, session) {
   
   ### Update Film table and date range to choose from ####
   Update_Film_table <- function() {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     
     # Update date range to choose from
     df_temp <- DB_get_table("Programm", DB_con())|>
@@ -741,9 +748,6 @@ server <- function(input, output, session) {
 
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
-    # Execution time 
-    c_time <- Sys.time()
-    
     # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
@@ -751,7 +755,10 @@ server <- function(input, output, session) {
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-
+    
+    # Execution time 
+    c_time <- Sys.time()
+    
     shiny::withProgress(message = "Datenbank backup", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Datenbank backup", 1, "of 3"))
       ausgabe_text("Dateien wurden eingelesen.\n")
@@ -796,17 +803,16 @@ server <- function(input, output, session) {
   
   ##  Button: Abrechnungsjahr #####
   shiny::observeEvent(input$c_Abrechnungsjahr,{
-    req(input$c_Abrechnungsjahr)
-    
-    # Execution time 
-    c_time <- Sys.time()
-    
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
+    req(input$c_Abrechnungsjahr)
+    
+    # Execution time 
+    c_time <- Sys.time()
     
     # Export Abrechnungsjahr 
     Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
@@ -1855,9 +1861,17 @@ server <- function(input, output, session) {
   
   ## Button: Upload Eintritt ####
   shiny::observeEvent(input$upload_file_eintritt, {
-    removeModal()
-    c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     
+    removeModal()
+    
+    c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
     
     file_content <- Run_capture_error_warnings(
       DB_upload_file, con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
@@ -1961,6 +1975,14 @@ server <- function(input, output, session) {
   
   ## Button: Upload kiosk ####
   shiny::observeEvent(input$upload_file_kiosk, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     removeModal()
     c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
     
