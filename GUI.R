@@ -939,7 +939,10 @@ server <- function(input, output, session) {
       modalDialog(
         title = paste0("Advaced-Ticket Dateien neu einlesen?"),
         tagList(
-          renderText("Dieser Vorgang muss nur ausgeführt werden wenn Änerungen and den folgenden Tabellen vorgenommen wurden:"),
+          paste0("Dieser Vorgang muss nur ausgeführt werden wenn Änderungen",
+          "and den folgenden Tabellen vorgenommen wurden, welche das Abrechnungsjahr `",
+          Abrechungsjahr(), "` betreffen.")|>
+            renderText(),
           shiny::hr(),
           renderTable(
             tibble(
