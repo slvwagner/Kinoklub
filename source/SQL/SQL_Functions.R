@@ -7,29 +7,17 @@ source("source/functions.R")
  
 
 # connection to Database ####
-DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL) {
-  # Check if connection already exists and is valid
-  if (!is.null(con)) {
-    if (!dbIsValid(con)) {
-      # Create a new connection
-      con <- tryCatch({
-        dbConnect(
-          MySQL(),
-          host = DB_host,
-          user = DB_user,
-          password = DB_PW,
-          dbname = DB_name,
-          port = 3306
-        )
-      }, error = function(e) {
-        stop("Failed to connect to the database: ", e$message)
-      })
+DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL, max_attempts = 3) {
+  attempt <- 1
+  
+  while(attempt <= max_attempts) {
+    # Check if connection exists and is valid
+    if (!is.null(con) && dbIsValid(con)) {
+      return(con)
     }
-    return(con)
-  } else {
-    # Create a new connection
-    con <- tryCatch({
-      dbConnect(
+    
+    tryCatch({
+      con <- dbConnect(
         MySQL(),
         host = DB_host,
         user = DB_user,
@@ -37,10 +25,15 @@ DB_connect <- function(DB_host, DB_name, DB_user, DB_PW, con = NULL) {
         dbname = DB_name,
         port = 3306
       )
+      return(con)
     }, error = function(e) {
-      stop("Failed to connect to the database: ", e$message)
+      message(sprintf("Connection attempt %d failed: %s", attempt, e$message))
+      if(attempt == max_attempts) {
+        stop("Failed to connect after ", max_attempts, " attempts")
+      }
+      Sys.sleep(2^attempt) # Exponential backoff
+      attempt <<- attempt + 1
     })
-    return(con)
   }
 }
 
