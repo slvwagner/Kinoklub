@@ -2378,7 +2378,7 @@ server <- function(input, output, session) {
   output$dynamicContent_input_panel <- shiny::renderUI({
     if(DB_FTP_credentials_not_compleat){
       shiny::tagList(
-        renderText("this is a test")
+        renderText("Es sind nicht alle Systemvariablen correct definiert!")
       )
     } else {
       
@@ -2464,7 +2464,7 @@ server <- function(input, output, session) {
   output$dynamicContent_output_panel <- shiny::renderUI({
     if(DB_FTP_credentials_not_compleat){
       shiny::tagList(
-        renderText("this is a test")
+        renderText(c_credentials)
       )
     } else {
       shiny::tagList(
