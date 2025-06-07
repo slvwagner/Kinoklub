@@ -1573,7 +1573,7 @@ server <- function(input, output, session) {
     }
   )
     
-  ## Upload handler #####
+  ## file Upload handler #####
   file_data <- shiny::reactive({
     
     if (!dbIsValid(DB_con())) {
@@ -2095,27 +2095,6 @@ server <- function(input, output, session) {
     } else {
       stop("Operating system: ", os_name, " was not implemented for shell actions")
     }
-  })
-  
-  ## Button: FTP upload ####
-  observeEvent(input$ftp_upload,{
-    
-    c_filesPath <- list.files(path = "output", pattern = "html",full.names = TRUE)
-    c_filenames <- list.files(path = "output", pattern = "html")
-    n <- length(c_filenames)
-    
-    shiny::withProgress(message = "Ftp upload:", value = 0, {
-      l_links <- list()
-      for (ii in 1:n) {
-        shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-        c_link <- ftp_upload(c_filesPath[ii])
-        l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
-      }
-    })
-   l_links|>
-     unlist()|>
-      links_to_webserver()
-
   })
   
   ## Render liks ####
