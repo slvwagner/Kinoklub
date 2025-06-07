@@ -1354,16 +1354,10 @@ Run_capture_error_warnings <- function(fun, ...) {
 }
 
 # FTP file upload to reports server ####
-ftp_upload <- function(file) {
+ftp_upload <- function(file, ftp_server, ftp_user, password, path) {
   library(curl)
   
   if (!file.exists(file)) stop("file: ", file, " does not exist")
-  
-  # Define parameters
-  server   <- "ftp://lx51.hoststar.hosting/"
-  path     <- "kinoklub.ch/public_html/kkTeam/reports/"
-  user     <- Sys.getenv("ftp_user")
-  password <- Sys.getenv("ftp_pw")
   
   # Open file connection
   file_conn <- file(file, "rb")
@@ -1371,12 +1365,12 @@ ftp_upload <- function(file) {
   
   # Build FTP URL
   encoded_filename <- utils::URLencode(basename(file), reserved = TRUE)
-  ftp_url <- paste0(server, path, encoded_filename)
+  ftp_url <- paste0(ftp_server, path, encoded_filename)
   
   # Create curl handle
   h <- new_handle(
     upload = TRUE,
-    username = user,
+    username = ftp_user,
     password = password,
     readfunction = function(n) readBin(file_conn, "raw", n)
   )
@@ -1385,7 +1379,7 @@ ftp_upload <- function(file) {
   res <- tryCatch({
     curl_fetch_memory(ftp_url, handle = h)
   }, error = function(e) {
-    message("❌ Upload failed: ", e$message)
+    stop("❌ Upload failed: ", e$message)
     return(NULL)
   })
   
@@ -1405,20 +1399,15 @@ ftp_upload <- function(file) {
 
 
 # list files on ftp server ####
-ftp_list_files <- function(path = "") {
+ftp_list_files <- function(ftp_server, ftp_user, password, basepath, path = "") {
   library(curl)
   
-  server   <- "ftp://lx51.hoststar.hosting/"
-  basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
-  user     <- Sys.getenv("ftp_user")
-  password <- Sys.getenv("ftp_pw")
-  
   # Build full FTP path
-  ftp_url <- paste0(server, basepath, path)
+  ftp_url <- paste0(ftp_server, basepath, path)
   
   # Create curl handle
   h <- new_handle(
-    username = user,
+    username = ftp_user,
     password = password,
     dirlistonly = TRUE
   )
@@ -1426,7 +1415,7 @@ ftp_list_files <- function(path = "") {
   res <- tryCatch({
     curl_fetch_memory(ftp_url, handle = h)
   }, error = function(e) {
-    message("❌ Listing failed: ", e$message)
+    stop("❌ Listing failed: ", e$message)
     return(NULL)
   })
   
@@ -1442,24 +1431,19 @@ ftp_list_files <- function(path = "") {
 
 
 # Download file from ftp ####
-ftp_download_file <- function(remote_file, local_path = ".") {
+ftp_download_file <- function(remote_file, ftp_server, ftp_user, password, basepath, local_path = ".") {
   library(curl)
-  
-  server   <- "ftp://lx51.hoststar.hosting/"
-  basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
-  user     <- Sys.getenv("ftp_user")
-  password <- Sys.getenv("ftp_pw")
   
   # URL-encode remote file
   encoded_filename <- utils::URLencode(remote_file, reserved = TRUE)
-  ftp_url <- paste0(server, basepath, encoded_filename)
+  ftp_url <- paste0(ftp_server, basepath, encoded_filename)
   
   # Define local target path
   local_file <- file.path(local_path, basename(remote_file))
   
   # Create curl handle
   h <- new_handle(
-    username = user,
+    username = ftp_user,
     password = password
   )
   
@@ -1469,7 +1453,7 @@ ftp_download_file <- function(remote_file, local_path = ".") {
     message("✅ Download succeeded: ", local_file)
     return(local_file)
   }, error = function(e) {
-    message("❌ Download failed: ", e$message)
+    stop("❌ Download failed: ", e$message)
     return(NULL)
   })
 }

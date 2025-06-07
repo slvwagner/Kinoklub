@@ -45,6 +45,18 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
+# ftp server connection ####
+ftp_server   <- "ftp://lx51.hoststar.hosting/"
+ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
+ftp_user     <- Sys.getenv("ftp_user")
+ftp_password <- Sys.getenv("ftp_pw")
+
+
+DB_FTP_credentials <- TRUE
+
+
+
+
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
@@ -332,9 +344,6 @@ server <- function(input, output, session) {
       warning("Some files to delete do not exist.")
     }
     
-    paste0(ausgabe_text(), "\nDie Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
-      ausgabe_text()
-    
     return(NULL)
   }
   
@@ -358,7 +367,7 @@ server <- function(input, output, session) {
     
     # Ftp upload
     c_link <- c_filePath|>
-      ftp_upload()
+      ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
     return(c_link)
   }
   
@@ -380,7 +389,7 @@ server <- function(input, output, session) {
     
     # Ftp upload
     c_link <- c_filePath|>
-      ftp_upload()
+      ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
     return(c_link)
   }
   
@@ -404,7 +413,7 @@ server <- function(input, output, session) {
     
     # Ftp upload
     c_link <- c_filePath|>
-      ftp_upload()
+      ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
     return(c_link)
   }
 
@@ -463,9 +472,8 @@ server <- function(input, output, session) {
   
   ### Create report links in datatable ####
   Report_links <- function(){
-    
     # get all files from ftp server 
-    ftp_files <- ftp_list_files()
+    ftp_files <- ftp_list_files(ftp_server,ftp_user, ftp_password, ftp_basepath)
 
     # library(rebus)
     # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
@@ -676,7 +684,7 @@ server <- function(input, output, session) {
 
   ### Init links to for Statistik, Jahresrechnung and Archiv ####
   # Show links if file is available on ftp server
-  ftp_files <- ftp_list_files()
+  ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
   
   #### Does the Statistik.html file exist ####
   if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
@@ -831,7 +839,7 @@ server <- function(input, output, session) {
       last_selected_rows(NULL)
       
       # Show links if file is available on ftp server
-      ftp_files <- ftp_list_files()
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
         file_exists_jahhresrechnung(TRUE)
@@ -952,7 +960,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -1175,7 +1183,7 @@ server <- function(input, output, session) {
           l_links <- list()
           for (ii in 1:n) {
             shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-            c_link <- ftp_upload(c_filesPath[ii])
+            c_link <- ftp_upload(c_filesPath[ii], ftp_server, ftp_user, ftp_password, ftp_basepath)
             l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
           }
         })
@@ -1265,7 +1273,7 @@ server <- function(input, output, session) {
           l_links <- list()
           for (ii in 1:n) {
             shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-            c_link <- ftp_upload(c_filesPath[ii])
+            c_link <- ftp_upload(c_filesPath[ii],ftp_server, ftp_user, ftp_password, ftp_basepath)
             l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
           }
         })
@@ -1282,6 +1290,35 @@ server <- function(input, output, session) {
           )
         )
       })
+      
+      
+      tryCatch({
+        # upload to ftp server
+        c_filesPath <- paste0("output/", c_filenames)
+        n <- length(c_filenames)
+        
+        shiny::withProgress(message = "Ftp upload:", value = 0, {
+          l_links <- list()
+          for (ii in 1:n) {
+            shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+            c_link <- ftp_upload(c_filesPath[ii],ftp_server, ftp_user, ftp_password, ftp_basepath)
+            l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+          }
+        })
+        
+        l_links|>
+          unlist()|>
+          links_to_webserver()
+        
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            "\nFehler beim Ftp-Upload: Verleiherabrechnung\n",
+            e$message
+          )
+        )
+      })
+      
       
       # update links in table
       Report_links()
@@ -1325,7 +1362,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
       # Show links if file is available 
-      ftp_files <- ftp_list_files()
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
 
       if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
         file_exists_statistk(TRUE)
@@ -1372,7 +1409,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
       # Show links if file is available 
-      ftp_files <- ftp_list_files()
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
         file_exists_jahhresrechnung(TRUE)
@@ -1431,7 +1468,7 @@ server <- function(input, output, session) {
       })
 
       # Show links if file is available 
-      ftp_files <- ftp_list_files()
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
         file_exists_archiv(TRUE)
