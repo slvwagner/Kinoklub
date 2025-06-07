@@ -354,7 +354,7 @@ server <- function(input, output, session) {
       warning("Some files to delete do not exist.")
     }
     
-    paste0("Die Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
+    paste0(ausgabe_text(), "\nDie Dateien: `",df_mapping$fileName_html_Verleiher, "` wurde erstellt.")|>
       ausgabe_text()
     
     return(NULL)
@@ -552,6 +552,98 @@ server <- function(input, output, session) {
     # Render
     current_data(df_temp)
     
+  }
+  
+  ### Check if report needs creation, if the ID is linked it may not be created. ####
+  check_if_report_needs_creation <- function(df_mapping, data_env) {
+    # get data for reports
+    l_temp <- df_mapping$`Event ID`|>
+      lapply( function(ii){
+        try({data_env$l_abrechnung[[as.character(ii)]]})
+      })
+    
+    # get data for reports
+    l_temp <- df_mapping$`Event ID`|> 
+      lapply( function(ii){
+        try({data_env$l_abrechnung[[as.character(ii)]]})
+        })
+    
+    # Check for data  
+    c_select <- l_temp|>
+      lapply(is.null)|>
+      unlist()
+    
+    # remove from list if NULL
+    l_temp <- l_temp[!c_select]
+    
+    # no data do not create reports
+    if(length(l_temp) == 0) {
+      # user information
+      paste0(
+        "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
+        "Wird dieser Film gemeinsam abgerechnet?, Zeigt eine `Link ID` auf diesen Film?\n",
+        "Bitte den Filmtitel wählen der die erste `Link ID` enthält und dann die Filmabrechnung erstellen. "
+      )|>
+        ausgabe_text()
+      req(NULL)
+    } 
+    
+    # Data to render
+    df_temp <- l_temp|>
+      lapply(function(x){
+        x$Abrechnung
+      })|>
+      bind_rows()
+    df_temp
+    
+    # remove reports that have a `Event ID` link(s) 
+    if(is.na(df_temp$`Link to Event ID`)|>sum() < nrow(df_temp)){
+      ausgabe_text("")
+      ID_to_remove <- l_temp|>
+        lapply(function(x){
+          IDs <- x$IDs|>
+            arrange(IDs)
+          # only remove IDs if more than one can be found so a linked ID is found
+          if(nrow(IDs) > 1){
+            ID_to_remove <- x$Abrechnung|>
+              filter(is.na(`Link to Event ID`))|>
+              select(`Event ID`)|>
+              pull()
+            
+            # user information
+            paste0(ausgabe_text(),
+                   "Removed ID: ", ID_to_remove,
+                   "\n"
+            )|>
+              ausgabe_text()
+            
+            # return
+            return(ID_to_remove)
+            
+          } else {
+            return(NULL)
+          }
+        })|>
+        unlist()
+      
+      df_temp <- df_temp|>
+        filter(!(`Event ID` %in% ID_to_remove))
+      
+      if(nrow(df_temp) == 0) {
+        # user information
+        paste0(ausgabe_text(),
+               "Es wird nur der Hauptbericht erstellt", ID_to_remove,
+               "\n"
+        )|>
+          ausgabe_text()
+        
+        req(NULL) # early stop
+      }
+      
+    } else {
+      ausgabe_text("")
+    }
+    return(df_temp)
   }
   
   ## Shiny reactive variables ####
@@ -1050,86 +1142,8 @@ server <- function(input, output, session) {
         last_selected_rows(input$dateTable_rows_selected)
       }
       
-      # get data for reports
-      l_temp <- df_mapping$`Event ID`|>
-        lapply( function(ii){
-          try({data_env$l_abrechnung[[as.character(ii)]]})
-        })
-      
-      # Check for data  
-      c_select <- l_temp|>
-        lapply(is.null)|>
-        unlist()
-      
-      # remove from list if NULL
-      l_temp <- l_temp[!c_select]
-      
-      # no data do not create reports
-      if(length(l_temp) == 0) {
-        # user information
-        paste0(
-          "Es sind keine Daten für diese Filmvorführung vorhanden.\n",
-          "Wird dieser Film gemeinsam abgerechnet?, Zeigt eine `Link ID` auf diesen Film?\n",
-          "Bitte den Filmtitel wählen der die erste `Link ID` enthält und dann die Filmabrechnung erstellen. "
-        )|>
-          ausgabe_text()
-        req(NULL)
-      } 
-      
-      # Data to render
-      df_temp <- l_temp|>
-        lapply(function(x){
-          x$Abrechnung
-        })|>
-        bind_rows()
-      df_temp
-    
-      # remove reports that have a `Event ID` link(s) 
-      if(is.na(df_temp$`Link to Event ID`)|>sum() < nrow(df_temp)){
-        ausgabe_text("")
-        ID_to_remove <- l_temp|>
-          lapply(function(x){
-            IDs <- x$IDs|>
-              arrange(IDs)
-            # only remove IDs if more than one can be found so a linked ID is found
-            if(nrow(IDs) > 1){
-              ID_to_remove <- x$Abrechnung|>
-                filter(is.na(`Link to Event ID`))|>
-                select(`Event ID`)|>
-                pull()
-              
-              # user information
-              paste0(ausgabe_text(),
-                     "Removed ID: ", ID_to_remove,
-                     "\n"
-              )|>
-                ausgabe_text()
-              
-              # return
-              return(ID_to_remove)
-              
-            } else {
-              return(NULL)
-            }
-          })|>
-          unlist()
-        
-        df_temp <- df_temp|>
-          filter(!(`Event ID` %in% ID_to_remove))
-        
-        if(nrow(df_temp) == 0) {
-          # user information
-          paste0(ausgabe_text(),
-                 "Es wird nur der haupt bericht erstellt", ID_to_remove,
-                 "\n"
-          )|>
-            ausgabe_text()
-          req(NULL) # early stop
-        }
-        
-      } else {
-        ausgabe_text("")
-      }
+      # Only create report if not linked to other ID
+      df_temp <- check_if_report_needs_creation(df_mapping, data_env)
       
       # Filmabrechnungen erstellen
       tryCatch({
@@ -1214,99 +1228,72 @@ server <- function(input, output, session) {
         mutate(Datum = lubridate::dmy(Datum))
     }
     
-    # get data for reports
-    l_temp <- df_mapping$`Event ID`|>
-      lapply( function(ii){
-        try({data_env$l_abrechnung[[as.character(ii)]]})
-      })
+    # Only create report if not linked to other ID
+    df_temp <- check_if_report_needs_creation(df_mapping, data_env)
     
-    if(!is.null(l_temp)){
-      shiny::withProgress(message = "Script running... ", value = 0, {
-        shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
-        ausgabe_text("")
-        start_datum <- input$dateRange |> min()
-        end_datum <- input$dateRange |> max()
+    
+    shiny::withProgress(message = "Script running... ", value = 0, {
+      shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
+      # Verleiherrechnung erstellen mit dateRange user input
+      tryCatch({
+        df_mapping__ <- 
+          Abrechnung_mapping(
+            df_temp
+            )
+
+        shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
+        VerleiherabrechnungErstellen(
+          df_mapping__
+        )
         
-        # Überprüfen, ob beide Daten gültig sind
-        if (start_datum <= end_datum) {
-          # Verleiherrechnung erstellen mit dateRange user input
-          tryCatch({
-            df_mapping__ <- 
-              Abrechnung_mapping(
-                df_mapping
-                )
-
-            shiny::incProgress(1 / 4, detail = paste("Verleiherabrechnung: ", 2, "of 4"))
-            VerleiherabrechnungErstellen(
-              df_mapping__
-            )
-            
-            # upload ftp
-            if(nrow(df_mapping__) == 1){
-              c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")[[1]][2]
-            } else {
-              c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")|>
-                lapply(function(x){
-                  x[2]
-                })|>
-                unlist()
-            }
-            
-            # upload to ftp server
-            c_filesPath <- paste0("output/", c_filenames)
-            n <- length(c_filenames)
-            
-            shiny::withProgress(message = "Ftp upload:", value = 0, {
-              l_links <- list()
-              for (ii in 1:n) {
-                shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-                c_link <- ftp_upload(c_filesPath[ii])
-                l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
-              }
-            })
-            
-            l_links|>
-              unlist()|>
-              links_to_webserver()
-
-          }, error = function(e) {
-            ausgabe_text(
-              paste0(
-                ausgabe_text(),
-                "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
-                e$message
-              )
-            )
-          })
-
+        # upload ftp
+        if(nrow(df_mapping__) == 1){
+          c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")[[1]][2]
         } else {
-          ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+          c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")|>
+            lapply(function(x){
+              x[2]
+            })|>
+            unlist()
         }
+        
+        # upload to ftp server
+        c_filesPath <- paste0("output/", c_filenames)
+        n <- length(c_filenames)
+        
+        shiny::withProgress(message = "Ftp upload:", value = 0, {
+          l_links <- list()
+          for (ii in 1:n) {
+            shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+            c_link <- ftp_upload(c_filesPath[ii])
+            l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+          }
+        })
+        
+        l_links|>
+          unlist()|>
+          links_to_webserver()
 
-        # calculate execution time
-        c_time <- c(c_time,end = Sys.time())|>
-          diff()
-        c(paste0("Ausführungszeit: ",r_signif(c_time)), "\n",paste0(ausgabe_text(),"\n"))|>
-          ausgabe_text()
-        
-        shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
-        
-        # update links in table
-        Report_links()
-        
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
+            e$message
+          )
+        )
       })
-    }else{
-      paste0("Es sind kein Daten vorhanden. Dateien wurden noch nicht eingelesen!\n",
-             "Bitte Dateien einlesen und nochmals versuchen.")|>
-        ausgabe_text()
       
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-        ausgabe_text()
-    }
+      # update links in table
+      Report_links()
+      
+      shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
+    })
     
+    # calculate execution time
+    c_time <- c(c_time,end = Sys.time())|>
+      diff()
+    c(paste0("Ausführungszeit: ",r_signif(c_time)), "\n",paste0(ausgabe_text(),"\n"))|>
+      ausgabe_text()
   })
   
   ## Button: Statistik #####
