@@ -647,7 +647,7 @@ server <- function(input, output, session) {
     # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -703,7 +703,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -773,7 +773,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -1489,7 +1489,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2041,7 +2041,7 @@ server <- function(input, output, session) {
     
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2267,7 +2267,7 @@ server <- function(input, output, session) {
       
       # Button Daten Einlesen
       shiny::actionButton("calculate", "Berechnen"),
-      shiny::actionButton("spezpreis_recalc", "Spezialpeise neu einlesen"),
+      shiny::actionButton("recalc_advance", "Advance Ticket neu einlesen"),
       shiny::tags$hr(),
       
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
