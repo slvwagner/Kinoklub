@@ -1504,7 +1504,6 @@ server <- function(input, output, session) {
     })
   })
   
-  
   ## Button: Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
@@ -1730,7 +1729,6 @@ server <- function(input, output, session) {
       return(NULL)
     }
   })
-
   
   ## Button: Upload file already exists ####
   shiny::observeEvent(input$upload_file, {
@@ -1790,7 +1788,6 @@ server <- function(input, output, session) {
     
     
   })
-  
   
   ## Button: Upload Eintritt ####
   shiny::observeEvent(input$upload_file_eintritt, {
