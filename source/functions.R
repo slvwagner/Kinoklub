@@ -1475,7 +1475,7 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
     last_selected_row <- table_rows_selected
     
   } else {
-    last_selected_page(NULL)
+    last_selected_page <- NA
   }
   ### if column filters are present update column filters #####
   if(sum(!c_test) != length(column_filters)) {
