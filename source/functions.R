@@ -1542,6 +1542,33 @@ ftp_upload <- function(file, ftp_server, ftp_user, password, path) {
   return(paste0("https://kinoklub.ch/kkTeam/reports/", encoded_filename))
 }
 
+# Download file from ftp ####
+ftp_download_file <- function(remote_file, ftp_server, ftp_user, password, basepath, local_path = ".") {
+  library(curl)
+  
+  # URL-encode remote file
+  encoded_filename <- utils::URLencode(remote_file, reserved = TRUE)
+  ftp_url <- paste0(ftp_server, basepath, encoded_filename)
+  
+  # Define local target path
+  local_file <- file.path(local_path, basename(remote_file))
+  
+  # Create curl handle
+  h <- new_handle(
+    username = ftp_user,
+    password = password
+  )
+  
+  # Try download
+  tryCatch({
+    curl_download(ftp_url, destfile = local_file, handle = h)
+    message("✅ Download succeeded: ", local_file)
+    return(local_file)
+  }, error = function(e) {
+    stop("❌ Download failed: ", e$message)
+    return(NULL)
+  })
+}
 
 # list files on ftp server ####
 ftp_list_files <- function(ftp_server, ftp_user, password, basepath, path = "") {
@@ -1574,31 +1601,69 @@ ftp_list_files <- function(ftp_server, ftp_user, password, basepath, path = "") 
   }
 }
 
-
-# Download file from ftp ####
-ftp_download_file <- function(remote_file, ftp_server, ftp_user, password, basepath, local_path = ".") {
+# Delete file from FTP  ####
+ftp_delete_file <- function(remote_file, ftp_server, ftp_user, password, basepath, verify = TRUE) {
   library(curl)
   
-  # URL-encode remote file
-  encoded_filename <- utils::URLencode(remote_file, reserved = TRUE)
-  ftp_url <- paste0(ftp_server, basepath, encoded_filename)
+  # Normalize basepath (ensure leading and trailing slash)
+  if (!grepl("^/", basepath)) basepath <- paste0("/", basepath)
+  if (!grepl("/$", basepath)) basepath <- paste0(basepath, "/")
   
-  # Define local target path
-  local_file <- file.path(local_path, basename(remote_file))
+  # Check if file exists before deletion
+  c_files <- ftp_list_files(ftp_server, ftp_user, password, basepath)
+  if (!(remote_file %in% c_files)) {
+    message("⚠️ File not found on FTP: ", remote_file)
+    return(FALSE)
+  } else {
+    message("📂 File exists on FTP: ", remote_file)
+  }
   
-  # Create curl handle
-  h <- new_handle(
+  # Encode spaces in filename
+  encoded_file <- gsub(" ", "%20", remote_file)
+  
+  # Remove ftp:// if already included
+  ftp_host <- sub("^ftp://", "", ftp_server)
+  
+  # Correct full path
+  full_delete_path <- paste0("ftp://", ftp_host, basepath, encoded_file)
+  message("🔗 Deleting via path: ", full_delete_path)
+  
+  # Set up curl handle
+  h_delete <- new_handle(
+    customrequest = "DELE",
     username = ftp_user,
-    password = password
+    password = password,
+    ftp_use_epsv = FALSE
   )
+  handle_setopt(h_delete, verbose = TRUE)
   
-  # Try download
-  tryCatch({
-    curl_download(ftp_url, destfile = local_file, handle = h)
-    message("✅ Download succeeded: ", local_file)
-    return(local_file)
+  # Perform deletion
+  res <- tryCatch({
+    curl_fetch_memory(full_delete_path, handle = h_delete)
   }, error = function(e) {
-    stop("❌ Download failed: ", e$message)
+    message("❌ Deletion failed: ", e$message)
     return(NULL)
   })
+  
+  if (!is.null(res) && res$status_code >= 200 && res$status_code < 300) {
+    message("✅ File deletion *reported* successful (HTTP ", res$status_code, ")")
+  }
+  
+  # Wait briefly for server sync
+  Sys.sleep(1)
+  
+  # Verify deletion
+  c_files_after <- ftp_list_files(ftp_server, ftp_user, password, basepath)
+  if (remote_file %in% c_files_after) {
+    message("❌ File still present after deletion attempt.")
+    return(FALSE)
+  } else {
+    message("✅ File no longer present. Deletion confirmed.")
+    return(TRUE)
+  }
 }
+
+
+
+
+

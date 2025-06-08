@@ -1504,108 +1504,6 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button: "Alles erstellen" #####
-  shiny::observeEvent(input$ErstelleAbrechnung, {
-    # Execution time 
-    c_time <- Sys.time()
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 10, detail = paste("Step", 1, "of 10"))
-      # User interaction
-      "Alles wurde neu erstellt" |>
-        ausgabe_text()
-      calculate_warnings("")
-      
-      # Delete all files prior to creating new files
-      list.files("output/", "html", full.names = TRUE) |>
-        file.remove()
-      list.files("output/pict/", "html", full.names = TRUE) |>
-        file.remove()
-      
-      # run script calculate.R to finde error specifically happening with only this source
-      tryCatch({
-        # erstellen von Verzeichnissen
-        dir.create("output/") |> suppressWarnings()
-        dir.create("output/data/") |> suppressWarnings()
-        
-        # Daten einlesen und konvertieren
-        source("source/calculate.R", local =  data_env)
-        
-        
-      }, error = function(e) {
-        calculate_warnings("error")
-        paste0(
-          error_calculate,
-          "Alles neu erstellen Fehlermeldung:\n",
-          "Daten konnten nicht eingelesen werden. Fehlermeldung: ",
-          e$message
-        )|>
-          ausgabe_text()
-      })
-      
-      # run the rest of the script
-      if(calculate_warnings() == ""){
-        tryCatch({
-          # Statistik-Bericht erstellen
-          StatistikErstellen()
-          shiny::incProgress(1 / 10, detail = paste("Step", 2, "of 10"))
-          
-          # Jahresrechnung-Bericht erstellen
-          JahresrechnungErstellen()
-          shiny::incProgress(1 / 10, detail = paste("Step", 3, "of 10"))
-          
-          # Bericht(e) Abrechnung pro Filmforführung erstellen
-          df_mapping__ <- 
-            Abrechnung_mapping(
-              data_env,
-              start = paste0(Abrechungsjahr(),"-1-1")|>as.Date(),
-              end = paste0(Abrechungsjahr(),"-12-31")|>as.Date()
-            )
-          AbrechnungErstellen(
-            df_mapping__,
-            data_env$df_Abrechnung
-          )
-          shiny::incProgress(1 / 10, detail = paste("Step", 4, "of 10"))
-          df_mapping__ <- df_mapping__|>
-            filter(!`Kinoförderer gratis?`)
-          if(nrow(df_mapping__)>0){
-            VerleiherabrechnungErstellen(
-              df_mapping__
-            )
-          }
-
-          shiny::incProgress(1 / 10, detail = paste("step", 5, "of 10"))
-          
-          # Procinema
-          source("source/procinema.R", local = WordPress_env)
-          shiny::incProgress(1 / 10, detail = paste("step", 6, "of 10"))
-          # Wordpress
-          source("source/read_and_convert_wordPress.R", local = WordPress_env)
-          shiny::incProgress(1 / 10, detail = paste("step", 7, "of 10"))
-          
-          FilmvorschlagErstellen(WordPress_env)
-          shiny::incProgress(1 / 10, detail = paste("step", 8, "of 10"))
-          shiny::incProgress(1 / 10, detail = paste("step", 9, "of 10"))
-          
-        }, error = function(e) {
-          ausgabe_text(paste(
-            "Alles neu erstellen Fehlermeldung:\n",
-            e$message
-          ))
-        })
-      }
-      
-      End_date_choose(max(data_env$df_Abrechnung$Datum))
-      START_date_choose(min(data_env$df_Abrechnung$Datum))
-      
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-        ausgabe_text()
-      
-      shiny::incProgress(1 / 10, detail = paste("Step", 10, "of 10"))
-    })
-  })
   
   ## Button: Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
@@ -2148,6 +2046,87 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  ## Button: ftp file handling modal ####
+  observeEvent(input$ftp_delete_modal,{
+    # get all files from ftp server 
+    ftp_files <- ftp_list_files(ftp_server,ftp_user, ftp_password, ftp_basepath)
+
+    # library(rebus)
+    # p <- capture(one_or_more(DGT))%R%DOT%R%"html"
+    # p1 <- START%R%one_or_more(WRD)
+    p <- "([\\d]+)\\.html"
+    p1 <- "^[\\w]+"
+    
+    # Sorting files for user correctly
+    df_temp <- tibble(Dateiname = ftp_files,
+                      Report = str_match(ftp_files, p1)[,1], 
+                      order = as.integer(str_match(ftp_files, p)[,2])
+                      )|>
+      arrange(Report, desc(order))
+    df_temp
+    
+    # update so rendering can take place
+    df_temp_1(df_temp)
+    
+    # Calculate modal size based on number of columns
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Die Datensäze aus der Datei: ",last_uploaded_file(), " sind nicht gleich wie in der Datenbank!"),
+        tagList(
+          renderText("Daten aus der Datenbank:"),
+          shiny::hr(),
+          div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              dataTableOutput("modal_table_1"))
+        ),
+        easyClose = FALSE,
+        footer = tagList(
+          actionButton("ftp_delete_file", "Selektierte Datensätze löschen?", class = "bnt-danger"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    req(NULL)
+  })
+  
+  ## Button: ftp file deleting ####
+  observeEvent(input$ftp_delete_file,{
+    removeModal()
+    if(is.null(input$modal_table_1_rows_selected)){
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile in der Tabelle markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    } else {
+      df_temp <- df_temp_1()[input$modal_table_1_rows_selected,]
+      df_temp
+      
+      shiny::withProgress(message = "Löschen ", value = 0, {
+        n <- nrow(df_temp)
+        for (ii in 1:nrow(df_temp)) {
+          shiny::incProgress(1 / n, detail = paste("Datei", ii, "of", n))
+          
+          tryCatch({
+            ftp_delete_file(df_temp$Dateiname[ii], ftp_server, ftp_user, ftp_password, ftp_basepath)
+          }, error = function(e) {
+            paste0("Die Dateien: ", df_temp$Dateiname, " konnte nicht gelöscht werden.", e, collapse = "\n")|>
+              ausgabe_text()
+            req(NULL)
+          })
+        }
+      })
+
+      paste0("Die Dateien: ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
+        ausgabe_text()
+    }
+  })
+  
   ## Button: Dateien anzeigen ####
   observeEvent(input$explore_files,{
     os_name <- Sys.info()[["sysname"]]
@@ -2372,8 +2351,10 @@ server <- function(input, output, session) {
     
     l_temp$last_selected_page|>
       last_selected_page()
+    
     l_temp$last_selected_row|>
       last_selected_rows()
+    
     # only update if it is not NULL to prevent infinite loop 
     if(!is.null(l_temp$last_user_filter)){
       l_temp$last_user_filter|>
@@ -2415,10 +2396,9 @@ server <- function(input, output, session) {
       choices <- 2023:lubridate::year(Sys.Date())
       
       shiny::tagList(
-        # Abrechnungsjahr
-        # shiny::numericInput("c_Abrechnungsjahr","Abrechnungsjahr", 
-        #                     value = Abrechungsjahr(),
-        #                     min = 2023, max = lubridate::year(Sys.Date()) , step = 1),
+        shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
+        shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
+        shiny::tags$hr(),
         shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
                             choices, choices_select
         ),
@@ -2479,10 +2459,8 @@ server <- function(input, output, session) {
         # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
         shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
         shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
-        # shiny::tags$hr(),
-        
-        # # Button zum Ausführen von Code Alles erstellen mit Webserver
-        # shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen")
+        shiny::tags$hr(),
+        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success")
       )
     }
     
@@ -2501,10 +2479,8 @@ server <- function(input, output, session) {
       )
     } else {
       shiny::tagList(
-        shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
-        shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
-        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-info"),
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"),
+        shiny::actionButton("ftp_delete_modal", "Ftp Dateien löschen",class = "btn-danger"),
         shiny::hr(),
         shiny::div(
           style = "display: flex; gap: 20px; align-items: center;",
