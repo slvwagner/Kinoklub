@@ -2282,6 +2282,7 @@ server <- function(input, output, session) {
         lengthMenu = c_lengthMenu,
         dom = 'lftip',
         language = DT_language,
+        searchCols = last_user_filter(),
         initComplete = JS(
           "function(settings, json) {",
           "// One-time header/body styles",
@@ -2362,6 +2363,12 @@ server <- function(input, output, session) {
   ## Select a row and find page ####
   observeEvent(input$dateTable_rows_selected, {
     req(input$dateTable_rows_selected)
+    
+    c_filter <- last_user_filter()
+    
+    if(is.null(c_filter)){
+      last_user_filter(input$dateTable_search_columns)
+    }
     
     # find page 
     l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,

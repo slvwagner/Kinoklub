@@ -1454,7 +1454,7 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
         }
       })
     # only update if changed
-    test <- identical(last_user_filter(), column_filters_temp)
+    test <- identical(last_user_filter, column_filters_temp)
     if(!test) {
       last_user_filter <- column_filters_temp
     }
