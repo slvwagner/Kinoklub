@@ -728,6 +728,7 @@ server <- function(input, output, session) {
   ### Store process for secondary app in a reactive value ####
   second_app_process <- reactiveVal(NULL)
   
+  ### Datatable to render ####
   current_data <- reactiveVal(NULL)
   
   ### Database connection ####

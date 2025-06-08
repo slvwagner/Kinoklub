@@ -921,6 +921,15 @@ Spezialpreisekiosk <- function(df_Kiosk, con, l_template) {
   return(df_extracted)
 }
 
+# find the negative number nreaest to zero ####
+nearest_negative_to_zero <- function(x) {
+  neg_values <- x[x < 0]  # Filter negative values
+  if (length(neg_values) == 0) {
+    return(NA)  # Or handle as you prefer if no negative values are present
+  }
+  max(neg_values)  # The closest to zero from the negative side
+}
+
 # Einkaufspreise abgleichen ####
 Einkaufspreise <- function(df_extracted, con, l_template) {
   if (!dbIsValid(con)) {
@@ -934,61 +943,62 @@ Einkaufspreise <- function(df_extracted, con, l_template) {
   
   # look up Einkaufspreise per date (Gültig ab Datum?) ####
   ii <- 1
-  l_temp2 <- df_extracted$ID|>
-    lapply(function(ii){
-      row_kiosk <- df_extracted|>
-        filter(`ID` == ii)
-      row_kiosk
+  l_temp2 <- list()
+  
+  for (ii in 1:length(df_extracted$ID)) {
+    row_kiosk <- df_extracted|>
+      filter(`ID` == ii)
+    row_kiosk
+    
+    row_einkaufspreise <- Einkauf_Kiosk|>
+      filter(`Artikelname-Kassensystem` == row_kiosk$`Artikel-Kassensystem`)
+    row_einkaufspreise
+    
+    if(nrow(row_kiosk)  )
       
-      row_einkaufspreise <- Einkauf_Kiosk|>
-        filter(`Artikelname-Kassensystem` == row_kiosk$`Artikel-Kassensystem`)
-      row_einkaufspreise
-      
-      if(nrow(row_kiosk)  )
+      if(nrow(row_einkaufspreise) == 0) { # Keine Artikel gefunden (Spezialpreis)
+        df_temp <- tibble(
+          ID_Kioskartikel = NA,
+          Artikel = NA,
+          `Artikelname-Kassensystem` = NA,
+          `Verkaufspreis [CHF]` = NA,
+          Menge = NA,
+          `Einkaufspreis [CHF]` = NA,
+          Lieferant = NA,
+          `Gültig ab Datum` = NA,
+          `Event ID` = NA,
+          Artikelname = NA,
+          Datum = NA
+        )
+      } else { # Artikelabgleich
+        df_temp <-
+          left_join(
+            row_einkaufspreise ,
+            row_kiosk|>
+              select(`Event ID`,`Artikel-Kassensystem`, Artikelname, Datum),
+            by = c(`Artikelname-Kassensystem` = "Artikel-Kassensystem")
+          )|>
+          rename(ID_Kioskartikel = ID)
+        df_temp
         
-        if(nrow(row_einkaufspreise) == 0) { # Keine Artikel gefunden (Spezialpreis)
-          df_temp <- tibble(
-            ID_Kioskartikel = NA,
-            Artikel = NA,
-            `Artikelname-Kassensystem` = NA,
-            `Verkaufspreis [CHF]` = NA,
-            Menge = NA,
-            `Einkaufspreis [CHF]` = NA,
-            Lieferant = NA,
-            `Gültig ab Datum` = NA,
-            `Event ID` = NA,
-            Artikelname = NA,
-            Datum = NA
-          )
-          df_temp
-          return(df_temp)
-        } else { # Artikelabgleich
-          df_temp <-
-            left_join(
-              row_einkaufspreise ,
-              row_kiosk|>
-                select(`Event ID`,`Artikel-Kassensystem`, Artikelname, Datum),
-              by = c(`Artikelname-Kassensystem` = "Artikel-Kassensystem")
-            )|>
-            rename(ID_Kioskartikel = ID)
-          df_temp
-          
-          df_temp <- df_temp|>
-            mutate(`time deviation` = (`Gültig ab Datum` - Datum))
-          df_temp
-          
-          df_temp <- df_temp|>
-            filter(`time deviation` == min(`time deviation`)) # only keep the smallest `time deviation`
-          df_temp
-          
-          # delete time deviation
-          df_temp <- df_temp|>
-            mutate(`time deviation` = NULL)
-          df_temp
-          
-          return(df_temp)
-        }
-    })
+        df_temp <- df_temp|>
+          mutate(`time deviation` = (`Gültig ab Datum` - Datum))
+        df_temp
+
+        c_select <- nearest_negative_to_zero(df_temp$`time deviation`)
+        
+        df_temp <- df_temp|>
+          filter(`time deviation` == c_select) # only keep the smallest `time deviation`
+        df_temp
+        
+        # delete time deviation
+        df_temp <- df_temp|>
+          mutate(`time deviation` = NULL)
+        df_temp
+      }
+    l_temp2[[ii]] <- df_temp  
+  }
+
   
   df_temp <- bind_rows(l_temp2, .id = "ID")|>
     mutate(ID = as.integer(ID))
