@@ -331,15 +331,6 @@ server <- function(input, output, session) {
     )
   }
   
-  # if(data_selection_() == "Inputdaten") {
-  #   tool_box(l_data_input(), lastEdited_data_set_name(), c_select_input_data)
-  # } else if (data_selection_() == "Advance-Ticket"){
-  #   tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
-  # } else {
-  #   tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_input_advanced_tickets, 3)
-  # }
-  # 
-  
   ### Toolbox for the user to interact ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Advance-Tickets", "Dropdowns")) {
     #### Filmvorschlag ####
@@ -541,17 +532,7 @@ server <- function(input, output, session) {
     }
   }
   
-  ### get date type for each column from a data frame ####
-  get_data_type <- function(df){
-    1:ncol(df)|>
-      lapply(function(x){
-        c_temp <- df|>
-          select(all_of(x))|>
-          pull()
-        class(c_temp)[1] # only use the first class
-      })|>
-      unlist()
-  }
+
   
   ### Convert data frame columns to factors ####
   factor_handling <- function(df_temp, df_updated, select_row){
@@ -834,111 +815,7 @@ server <- function(input, output, session) {
     return(dt)
   }
   
-  ### Find datatable page ####
-  find_page <- function(){
-    req(input$table_rows_selected)
-    c_row <- as.integer(input$table_rows_selected)
-    
-    # map selected row to ID
-    df_temp <- last_rendered_DT()
-    pull(df_temp[c_row,1])|>
-      ID_to_edit()
-    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
-    
-    # get user filters
-    column_filters = input$table_search_columns
-    column_filters <- column_filters|>
-      str_remove_all("\"")|>
-      str_remove_all("\\[")|>
-      str_remove_all("\\]")
-    column_filters <- str_split(column_filters,",")
-    
-    # Update last user filter
-    c_test <- lapply(column_filters, function(x){
-      nchar(x) > 0
-    })|>
-      unlist()
-    # get column data type
-    c_class <- get_data_type(df_temp)
-    ### extract data from column filters ####
-    for (ii in 1:length(column_filters)) {
-      col_filter <- column_filters[[ii]]
-      if(nchar(col_filter[1]) > 0){
-        if(c_class[ii] %in% c("Date", "hms")){
-          c_date <- pull(df_temp[,ii])|>
-            as.character()
-          df_temp <- df_temp[str_detect(c_date, col_filter),]
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        } 
-        else if(c_class[ii] == "integer"){
-          # library(rebus)
-          # p1 <- START%R%one_or_more(DGT)
-          # p2 <- one_or_more(DGT)%R%END
-          p1 <- "^[\\d]+"
-          p2 <- "[\\d]+$"
-          start <- str_extract(col_filter, p1)|>
-            as.integer()
-          end <- str_extract(col_filter, p2)|>
-            as.integer()
-          c_select <- start:end
-          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
-        } else if (c_class[ii] == "factor"){
-          if(length(col_filter) > 1){
-            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
-          } else {
-            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
-            c_select <- ifelse(is.na(c_select), FALSE, c_select)
-            df_temp <- df_temp[c_select,]
-          }
-        }
-        # character 
-        else { 
-          # filters for data table are not case sensitive so tolower() conversion is needed 
-          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        }
-      }
-    }
-    # map ID to selected row
-    df_temp <- df_temp |>
-      mutate(index = row_number())
-    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
-    # # has the page lenght changed? 
-    # if(!is.null(input$page_length)){
-    #   page_length_var(input$page_length)
-    # }
-    if(!is_empty(row_filtered)){
-      # Calculate page 
-      c_page <-  ceiling(row_filtered / page_length_var())  
-      writeLines(paste0("Selected row: ", c_row, ", ID: ", ID_to_edit(),", table: `", lastEdited_data_set_name(),"`, Selected page: ", c_page,"\n"))
-      
-      if(c_page == 0) c_page <- 1
-      last_selected_page(c_page)
-      last_selected_row(c_row)
-      
-    } else {
-      last_selected_page(NULL)
-    }
-    ### if column filters are present update column filters #####
-    if(sum(!c_test) != length(column_filters)) {
-      column_filters_temp <- input$table_search_columns|>
-        lapply(function(x){
-          if(nchar(x) > 0) {
-            list(search = x)
-          } 
-          else {
-            NULL
-          }
-        })
-      # only update if changed
-      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
-      if(!test) {
-        last_user_filter(column_filters_temp)
-      }
-    } else {
-      last_user_filter(NULL)
-    }
-  }
+
 
   ## Render data table ####
   output$table <- DT::renderDT({
@@ -1183,7 +1060,19 @@ server <- function(input, output, session) {
       page_length_var()
     
     # calculate page got an early stop if no rows have been selected 
-    find_page()
+    l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
+              last_rendered_DT(), 
+              lastEdited_data_set_name(), last_user_filter(),page_length_var()
+              )
+    
+    l_temp$ID_to_edit|>
+      ID_to_edit()
+    l_temp$last_user_filter|>
+      last_user_filter()
+    l_temp$last_selected_page|>
+      last_selected_page()
+    l_temp$last_selected_row|>
+      last_selected_row()
     
     # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
@@ -1199,9 +1088,20 @@ server <- function(input, output, session) {
   
   ## Select a row and find page ####
   observeEvent(input$table_rows_selected, {
-    writeLines("table_rows_selected")
     # find page 
-    find_page()
+    l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
+              last_rendered_DT(), 
+              lastEdited_data_set_name(), last_user_filter(), page_length_var()
+              )
+    
+    l_temp$ID_to_edit|>
+      ID_to_edit()
+    l_temp$last_user_filter|>
+      last_user_filter()
+    l_temp$last_selected_page|>
+      last_selected_page()
+    l_temp$last_selected_row|>
+      last_selected_row()
   })
   
   ## Database Connection ####

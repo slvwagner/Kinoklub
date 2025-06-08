@@ -1353,6 +1353,120 @@ Run_capture_error_warnings <- function(fun, ...) {
   )
 }
 
+### get date type for each column from a data frame ####
+get_data_type <- function(df){
+  1:ncol(df)|>
+    lapply(function(x){
+      c_temp <- df|>
+        select(all_of(x))|>
+        pull()
+      class(c_temp)[1] # only use the first class
+    })|>
+    unlist()
+}
+
+# Find datatable page ####
+find_page <- function(table_rows_selected, table_search_columns, table_data, lastEdited_data_set_name, last_user_filter, page_length_var){
+  # map selected row to ID
+  df_temp <- table_data
+  ID_to_edit <- pull(df_temp[table_rows_selected,1])
+
+  # get user filters
+  column_filters = table_search_columns
+  column_filters <- column_filters|>
+    str_remove_all("\"")|>
+    str_remove_all("\\[")|>
+    str_remove_all("\\]")
+  column_filters <- str_split(column_filters,",")
+  
+  # Update last user filter
+  c_test <- lapply(column_filters, function(x){
+    nchar(x) > 0
+  })|>
+    unlist()
+  # get column data type
+  c_class <- get_data_type(df_temp)
+  ### extract data from column filters ####
+  for (ii in 1:length(column_filters)) {
+    col_filter <- column_filters[[ii]]
+    if(nchar(col_filter[1]) > 0){
+      if(c_class[ii] %in% c("Date", "hms")){
+        c_date <- pull(df_temp[,ii])|>
+          as.character()
+        df_temp <- df_temp[str_detect(c_date, col_filter),]
+        df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+      } 
+      else if(c_class[ii] == "integer"){
+        # library(rebus)
+        # p1 <- START%R%one_or_more(DGT)
+        # p2 <- one_or_more(DGT)%R%END
+        p1 <- "^[\\d]+"
+        p2 <- "[\\d]+$"
+        start <- str_extract(col_filter, p1)|>
+          as.integer()
+        end <- str_extract(col_filter, p2)|>
+          as.integer()
+        c_select <- start:end
+        df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
+      } else if (c_class[ii] == "factor"){
+        if(length(col_filter) > 1){
+          df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
+        } else {
+          c_select <- str_detect(pull(df_temp[,ii]), col_filter)
+          c_select <- ifelse(is.na(c_select), FALSE, c_select)
+          df_temp <- df_temp[c_select,]
+        }
+      }
+      # character 
+      else { 
+        # filters for data table are not case sensitive so tolower() conversion is needed 
+        df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
+        df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
+      }
+    }
+  }
+  # map ID to selected row
+  df_temp <- df_temp |>
+    mutate(index = row_number())
+  row_filtered <- df_temp[df_temp[,1] == ID_to_edit,]$index
+
+  if(!is_empty(row_filtered)){
+    # Calculate page 
+    c_page <-  ceiling(row_filtered / as.integer(page_length_var) )
+    
+    
+    if(c_page == 0) c_page <- 1
+    last_selected_page <- c_page
+    last_selected_row <- table_rows_selected
+    
+  } else {
+    last_selected_page(NULL)
+  }
+  ### if column filters are present update column filters #####
+  if(sum(!c_test) != length(column_filters)) {
+    column_filters_temp <- table_search_columns|>
+      lapply(function(x){
+        if(nchar(x) > 0) {
+          list(search = x)
+        } 
+        else {
+          NULL
+        }
+      })
+    # only update if changed
+    test <- identical(last_user_filter(), column_filters_temp)
+    if(!test) {
+      last_user_filter <- column_filters_temp
+    }
+  } else {
+    last_user_filter <- NULL
+  }
+  
+  writeLines(paste0("Selected row: ", table_rows_selected, ", ID: ", ID_to_edit,", table: `", lastEdited_data_set_name,"`, Selected page: ", c_page,"\n"))
+  
+  return(list(ID_to_edit = ID_to_edit, last_user_filter = last_user_filter, last_selected_page = last_selected_page, last_selected_row = last_selected_row))
+}
+
 # FTP file upload to reports server ####
 ftp_upload <- function(file, ftp_server, ftp_user, password, path) {
   library(curl)
