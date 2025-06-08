@@ -3355,13 +3355,15 @@ server <- function(input, output, session) {
                   Regie = df_temp$producer,
                   Schauspieler = df_temp$actors,
                   Kategorie = "",
-                  Trailer = ""
+                  Trailer = "",
+                  Produktionsland = df_temp$Produktionsland,
+                  Genre = df_temp$Genre
         )
       new_row <- bind_cols(ID = max(current_data()$ID) + 1,
                            new_row
       )|>
         select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
-               "Schauspieler", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
+               "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)

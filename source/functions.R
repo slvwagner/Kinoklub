@@ -1125,7 +1125,7 @@ film_details <- function(url) {
     require(httr)
   })
   
-  # Helper function to extract values from faditem blocks
+  # Helper functions (keep your existing ones)
   extract_faditem <- function(page, label) {
     items <- page %>% html_nodes(".faditem")
     for (item in items) {
@@ -1137,13 +1137,11 @@ film_details <- function(url) {
     return(NA_character_)
   }
   
-  # Helper function to clean numbers
   clean_number <- function(x) {
     if (is.na(x) || x == "") return(NA_integer_)
     as.integer(str_remove_all(x, "[^0-9]"))
   }
   
-  # Helper function to clean dates
   clean_date <- function(x) {
     if (is.na(x) || x == "") return(NA_character_)
     x
@@ -1161,8 +1159,37 @@ film_details <- function(url) {
   
   if (is.null(page)) return(tibble())
   
-  # Extract all information
-  tibble(
+  # Extract extras block data
+  extras_block <- page %>% html_node("aside.extras")
+  
+  extras_data <- list()
+  if (!is.null(extras_block)) {
+    items <- extras_block %>% html_nodes("li") %>% html_text(trim = TRUE)
+    
+    # Process each item
+    for (item in items) {
+      if (str_detect(item, ":")) {
+        parts <- str_split(item, ":", n = 2)
+        key <- str_trim(parts[[1]][1])
+        value <- str_trim(parts[[1]][2])
+        extras_data[[key]] <- value
+      } else if (!item %in% c("", "ISAN:")) {
+        # Handle special cases like ISAN number
+        if (str_detect(item, "0000-0000")) {
+          extras_data[["ISAN"]] <- item
+        } else if (str_detect(item, "Link:")) {
+          link_text <- str_remove(item, "Link:")
+          extras_data[[str_trim(link_text)]] <- 
+            extras_block %>% 
+            html_node(str_glue("li:contains('{item}') a")) %>% 
+            html_attr("href")
+        }
+      }
+    }
+  }
+  
+  # Create the main tibble (keep your existing fields)
+  result <- tibble(
     # Basic info
     title = page %>% html_node("h1") %>% html_text(trim = TRUE) %||% NA_character_,
     link = url,
@@ -1195,7 +1222,7 @@ film_details <- function(url) {
       html_node("h3:contains('INHALT') + p") %>% 
       html_text(trim = TRUE) %||% NA_character_,
     
-    # Images (comma-separated URLs)
+    # Images
     images = page %>% 
       html_nodes(".scenimg") %>% 
       html_attr("src") %>% 
@@ -1207,8 +1234,16 @@ film_details <- function(url) {
     producer = extract_faditem(page, "Produzent"),
     writer = extract_faditem(page, "Drehbuch") %>% str_replace_all("<br>", ", "),
     music = extract_faditem(page, "Musik"),
-    actors = extract_faditem(page, "Schauspieler")
+    actors = extract_faditem(page, "Schauspieler"),
+    
+    # Extras data as a list column
+    Produktionsland = extras_data$Produktionsland,
+    Genre = extras_data$Genre
+    
+    
   )
+  
+  return(result)
 }
 
 # create empty line with correct data type ####
