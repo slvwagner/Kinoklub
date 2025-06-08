@@ -2363,25 +2363,22 @@ server <- function(input, output, session) {
   ## Select a row and find page ####
   observeEvent(input$dateTable_rows_selected, {
     req(input$dateTable_rows_selected)
-    
-    c_filter <- last_user_filter()
-    
-    if(is.null(c_filter)){
-      last_user_filter(input$dateTable_search_columns)
-    }
-    
+
     # find page 
     l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,
                         current_data(), 
-                        "table", last_user_filter(), page_length_var()
+                        "table", page_length_var()
     )
-
-    l_temp$last_user_filter|>
-      last_user_filter()
+    
     l_temp$last_selected_page|>
       last_selected_page()
     l_temp$last_selected_row|>
       last_selected_rows()
+    # only update if it is not NULL to prevent infinite loop 
+    if(!is.null(l_temp$last_user_filter)){
+      l_temp$last_user_filter|>
+        last_user_filter()
+    }
   })
   
   ## Change in page length ####

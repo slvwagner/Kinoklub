@@ -1401,7 +1401,7 @@ get_data_type <- function(df){
 }
 
 # Find datatable page ####
-find_page <- function(table_rows_selected, table_search_columns, table_data, lastEdited_data_set_name, last_user_filter, page_length_var){
+find_page <- function(table_rows_selected, table_search_columns, table_data, lastEdited_data_set_name, page_length_var){
   # map selected row to ID
   df_temp <- table_data
   ID_to_edit <- pull(df_temp[table_rows_selected,1])
@@ -1488,11 +1488,7 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
           NULL
         }
       })
-    # only update if changed
-    test <- identical(last_user_filter, column_filters_temp)
-    if(!test) {
-      last_user_filter <- column_filters_temp
-    }
+    last_user_filter <- column_filters_temp
   } else {
     last_user_filter <- NULL
   }

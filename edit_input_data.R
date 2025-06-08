@@ -1063,7 +1063,7 @@ server <- function(input, output, session) {
     # calculate page got an early stop if no rows have been selected 
     l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
               last_rendered_DT(), 
-              lastEdited_data_set_name(), last_user_filter(),input$page_length
+              lastEdited_data_set_name(), input$page_length
               )
     
     l_temp$ID_to_edit|>
@@ -1093,17 +1093,21 @@ server <- function(input, output, session) {
     # find page 
     l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
               last_rendered_DT(), 
-              lastEdited_data_set_name(), last_user_filter(), page_length_var()
+              lastEdited_data_set_name(), page_length_var()
               )
     
     l_temp$ID_to_edit|>
       ID_to_edit()
-    l_temp$last_user_filter|>
-      last_user_filter()
     l_temp$last_selected_page|>
       last_selected_page()
     l_temp$last_selected_row|>
       last_selected_row()
+    # only update if it is not NULL to prevent infinite loop (This will trigger rendering)
+    if(!is.null(l_temp$last_user_filter)){
+      l_temp$last_user_filter|>
+        last_user_filter()
+    }
+    
   })
   
   ## Database Connection ####
