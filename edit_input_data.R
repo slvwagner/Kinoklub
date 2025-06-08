@@ -1054,6 +1054,7 @@ server <- function(input, output, session) {
   observeEvent(input$page_length, {
     writeLines("page_length")
     req(input$page_length)
+    req(input$table_rows_selected)
     
     # Update page length
     as.integer(input$page_length)|>
@@ -1062,7 +1063,7 @@ server <- function(input, output, session) {
     # calculate page got an early stop if no rows have been selected 
     l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
               last_rendered_DT(), 
-              lastEdited_data_set_name(), last_user_filter(),page_length_var()
+              lastEdited_data_set_name(), last_user_filter(),input$page_length
               )
     
     l_temp$ID_to_edit|>
@@ -1088,6 +1089,7 @@ server <- function(input, output, session) {
   
   ## Select a row and find page ####
   observeEvent(input$table_rows_selected, {
+    req(input$table_rows_selected)
     # find page 
     l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
               last_rendered_DT(), 
