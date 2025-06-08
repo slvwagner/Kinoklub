@@ -740,17 +740,18 @@ server <- function(input, output, session) {
   DB_user <- shiny::reactiveVal(DB_user)
   ### Database password ####
   DB_pw <- shiny::reactiveVal(DB_pw)
-
+  
   ### Page length of data table ####
   page_length_var <- shiny::reactiveVal(5L)
-  
   ### Selected rows in data table ####
-  last_selected_rows <- shiny::reactiveVal(NULL)
+  last_selected_rows <- shiny::reactiveVal(NA)
+  ### last selected page in data table ####
+  last_selected_page <- shiny::reactiveVal(NA)
+  ### User filter in data table ####
+  last_user_filter <- shiny::reactiveVal(NULL)
   
   ### Links to webserver ####
   links_to_webserver <- shiny::reactiveVal(NULL)
-  
-
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
     # check DB connection
@@ -855,7 +856,7 @@ server <- function(input, output, session) {
       })
       
       Update_Film_table()
-      last_selected_rows(NULL)
+      last_selected_rows(NA)
       
       # Show links if file is available on ftp server
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
@@ -2346,12 +2347,34 @@ server <- function(input, output, session) {
   ## Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
     writeLines("Signal: Datatable has been rendered")
+
     # select row and page if possible
-    if(!is.null(last_selected_rows())){
-      m <- last_selected_rows()
+    if(!is.na(last_selected_rows()) & !is.na(last_selected_page())){
       dataTableProxy('dateTable')|>
+        selectPage(last_selected_page())|>
         selectRows(last_selected_rows())
+    } else if (!is.na(last_selected_page())){
+      dataTableProxy('dateTable')|>
+        selectPage(last_selected_page())
     }
+  })
+  
+  ## Select a row and find page ####
+  observeEvent(input$dateTable_rows_selected, {
+    req(input$dateTable_rows_selected)
+    
+    # find page 
+    l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,
+                        current_data(), 
+                        "table", last_user_filter(), page_length_var()
+    )
+
+    l_temp$last_user_filter|>
+      last_user_filter()
+    l_temp$last_selected_page|>
+      last_selected_page()
+    l_temp$last_selected_row|>
+      last_selected_rows()
   })
   
   ## Change in page length ####
