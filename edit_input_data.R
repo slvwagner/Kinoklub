@@ -2997,6 +2997,8 @@ server <- function(input, output, session) {
       
       removeModal()
     }
+    # Remove table render modal dialogs
+    df_temp_to_render(NULL)
   })
   
   ### Takeover Filmvorschlag to Programm ####
@@ -3194,7 +3196,6 @@ server <- function(input, output, session) {
   #### user modal ####
   observeEvent(input$procinema_search,{
     req(input$procinema_search)
-    
     showModal(modalDialog(
       title = "Suisanummer auf Procinema suchen",
       # Input panel at top
