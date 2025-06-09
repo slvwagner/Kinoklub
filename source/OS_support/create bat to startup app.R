@@ -20,7 +20,21 @@ r_exe
 r_wd <- Sys.getenv("Kinoklub_wd")|>
   normalizePath()
 
-if(nchar(r_wd) == 0) stop("Systemvarible `Kinoklub_wd` wurde nicht gefunden.")
+if(nchar(r_wd) == 0) {
+  # Define variable name and value
+  var_name <- "Kinoklub_wd"
+  var_value <- getwd()|>
+    r_win_path()
+  print(var_value)
+  
+  # Build the command
+  cmd <- sprintf('setx %s "%s"', var_name, var_value)
+  
+  # Execute (use shell() on Windows for better behavior)
+  shell(cmd)
+  
+  message("Systemvarible `Kinoklub_wd` wurde erstellt.")
+}
 
 r_wd <- paste0(r_wd, "/Start_Input_data_edit.R")|>
   r_win_path()
