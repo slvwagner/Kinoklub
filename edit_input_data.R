@@ -3390,6 +3390,7 @@ server <- function(input, output, session) {
     poll_timer()  # Triggered every 5s
     if(dbIsValid(DB_con())){
       DB_get_max_pk(DB_con(), "MWST")
+      writeLines(paste0("✅ Database connection is valid. Time: ", poll_timer()))
       return(TRUE)
     } else FALSE
   })

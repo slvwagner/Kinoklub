@@ -1,2 +1,2 @@
 setwd(Sys.getenv("Kinoklub_wd"))
-source("GUI.R")
+source("edit_input_data.R")
