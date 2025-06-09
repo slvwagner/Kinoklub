@@ -26,7 +26,6 @@ if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
 
   var_value <- getwd()|>
     r_win_path()
-  print(var_value)
   
   # Build the command
   cmd <- sprintf('setx %s "%s"', var_name, var_value)
