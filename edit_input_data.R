@@ -3108,12 +3108,26 @@ server <- function(input, output, session) {
       max()
 
     newrow <- tibble(
-      "Event ID" = Last_Event_ID + 1L, "Suisanummer" = row$Suisanummer, "Filmtitel" = row$Filmtitel,
-      "Datum" = NA, "Zeit" = NA, "Link to Event ID" = NA, 
-      "Verleiher" = row$Verleiher, "Verleiher Angefragt?" = "Anfrage läuft", "Procinema" = row$Procinema, "Trailer" = row$Trailer,
-      "Abzug [%]" = 30, "Minimal Abzug [CHF]" = 150, "Abzug fix [CHF]" = NA,
-      "Verleihervertrag abgelegt" = NA, "Anzahl bestellter Poster und Flyer" = NA,"Poster und Flyer erhalten?" = NA,
-      "Art der Filmlieferung" = NA, "Besucherzahlen an Verleiher gesendet" = NA, "Rechnung bezahlt und abgelegt" = NA,
+      "Event ID" = Last_Event_ID + 1L,
+      "Suisanummer" = row$Suisanummer,
+      "Filmtitel" = row$Filmtitel,
+      "Datum" = NA,
+      "Zeit" = NA,
+      "Link to Event ID" = NA,
+      "Verleiher" = row$Verleiher,
+      "Verleiher Angefragt?" = "Anfrage läuft",
+      "Procinema" = row$Procinema,
+      "Trailer" = row$Trailer,
+      "Produktionsland" = row$Produktionsland,
+      "Abzug [%]" = 30,
+      "Minimal Abzug [CHF]" = 150,
+      "Abzug fix [CHF]" = NA,
+      "Verleihervertrag abgelegt" = NA,
+      "Anzahl bestellter Poster und Flyer" = NA,
+      "Poster und Flyer erhalten?" = NA,
+      "Art der Filmlieferung" = NA,
+      "Besucherzahlen an Verleiher gesendet" = NA,
+      "Rechnung bezahlt und abgelegt" = NA,
       "KDM ja oder nein" = NA,
     )
     
