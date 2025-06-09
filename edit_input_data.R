@@ -3389,7 +3389,10 @@ server <- function(input, output, session) {
       # update to render
       DB_get_table("Filmvorschlag", DB_con())|>
         convert_to_template_types(l_template$Filmvorschlag)|>
+        arrange(desc(ID))|>
         current_data()
+      
+      last_selected_row(1L)
       
       removeModal()
     }
