@@ -73,26 +73,26 @@ shiny::addResourcePath("custom_styles", "source")
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
-    .panel-content .selectize-control.single .selectize-input {
+    .custom-select .selectize-control.single .selectize-input {
       background-color: #330937;
-      color: white;
-      border: 1px solid #444;
+      color: #f4eacc;
+      border: 1px solid #f4eacc;
     }
 
-    .panel-content .selectize-dropdown-content {
-      background-color: #330937;
-      color: white;
-    }
-
-    .panel-content .selectize-dropdown .active {
+    .custom-select .selectize-dropdown-content {
       background-color: #330937;
       color: white;
     }
 
-    .panel-content .selectize-control.single .selectize-input input {
+    .custom-select .selectize-dropdown .active {
+      background-color: #330937;
+      color: #f4eacc;
+    }
+
+    .custom-select .selectize-control.single .selectize-input input {
       background-color: #330937 !important;
       color: white !important;
-      caret-color: white;
+      caret-color: #f4eacc;
       border: none;
     }
   "))
@@ -367,7 +367,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
                         )
             ),
@@ -400,7 +400,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -433,7 +433,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -456,7 +456,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -483,7 +483,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -512,7 +512,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -533,7 +533,7 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -701,7 +701,7 @@ server <- function(input, output, session) {
           
           l_temp[[ii + cnt]]  <-
             div(
-              class = "panel-content",
+              class = "custom-select",
               selectInput(
                 inputId = as.character(ii),
                 label = col_name,
@@ -713,7 +713,7 @@ server <- function(input, output, session) {
         } else if (col_name %in% names(column_choices())) {
           l_temp[[ii + cnt]]  <-
             div(
-              class = "panel-content",
+              class = "custom-select",
               selectInput(
                 inputId = as.character(ii),
                 label = col_name,
