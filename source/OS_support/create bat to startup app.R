@@ -30,7 +30,7 @@ r_wd|>
   r_win_path()
 r_wd
 
-c_raw <- readLines("source/OS_support/Kinoklub.template")
+c_raw <- readLines("source/OS_support/Kinoklub.bat")
 c_raw
 
 
