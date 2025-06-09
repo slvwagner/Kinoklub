@@ -71,6 +71,32 @@ shiny::addResourcePath("custom_styles", "source")
 
 # Define UI ####
 ui <- fluidPage(
+  tags$head(
+    tags$style(HTML("
+    .panel-content .selectize-control.single .selectize-input {
+      background-color: #330937;
+      color: white;
+      border: 1px solid #444;
+    }
+
+    .panel-content .selectize-dropdown-content {
+      background-color: #330937;
+      color: white;
+    }
+
+    .panel-content .selectize-dropdown .active {
+      background-color: #330937;
+      color: white;
+    }
+
+    .panel-content .selectize-control.single .selectize-input input {
+      background-color: #330937 !important;
+      color: white !important;
+      caret-color: white;
+      border: none;
+    }
+  "))
+  ),
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
     tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
@@ -342,7 +368,7 @@ server <- function(input, output, session) {
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
         div(class = "panel-content",
-            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
                         )
             ),
         # Function selection
@@ -375,7 +401,7 @@ server <- function(input, output, session) {
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
         div(class = "panel-content",
-            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
         # Function selection
@@ -673,21 +699,29 @@ server <- function(input, output, session) {
             suppressWarnings()
           names(c_select) <- c_choices
           
-          l_temp[[ii + cnt]]  <- selectInput(
-            inputId = as.character(ii),
-            label = col_name,
-            choices = c_select,
-            selected = ifelse(is.na(col_value), NA, col_value),
-            selectize = TRUE
-          )
+          l_temp[[ii + cnt]]  <-
+            div(
+              class = "panel-content",
+              selectInput(
+                inputId = as.character(ii),
+                label = col_name,
+                choices = c_select,
+                selected = ifelse(is.na(col_value), NA, col_value),
+                selectize = TRUE
+              )
+            )
         } else if (col_name %in% names(column_choices())) {
-          l_temp[[ii + cnt]]  <- selectInput(
-            inputId = as.character(ii),
-            label = col_name,
-            choices = c_choices,
-            selected = ifelse(is.na(col_value), NA, col_value),
-            selectize = TRUE
-          )
+          l_temp[[ii + cnt]]  <-
+            div(
+              class = "panel-content",
+              selectInput(
+                inputId = as.character(ii),
+                label = col_name,
+                choices = c_choices,
+                selected = ifelse(is.na(col_value), NA, col_value),
+                selectize = TRUE
+              )
+            )
         } else {
           stop("You should not end here: factor else")
         }
