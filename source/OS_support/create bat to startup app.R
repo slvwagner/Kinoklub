@@ -17,12 +17,13 @@ r_exe <- Sys.which("Rscript")|>
   normalizePath()
 r_exe
 
-r_wd <- Sys.getenv("Kinoklub_wd")|>
+var_name <- "Kinoklub_wd"
+r_wd <- Sys.getenv(var_name)|>
   normalizePath()
 
-if(nchar(r_wd) == 0) {
+if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
   # Define variable name and value
-  var_name <- "Kinoklub_wd"
+
   var_value <- getwd()|>
     r_win_path()
   print(var_value)
