@@ -10,13 +10,19 @@ r_win_path <- function(x){
   return(x)
 }
 
-Sys.which("Rscript")
+Sys.which("R")
 
 
-r_exe <- Sys.which("Rscript")
+r_exe <- Sys.which("Rscript")|>
+  normalizePath()
 r_exe
 
 r_wd <- Sys.getenv("Kinoklub_wd")|>
+  normalizePath()
+
+if(nchar(r_wd) == 0) stop("Systemvarible `Kinoklub_wd` wurde nicht gefunden.")
+
+r_wd|>
   r_path()|>
   paste0("/Start_Input_data_edit.R")|>
   r_win_path()
