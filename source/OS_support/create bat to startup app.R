@@ -22,9 +22,11 @@ r_wd <- Sys.getenv("Kinoklub_wd")|>
 
 if(nchar(r_wd) == 0) stop("Systemvarible `Kinoklub_wd` wurde nicht gefunden.")
 
+r_wd <- paste0(r_wd, "/Start_Input_data_edit.R")|>
+  r_win_path()
+r_wd
+
 r_wd|>
-  r_path()|>
-  paste0("/Start_Input_data_edit.R")|>
   r_win_path()
 r_wd
 
