@@ -20,7 +20,7 @@ dict_env <- new.env()
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
-c_lengthMenu = c(5:20, 50, 100) # page length drop down options
+c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
 width_vectors <- list(# Define width vectors for specific tables
   "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px", "actors" = "100px"),
@@ -3388,7 +3388,10 @@ server <- function(input, output, session) {
   ## Reactive that checks DB connection ####
   db_connection_status <- reactive({
     poll_timer()  # Triggered every 5s
-    dbIsValid(DB_con())
+    if(dbIsValid(DB_con())){
+      DB_get_max_pk(DB_con(), "MWST")
+      return(TRUE)
+    } else FALSE
   })
   
   ## Render: Database connection status ####
@@ -3459,12 +3462,12 @@ server <- function(input, output, session) {
   
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )

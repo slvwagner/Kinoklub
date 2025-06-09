@@ -114,7 +114,7 @@ if (!dir.exists("output")) {
 shiny::addResourcePath("reports", "output")
 
 # Constants ####
-c_lengthMenu = c(5:20, 50, 100) # page length drop down options
+c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
 # Data table in german ####
 DT_language <- list(
@@ -2236,7 +2236,7 @@ server <- function(input, output, session) {
     )
   })
   
-  ## Reder: Datatable Flim #####
+  ## Reder: Datatable #####
   output$dateTable <-  DT::renderDT({
     writeLines("DT::renderDT")
     
@@ -2530,7 +2530,12 @@ server <- function(input, output, session) {
   ## Reactive that checks DB connection ####
   db_connection_status <- reactive({
     poll_timer()  # Triggered every 5s
-    dbIsValid(DB_con())
+    
+    if(dbIsValid(DB_con())){
+      DB_get_max_pk(DB_con(), "MWST")
+      return(TRUE)
+    } else FALSE
+    
   })
   
   ## Render: Database connection status ####
