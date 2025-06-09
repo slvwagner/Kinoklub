@@ -693,8 +693,8 @@ server <- function(input, output, session) {
   ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
 
+  ### Init links to for Statistik, Jahresrechnung and Archiv ####
   tryCatch({
-    ### Init links to for Statistik, Jahresrechnung and Archiv ####
     # Show links if file is available on ftp server
     ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
     
@@ -753,6 +753,7 @@ server <- function(input, output, session) {
   
   ### Links to webserver ####
   links_to_webserver <- shiny::reactiveVal(NULL)
+  
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
     # check DB connection
@@ -2105,6 +2106,9 @@ server <- function(input, output, session) {
       df_temp <- df_temp_1()[input$modal_table_1_rows_selected,]
       df_temp
       
+      paste0("Die Dateien: ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
+        ausgabe_text()
+      
       shiny::withProgress(message = "Löschen ", value = 0, {
         n <- nrow(df_temp)
         for (ii in 1:nrow(df_temp)) {
@@ -2120,8 +2124,7 @@ server <- function(input, output, session) {
         }
       })
 
-      paste0("Die Dateien: ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
-        ausgabe_text()
+
     }
   })
   
@@ -2458,7 +2461,8 @@ server <- function(input, output, session) {
         shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
         shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
         shiny::tags$hr(),
-        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success")
+        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),        
+        shiny::uiOutput("db_status")
       )
     }
     
@@ -2504,7 +2508,7 @@ server <- function(input, output, session) {
             )
           }
         ),
-        # shiny::uiOutput("link_output"),
+        # shiny::uiOutput("db_status"),
         shiny::hr(),
         if(!startup_error){
           shiny::div(
@@ -2517,6 +2521,24 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         shiny::verbatimTextOutput("text_output")
       )
+    }
+  })
+
+  ## Timer to trigger every 5 seconds ####
+  poll_timer <- reactiveTimer(5000)
+  
+  ## Reactive that checks DB connection ####
+  db_connection_status <- reactive({
+    poll_timer()  # Triggered every 5s
+    dbIsValid(DB_con())
+  })
+  
+  ## Render: Database connection status ####
+  output$db_status <- renderText({
+    if (db_connection_status()) {
+      paste0("✅ Database connection is valid. Time: ", poll_timer())
+    } else {
+      paste0("❌ Database connection is NOT valid! Time", poll_timer())
     }
   })
 

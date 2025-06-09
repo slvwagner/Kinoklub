@@ -1660,7 +1660,7 @@ ftp_delete_file <- function(remote_file, ftp_server, ftp_user, password, basepat
   }
   
   # Wait briefly for server sync
-  Sys.sleep(1)
+  Sys.sleep(0.5)
   
   # Verify deletion
   c_files_after <- ftp_list_files(ftp_server, ftp_user, password, basepath)

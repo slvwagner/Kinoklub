@@ -3382,11 +3382,31 @@ server <- function(input, output, session) {
     df_temp_to_render(NULL)
   })
   
+  ## Timer to trigger every 5 seconds ####
+  poll_timer <- reactiveTimer(5000)
+  
+  ## Reactive that checks DB connection ####
+  db_connection_status <- reactive({
+    poll_timer()  # Triggered every 5s
+    dbIsValid(DB_con())
+  })
+  
+  ## Render: Database connection status ####
+  output$db_status <- renderText({
+    if (db_connection_status()) {
+      paste0("✅ Database connection is valid. Time: ", poll_timer())
+    } else {
+      paste0("❌ Database connection is NOT valid! Time", poll_timer())
+    }
+  })
+  
+  
   ## Dynamic UI ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       if(c_connected_to_db()) {
         div(
+          shiny::uiOutput("db_status"),
           style = "width: 100%; overflow-x: auto;",
           DTOutput("table", width = "100%"),
           # Make panel draggable
