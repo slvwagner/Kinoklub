@@ -36,7 +36,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 # Split data ####
 ## Input tables ####
 c_select_input_data <- 
-  c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk", "df_Eintritt", "df_Kiosk")
+  c("Filmvorschlag","Programm", "Einsatzplan", "Einnahmen", "Ausgaben", "Spezialpreisekiosk", "Einkauf Kiosk")
 l_template[c_select_input_data]
 
 ## Avanced tickets files ####
