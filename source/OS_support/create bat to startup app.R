@@ -10,9 +10,6 @@ r_win_path <- function(x){
   return(x)
 }
 
-Sys.which("R")
-
-
 r_exe <- Sys.which("Rscript")|>
   normalizePath()
 r_exe
