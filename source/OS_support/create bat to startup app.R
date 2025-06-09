@@ -44,7 +44,7 @@ r_wd|>
   r_win_path()
 r_wd
 
-c_raw <- readLines("source/OS_support/Kinoklub.bat")
+c_raw <- readLines("source/OS_support/Kinoklub.template")
 c_raw
 
 
@@ -52,3 +52,4 @@ c_raw[3] <- paste0("\"",r_exe,"\""," ","\"", r_wd, "\"")
 c_raw
 
 writeLines(c_raw, "source/OS_support/Kinoklub.bat")
+message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub.bat` wurde erstellt.")
