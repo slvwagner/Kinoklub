@@ -458,8 +458,7 @@ if(nrow(df_temp) > 0) {
 
 ##  Abrechnung Ticket ####
 df_Abrechnung <- df_Abrechnung|>
-  filter(Datum <= Sys.Date(),
-         `Verleiher Angefragt?` == "Bestätigt") # Nur Filme abrechnen welche bereits vorgeführt wurden
+  filter(`Verleiher Angefragt?` == "Bestätigt") # Nur Filme abrechnen welche bereits vorgeführt wurden
 df_Abrechnung <- df_Abrechnung|>
   select(-`Verleiher Angefragt?`,-Bezeichnung)
 
