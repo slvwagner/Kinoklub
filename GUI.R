@@ -2330,7 +2330,7 @@ server <- function(input, output, session) {
     writeLines("Signal: Datatable has been rendered")
 
     # select row and page if possible
-    if(!is.na(last_selected_rows()) & !is.na(last_selected_page())){
+    if((sum(!is.na(last_selected_rows())) == length(last_selected_rows())) & (!is.na(last_selected_page()))){
       dataTableProxy('dateTable')|>
         selectPage(last_selected_page())|>
         selectRows(last_selected_rows())
@@ -2353,8 +2353,14 @@ server <- function(input, output, session) {
     l_temp$last_selected_page|>
       last_selected_page()
     
-    l_temp$last_selected_row|>
-      last_selected_rows()
+    # if more than a single row was selected 
+    if(length(input$dateTable_row_last_clicked) < length(input$dateTable_rows_selected)){
+      input$dateTable_rows_selected|>
+        last_selected_rows()
+    } else {
+      l_temp$last_selected_page|>
+        last_selected_page()
+    }
     
     # only update if it is not NULL to prevent infinite loop 
     if(!is.null(l_temp$last_user_filter)){
