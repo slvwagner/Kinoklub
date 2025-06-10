@@ -266,6 +266,8 @@ server <- function(input, output, session) {
   ### data frame to render ####
   current_data <- reactiveVal(tibble())
   data_selection_ <- reactiveVal("")
+  ### render helping infromation ####
+  help_information <- reactiveVal("")
   ### last page length from datatable ####
   page_length_var <- reactiveVal(5L)
   ### last selected ID in datatable ####
@@ -1246,6 +1248,7 @@ server <- function(input, output, session) {
       # Update reactive values
       l_temp <- l_data()
       
+      # Special handling for joind data
       if(input$dataset == "Programm") {
         # Programm
         l_temp$Programm <- l_temp$Programm |> 
@@ -1290,6 +1293,15 @@ server <- function(input, output, session) {
         l_temp[[input$dataset]]|>
           arrange(desc(ID))|>
           current_data()
+      }
+      
+      # User Information 
+      if(input$dataset == "Programm"){
+        help_information("Das sind die User Informationen die für das Programm gültig sind")
+      } else if (input$dataset == "Lieferanten"){
+        help_information("Das sind die User Informationen die für die Lieferanten gültig sind")
+      } else {
+        help_information("Das sind die User Informationen die allgemein gültig sind")
       }
       
       shiny::isolate({
@@ -3496,6 +3508,10 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Render: Database connection status ####
+  output$help_info <- renderText({
+    help_information()
+  })
   
   ## Dynamic UI ####
   output$dynamicContent_output_panel <- shiny::renderUI({
@@ -3549,7 +3565,8 @@ server <- function(input, output, session) {
         } else {
           tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 3)
         }
-      }
+      },
+      shiny::uiOutput("help_info")
     )
   })
   
