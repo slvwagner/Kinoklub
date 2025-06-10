@@ -332,7 +332,7 @@ server <- function(input, output, session) {
       "Kategorie" = l_data$Kategorie$Auswahl,
       "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
       "Verleiher" = l_data$Verleiher$Verleihername,
-      "Verleihername" = l_data$`Verleiher mapping`$Verleihername,
+      "Verleihername" = l_data$Verleiher$Verleihername,
       "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
       "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
       "KDM ja oder nein" = l_data$JaNein$Auswahl,
@@ -1294,6 +1294,11 @@ server <- function(input, output, session) {
           arrange(desc(ID))|>
           current_data()
       }
+      
+      # initialize dictionary Verleiher to Procinema-Verleiher
+      df_mapping <- DB_get_table("Verleiher mapping", DB_con()) |>
+        select(-ID)
+      dict_env <<- dict_from_data.frame(df_mapping)
       
       # User Information 
       if(input$dataset == "Kinoklubmitglieder"){
@@ -3422,8 +3427,7 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     req(input$takeover_suisa)
-    req(input$modal_table_rows_selected)
-    
+    removeModal()
     shiny::withProgress(message = "Procinema", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
       tryCatch(
@@ -3452,7 +3456,25 @@ server <- function(input, output, session) {
                `Eintritte eingespielt` = admissions)|>
         mutate(`Start-Datum` = dmy(`Start-Datum`))
       new_row
+
+      # check if Verleiher mapping is available 
+      df_Verleiher_mapping <- DB_get_table("Verleiher mapping", DB_con())
+      tail(df_Verleiher_mapping)
+
       
+      if(is.null(names(new_row$Verleiher))){
+        showModal(modalDialog(
+          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher mapping`."),
+          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher mapping` erfassen und dann nochmals probieren!"),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("abort","Abbrechen")
+          )
+        ))
+        req(NULL) # early exit
+      }
+      
+      # Create new row entry      
       new_row <- new_row|>
         bind_cols(Inhalt = df_temp$Inhalt,
                   director = df_temp$director,
@@ -3477,10 +3499,8 @@ server <- function(input, output, session) {
         convert_to_template_types(l_template$Filmvorschlag)|>
         arrange(desc(ID))|>
         current_data()
-      
+      # select the fist row in datatable
       last_selected_row(1L)
-      
-      removeModal()
     }
     df_temp_to_render(NULL)
   })
