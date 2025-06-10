@@ -34,7 +34,7 @@ if(!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####
@@ -136,15 +136,12 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
   pull()
 c_Kiosk
 
-## Disconnect from database ####
-DBI::dbDisconnect(con)
-
 # check nb of files Eintritt vs Kiosk ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
     warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
   }else {
-    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.")
+    warning("\nEs gibt ", length(c_Kiosk), " Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.\n")
   }
 }
 
@@ -263,17 +260,84 @@ df_manko_uerberschuss <- df_Kiosk|>
   select(`Event ID`, `Überschuss / Manko [CHF]`)
 df_manko_uerberschuss
 
+# Spezialpreise abgleichen (df_Kiosk) ####
+df_spez_preis_na <- df_Kiosk|>
+  filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel ))
+df_spez_preis_na
+
+c_Event_IDs <- distinct(df_spez_preis_na, `Event ID`)|>pull()
+
+# update df_Kiosk mit Spezialpreisen
+for (ii in c_Event_IDs) {
+  df_temp <- df_Spezialpreisekiosk|>
+    filter(`Event ID` == ii)
+  df_temp
+
+  if(nrow(df_temp) > 0){
+    for (jj in 1:nrow(df_temp)) {
+      df_temp1 <- df_temp[jj,]
+      df_temp1
+      
+      # Add connection validation at start
+      if(!dbIsValid(con)) {
+        warning("Connection lost in DB_get_table(), attempting to reconnect...")
+        con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+      }
+      
+      df_temp2 <- DB_get_table("df_Kiosk",con, download = FALSE)|>
+        filter(`Event ID` == ii)|>
+        collect()
+      
+      df_temp3 <- df_temp2|>
+        select(-Artikelname, -ID_Spezialpreisekiosk)|>
+        left_join(
+          df_temp1|>
+            rename(ID_Spezialpreisekiosk = ID), 
+          by = c("Event ID", `Artikel-Kassensystem` = "Spezialpreis")
+        )|>
+        filter(!is.na(ID_Spezialpreisekiosk))|>
+        select("ID", "Event ID", "ID_Spezialpreisekiosk", "ID_Kioskartikel", 
+               "Artikel-Kassensystem", "Artikelname", "Einzelpreis [CHF]", "Anzahl", "Betrag [CHF]", "Gewinn [CHF]", "Überschuss / Manko [CHF]", 
+               "Verkaufspreis [CHF]", "Einkaufspreis [CHF]", "Menge", "Lieferant", "Gültig ab Datum")
+      df_temp3
+      
+      if(!is.na(df_temp3$ID_Spezialpreisekiosk)){
+        # update df_Kiosk
+        DB_edit_row_in_table(con, "df_Kiosk", "ID", df_temp3$ID, df_temp3, get_data_type(df_temp3))
+      }
+    }
+  }
+}
+
+##  df_Kiosk ####
+df_Kiosk <- tbl(con, "df_Kiosk")|>
+  left_join(tbl(con, "Programm")|>
+              select(`Event ID`, Datum, Filmtitel),
+            by = join_by(`Event ID`)
+  )|>
+  filter(c_Abrechnungsjahr == lubridate::year(Datum))|>
+  select(-Datum)|>
+  collect()
+df_Kiosk
+
 # check Spezialpreise ####
 df_spez_preis_na <- df_Kiosk|>
   filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel ))
 df_spez_preis_na
 
+## Disconnect from database ####
+DBI::dbDisconnect(con)
+
 if(nrow(df_spez_preis_na) > 0){
-  warning(paste0("\nFür `Event ID`= ", df_spez_preis_na$`Event ID`, 
-                 ", `", df_spez_preis_na$Filmtitel, "`, ist der Spezialpreis `", 
-                 df_spez_preis_na$`Artikel-Kassensystem`,"` nicht  noch nicht definiet worden."
-                 )
-          )
+  warning(
+    c("\n",
+      paste0("Für `Event ID`= ", df_spez_preis_na$`Event ID`, 
+             ", `", df_spez_preis_na$Filmtitel, "`, ist der Spezialpreis `", 
+             df_spez_preis_na$`Artikel-Kassensystem`,"` nicht  noch nicht definiet worden.",
+             collapse = "\n"
+             ),
+      "\n")
+    )
 }
 
 # Abos und Kinogutscheine ####
