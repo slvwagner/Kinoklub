@@ -1932,11 +1932,6 @@ server <- function(input, output, session) {
               )|>
             arrange(desc(`Event ID`))
           
-          # Debug print
-          df_temp3|>
-            lapply(class)|>
-            print()
-          
           # render
           df_temp3|>
             convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
