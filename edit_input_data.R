@@ -466,6 +466,7 @@ server <- function(input, output, session) {
         ),
         shiny::tags$hr(),
         actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
