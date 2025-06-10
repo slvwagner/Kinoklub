@@ -3117,11 +3117,7 @@ server <- function(input, output, session) {
       row <- current_data()[input$table_rows_selected, ]
       
       # get biggest ID from Programm
-      Last_Event_ID <- tbl(DB_con(), "Programm")|>
-        select(`Event ID`)|>
-        collect()|>
-        pull()|>
-        max()
+      Last_Event_ID <- DB_get_max_pk(DB_con(), "Programm")
       
       # paste0("\"",tbl(DB_con(), "Programm")|>
       #   colnames(),"\"")|>
@@ -3188,11 +3184,7 @@ server <- function(input, output, session) {
     row <- current_data()[input$table_rows_selected, ]
     
     # get biggest ID from Programm
-    Last_Event_ID <- tbl(DB_con(), "Programm")|>
-      select(`Event ID`)|>
-      collect()|>
-      pull()|>
-      max()
+    Last_Event_ID <- DB_get_max_pk(DB_con(), "Programm")
 
     newrow <- tibble(
       "Event ID" = Last_Event_ID + 1L,
@@ -3227,7 +3219,7 @@ server <- function(input, output, session) {
     modal_height <- ifelse(nrow(newrow) <= 5, "auto", "600px")
     
     showModal(modalDialog(
-      title = "Film wurde bereits gezeit.",
+      title = paste0("Der Film `",newrow$Filmtitel, "` wird ins Programm übernommen."),
       tagList(
         shiny::dateInput(
           "Modal_Date","Spieldatum",
@@ -3248,7 +3240,6 @@ server <- function(input, output, session) {
         actionButton("abort","Abbrechen")
       )
     ))
-    req(NULL)
   })  
   
   #### take over ####
@@ -3292,9 +3283,6 @@ server <- function(input, output, session) {
     # update choices
     update_choices(l_data())|>
       column_choices()
-    
-    removeModal()
-
   })
   
   ### Procinema search ####
