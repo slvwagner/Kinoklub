@@ -353,7 +353,8 @@ server <- function(input, output, session) {
       "Koordination" = l_data$JaNein$Auswahl,
       "Operateurin" = l_data$JaNein$Auswahl,
       "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
-      "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel))
+      "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
+      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr
     )
   }
   
