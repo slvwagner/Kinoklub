@@ -1296,12 +1296,28 @@ server <- function(input, output, session) {
       }
       
       # User Information 
-      if(input$dataset == "Programm"){
-        help_information("Das sind die User Informationen die für das Programm gültig sind")
+      if(input$dataset == "Kinoklubmitglieder"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown im `Einsatzplan`")
+      } else if (input$dataset == "Verleiher"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Filvorschlag` und 'Programm'")
+      } else if (input$dataset == "Verleiher mapping"){
+        help_information("Diese Tabelle ersetzt den Verleihernamen von ProCinema (Bsp.: 'WB') 
+                         durch den offiziellen Verleihernamen (Bsp.: Warner Bros Entertainment Switzerland GmbH), 
+                         welcher in der Dropdown-Liste 'Verleiher' festgelegt wurde.")
       } else if (input$dataset == "Lieferanten"){
-        help_information("Das sind die User Informationen die für die Lieferanten gültig sind")
+        help_information("Diese Tabelle liefert die Werte für das Dropdown im `Einkauf Kiosk`")
+      } else if (input$dataset == "Platzkategorien zum Verrechnen"){
+        help_information("Die Werte in dieser Tabelle werden ausschliesslich beim Erstellen der
+                         Verleiherabrechnung berücksichtigt ('Verleiherabrechnung erstellen‘ ), 
+                         da einige Verleiher auch Gratiseintritte (Förderer) als verrechenbare Eintritte anerkennen.")
+      } else if (input$dataset == "Buchhaltungskonten"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Einnahmen' und 'Ausgaben'")
+      } else if (input$dataset == "Spezialpreis"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Spezialpreiskiosk`")
+      } else if (input$dataset == "MWST"){
+        help_information("Diese Tabelle liefert die Werte für die Dropdowns in `MWST` und 'Abrechnugnsjahr' in 'Einnamhen' und 'Ausgaben'")
       } else {
-        help_information("Das sind die User Informationen die allgemein gültig sind")
+        help_information(" ")
       }
       
       shiny::isolate({
