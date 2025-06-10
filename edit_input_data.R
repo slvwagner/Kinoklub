@@ -376,9 +376,8 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
-        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-        shiny::tags$hr(),
         actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
         # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
         shiny::tags$hr(),
@@ -410,8 +409,8 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
-        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
         # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
         # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
@@ -522,6 +521,38 @@ server <- function(input, output, session) {
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
         ),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ### anything else ####
+    else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        actionButton("duplicate_row", "Neuer Einkaufpreis", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
