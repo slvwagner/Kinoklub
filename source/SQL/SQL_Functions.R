@@ -310,11 +310,6 @@ DB_add_row <- function(con, table_name, new_row) {
   sql_query <- paste0(
     "INSERT INTO ", "`",table_name, "`"," (", sql_cols, ") VALUES (", sql_vals, ")"
     )
-  sql_query
-
-  
-  # # Debug: Print SQL query
-  message("Executing SQL query: ", sql_query)
   
   # Execute the query
   dbExecute(con, sql_query)
