@@ -1006,15 +1006,18 @@ server <- function(input, output, session) {
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
         )
-    } else if(lastEdited_data_set_name() %in% c("df_Eintritt")){
+    } else if (lastEdited_data_set_name() %in% c("df_Eintritt")){
       df_temp <- df_temp|>
         mutate(`Event ID` = factor(`Event ID`))
-    } else if(lastEdited_data_set_name() %in% c("df_Kiosk")){
+    } else if (lastEdited_data_set_name() %in% c("df_Kiosk")){
       df_temp <- df_temp|>
         mutate(`Event ID` = factor(`Event ID`),
                ID_Kioskartikel = factor(ID_Kioskartikel),
                ID_Spezialpreisekiosk = factor(ID_Spezialpreisekiosk))
-    }
+    } else if (lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`))
+    } 
     
     # Primary Key always as factor
     df_temp[,1] <- pull(df_temp[,1])|>
