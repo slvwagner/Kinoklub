@@ -2399,6 +2399,9 @@ server <- function(input, output, session) {
           )|>
           convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }
+      # update the selected row
+      (input$table_rows_selected + 1)|>
+        last_selected_row()
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
