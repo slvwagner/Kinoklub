@@ -2254,7 +2254,7 @@ server <- function(input, output, session) {
       filter = "top",
       rownames = FALSE,
       escape = FALSE,
-      extensions = c('FixedHeader'),
+      # extensions = c('FixedHeader'),
       options = list(
         fixedHeader = TRUE,  # This keeps headers visible
         scrollX = TRUE,  # Enable horizontal scrolling
