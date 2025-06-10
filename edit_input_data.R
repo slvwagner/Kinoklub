@@ -1019,7 +1019,7 @@ server <- function(input, output, session) {
         mutate(`Event ID` = factor(`Event ID`))
     } 
     
-    # Primary Key always as factor
+    # Render primary Key always as factor
     df_temp[,1] <- pull(df_temp[,1])|>
       factor()
       
