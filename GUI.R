@@ -960,7 +960,7 @@ server <- function(input, output, session) {
           shiny::hr(),
           renderTable(
             tibble(
-              Tabelle = c("Spezialpreisekiosk", "Einkauf Kiosk")
+              Tabelle = c("Lieferanten", "Einkauf Kiosk")
             )
           ),
           shiny::hr(),
