@@ -123,6 +123,7 @@ if(nrow(MWST) == 1){
 ## Kiosk files ####
 c_eintritt <- tbl(con, "Eintritt files")|>
   filter(ID %in% Programm$`Event ID`)|>
+  distinct(ID, .keep_all = TRUE)|>
   arrange(ID)|>
   select(filename)|>
   pull()
@@ -130,6 +131,7 @@ c_eintritt
 
 ## Eintritt files ####
 c_Kiosk <- tbl(con, "Kiosk files")|>
+  distinct(ID, .keep_all = TRUE)|>
   filter(ID %in% Programm$`Event ID`)|>
   arrange(ID)|>
   select(filename)|>
