@@ -13,7 +13,9 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
-
+# l_template$Programm <- l_template$Programm|>
+#   mutate(`Verleiher Angefragt?` = factor(`Verleiher Angefragt?`))
+# 
 # saveRDS(l_template, "source/SQL/template.Rds")
 
 
@@ -24,12 +26,26 @@ l_template <- readRDS("source/SQL/template.RDS")
 l_data <- DB_backup_DB(con)
 l_data <- convert_DB_to_R(l_data, l_template)
 
-list.files(path = "Backup")
 
-saveRDS(l_data, paste0("Backup/Data",length(list.files(path = "Backup")) + 1L,".Rds"))
+################################
+# create new file name
+df_temp <- tibble(file = list.files(path = "Backup"))
 
-l_data$Einsatzplan
+# library(rebus)
+# p <- capture(one_or_more(DGT))%R%DOT%R%"Rds"%R%END
+# as.character(p)
+# str_match(df_temp$file, p)
 
+p <- "([\\d]+)\\.Rds$"
+
+df_temp <- df_temp|>
+  mutate(ID = str_match(file, p)[,2]|>as.integer())|>
+  arrange(ID)
+df_temp
+
+################################
+# save backup
+saveRDS(l_data, paste0("Backup/Data",max(df_temp$ID) + 1L,".Rds"))
 
 ###################################################
 # Disconnect from DB
