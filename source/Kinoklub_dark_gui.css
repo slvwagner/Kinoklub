@@ -77,6 +77,10 @@ pre{
   background-color: #330937;
 }
 
+table.dataTable thead input {
+    color: #000000;
+}
+
 .input-group-addon {
   color: #f4eacc;
   background-color: #330937;
