@@ -71,8 +71,9 @@ shiny::addResourcePath("custom_styles", "source")
 
 # Define UI ####
 ui <- fluidPage(
-  tags$head(
+  shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
+    tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
     tags$style(HTML("
     .custom-select .selectize-dropdown-content {
       background-color: #330937;
@@ -88,12 +89,7 @@ ui <- fluidPage(
       background-color: #330937 ;
       color: #f4eacc ;
     }
-  "))
-  ),
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
-    tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
-    tags$style(HTML("
+    
     #floating-panel {
       position: fixed;
       right: 20px;
@@ -108,9 +104,11 @@ ui <- fluidPage(
       transition: height 0.2s ease;
       overflow: hidden; /* Hide content when collapsed */
     }
+    
     #floating-panel.collapsed {
       height: 38px; /* Just enough for the header */
     }
+    
     #floating-panel-header {
       cursor: move;
       padding: 10px;
@@ -122,23 +120,23 @@ ui <- fluidPage(
       justify-content: space-between;
       align-items: center;
     }
+    
     #floating-panel.collapsed .panel-content {
       display: none;
     }
+    
     #floating-panel.collapsed #floating-panel-header {
       margin-bottom: -10px; /* Adjust for collapsed state */
       border-bottom: none; /* Remove border when collapsed */
     }
+    
     .toggle-panel {
       cursor: pointer;
       float: right;
     }
-  "))
-  ),
 
-  # make login panel collapsible
-  tags$style(HTML("
     #login-panel {
+      background: #330937;
       position: absolute;
       left: 350px;
       top: 20px;
@@ -147,16 +145,17 @@ ui <- fluidPage(
       border: 3px solid #000;
       border-radius: 5px;
       padding: 10px;
-      background-color: #330937;
       color: #f4eacc;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       z-index: 1000;
       transition: height 0.2s ease;
       overflow: hidden;
     }
+    
     #login-panel.collapsed {
       height: 35px;
     }
+    
     #login-panel-header {
       cursor: move;
       background: #46267d;
@@ -169,26 +168,27 @@ ui <- fluidPage(
       justify-content: space-between;
       align-items: center;
     }
+    
     #login-panel.collapsed .panel-content {
       display: none;
     }
+    
     #login-panel.collapsed #login-panel-header {
       margin-bottom: -10px;
       border-bottom: none;
     }
+    
     .login-toggle-panel {
       cursor: pointer;
       float: right;
     }
-  ")),
+  "))),
   
-  # style login panel
+  # Functions
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-  ),
-  
-  # Initialize drag and collapse functionality for the login panel
-  tags$script(HTML("
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css"),
+    # Initialize drag and collapse functionality for the login panel
+    tags$script(HTML("
     $(function() {
       // Wait for Shiny to be ready
       $(document).on('shiny:connected', function() {
@@ -207,10 +207,6 @@ ui <- fluidPage(
         });
       });
     });
-  ")),
-  
-  # Initialize auto collaps after Login
-  tags$script(HTML("
     // Function to collapse login panel
     function collapseLoginPanel() {
       $('#login-panel').addClass('collapsed');
@@ -222,6 +218,9 @@ ui <- fluidPage(
       collapseLoginPanel();
     });
   ")),
+  ),
+  
+
 
   # Login Panel UI
   shiny::titlePanel(paste0("Input Daten Kinoklub")),
