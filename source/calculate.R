@@ -142,6 +142,7 @@ if(length(c_eintritt) != length(c_Kiosk)) {
     warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
   }else {
     warning("\nEs gibt ", length(c_Kiosk), " Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.\n")
+    c_Kiosk %in% c_eintritt
   }
 }
 
@@ -155,13 +156,36 @@ c_Kiosk <- df_Kiosk|>
   distinct(`Event ID`)|>
   pull()
 
+# find file ID (regex)
+p <- "([\\d]+)\\.txt$"
+
+# find file that needs to be upload to database ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
-    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
+    c_temp <- c_Kiosk[!(as.integer(str_match(c_eintritt, p)[,2]) %in% as.integer(c_Kiosk, str_match(, p)[,2]))]
+    c_temp <- paste0("Kiosk ID",str_match(c_temp, p)[,2], ".txt")
+    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.",
+            "Bitte die fehlende Datei: `", c_temp, "` hochladen"
+            )
   }else {
-    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.")
+    c_temp <- c_Kiosk[!(as.integer(str_match(c_Kiosk, p)[,2]) %in% as.integer(str_match(c_eintritt, p)[,2]))]
+    c_temp <- paste0("Eintritt ID",str_match(c_temp, p)[,2], ".txt")
+    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien. ",
+            "Bitte die fehlende Datei: `", c_temp, "` hochladen")
   }
 }
+
+
+df_temp <- tibble(file = c_Kiosk)|>
+  mutate(ID = str_match(file, p)[,2]|>as.integer())|>
+  arrange(ID)
+df_temp
+
+df_temp1 <- tibble(file = c_eintritt)|>
+  mutate(ID = str_match(file, p)[,2]|>as.integer())|>
+  arrange(ID)
+df_temp1
+
 c_test <- str_extract(c_eintritt, one_or_more(DGT)) %in% str_extract(c_Kiosk, one_or_more(DGT))
 c_test
 
