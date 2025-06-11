@@ -822,6 +822,36 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
     
+    # Check MWST is defined for actual Abrechnungsjahr
+    c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr)
+    df_temp <- DB_get_table("MWST", DB_con(), download = FALSE)|>
+      filter(Abrechnungsjahr == c_Abrechnungsjahr)|>
+      collect()
+    if(nrow(df_temp) == 0){
+      showModal(
+        modalDialog(
+          title = paste0("MWST für das Abrechnungsjahr `", c_Abrechnungsjahr, "` ist nicht vorhanden."),
+          tagList(
+            paste0("Bitte einen neuen Eintrag unter Dropdowns Tabelle `MWST` für das Abrechnungsjahr `",c_Abrechnungsjahr,"` erfassen!")|>
+              renderText(),
+          ),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+      
+      # system user reply 
+      paste0("Bitte einen neuen Eintrag unter Dropdowns Tabelle `MWST` für das Abrechnungsjahr `",c_Abrechnungsjahr,"` erfassen!")|>
+        ausgabe_text()
+      
+      # render empty tibble
+      current_data(tibble())
+      
+      req(NULL) # early exit
+    }
+    
     # Export Abrechnungsjahr 
     Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
     data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) # export to date_env used by Statistik and Jahresrechnung
