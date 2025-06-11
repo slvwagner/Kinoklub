@@ -81,19 +81,17 @@ ui <- fluidPage(
 
     .custom-select .selectize-dropdown-content {
       background-color: #330937;
-      color: white;
-    }
-
-    .custom-select .selectize-dropdown .active {
-      background-color: #330937;
       color: #f4eacc;
     }
 
-    .custom-select .selectize-control.single .selectize-input input {
-      background-color: #330937 !important;
-      color: white !important;
-      caret-color: #f4eacc;
-      border: none;
+    .custom-select .selectize-dropdown .active {
+      background-color: #330937 ;
+      color: #f4eacc ;
+    }
+
+    .custom-select .selectize-control.single .selectize-input.input-active {
+      background-color: #330937 ;
+      color: #f4eacc ;
     }
   "))
   ),
@@ -737,8 +735,8 @@ server <- function(input, output, session) {
           names(c_select) <- c_choices
           
           l_temp[[ii + cnt]]  <-
-            div(
-              class = "custom-select",
+            # div(
+            #   class = "custom-select",
               selectInput(
                 inputId = as.character(ii),
                 label = col_name,
@@ -746,11 +744,11 @@ server <- function(input, output, session) {
                 selected = ifelse(is.na(col_value), NA, col_value),
                 selectize = TRUE
               )
-            )
+            # )
         } else if (col_name %in% names(column_choices())) {
           l_temp[[ii + cnt]]  <-
-            div(
-              class = "custom-select",
+            # div(
+            #   class = "custom-select",
               selectInput(
                 inputId = as.character(ii),
                 label = col_name,
@@ -758,7 +756,7 @@ server <- function(input, output, session) {
                 selected = ifelse(is.na(col_value), NA, col_value),
                 selectize = TRUE
               )
-            )
+            # )
         } else {
           stop("You should not end here: factor else")
         }
