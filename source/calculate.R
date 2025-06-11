@@ -137,24 +137,6 @@ c_Kiosk <- tbl(con, "Kiosk files")|>
 c_Kiosk
 
 # check nb of files Eintritt vs Kiosk ####
-if(length(c_eintritt) != length(c_Kiosk)) {
-  if(length(c_eintritt) > length(c_Kiosk)){
-    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.")
-  }else {
-    warning("\nEs gibt ", length(c_Kiosk), " Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien.\n")
-    c_Kiosk %in% c_eintritt
-  }
-}
-
-# check nb of `Event ID` Eintritt vs Kiosk ####
-c_eintritt <- df_Eintritt|>
-  distinct(`Event ID`)|>
-  pull()
-c_eintritt
-
-c_Kiosk <- df_Kiosk|>
-  distinct(`Event ID`)|>
-  pull()
 
 # find file ID (regex)
 p <- "([\\d]+)\\.txt$"
@@ -164,41 +146,17 @@ if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
     c_temp <- c_Kiosk[!(as.integer(str_match(c_eintritt, p)[,2]) %in% as.integer(c_Kiosk, str_match(, p)[,2]))]
     c_temp <- paste0("Kiosk ID",str_match(c_temp, p)[,2], ".txt")
-    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber ", length(c_Kiosk), " Kioskdateien.",
-            "Bitte die fehlende Datei: `", c_temp, "` hochladen"
+    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber nur ", length(c_Kiosk), " Kioskdateien.",
+            "Bitte die fehlende Datei: `", c_temp, "` hochladen\n"
             )
   }else {
     c_temp <- c_Kiosk[!(as.integer(str_match(c_Kiosk, p)[,2]) %in% as.integer(str_match(c_eintritt, p)[,2]))]
     c_temp <- paste0("Eintritt ID",str_match(c_temp, p)[,2], ".txt")
-    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber ", length(c_eintritt), " Eintrittsdateien. ",
-            "Bitte die fehlende Datei: `", c_temp, "` hochladen")
+    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber nur ", length(c_eintritt), " Eintrittsdateien. ",
+            "Bitte die fehlende Datei: `", c_temp, "` hochladen\n")
   }
 }
 
-
-df_temp <- tibble(file = c_Kiosk)|>
-  mutate(ID = str_match(file, p)[,2]|>as.integer())|>
-  arrange(ID)
-df_temp
-
-df_temp1 <- tibble(file = c_eintritt)|>
-  mutate(ID = str_match(file, p)[,2]|>as.integer())|>
-  arrange(ID)
-df_temp1
-
-c_test <- str_extract(c_eintritt, one_or_more(DGT)) %in% str_extract(c_Kiosk, one_or_more(DGT))
-c_test
-
-if(sum(c_test) != length(c_test)){
-  c_index <- tibble(test = )|>
-    mutate(index  = row_number())|>
-    filter(!test)|>
-    select(index)|>
-    pull()
-  stop("\nEs gibt keine Datei \"Eintritt ID",str_extract(c_Kiosk[c_index], pattern = one_or_more(DGT)),".txt\" aber eine Datei \"", c_Kiosk[c_index], "\"",
-       "\nEine der Dateien muss umbenannt oder gelöscht werden. ", "\nBitte im Verzeichniss  .../Input/advanced tickets/ korrigieren.\n")
-  c_Kiosk[c_index]
-} 
 
 # check Programm ####
 df_temp <- Programm|>
