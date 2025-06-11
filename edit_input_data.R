@@ -356,7 +356,7 @@ server <- function(input, output, session) {
       "Operateurin" = l_data$JaNein$Auswahl,
       "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
       "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
-      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr
+      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr[length(l_data$MWST$Abrechnungsjahr):1]
     )
   }
   
@@ -1912,13 +1912,13 @@ server <- function(input, output, session) {
         update_choices(l_data())|>
           column_choices()
         
-        # update to render 
-        df_temp|>
-          convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
-          current_data()
-        
         ##### update joined data sets and choices ####
         if(lastEdited_data_set_name() == "Programm"){
+          # render 
+          df_temp|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+            arrange(desc(`Event ID`))|>
+            current_data()
           
           # update Einsatzplan
           Update_Einsatzplan(df_updated, c_class)
@@ -1942,7 +1942,13 @@ server <- function(input, output, session) {
             convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
             current_data()
 
-        } 
+        } else {
+          # render 
+          df_temp|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+            arrange(desc(ID))|>
+            current_data()
+        }
       }
       
       shiny::incProgress(1 , detail = paste("data selection", 2, "of 2"))
