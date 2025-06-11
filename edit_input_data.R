@@ -1242,11 +1242,14 @@ server <- function(input, output, session) {
       df_temp <- DB_get_table(input$dataset, DB_con()) |>
         convert_to_template_types(l_template[[input$dataset]])
       
-      # Debug print
-      print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
+      # # Debug print
+      # print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
       
-      # Update reactive values
+      # get data
       l_temp <- l_data()
+      
+      # update data
+      l_temp[[input$dataset]] <- df_temp
       
       # Special handling for joind data
       if(input$dataset == "Programm") {
