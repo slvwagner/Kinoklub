@@ -87,7 +87,6 @@ a:hover {
 /* Filter inputs (when filter = "top") */
 table.dataTable thead input {
   background-color: #023a3a;  /* Set your desired background */
-  color: #ffffff !important;             /* Text color */
   border: 1px solid #555;     /* Border style */
   padding: 4px;
   border-radius: 4px;
