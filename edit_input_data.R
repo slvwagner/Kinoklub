@@ -1492,13 +1492,6 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Abort changes and update ####
-  observeEvent(input$abort_save, {
-    current_data(l_data()[[input$dataset]])
-    lastEdited_data_set_name(input$dataset)
-    removeModal()
-  })
-  
   ## Abort: do nothing! ####
   observeEvent(input$abort,{
     removeModal()
@@ -1586,7 +1579,7 @@ server <- function(input, output, session) {
           title = "Zeile editieren",
           l_temp,
           actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
+          actionButton("abort", "Abbrechen"),
           easyClose = FALSE,
           footer = NULL
         )
@@ -2121,7 +2114,7 @@ server <- function(input, output, session) {
           title = "Zeile editieren",
           l_temp,
           actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
+          actionButton("abort", "Abbrechen"),
           easyClose = FALSE,
           footer = NULL
         )
