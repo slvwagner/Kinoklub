@@ -72,6 +72,7 @@ shiny::addResourcePath("custom_styles", "source")
 # Define UI ####
 ui <- fluidPage(
   tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
     tags$style(HTML("
     .custom-select .selectize-dropdown-content {
       background-color: #330937;
@@ -3553,7 +3554,7 @@ server <- function(input, output, session) {
             });
           ")),
           
-          # Toolbox floating and dragable and page lenght captue 
+          # Toolbox floating and dragable and page length capture 
           tags$script(HTML(
             "$(function() {
               $('#floating-panel').draggable({ handle: '#floating-panel-header' });
