@@ -73,23 +73,17 @@ shiny::addResourcePath("custom_styles", "source")
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
-    .custom-select .selectize-control.single .selectize-input {
-      background-color: #330937;
-      color: #f4eacc;
-      border: 1px solid #f4eacc;
-    }
-
     .custom-select .selectize-dropdown-content {
       background-color: #330937;
       color: #f4eacc;
     }
-
-    .custom-select .selectize-dropdown .active {
-      background-color: #330937 ;
-      color: #f4eacc ;
+    
+    .selectize-input.full {
+      background-color: #330937 !important;
+      color: #f4eacc !important;
     }
-
-    .custom-select .selectize-control.single .selectize-input.input-active {
+    
+    .custom-select .selectize-dropdown .active {
       background-color: #330937 ;
       color: #f4eacc ;
     }
@@ -118,7 +112,6 @@ ui <- fluidPage(
     }
     #floating-panel-header {
       cursor: move;
-      background: #46267d;
       padding: 10px;
       margin: -10px -10px 10px -10px;
       border-bottom: 1px solid #ddd;
@@ -153,7 +146,8 @@ ui <- fluidPage(
       border: 3px solid #000;
       border-radius: 5px;
       padding: 10px;
-      background: #322f3b;
+      background-color: #330937;
+      color: #f4eacc;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       z-index: 1000;
       transition: height 0.2s ease;
@@ -3558,11 +3552,6 @@ server <- function(input, output, session) {
               });
             });
           ")),
-          
-          # style tool box
-          shiny::tags$head(
-            shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-          ),
           
           # Toolbox floating and dragable and page lenght captue 
           tags$script(HTML(
