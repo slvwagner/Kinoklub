@@ -1430,7 +1430,7 @@ server <- function(input, output, session) {
     print("SQL_disconnect")
     dbDisconnect(DB_con())
     c_connected_to_db(FALSE)
-    DB_con(NULL)
+
     # remove row and page selection 
     last_selected_page(NA)
     last_selected_row(NA)
