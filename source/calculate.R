@@ -131,8 +131,8 @@ c_eintritt
 
 ## Eintritt files ####
 c_Kiosk <- tbl(con, "Kiosk files")|>
-  distinct(ID, .keep_all = TRUE)|>
   filter(ID %in% Programm$`Event ID`)|>
+  distinct(ID, .keep_all = TRUE)|>
   arrange(ID)|>
   select(filename)|>
   pull()
