@@ -87,9 +87,19 @@ a:hover {
 /* Filter inputs (when filter = "top") */
 table.dataTable thead input {
   background-color: #023a3a;  /* Set your desired background */
-  color: #ffffff;             /* Text color */
+  color: #ffffff !important;             /* Text color */
   border: 1px solid #555;     /* Border style */
   padding: 4px;
+  border-radius: 4px;
+}
+
+input.form-control {
+  background-color: #023a3a;
+  color: #ffffff !important;
+  border: 1px solid #555;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
   border-radius: 4px;
 }
 
@@ -133,12 +143,14 @@ table.dataTable tfoot input {
   border: 1px solid #555;
 }
 
-/* Filter/Search Inputs */
-.dataTables_filter input, .dataTables_length select {
-  background-color: #035757;
-  color: #ffffff;
-  border: 1px solid #555;
+/* Search/filter input */
+.dataTables_filter input {
+  background-color: #1eb847;
+  color: #000000;
+  border: 1px solid #8e78fe;
 }
+
+
 
 /* Pagination */
 .dataTables_paginate .paginate_button {
