@@ -2185,7 +2185,10 @@ server <- function(input, output, session) {
     
     # updata SQL DB and current data 
     DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
-  
+    if(lastEdited_data_set_name() == "Programm"){
+      Update_Einsatzplan(new_row ,get_data_type(new_row),new_row = TRUE)
+    }
+    
     # Update the list
     l_temp <- l_data()
     l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
