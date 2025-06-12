@@ -1317,6 +1317,8 @@ server <- function(input, output, session) {
         help_information("Diese Tabelle liefert die Werte für das Dropdown in `Spezialpreiskiosk`")
       } else if (input$dataset == "MWST"){
         help_information("Diese Tabelle liefert die Werte für die Dropdowns in `MWST` und 'Abrechnugnsjahr' in 'Einnamhen' und 'Ausgaben'")
+      } else if (input$dataset == "Programm"){
+        help_information("Die Spalte `Link to Event ID` wird verwendet um gemeinsam abzurechnen.")
       } else {
         help_information(" ")
       }
@@ -3522,7 +3524,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Render: Database connection status ####
+  ## Render: user help informaton text ####
   output$help_info <- renderText({
     help_information()
   })
