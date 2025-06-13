@@ -838,11 +838,7 @@ server <- function(input, output, session) {
       
       ##### handle characters ####
       if(c_input_class == "character") {
-        if (c_input[ii] == "" | c_input[ii] == "..."){
-          l_input[[ii]] <- as.character(NA)
-        } else {
-          l_input[[ii]] <- as.character(c_input[ii])
-        }
+        l_input[[ii]] <- as.character(c_input[ii])
       } 
       ##### handle dates ####
       else if (c_input_class == "Date") {
