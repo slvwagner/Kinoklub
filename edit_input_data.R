@@ -293,6 +293,13 @@ server <- function(input, output, session) {
   ### last set sorting in datatable ####
   last_sorting <- reactiveVal(NULL)
   
+  ### temp_01 ####
+  temp_01 <- reactiveVal(NULL)
+  ### temp_02 ####
+  temp_02 <- reactiveVal(NULL)
+  # new entry use case ####
+  new_entry <- reactiveVal(NULL)
+  
   ## helper functions ####
   ### update dropdowns ####
   update_choices <- function(l_data) {
@@ -348,7 +355,8 @@ server <- function(input, output, session) {
       "Operateurin" = l_data$JaNein$Auswahl,
       "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
       "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
-      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr[length(l_data$MWST$Abrechnungsjahr):1]
+      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr[length(l_data$MWST$Abrechnungsjahr):1],
+      "Firmennamen" = c("...",l_data$Verleiher$Verleihername)
     )
   }
   
@@ -445,7 +453,7 @@ server <- function(input, output, session) {
       )
     } 
     #### Ausgaben ####
-    else if (data_set_select == "Einnahmen"){
+    else if (data_set_select == "Ausgaben"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
@@ -461,7 +469,7 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
-        actionButton("add_row_einnahmen", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("add_row_ausgaben", "Eintrag hinzufügen", class = "btn-info"),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
         # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
@@ -624,21 +632,22 @@ server <- function(input, output, session) {
 
   
   ### Convert data frame columns to factors ####
-  factor_handling <- function(df_temp, df_updated, select_row){
+  factor_handling <- function(df_temp, df_updated){
+    
+    if(ncol(df_temp) != ncol(df_updated)) stop("ncol(df_temp): " , ncol(df_temp), " ncol(df_updated): ", ncol(df_updated))
+    
     # find class of column
     c_class <- get_data_type(df_temp)
     # convert factors to character
     for (ii in 1:length(c_class)) {
       if(c_class[ii] == "factor"){
         df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
+        df_updated[,ii] <- df_updated[,ii]|>pull()|>as.character()
       }
     }
+    # find row
+    select_row <- pull(df_temp[,1]) == pull(df_updated[1,1])
     
-    for (ii in 1:nrow(df_updated)) {
-      if(c_class[ii] == "factor"){
-        df_updated[,ii] <- ifelse(df_updated[,ii] == "NULL",NA,df_temp[,ii]) 
-      }
-    }
     # Update data 
     df_temp[select_row,] <- df_updated
     
@@ -808,6 +817,117 @@ server <- function(input, output, session) {
     
     l_temp <- base::Filter(function(x) !is.null(x) && length(x) > 0, l_temp)
     return(l_temp)
+  }
+  
+  ### get data from user modal input ####
+  get_data_from_modal <- function(df_temp) {
+    
+    # get the user input
+    generated_code <- paste0("input$`", 1:ncol(temp_02()), "`")
+    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+    names(c_input) <- NULL
+
+    #### Coerce user input to correct data type ####
+    l_input <- list()
+    
+    for (ii in 1:ncol(df_temp)) {
+      c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
+      c_table_name <- names(df_temp[,ii])
+      
+      if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
+      
+      ##### handle characters ####
+      if(c_input_class == "character") {
+        if (c_input[ii] == "" | c_input[ii] == "..."){
+          l_input[[ii]] <- as.character(NA)
+        } else {
+          l_input[[ii]] <- as.character(c_input[ii])
+        }
+      } 
+      ##### handle dates ####
+      else if (c_input_class == "Date") {
+        if(is.na(c_input[ii])){
+          l_input[[ii]] <- as.Date(NA)
+        }else{
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        }
+      } 
+      ##### numeric inputs ####
+      else if (c_input_class %in% c("double", "numeric")) {
+        l_input[[ii]] <- as.numeric(c_input[ii])
+      } 
+      ##### integer inputs ####
+      else if (c_input_class == "integer") {
+        l_input[[ii]] <- as.integer(c_input[ii])
+      } 
+      ##### factor or choices inputs ####
+      else if (c_input_class == "factor"){
+        c_input[ii] <- as.character(c_input[ii])
+        if(names(df_temp[,ii]) == "Event ID"){
+          if (c_input[ii] == "" | c_input[ii] == "..."){
+            l_input[[ii]] <- as.integer(NA)
+          } else {
+            c_temp <- str_split(c_input[ii], ":")|>
+              lapply(function(x){
+                x[[1]]
+              })|>
+              unlist()|>
+              as.integer()
+            
+            l_input[[ii]] <- as.integer(c_temp)
+          }
+        }else{
+          if(is.na(c_input[ii])){
+            l_input[[ii]] <- NA
+          } else {
+            if ((c_input[ii] == "") | (c_input[ii] == "...") | (c_input[ii] == "NA")){
+              l_input[[ii]] <- NA
+            } else {
+              l_input[[ii]] <- as.character(c_input[ii])
+            }
+          } 
+        }
+      } 
+      ##### time inputs ####
+      else if(c_input_class == "hms"){
+        c_input[ii] <- as.character(c_input[ii])
+        if (c_input[ii] == "" | c_input[ii] == "..."){
+          l_input[[ii]] <- NA
+        } else {
+          # library(rebus)
+          # p <- "min"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "min\\s=\\s([\\d]+)"       
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_minutes <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_minutes <- c_minutes[2]
+          
+          # p <- "hour"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "hour\\s=\\s([\\d]+)"
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_hours <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_hours <- c_hours[2]
+          
+          c_time <- paste0(c_hours, ":",c_minutes)
+          # Add a leading zero to the minutes if necessary
+          c_time <- format(as.POSIXct(c_time, format = "%H:%M"), format = "%H:%M")
+          c_time
+          l_input[[ii]] <- readr::parse_time(c_time)
+        }
+      } ##### logical inputs ####
+      else if (c_input_class == "logical"){
+        l_input[[ii]] <- as.logical(c_input[ii]|>unlist())
+      }
+      #### not yet implemented #### 
+      else {
+        stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
+      }
+    }
+    names(l_input) <- names(df_temp)
+    df_updated <- l_input|>
+      as_tibble()
+    return(df_updated)
   }
   
   ### load all initially needed data before starting up ####
@@ -1598,8 +1718,13 @@ server <- function(input, output, session) {
         l_temp <- list()
         cnt <- 0
       }
+      
       # create Modal 
       l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save info for later use
+      temp_01(df_info)
+      temp_02(df_row)
       
       # User interaction to save
       showModal(
@@ -1628,178 +1753,24 @@ server <- function(input, output, session) {
   observeEvent(input$edit_row_value, {
     shiny::withProgress(message = "login... ", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
-      
+      removeModal()
+
       # get actual data 
       df_temp <- current_data()
       df_temp_ <- current_data()
-      
-      #### Special user input handling #####
-      if(lastEdited_data_set_name() == "Einsatzplan"){
-        # select columns to be updated 
-        c_select <- 9:ncol(df_temp)
-        df_temp <- current_data()[,c_select]
-        # input columns
-        c_select_input <- 1:6
-        # get the user input
-        generated_code <- paste0("input$`",c_select_input, "`")
-        c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-        names(c_input) <- NULL
-        c_input
-      } 
-      #### standard handling user input ####
-      else{
-        # get the user input
-        generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
-        c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-        names(c_input) <- NULL
-        c_input
-        
-        df_temp <- current_data()[,2:ncol(current_data())]
-      }
-      removeModal()
-      
-      #### Coerce user input to correct data type ####
-      l_input <- list()
-      
-      for (ii in 1:ncol(df_temp)) {
-        c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
-        c_table_name <- names(df_temp[,ii])
-        
-        if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
-        
-        ##### handle characters ####
-        if(c_input_class == "character") {
-          if (c_input[ii] == "" | c_input[ii] == "..."){
-            l_input[[ii]] <- as.character(NA)
-          } else {
-            l_input[[ii]] <- as.character(c_input[ii])
-          }
-        } 
-        ##### handle dates ####
-        else if (c_input_class == "Date") {
-          if(is.na(c_input[ii])){
-            l_input[[ii]] <- as.Date(NA)
-          }else{
-            l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
-          }
-        } 
-        ##### numeric inputs ####
-        else if (c_input_class %in% c("double", "numeric")) {
-          l_input[[ii]] <- as.numeric(c_input[ii])
-        } 
-        ##### integer inputs ####
-        else if (c_input_class == "integer") {
-          l_input[[ii]] <- as.integer(c_input[ii])
-        } 
-        ##### factor or choices inputs ####
-        else if (c_input_class == "factor"){
-          c_input[ii] <- as.character(c_input[ii])
-          if(names(df_temp[,ii]) == "Event ID"){
-            if (c_input[ii] == "" | c_input[ii] == "..."){
-              l_input[[ii]] <- as.integer(NA)
-            } else {
-              c_temp <- str_split(c_input[ii], ":")|>
-                lapply(function(x){
-                  x[[1]]
-                })|>
-                unlist()|>
-                as.integer()
-              
-              l_input[[ii]] <- as.integer(c_temp)
-            }
-          }else{
-            if ((c_input[ii] == "") | (c_input[ii] == "...") | (c_input[ii] == "NA")){
-              l_input[[ii]] <- as.character(NA)
-            } else {
-              l_input[[ii]] <- as.character(c_input[ii])
-            }
-          }
-          
-        } 
-        ##### time inputs ####
-        else if(c_input_class == "hms"){
-          c_input[ii] <- as.character(c_input[ii])
-          if (c_input[ii] == "" | c_input[ii] == "..."){
-            l_input[[ii]] <- NA
-          } else {
-            # library(rebus)
-            # p <- "min"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
-            p <- "min\\s=\\s([\\d]+)"       
-            # c_input[ii][[1]]|>
-            #   str_view(pattern = p, html = T)
-            c_minutes <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
-            c_minutes <- c_minutes[2]
             
-            # p <- "hour"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
-            p <- "hour\\s=\\s([\\d]+)"
-            # c_input[ii][[1]]|>
-            #   str_view(pattern = p, html = T)
-            c_hours <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
-            c_hours <- c_hours[2]
-            
-            c_time <- paste0(c_hours, ":",c_minutes)
-            # Add a leading zero to the minutes if necessary
-            c_time <- format(as.POSIXct(c_time, format = "%H:%M"), format = "%H:%M")
-            c_time
-            l_input[[ii]] <- readr::parse_time(c_time)
-          }
-        } ##### logical inputs ####
-        else if (c_input_class == "logical"){
-          l_input[[ii]] <- as.logical(c_input[ii]|>unlist())
-        }
-        #### not yet implemented #### 
-        else {
-          stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
-        }
-      }
-      names(l_input) <- names(df_temp)
-      df_updated <- l_input|>
-        as_tibble()
-      
-      #### Handle columns containing `ID` in the column name ####
-      if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk")){
-        c_col_is_factor <- df_updated|>
-        select(starts_with("ID"))|>
-        names()
-      } else {
-        c_col_is_factor <- df_updated|>
-          select(contains("ID"))|>
-          names()
-      }
-      
-      # Convert `ID` columns to character
-      if(length(c_col_is_factor) > 0){
-        for (ii in 1:length(c_col_is_factor)) {
-          df_updated[,names(df_updated) == c_col_is_factor[ii]] <- as.character(df_updated[,names(df_updated) == c_col_is_factor[ii]])
-        }    
-      }
-      
-      #### map ID to row index ####
-      df_index <- current_data()|>
-        select(1)
-      
-      df_index <- df_index|>
-        mutate(index = row_number(),
-               select = (df_index|>select(1)|>pull() == ID_to_edit())
-        )
-      df_index
-      
-      select_row <- df_index|>
-        filter(select == TRUE)|>
-        select(index)|>
-        pull()
-      select_row
+      # Extract data from user input
+      df_updated <- get_data_from_modal(temp_02())
       
       #### Handel ID`s ####
-      df_updated <- bind_cols(current_data()[select_row,1],
-                              df_updated
-      )
-      df_temp <- bind_cols(current_data()[,1],
-                           df_temp
-      )
-      
+      df_updated <- bind_cols(temp_01(), df_updated)|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+
+      #### handle factors #####
+      df_temp <- factor_handling(df_temp, df_updated)
+
       #### check input E-Mail if correct #####
-      df_Email <- df_updated[,names(df_temp) == "E-Mail"]
+      df_Email <- df_updated[,names(df_updated) == "E-Mail"]
       if(ncol(df_Email) > 0){
         if(!is.na(df_Email$`E-Mail`)){
           # E-Mail regex pattern
@@ -1831,7 +1802,7 @@ server <- function(input, output, session) {
       }
       
       #### check input Suisanummer if correct #####
-      df_suisa <- df_updated[select_row,names(df_temp) == "Suisanummer"]
+      df_suisa <- df_updated[,names(df_updated) == "Suisanummer"]
       if(ncol(df_suisa) > 0){
         if(!is.na(df_suisa$Suisanummer)){
           # Suisanummer regex pattern
@@ -1859,9 +1830,6 @@ server <- function(input, output, session) {
           }
         }
       }
-      
-      #### handle factors #####
-      df_temp <- factor_handling(df_temp, df_updated, select_row)
       
       #### Handling uniqueness checks for Dropdowns ####
       if (data_selection_() == "Dropdowns") {
@@ -2209,8 +2177,8 @@ server <- function(input, output, session) {
   })
   
   
-  ###  add row on top of selected row ####
-  observeEvent(input$add_row_einnahmen, {
+  ###  add row Ausgaben ####
+  observeEvent(input$add_row_ausgaben, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
@@ -2218,6 +2186,39 @@ server <- function(input, output, session) {
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
+
+    c_select <- tbl(DB_con(), "Kategorie", downlaod = FALSE)|>
+      filter(Ausgaben)|>
+      select(Auswahl)|>
+      pull()
+    
+    showModal(modalDialog(
+      title = "Was für ein Eintrag soll erstellt werden",
+      tagList(
+        div(class = "custom-select",
+            selectizeInput("Kategorie", "Bitte Kategorie wählen", selected = c_select[1], choices = c_select
+            )
+        ),
+      ),
+      footer = tagList(
+        actionButton("add_row_select","Eintrag erstellen"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+    req(NULL)
+  })
+  
+  ###  add row Ausgaben select ####
+  observeEvent(input$add_row_select, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }    
+    
+    removeModal()
     
     # Create an empty row
     new_row <- current_data()[1, ] |> 
@@ -2225,9 +2226,99 @@ server <- function(input, output, session) {
       convert_to_template_types(l_template[[lastEdited_data_set_name()]])
     new_row[1,1] <- max(current_data()[,1]) + 1L
     
-    tbl(DB_con(), "Kategorie", downlaod = FALSE)|>
-      select(Auswahl)
+    c_year <- tbl(DB_con(),"MWST", download = FALSE)|>
+      select(Abrechnungsjahr)|>
+      pull()|>
+      max()
+
+    if((input$Kategorie == "Verleiher") & (lastEdited_data_set_name() == "Ausgaben")){
+      
+      # remember use case
+      new_entry("ausgaben_verleiher")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        select(3:(ncol(new_row) - 1),
+               -Firmennamen, -Adresse)
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    }
+  })  
+  
+  ###  edit row modal ####
+  observeEvent(input$edit_row_modal, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    } 
     
+    removeModal()
+    
+    # Extract data from user input
+    df_updated <- get_data_from_modal(temp_02())
+    
+    # create new row
+    new_row <- bind_cols(temp_01(), df_updated)
+    
+    # use case 
+    if(new_entry() == "ausgaben_verleiher"){
+      # find Verleiher 
+      Verleiher <- tbl(DB_con(), "Programm")|>
+        filter(`Event ID` == new_row$`Event ID`)|>
+        select(Verleiher)|>
+        pull()
+      
+      Verleiher <- tbl(DB_con(), "Verleiher")|>
+        filter(Verleihername == Verleiher)|>
+        collect()
+      Verleiher
+
+      # fill in Verleiher info
+      new_row <- new_row|>
+        mutate(Firmennamen = Verleiher$Verleihername,
+               Adresse = paste0(Verleiher$Adresse, ", ",Verleiher$PLZ, " ", Verleiher$Ort),
+               Buchungskonto = "4404 Filmmiete Kino")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    }
+
     # add row on top
     updated_data <-
       bind_rows(new_row, 
