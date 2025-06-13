@@ -648,7 +648,7 @@ server <- function(input, output, session) {
     # find row
     select_row <- pull(df_temp[,1]) == pull(df_updated[1,1])
     
-    # Update data 
+    # Update selected row 
     df_temp[select_row,] <- df_updated
     
     # convert to factor
