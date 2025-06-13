@@ -1277,6 +1277,44 @@ server <- function(input, output, session) {
     }
   })
   
+  ## last user filter ####
+  last_filter <- reactiveVal(NULL)
+  filter_state_cleared <- reactiveVal(TRUE)
+  
+  ## check if last user filter has been cleared ####
+  observeEvent(input$table_search_columns,{
+    c_filters <- input$table_search_columns
+    c_filters[c_filters == ""] <- NA
+    c_filters
+    
+    # run after startup
+    if(is.null(last_filter())){
+      last_filter(c_filters)
+      filter_state_cleared(TRUE)
+    }
+    
+    if (!identical(last_filter(), c_filters)) {
+      # detect filters are all cleared 
+      if(sum(is.na(c_filters)) == length(c_filters)){
+        filter_state_cleared(TRUE)
+      } else {
+        filter_state_cleared(FALSE)
+      }
+      last_filter(c_filters)
+    }
+  })
+  
+  ## Signal if last user filter has been cleared ####
+  observeEvent(filter_state_cleared(),{
+    if(filter_state_cleared()){
+      message("last filter has been cleard")
+      last_user_filter(NULL)
+    } else {
+      message("Filter is still active: ", paste(last_filter(), collapse = ", "))
+    }
+  })
+  
+  
   ## Change in page length ####
   observeEvent(input$page_length, {
     writeLines("page_length")
