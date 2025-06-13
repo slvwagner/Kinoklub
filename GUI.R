@@ -1317,19 +1317,6 @@ server <- function(input, output, session) {
             unlist()
         }
         
-        # upload to ftp server
-        c_filesPath <- paste0("output/", c_filenames)
-        n <- length(c_filenames)
-        
-        shiny::withProgress(message = "Ftp upload:", value = 0, {
-          l_links <- list()
-          for (ii in 1:n) {
-            shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-            c_link <- ftp_upload(c_filesPath[ii],ftp_server, ftp_user, ftp_password, ftp_basepath)
-            l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
-          }
-        })
-        
         l_links|>
           unlist()|>
           links_to_webserver()
