@@ -1762,7 +1762,7 @@ server <- function(input, output, session) {
       # Extract data from user input
       df_updated <- get_data_from_modal(temp_02())
       
-      #### Handel ID`s ####
+      #### Data to update ####
       df_updated <- bind_cols(temp_01(), df_updated)|>
         convert_to_template_types(l_template[[lastEdited_data_set_name()]])
 
