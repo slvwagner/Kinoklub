@@ -356,7 +356,14 @@ server <- function(input, output, session) {
       "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
       "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
       "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr[length(l_data$MWST$Abrechnungsjahr):1],
-      "Firmennamen" = c("...",l_data$Verleiher$Verleihername)
+      "Firmennamen" = c("...",l_data$Verleiher$Verleihername),
+      "Personal" = 
+        c("...", l_data$Kinoklubmitglieder|>
+            filter(Personal)|>
+            mutate(Personal = paste(Vorname, Nachname,", ", `E-Mail`))|>
+            select(Personal)|>
+            pull()
+          )
     )
   }
   
@@ -734,7 +741,7 @@ server <- function(input, output, session) {
         l_temp[[ii + cnt]]  <- shiny::checkboxInput(
           inputId = as.character(ii),
           label = col_name,
-          value = ifelse(is.na(col_value), FALSE, TRUE)
+          value = ifelse(is.na(col_value), FALSE, col_value)
         )
       } else if (col_data_type == "hms") {
         l_temp[[ii + cnt]]  <- timeInput(
@@ -761,7 +768,11 @@ server <- function(input, output, session) {
         )
       } else if (col_data_type == "factor") {
         col_value <- as.character(col_value)
-        c_choices <- (column_choices()[names(column_choices()) == col_name])|>
+        c_choices <- (column_choices()[names(column_choices()) == col_name])
+        
+        if(length(c_choices) == 0) stop("could not find the column choice for the column: ", col_name)
+        
+        c_choices <- c_choices|>
           as_tibble()|>
           pull()
         
@@ -2173,7 +2184,7 @@ server <- function(input, output, session) {
   })
   
   
-  ###  add row Ausgaben ####
+  ###  add row new entry Ausgaben ####
   observeEvent(input$add_row_ausgaben, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2197,15 +2208,15 @@ server <- function(input, output, session) {
         ),
       ),
       footer = tagList(
-        actionButton("add_row_select","Eintrag erstellen"),
+        actionButton("add_row_new_entry","Eintrag erstellen"),
         actionButton("abort","Abbrechen")
       )
     ))
     req(NULL)
   })
   
-  ###  add row Ausgaben select ####
-  observeEvent(input$add_row_select, {
+  ###  add row new entry ####
+  observeEvent(input$add_row_new_entry, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
@@ -2222,11 +2233,7 @@ server <- function(input, output, session) {
       convert_to_template_types(l_template[[lastEdited_data_set_name()]])
     new_row[1,1] <- max(current_data()[,1]) + 1L
     
-    c_year <- tbl(DB_con(),"MWST", download = FALSE)|>
-      select(Abrechnungsjahr)|>
-      pull()|>
-      max()
-
+    #### use case Ausgaben Kategorie Verleiher ####
     if((input$Kategorie == "Verleiher") & (lastEdited_data_set_name() == "Ausgaben")){
       
       # remember use case
@@ -2245,7 +2252,7 @@ server <- function(input, output, session) {
       # editable
       df_row <- new_row|> 
         select(3:(ncol(new_row) - 1),
-               -Firmennamen, -Adresse)
+               -Firmennamen, -Adresse, -Buchungskonto)
       # Display the display columns (read-only)
       l_temp <- lapply(1:ncol(df_info), function(ii) {
         fluidRow(
@@ -2263,7 +2270,196 @@ server <- function(input, output, session) {
       # User interaction to save
       showModal(
         modalDialog(
-          title = "Zeile editieren",
+          title = "Verleiherrechnung erstellen",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } 
+    #### use case Ausganen Kategorie Event ####
+    else if ((input$Kategorie == "Event") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_event")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        select(3:(ncol(new_row))
+               )
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Ausgabe für Event erfassen",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } 
+    #### use case Ausganen Kategorie Kiosk ####
+    else if ((input$Kategorie == "Kiosk") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_kiosk")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        rename(Lieferant = Firmennamen)|>
+        mutate(Lieferant = as.factor(Lieferant))|>
+        select(3:(ncol(new_row)),
+               -`Event ID`,-Buchungskonto,
+               -Adresse)
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Kiosk Einkauf erfassen",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    }
+    #### use case Ausgaben Kategorie Personalaufwand ####
+    else if ((input$Kategorie == "Personalaufwand") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_personalaufwand")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:3)
+      df_info[1,2] <- input$Kategorie # Kategorie
+      df_info[1,3] <- NA # Event ID
+      # editable
+      df_row <- new_row|> 
+        select(4:ncol(new_row),
+               -Buchungskonto)|>
+        rename(Personal = Firmennamen)|>
+        mutate(Personal = factor(Personal))
+      
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = paste0("Ausgabe für die Kategorie: ",input$Kategorie," erfassen"),
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    }
+    #### not yet implemented ####
+    else {
+      # remember use case
+      new_entry("ausgaben_generic")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:3)
+      df_info[1,2] <- input$Kategorie # Kategorie
+      df_info[1,3] <- NA # Event ID
+      # editable
+      df_row <- new_row|> 
+        select(4:ncol(new_row))
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = paste0("Ausgabe für die Kategorie: ",input$Kategorie," erfassen"),
           l_temp,
           actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
           actionButton("abort", "Abbrechen"),
@@ -2274,7 +2470,7 @@ server <- function(input, output, session) {
     }
   })  
   
-  ###  edit row modal ####
+  ### edit row modal ####
   observeEvent(input$edit_row_modal, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2292,8 +2488,20 @@ server <- function(input, output, session) {
     # create new row
     new_row <- bind_cols(temp_01(), df_updated)
     
-    # use case 
+    #### use case Ausgaben Kategorie Verleiher #### 
     if(new_entry() == "ausgaben_verleiher"){
+      if(is.na(new_row$`Event ID`)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
       # find Verleiher 
       Verleiher <- tbl(DB_con(), "Programm")|>
         filter(`Event ID` == new_row$`Event ID`)|>
@@ -2314,6 +2522,86 @@ server <- function(input, output, session) {
                "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
         convert_to_template_types(l_template$Ausgaben)
     }
+    #### use case Ausgaben Kategorie Event ####
+    else if (new_entry() == "ausgaben_event"){
+      if(is.na(new_row$`Event ID`)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      # fill in Buchungskonto
+      new_row <- new_row|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+    #### use case Ausgaben Kategorie Kiosk ####
+    else if (new_entry() == "ausgaben_kiosk"){
+      c_Lieferant <- new_row$Lieferant
+      if(is.na(c_Lieferant)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss ein Lieferant angegeben werden um einen Kioskeinkauf zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+
+      # find Verleiher 
+      Lieferant <- tbl(DB_con(), "Lieferanten")|>
+        filter(Lieferantenname == c_Lieferant)|>
+        collect()
+      
+      # fill in Verleiher info
+      new_row <- new_row|>
+        rename(Firmennamen = Lieferant)|>
+        mutate(`Event ID` = NA,
+               Firmennamen = Lieferant$Lieferantenname ,
+               Adresse = paste0(Lieferant$Adresse, ", ",Lieferant$PLZ, " ", Lieferant$Ort),
+               Buchungskonto = "4405 Einkauf Kioskwaren Kino")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+    #### use case Ausgaben Kategorie Personalaufwand ####
+    else if (new_entry() == "ausgaben_personalaufwand"){
+      c_temp <- new_row$Personal
+      if(is.na(c_temp)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss eine Personalresource angegeben werden.",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+
+      # fill in Verleiher info
+      new_row <- new_row|>
+        rename(Firmennamen = Personal)|>
+        mutate(`Event ID` = NA,
+               Firmennamen = c_temp,
+               Adresse = NA,
+               Buchungskonto = "5000 Personalaufwand")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+
 
     # add row on top
     updated_data <-
@@ -2338,7 +2626,7 @@ server <- function(input, output, session) {
     # update to render 
     current_data(updated_data)
     
-    #### select last edited row and page ####
+    # select last edited row and page 
     last_selected_row(1)
     last_selected_page(1)
     
