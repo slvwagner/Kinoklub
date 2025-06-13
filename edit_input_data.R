@@ -75,113 +75,113 @@ ui <- fluidPage(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
     tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
     tags$style(HTML("
-    .custom-select .selectize-dropdown-content {
-      background-color: #330937;
-      color: #f4eacc;
-    }
-    
-    .selectize-input.full {
-      background-color: #330937 !important;
-      color: #f4eacc !important;
-    }
-    
-    .custom-select .selectize-dropdown .active {
-      background-color: #330937 ;
-      color: #f4eacc ;
-    }
-    
-    #floating-panel {
-      position: fixed;
-      right: 20px;
-      top: 20px;
-      width: 300px;
-      height: auto; /* Start with auto height */
-      border: 3px solid #000;
-      border-radius: 5px;
-      padding: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 999;
-      transition: height 0.2s ease;
-      overflow: hidden; /* Hide content when collapsed */
-    }
-    
-    #floating-panel.collapsed {
-      height: 38px; /* Just enough for the header */
-    }
-    
-    #floating-panel-header {
-      cursor: move;
-      padding: 10px;
-      margin: -10px -10px 10px -10px;
-      border-bottom: 1px solid #ddd;
-      font-weight: bold;
-      border-radius: 5px 5px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    #floating-panel.collapsed .panel-content {
-      display: none;
-    }
-    
-    #floating-panel.collapsed #floating-panel-header {
-      margin-bottom: -10px; /* Adjust for collapsed state */
-      border-bottom: none; /* Remove border when collapsed */
-    }
-    
-    .toggle-panel {
-      cursor: pointer;
-      float: right;
-    }
-
-    #login-panel {
-      background: #330937;
-      position: absolute;
-      left: 350px;
-      top: 20px;
-      width: 300px;
-      height: auto;
-      border: 3px solid #000;
-      border-radius: 5px;
-      padding: 10px;
-      color: #f4eacc;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      transition: height 0.2s ease;
-      overflow: hidden;
-    }
-    
-    #login-panel.collapsed {
-      height: 35px;
-    }
-    
-    #login-panel-header {
-      cursor: move;
-      background: #46267d;
-      padding: 8px;
-      margin: -10px -10px 10px -10px;
-      border-bottom: 1px solid #ddd;
-      font-weight: bold;
-      border-radius: 5px 5px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    #login-panel.collapsed .panel-content {
-      display: none;
-    }
-    
-    #login-panel.collapsed #login-panel-header {
-      margin-bottom: -10px;
-      border-bottom: none;
-    }
-    
-    .login-toggle-panel {
-      cursor: pointer;
-      float: right;
-    }
+      .custom-select .selectize-dropdown-content {
+        background-color: #330937;
+        color: #f4eacc;
+      }
+      
+      .selectize-input.full {
+        background-color: #330937 !important;
+        color: #f4eacc !important;
+      }
+      
+      .custom-select .selectize-dropdown .active {
+        background-color: #330937 ;
+        color: #f4eacc ;
+      }
+      
+      #floating-panel {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        width: 300px;
+        height: auto; /* Start with auto height */
+        border: 3px solid #000;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 999;
+        transition: height 0.2s ease;
+        overflow: hidden; /* Hide content when collapsed */
+      }
+      
+      #floating-panel.collapsed {
+        height: 38px; /* Just enough for the header */
+      }
+      
+      #floating-panel-header {
+        cursor: move;
+        padding: 10px;
+        margin: -10px -10px 10px -10px;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #floating-panel.collapsed .panel-content {
+        display: none;
+      }
+      
+      #floating-panel.collapsed #floating-panel-header {
+        margin-bottom: -10px; /* Adjust for collapsed state */
+        border-bottom: none; /* Remove border when collapsed */
+      }
+      
+      .toggle-panel {
+        cursor: pointer;
+        float: right;
+      }
+  
+      #login-panel {
+        background: #330937;
+        position: absolute;
+        left: 350px;
+        top: 20px;
+        width: 300px;
+        height: auto;
+        border: 3px solid #000;
+        border-radius: 5px;
+        padding: 10px;
+        color: #f4eacc;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        transition: height 0.2s ease;
+        overflow: hidden;
+      }
+      
+      #login-panel.collapsed {
+        height: 35px;
+      }
+      
+      #login-panel-header {
+        cursor: move;
+        background: #46267d;
+        padding: 8px;
+        margin: -10px -10px 10px -10px;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #login-panel.collapsed .panel-content {
+        display: none;
+      }
+      
+      #login-panel.collapsed #login-panel-header {
+        margin-bottom: -10px;
+        border-bottom: none;
+      }
+      
+      .login-toggle-panel {
+        cursor: pointer;
+        float: right;
+      }
   "))),
   
   # Functions
