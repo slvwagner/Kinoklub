@@ -2542,7 +2542,7 @@ server <- function(input, output, session) {
     } else {
       shiny::tagList(
         shiny::actionButton("explore_files", "Dateien Anzeigen",class = "btn-info"),
-        shiny::actionButton("ftp_delete_modal", "Ftp Dateien löschen",class = "btn-danger"),
+        shiny::actionButton("ftp_delete_modal", "Berichte löschen",class = "btn-danger"),
         shiny::hr(),
         shiny::div(
           style = "display: flex; gap: 20px; align-items: center;",
