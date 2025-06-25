@@ -100,7 +100,7 @@ ui <- fluidPage(
         border-radius: 5px;
         padding: 10px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 999;
+        z-index: 1001;
         transition: height 0.2s ease;
         overflow: hidden; /* Hide content when collapsed */
       }
