@@ -20,7 +20,7 @@ dict_env <- new.env()
 # Constants ####
 Email_col_names <- c("Allgemeine Infos erhalten","Kasse / Bar", "Programm") # Email Verteilerauswahl
 c_pageLength = 5 # Initial page length
-c_lengthMenu = c(5:20, 50, 100) # page length drop down options
+c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
 width_vectors <- list(# Define width vectors for specific tables
   "Filmvorschlag" = c("Filmtitel" = "200px", "Inhalt" = "700px", "actors" = "100px"),
@@ -33,13 +33,20 @@ width_vectors <- list(# Define width vectors for specific tables
 # Data templates (for data type conversion) ####
 l_template <- readRDS("source/SQL/template.Rds")
 
-# Split data to input and dropdown ####
+# Split data ####
+## Input tables ####
 c_select_input_data <- 
-  c("Filmvorschlag", "Einsatzplan")
+  c("Filmvorschlag","Einsatzplan")
 l_template[c_select_input_data]
 
+## Avanced tickets files ####
+c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk")
+l_template[c_select_input_advanced_tickets]
+
+## Drop down data and calculation definitions ####
 c_select_dropdown_data <- 
-  c("Kinoklubmitglieder")
+  c("Kinoklubmitglieder", "Verleiher", "Verleiher mapping", "Lieferanten", 
+    "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")
 l_template[c_select_dropdown_data]
 
 # Data table in german ####
@@ -68,101 +75,120 @@ ui <- fluidPage(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
     tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
     tags$style(HTML("
-    #floating-panel {
-      position: fixed;
-      right: 20px;
-      top: 20px;
-      width: 300px;
-      height: auto; /* Start with auto height */
-      border: 3px solid #000;
-      border-radius: 5px;
-      padding: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 999;
-      transition: height 0.2s ease;
-      overflow: hidden; /* Hide content when collapsed */
-    }
-    #floating-panel.collapsed {
-      height: 35px; /* Just enough for the header */
-    }
-    #floating-panel-header {
-      cursor: move;
-      background: #46267d;
-      padding: 10px;
-      margin: -10px -10px 10px -10px;
-      border-bottom: 1px solid #ddd;
-      font-weight: bold;
-      border-radius: 5px 5px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #floating-panel.collapsed .panel-content {
-      display: none;
-    }
-    #floating-panel.collapsed #floating-panel-header {
-      margin-bottom: -10px; /* Adjust for collapsed state */
-      border-bottom: none; /* Remove border when collapsed */
-    }
-    .toggle-panel {
-      cursor: pointer;
-      float: right;
-    }
-  "))
-  ),
-
-  # make login panel collapsible
-  tags$style(HTML("
-    #login-panel {
-      position: absolute;
-      left: 350px;
-      top: 20px;
-      width: 300px;
-      height: auto;
-      border: 3px solid #000;
-      border-radius: 5px;
-      padding: 10px;
-      background: #322f3b;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      transition: height 0.2s ease;
-      overflow: hidden;
-    }
-    #login-panel.collapsed {
-      height: 35px;
-    }
-    #login-panel-header {
-      cursor: move;
-      background: #46267d;
-      padding: 8px;
-      margin: -10px -10px 10px -10px;
-      border-bottom: 1px solid #ddd;
-      font-weight: bold;
-      border-radius: 5px 5px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #login-panel.collapsed .panel-content {
-      display: none;
-    }
-    #login-panel.collapsed #login-panel-header {
-      margin-bottom: -10px;
-      border-bottom: none;
-    }
-    .login-toggle-panel {
-      cursor: pointer;
-      float: right;
-    }
-  ")),
+      .custom-select .selectize-dropdown-content {
+        background-color: #330937;
+        color: #f4eacc;
+      }
+      
+      .selectize-input.full {
+        background-color: #330937 !important;
+        color: #f4eacc !important;
+      }
+      
+      .custom-select .selectize-dropdown .active {
+        background-color: #330937 ;
+        color: #f4eacc ;
+      }
+      
+      #floating-panel {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        width: 300px;
+        height: auto; /* Start with auto height */
+        border: 3px solid #000;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1001;
+        transition: height 0.2s ease;
+        overflow: hidden; /* Hide content when collapsed */
+      }
+      
+      #floating-panel.collapsed {
+        height: 38px; /* Just enough for the header */
+      }
+      
+      #floating-panel-header {
+        cursor: move;
+        padding: 10px;
+        margin: -10px -10px 10px -10px;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #floating-panel.collapsed .panel-content {
+        display: none;
+      }
+      
+      #floating-panel.collapsed #floating-panel-header {
+        margin-bottom: -10px; /* Adjust for collapsed state */
+        border-bottom: none; /* Remove border when collapsed */
+      }
+      
+      .toggle-panel {
+        cursor: pointer;
+        float: right;
+      }
   
-  # style login panel
+      #login-panel {
+        background: #330937;
+        position: absolute;
+        left: 350px;
+        top: 20px;
+        width: 300px;
+        height: auto;
+        border: 3px solid #000;
+        border-radius: 5px;
+        padding: 10px;
+        color: #f4eacc;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        transition: height 0.2s ease;
+        overflow: hidden;
+      }
+      
+      #login-panel.collapsed {
+        height: 35px;
+      }
+      
+      #login-panel-header {
+        cursor: move;
+        background: #46267d;
+        padding: 8px;
+        margin: -10px -10px 10px -10px;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #login-panel.collapsed .panel-content {
+        display: none;
+      }
+      
+      #login-panel.collapsed #login-panel-header {
+        margin-bottom: -10px;
+        border-bottom: none;
+      }
+      
+      .login-toggle-panel {
+        cursor: pointer;
+        float: right;
+      }
+  "))),
+  
+  # Functions
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-  ),
-  
-  # Initialize drag and collapse functionality for the login panel
-  tags$script(HTML("
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css"),
+    # Initialize drag and collapse functionality for the login panel
+    tags$script(HTML("
     $(function() {
       // Wait for Shiny to be ready
       $(document).on('shiny:connected', function() {
@@ -181,10 +207,6 @@ ui <- fluidPage(
         });
       });
     });
-  ")),
-  
-  # Initialize auto collaps after Login
-  tags$script(HTML("
     // Function to collapse login panel
     function collapseLoginPanel() {
       $('#login-panel').addClass('collapsed');
@@ -196,9 +218,12 @@ ui <- fluidPage(
       collapseLoginPanel();
     });
   ")),
-
-  # Login Panle UI
-  shiny::titlePanel(paste0("Kinoklubmitglieder")),
+  ),
+  
+  
+  
+  # Login Panel UI
+  shiny::titlePanel(paste0("Input Daten Kinoklub")),
   div(
     id = "login-panel",
     tags$div(id = "login-panel-header", 
@@ -213,9 +238,9 @@ ui <- fluidPage(
         shiny::passwordInput("DB_pw", "Datenbankpasswort"),
         shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
         shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
-        ),
+    ),
   ),
-
+  
   # Main content area
   div(class = "table-container",
       uiOutput("dynamicContent_output_panel")
@@ -226,12 +251,15 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   ## Reactive Values ####
   l_data_input <- reactiveVal(list())
-  l_data_choices <- reactiveVal(list())
+  l_data_advance_tickets <- reactiveVal(list())
+  l_data_dropdown <- reactiveVal(list())
   l_data <- reactiveVal(list())
   column_choices <- reactiveVal(list())
   ### data frame to render ####
   current_data <- reactiveVal(tibble())
   data_selection_ <- reactiveVal("")
+  ### render helping infromation ####
+  help_information <- reactiveVal("")
   ### last page length from datatable ####
   page_length_var <- reactiveVal(5L)
   ### last selected ID in datatable ####
@@ -265,6 +293,13 @@ server <- function(input, output, session) {
   ### last set sorting in datatable ####
   last_sorting <- reactiveVal(NULL)
   
+  ### temp_01 ####
+  temp_01 <- reactiveVal(NULL)
+  ### temp_02 ####
+  temp_02 <- reactiveVal(NULL)
+  # new entry use case ####
+  new_entry <- reactiveVal(NULL)
+  
   ## helper functions ####
   ### update dropdowns ####
   update_choices <- function(l_data) {
@@ -296,7 +331,7 @@ server <- function(input, output, session) {
       "Kategorie" = l_data$Kategorie$Auswahl,
       "Buchungskonto" = l_data$Buchhaltungskonten$Buchungskontoname,
       "Verleiher" = l_data$Verleiher$Verleihername,
-      "Verleihername" = l_data$`Verleiher mapping`$Verleihername,
+      "Verleihername" = l_data$Verleiher$Verleihername,
       "Kinoförderer gratis?" = l_data$JaNein$Auswahl,
       "Spezialpreis" = l_data$Spezialpreis$Spezialpreisname,
       "KDM ja oder nein" = l_data$JaNein$Auswahl,
@@ -319,12 +354,22 @@ server <- function(input, output, session) {
       "Koordination" = l_data$JaNein$Auswahl,
       "Operateurin" = l_data$JaNein$Auswahl,
       "Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
-      "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel))
+      "Link to Event ID" = c("...",paste(l_data$Programm$`Event ID`, ":", l_data$Programm$Filmtitel)),
+      "Abrechnungsjahr" = l_data$MWST$Abrechnungsjahr[length(l_data$MWST$Abrechnungsjahr):1],
+      "Firmennamen" = c("...",l_data$Verleiher$Verleihername),
+      "Personal" = 
+        c("...", l_data$Kinoklubmitglieder|>
+            filter(Personal)|>
+            mutate(Personal = paste(Vorname, Nachname,", ", `E-Mail`))|>
+            select(Personal)|>
+            pull()
+        )
     )
   }
   
   ### Toolbox for the user to interact ####
-  tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Dropdowns")) {
+  tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, choices_select = 1, choices = c("Inputdaten", "Advance-Tickets", "Dropdowns")) {
+    #### Filmvorschlag ####
     if(data_set_select == "Filmvorschlag"){
       tags$div(
         id = "floating-panel",
@@ -332,44 +377,53 @@ server <- function(input, output, session) {
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
-            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-                        )
-            ),
+        div(class = "custom-select",
+            selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
         # # Function selection
         # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
         #                     choices = choices, selected = choices[choices_select]
         # ),
         shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("procinema_search", "Procinema-Suche", class = "btn-info"),
+        actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       ) 
-    } else if (data_set_select == "Programm"){
+    } 
+    #### Programm ####
+    else if (data_set_select == "Programm"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
-            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+        div(class = "custom-select",
+            selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
-        # Function selection
-        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices[choices_select]
-        ),
+        # # Function selection
+        # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+        #                     choices = choices, selected = choices[choices_select]
+        # ),
         shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
-        actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-        actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
         actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
@@ -381,14 +435,16 @@ server <- function(input, output, session) {
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
-    } else if(data_set_select == "Einsatzplan"){
+    } 
+    #### Einsatzplan ####
+    else if(data_set_select == "Einsatzplan"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -402,68 +458,50 @@ server <- function(input, output, session) {
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
-    } # Menue for drop downs 
-    else if(data_set_select %in% names(l_data_choices())){
-      if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
-        tags$div(
-          id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
-                   "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-          ),
-          div(class = "panel-content",
-              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-              )
-          ),
-          # Function selection
-          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
-          ),
-          shiny::tags$hr(),
-          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("check_unique", "Prüfen", class = "btn-success"),
-          shiny::tags$hr(),
-          actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-          shiny::downloadButton("table_export", "Tabelle herunterladen")
-        )
-      } else {
-        tags$div(
-          id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
-                   "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-          ),
-          div(class = "panel-content",
-              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-              )
-          ),
-          # Function selection
-          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
-          ),
-          shiny::tags$hr(),
-          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-          actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("check_unique", "Prüfen", class = "btn-success"),
-          shiny::tags$hr(),
-          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-          shiny::tags$hr(),
-          actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-          shiny::downloadButton("table_export", "Tabelle herunterladen")
-        )
-      }
-    } else {
+    } 
+    #### Ausgaben ####
+    else if (data_set_select == "Ausgaben"){
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
                  "Werkzeuge",
                  span(class = "toggle-panel", id = "togglePanel", icon("minus"))
         ),
-        div(class = "panel-content",
+        div(class = "custom-select",
+            selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("add_row_ausgaben", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    } 
+    ### Spezialpreisekiosk ####
+    else if (data_set_select == "Spezialpreisekiosk") {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
             selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
             )
         ),
@@ -472,10 +510,120 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
-        actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-        actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ##### Kinoklubmitglieder ####
+    else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ##### df_Eintritt df_Kiosk ####
+    else if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk","Eintritt files", "Kiosk files")){
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ### anything else ####
+    else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
+        actionButton("duplicate_row", "Neuer Einkaufpreis", class = "btn-info"),
+        shiny::tags$hr(),
+        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        shiny::tags$hr(),
+        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        shiny::tags$hr(),
+        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        shiny::downloadButton("table_export", "Tabelle herunterladen")
+      )
+    }
+    ### anything else ####
+    else {
+      tags$div(
+        id = "floating-panel",
+        tags$div(id = "floating-panel-header", 
+                 "Werkzeuge",
+                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+        ),
+        div(class = "custom-select",
+            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+            )
+        ),
+        # Function selection 
+        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                            choices = choices, selected = choices[choices_select]
+        ),
+        shiny::tags$hr(),
+        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        shiny::tags$hr(),
+        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
+        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
         actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
@@ -488,35 +636,26 @@ server <- function(input, output, session) {
     }
   }
   
-  ### get date type for each column from a data frame ####
-  get_data_type <- function(df){
-    1:ncol(df)|>
-      lapply(function(x){
-        c_temp <- df|>
-          select(all_of(x))|>
-          pull()
-        class(c_temp)[1] # only use the first class
-      })|>
-      unlist()
-  }
+  
   
   ### Convert data frame columns to factors ####
-  factor_handling <- function(df_temp, df_updated, select_row){
+  factor_handling <- function(df_temp, df_updated){
+    
+    if(ncol(df_temp) != ncol(df_updated)) stop("ncol(df_temp): " , ncol(df_temp), " ncol(df_updated): ", ncol(df_updated))
+    
     # find class of column
     c_class <- get_data_type(df_temp)
     # convert factors to character
     for (ii in 1:length(c_class)) {
       if(c_class[ii] == "factor"){
         df_temp[,ii] <- df_temp[,ii]|>pull()|>as.character()
+        df_updated[,ii] <- df_updated[,ii]|>pull()|>as.character()
       }
     }
+    # find row
+    select_row <- pull(df_temp[,1]) == pull(df_updated[1,1])
     
-    for (ii in 1:nrow(df_updated)) {
-      if(c_class[ii] == "factor"){
-        df_updated[,ii] <- ifelse(df_updated[,ii] == "NA",NA,df_temp[,ii]) 
-      }
-    }
-    # Update data 
+    # Update selected row 
     df_temp[select_row,] <- df_updated
     
     # convert to factor
@@ -530,6 +669,13 @@ server <- function(input, output, session) {
   
   ### Update Einsatzplan (special handling) ####
   Update_Einsatzplan <- function(df_updated, c_class, new_row = FALSE) {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     # If the Programm changes Einsatzplan must be updated too
     if(nrow(df_updated) > 1) stop("Update_Einsatzplan shall only contain a single row")
     
@@ -546,18 +692,13 @@ server <- function(input, output, session) {
       )
     }else{
       df_temp <- DB_get_table("Einsatzplan", DB_con())|> 
-        select(-`Event ID`, -Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`)|>
+        select(Verantwortlich, `Operateur*in`, `Kasse/Bar 1`, `Kasse/Bar 2`, `Back-up`, Kommentar)|>
         slice(1)|>
-        mutate(Verantwortlich = "", 
-               `Operateur*in` = "",
-               `Kasse/Bar 1` = "",
-               `Kasse/Bar 2` = "",
-               `Back-up` = "",
-               Kommentar = "",
-               Trailer = "")
+        mutate(across(everything(), ~ as.factor(NA)))
+      df_temp
       
       df_temp <- bind_cols(DB_get_table("Programm", DB_con())|>
-                             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`)|> 
+                             select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)|> 
                              filter(`Event ID` %in% df_updated$`Event ID`),
                            df_temp
       )
@@ -600,7 +741,7 @@ server <- function(input, output, session) {
         l_temp[[ii + cnt]]  <- shiny::checkboxInput(
           inputId = as.character(ii),
           label = col_name,
-          value = ifelse(is.na(col_value), FALSE, TRUE)
+          value = ifelse(is.na(col_value), FALSE, col_value)
         )
       } else if (col_data_type == "hms") {
         l_temp[[ii + cnt]]  <- timeInput(
@@ -627,7 +768,11 @@ server <- function(input, output, session) {
         )
       } else if (col_data_type == "factor") {
         col_value <- as.character(col_value)
-        c_choices <- (column_choices()[names(column_choices()) == col_name])|>
+        c_choices <- (column_choices()[names(column_choices()) == col_name])
+        
+        if(length(c_choices) == 0) stop("could not find the column choice for the column: ", col_name)
+        
+        c_choices <- c_choices|>
           as_tibble()|>
           pull()
         
@@ -637,21 +782,29 @@ server <- function(input, output, session) {
             suppressWarnings()
           names(c_select) <- c_choices
           
-          l_temp[[ii + cnt]]  <- selectInput(
-            inputId = as.character(ii),
-            label = col_name,
-            choices = c_select,
-            selected = ifelse(is.na(col_value), NA, col_value),
-            selectize = TRUE
-          )
+          l_temp[[ii + cnt]]  <-
+            # div(
+            #   class = "custom-select",
+            selectInput(
+              inputId = as.character(ii),
+              label = col_name,
+              choices = c_select,
+              selected = ifelse(is.na(col_value), NA, col_value),
+              selectize = TRUE
+            )
+          # )
         } else if (col_name %in% names(column_choices())) {
-          l_temp[[ii + cnt]]  <- selectInput(
-            inputId = as.character(ii),
-            label = col_name,
-            choices = c_choices,
-            selected = ifelse(is.na(col_value), NA, col_value),
-            selectize = TRUE
-          )
+          l_temp[[ii + cnt]]  <-
+            # div(
+            #   class = "custom-select",
+            selectInput(
+              inputId = as.character(ii),
+              label = col_name,
+              choices = c_choices,
+              selected = ifelse(is.na(col_value), NA, col_value),
+              selectize = TRUE
+            )
+          # )
         } else {
           stop("You should not end here: factor else")
         }
@@ -677,8 +830,123 @@ server <- function(input, output, session) {
     return(l_temp)
   }
   
+  ### get data from user modal input ####
+  get_data_from_modal <- function(df_temp) {
+    
+    # get the user input
+    generated_code <- paste0("input$`", 1:ncol(temp_02()), "`")
+    c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
+    names(c_input) <- NULL
+    
+    #### Coerce user input to correct data type ####
+    l_input <- list()
+    
+    for (ii in 1:ncol(df_temp)) {
+      c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
+      c_table_name <- names(df_temp[,ii])
+      
+      if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
+      
+      ##### handle characters ####
+      if(c_input_class == "character") {
+        l_input[[ii]] <- as.character(c_input[ii])
+      } 
+      ##### handle dates ####
+      else if (c_input_class == "Date") {
+        if(is.na(c_input[ii])){
+          l_input[[ii]] <- as.Date(NA)
+        }else{
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+        }
+      } 
+      ##### numeric inputs ####
+      else if (c_input_class %in% c("double", "numeric")) {
+        l_input[[ii]] <- as.numeric(c_input[ii])
+      } 
+      ##### integer inputs ####
+      else if (c_input_class == "integer") {
+        l_input[[ii]] <- as.integer(c_input[ii])
+      } 
+      ##### factor or choices inputs ####
+      else if (c_input_class == "factor"){
+        c_input[ii] <- as.character(c_input[ii])
+        if(names(df_temp[,ii]) == "Event ID"){
+          if (c_input[ii] == "" | c_input[ii] == "..."){
+            l_input[[ii]] <- as.integer(NA)
+          } else {
+            c_temp <- str_split(c_input[ii], ":")|>
+              lapply(function(x){
+                x[[1]]
+              })|>
+              unlist()|>
+              as.integer()
+            
+            l_input[[ii]] <- as.integer(c_temp)
+          }
+        }else{
+          if(is.na(c_input[ii])){
+            l_input[[ii]] <- NA
+          } else {
+            if ((c_input[ii] == "") | (c_input[ii] == "...") | (c_input[ii] == "NA")){
+              l_input[[ii]] <- NA
+            } else {
+              l_input[[ii]] <- as.character(c_input[ii])
+            }
+          } 
+        }
+      } 
+      ##### time inputs ####
+      else if(c_input_class == "hms"){
+        c_input[ii] <- as.character(c_input[ii])
+        if (c_input[ii] == "" | c_input[ii] == "..."){
+          l_input[[ii]] <- NA
+        } else {
+          # library(rebus)
+          # p <- "min"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "min\\s=\\s([\\d]+)"       
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_minutes <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_minutes <- c_minutes[2]
+          
+          # p <- "hour"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
+          p <- "hour\\s=\\s([\\d]+)"
+          # c_input[ii][[1]]|>
+          #   str_view(pattern = p, html = T)
+          c_hours <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
+          c_hours <- c_hours[2]
+          
+          c_time <- paste0(c_hours, ":",c_minutes)
+          # Add a leading zero to the minutes if necessary
+          c_time <- format(as.POSIXct(c_time, format = "%H:%M"), format = "%H:%M")
+          c_time
+          l_input[[ii]] <- readr::parse_time(c_time)
+        }
+      } ##### logical inputs ####
+      else if (c_input_class == "logical"){
+        l_input[[ii]] <- as.logical(c_input[ii]|>unlist())
+      }
+      #### not yet implemented #### 
+      else {
+        stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
+      }
+    }
+    names(l_input) <- names(df_temp)
+    df_updated <- l_input|>
+      as_tibble()
+    return(df_updated)
+  }
+  
   ### load all initially needed data before starting up ####
   load_initial_data <- function() {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
     shiny::withProgress(message = "Loading data...", value = 0, {
       shiny::incProgress(1/3, detail = "Fetching from database")
       
@@ -700,7 +968,7 @@ server <- function(input, output, session) {
         l_data(l_data_ready)
         update_choices(l_data_ready) |> column_choices()
         l_data_input(l_data_ready[c_select_input_data])
-        l_data_choices(l_data_ready[c_select_dropdown_data])
+        l_data_dropdown(l_data_ready[c_select_dropdown_data])
         current_data(l_data_ready[["Programm"]] |> arrange(desc(Datum)))
         lastEdited_data_set_name("Programm")
         data_selection_("Inputdaten")
@@ -726,7 +994,7 @@ server <- function(input, output, session) {
           color = styleEqual(
             c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
             c('black', 'black', 'black')
-            )
+          )
         )
     }
     else if (lastEdited_data_set_name() == "Einsatzplan") {
@@ -754,120 +1022,29 @@ server <- function(input, output, session) {
           backgroundColor = styleEqual(c_Kinoklubmitglied, member_colors),
           color = styleEqual(c_Kinoklubmitglied, text_colors)
         )
+      # Verleiher anfrage
+      dt <- dt |> 
+        formatStyle(
+          "Verleiher Angefragt?", 
+          backgroundColor = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('lightgreen', '#ed716d', '#FFFF97')
+          ),
+          color = styleEqual(
+            c("Bestätigt", "Wird nicht gespielt", "Anfrage läuft"), 
+            c('black', 'black', 'black')
+          )
+        )
     } 
     return(dt)
   }
   
-  ### Find datatable page ####
-  find_page <- function(){
-    req(input$table_rows_selected)
-    c_row <- as.integer(input$table_rows_selected)
-    
-    # map selected row to ID
-    df_temp <- last_rendered_DT()
-    pull(df_temp[c_row,1])|>
-      ID_to_edit()
-    writeLines(paste0("Selected row: ", c_row, " ID: ", ID_to_edit()," in table: ", lastEdited_data_set_name()))
-    
-    # get user filters
-    column_filters = input$table_search_columns
-    column_filters <- column_filters|>
-      str_remove_all("\"")|>
-      str_remove_all("\\[")|>
-      str_remove_all("\\]")
-    column_filters <- str_split(column_filters,",")
-    
-    # Update last user filter
-    c_test <- lapply(column_filters, function(x){
-      nchar(x) > 0
-    })|>
-      unlist()
-    # get column data type
-    c_class <- get_data_type(df_temp)
-    ### extract data from column filters ####
-    for (ii in 1:length(column_filters)) {
-      col_filter <- column_filters[[ii]]
-      if(nchar(col_filter[1]) > 0){
-        if(c_class[ii] %in% c("Date", "hms")){
-          c_date <- pull(df_temp[,ii])|>
-            as.character()
-          df_temp <- df_temp[str_detect(c_date, col_filter),]
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        } 
-        else if(c_class[ii] == "integer"){
-          # library(rebus)
-          # p1 <- START%R%one_or_more(DGT)
-          # p2 <- one_or_more(DGT)%R%END
-          p1 <- "^[\\d]+"
-          p2 <- "[\\d]+$"
-          start <- str_extract(col_filter, p1)|>
-            as.integer()
-          end <- str_extract(col_filter, p2)|>
-            as.integer()
-          c_select <- start:end
-          df_temp <- df_temp[pull(df_temp[,ii]) %in% c_select,]
-        } else if (c_class[ii] == "factor"){
-          if(length(col_filter) > 1){
-            df_temp <- df_temp[pull(df_temp[,ii]) %in% col_filter,] 
-          } else {
-            c_select <- str_detect(pull(df_temp[,ii]), col_filter)
-            c_select <- ifelse(is.na(c_select), FALSE, c_select)
-            df_temp <- df_temp[c_select,]
-          }
-        }
-        # character 
-        else { 
-          # filters for data table are not case sensitive so tolower() conversion is needed 
-          df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
-          df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
-        }
-      }
-    }
-    # map ID to selected row
-    df_temp <- df_temp |>
-      mutate(index = row_number())
-    row_filtered <- df_temp[df_temp[,1] == ID_to_edit(),]$index
-    # # has the page lenght changed? 
-    # if(!is.null(input$page_length)){
-    #   page_length_var(input$page_length)
-    # }
-    if(!is_empty(row_filtered)){
-      # Calculate page 
-      c_page <-  ceiling(row_filtered / page_length_var())  
-      writeLines(paste0("Selected row: ", c_row, ", ID: ", ID_to_edit(),", table: `", lastEdited_data_set_name(),"`, Selected page: ", c_page,"\n"))
-      
-      if(c_page == 0) c_page <- 1
-      last_selected_page(c_page)
-      last_selected_row(c_row)
-      
-    } else {
-      last_selected_page(NULL)
-    }
-    ### if column filters are present update column filters #####
-    if(sum(!c_test) != length(column_filters)) {
-      column_filters_temp <- input$table_search_columns|>
-        lapply(function(x){
-          if(nchar(x) > 0) {
-            list(search = x)
-          } 
-          else {
-            NULL
-          }
-        })
-      # only update if changed
-      test <- all.equal(last_user_filter(), column_filters_temp)|>is.logical()
-      if(!test) {
-        last_user_filter(column_filters_temp)
-      }
-    } else {
-      last_user_filter(NULL)
-    }
-  }
-
+  
+  
   ## Render data table ####
   output$table <- DT::renderDT({
     writeLines("renderDT")
-
+    
     if(is.null(current_data())){
       print("here")
     }
@@ -929,7 +1106,7 @@ server <- function(input, output, session) {
         }
       }
     }
-  
+    
     # Get the appropriate width vector for current table
     current_width_vector <- width_vectors[[lastEdited_data_set_name()]]
     
@@ -950,17 +1127,17 @@ server <- function(input, output, session) {
         }
       }
     }
-
+    
     # Update last rendered DT 
     last_rendered_DT(df_temp)
-
+    
     # links to render in html
-    if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag")){
+    if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag","Einsatzplan")){
       df_temp <- df_temp|>
         mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
                Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
-               )
-
+        )
+      
       if("Eintritte eingespielt" %in% names(df_temp)){
         df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
           prettyNum(big.mark = "`")
@@ -972,7 +1149,7 @@ server <- function(input, output, session) {
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`Kontakt`, df_temp$`Kontakt`))
         )
-
+      
       df_temp$Besucherzahlen <-
         ifelse(is.na(df_temp$`Besucherzahlen`),
                NA,
@@ -985,8 +1162,24 @@ server <- function(input, output, session) {
                NA,
                paste0(sprintf('<a href="mailto:%s">%s</a>', df_temp$`E-Mail`, df_temp$`E-Mail`))
         )
-    }
-  
+    } else if (lastEdited_data_set_name() %in% c("df_Eintritt")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`))
+    } else if (lastEdited_data_set_name() %in% c("df_Kiosk")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`),
+               ID_Kioskartikel = factor(ID_Kioskartikel),
+               ID_Spezialpreisekiosk = factor(ID_Spezialpreisekiosk))
+    } else if (lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
+      df_temp <- df_temp|>
+        mutate(`Event ID` = factor(`Event ID`))
+    } 
+    
+    # Render primary Key always as factor
+    df_temp[,1] <- pull(df_temp[,1])|>
+      factor()
+    
+    
     # Render Table
     datatable(
       df_temp,
@@ -1065,8 +1258,8 @@ server <- function(input, output, session) {
           "}"
         )
       )
-    ) |> formatStyle(columns = colnames(df_temp), textAlign = 'left')
-
+    ) |> apply_conditional_formatting()
+    
   }, server = FALSE)
   
   
@@ -1084,17 +1277,68 @@ server <- function(input, output, session) {
     }
   })
   
+  ## last user filter ####
+  last_filter <- reactiveVal(NULL)
+  filter_state_cleared <- reactiveVal(TRUE)
+  
+  ## check if last user filter has been cleared ####
+  observeEvent(input$table_search_columns,{
+    c_filters <- input$table_search_columns
+    c_filters[c_filters == ""] <- NA
+    c_filters
+    
+    # run after startup
+    if(is.null(last_filter())){
+      last_filter(c_filters)
+      filter_state_cleared(TRUE)
+    }
+    
+    if (!identical(last_filter(), c_filters)) {
+      # detect filters are all cleared 
+      if(sum(is.na(c_filters)) == length(c_filters)){
+        filter_state_cleared(TRUE)
+      } else {
+        filter_state_cleared(FALSE)
+      }
+      last_filter(c_filters)
+    }
+  })
+  
+  ## Signal if last user filter has been cleared ####
+  observeEvent(filter_state_cleared(),{
+    if(filter_state_cleared()){
+      message("last filter has been cleard")
+      last_user_filter(NULL)
+    } else {
+      message("Filter is still active: ", paste(last_filter(), collapse = ", "))
+    }
+  })
+  
+  
   ## Change in page length ####
   observeEvent(input$page_length, {
     writeLines("page_length")
     req(input$page_length)
+    req(input$table_rows_selected)
     
     # Update page length
     as.integer(input$page_length)|>
       page_length_var()
     
     # calculate page got an early stop if no rows have been selected 
-    find_page()
+    l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
+                        last_rendered_DT(), 
+                        lastEdited_data_set_name(), input$page_length
+    )
+    
+    l_temp$ID_to_edit|>
+      ID_to_edit()
+    l_temp$last_user_filter|>
+      last_user_filter()
+    l_temp$last_selected_page|>
+      last_selected_page()
+    l_temp$last_selected_row|>
+      last_selected_row()
     
     # select row and page if possible
     if(!is.na(last_selected_row()) & !is.na(last_selected_page())){
@@ -1110,11 +1354,26 @@ server <- function(input, output, session) {
   
   ## Select a row and find page ####
   observeEvent(input$table_rows_selected, {
-    writeLines("table_rows_selected")
+    req(input$table_rows_selected)
     # find page 
-    find_page()
+    l_temp <- find_page(input$table_rows_selected, input$table_search_columns,
+                        last_rendered_DT(), 
+                        lastEdited_data_set_name(), page_length_var()
+    )
+    
+    l_temp$ID_to_edit|>
+      ID_to_edit()
+    l_temp$last_selected_page|>
+      last_selected_page()
+    l_temp$last_selected_row|>
+      last_selected_row()
+    # only update if it is not NULL to prevent infinite loop (This will trigger rendering)
+    if(!is.null(l_temp$last_user_filter)){
+      l_temp$last_user_filter|>
+        last_user_filter()
+    }
+    
   })
-  
   
   ## Database Connection ####
   observeEvent(input$SQL_connect, {
@@ -1152,17 +1411,18 @@ server <- function(input, output, session) {
       
     })
   })
-
+  
   ## Datensatz zum Editieren ####
   observeEvent(input$dataset, {
-    writeLines(paste0("Datensatz zum Editieren: `Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
-
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
+    
+    writeLines(paste0("Datensatz zum Editieren: `Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
     
     req(input$dataset)
     req(DB_con())
@@ -1170,46 +1430,96 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Datensatz", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("Datensatz", 1, "of 2"))
       
+      # get data from database
       df_temp <- DB_get_table(input$dataset, DB_con()) |>
         convert_to_template_types(l_template[[input$dataset]])
       
-      print(df_temp)
+      # Debug print
+      print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
       
-      # Update reactive values
+      # get local coppy of data 
       l_temp <- l_data()
       
-      if(input$dataset %in% c("Programm", "Einsatzplan")) {
-        l_temp$Einsatzplan <- left_join(
-          df_temp |> select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, `Verleiher Angefragt?`),
-          DB_get_table("Einsatzplan", DB_con()) |>
-            convert_to_template_types(l_template[[input$dataset]]) |>
-            select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`),
-          by = join_by(`Event ID`)
-        ) |> arrange(desc(Datum))
+      # update data
+      l_temp[[input$dataset]] <- df_temp
+      
+      # Special handling for joind data
+      if(input$dataset == "Programm") {
+        # Programm
+        l_temp$Programm <- l_temp$Programm |> 
+          arrange(desc(`Event ID`))
         
-        l_temp$Programm <- l_temp$Programm |> arrange(desc(Datum))
+        # Einsatzplan
+        l_temp$Einsatzplan <- 
+          left_join(
+            df_temp |> 
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
+            DB_get_table("Einsatzplan", DB_con()) |>
+              convert_to_template_types(l_template[[input$dataset]]) |>
+              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer),
+            by = join_by(`Event ID`)
+          ) |> 
+          arrange(desc(`Event ID`))
+        
+        # render 
+        l_temp$Programm|>
+          current_data()
+        
+      } else if(input$dataset == "Einsatzplan") {
+        # Einsatzplan
+        l_temp$Einsatzplan <- 
+          left_join(
+            DB_get_table("Programm", DB_con()) |>
+              convert_to_template_types(l_template$Programm) |> 
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
+            DB_get_table("Einsatzplan", DB_con()) |>
+              convert_to_template_types(l_template[[input$dataset]]) |>
+              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer),
+            by = join_by(`Event ID`)
+          ) |> 
+          arrange(desc(`Event ID`))
+        
+        # render 
+        l_temp$Einsatzplan|>
+          current_data()
+        
       } else {
-        l_temp[[input$dataset]] <- df_temp
+        # render 
+        l_temp[[input$dataset]]|>
+          arrange(desc(ID))|>
+          current_data()
       }
       
-      if(input$dataset == "Einsatzplan") {
-        l_temp[[input$dataset]]|>
-          filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-          current_data()
-      } else if(input$dataset == "Filmvorschlag"){
-        l_temp$Filmvorschlag|>
-          arrange(desc(ID))|>
-          current_data()
-      } else if (input$dataset == "Einnahmen"){
-        l_temp$Einnahmen|>
-          arrange(desc(ID))|>
-          current_data()
-      } else if (input$dataset == "Ausgaben"){
-        l_temp$Ausgaben|>
-          arrange(desc(ID))|>
-          current_data()
+      # initialize dictionary Verleiher to Procinema-Verleiher
+      df_mapping <- DB_get_table("Verleiher mapping", DB_con()) |>
+        select(-ID)
+      dict_env <<- dict_from_data.frame(df_mapping)
+      
+      # User Information 
+      if(input$dataset == "Kinoklubmitglieder"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown im `Einsatzplan`")
+      } else if (input$dataset == "Verleiher"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Filvorschlag` und 'Programm'")
+      } else if (input$dataset == "Verleiher mapping"){
+        help_information("Diese Tabelle ersetzt den Verleihernamen von ProCinema (Bsp.: 'WB') 
+                         durch den offiziellen Verleihernamen (Bsp.: Warner Bros Entertainment Switzerland GmbH), 
+                         welcher in der Dropdown-Liste 'Verleiher' festgelegt wurde.")
+      } else if (input$dataset == "Lieferanten"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown im `Einkauf Kiosk`")
+      } else if (input$dataset == "Platzkategorien zum Verrechnen"){
+        help_information("Die Werte in dieser Tabelle werden ausschliesslich beim Erstellen der
+                         Verleiherabrechnung berücksichtigt ('Verleiherabrechnung erstellen‘ ), 
+                         da einige Verleiher auch Gratiseintritte (Förderer) als verrechenbare Eintritte anerkennen.")
+      } else if (input$dataset == "Buchhaltungskonten"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Einnahmen' und 'Ausgaben'")
+      } else if (input$dataset == "Spezialpreis"){
+        help_information("Diese Tabelle liefert die Werte für das Dropdown in `Spezialpreiskiosk`")
+      } else if (input$dataset == "MWST"){
+        help_information("Diese Tabelle liefert die Werte für die Dropdowns in `MWST` und 'Abrechnugnsjahr' in 'Einnamhen' und 'Ausgaben'")
+      } else if (input$dataset == "Programm"){
+        help_information("Die Spalte `Link to Event ID` wird verwendet um gemeinsam abzurechnen.")
       } else {
-        current_data(l_temp[[input$dataset]])
+        help_information(" ")
       }
       
       shiny::isolate({
@@ -1227,25 +1537,26 @@ server <- function(input, output, session) {
         # remove temp render
         df_temp_to_render(NULL)
       })
-
+      
       shiny::incProgress(1 / 2, detail = paste("Datensatz", 2, "of 2"))
     })
   })
-
-  ## Inputdaten /Dropdowns ####
+  
+  ## Inputdaten / Advance-Tickets / Dropdowns ####
   observeEvent(input$data_selection,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     writeLines(paste("Inputdaten /Dropdowns: `Data_selection` changed from", data_selection_(), "to", input$data_selection," **** ",
                      "`Dataset` changed from `", lastEdited_data_set_name(), "` to `", input$dataset,"`"))
     
     # Only proceed if selection actually changed
     req(input$data_selection != data_selection_())
     
-    if (!dbIsValid(DB_con())) {
-      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
-        DB_con()
-      showNotification(paste("Database connection recovered"), type = "message")
-    }
     shiny::withProgress(message = "Inputdaten / Dropdown", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 1, "of 3"))
       
@@ -1277,7 +1588,7 @@ server <- function(input, output, session) {
         c_colors <- c("#FFFFFFFF", c_colors)
         
       }
-
+      
       shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 2, "of 3"))
       
       shiny::isolate({
@@ -1289,9 +1600,13 @@ server <- function(input, output, session) {
         l_data()[c_select_input_data]|>
           l_data_input()
         
+        # Advace-Tickets
+        l_data()[c_select_input_advanced_tickets]|>
+          l_data_advance_tickets()
+        
         # Drop down data set
         l_data()[c_select_dropdown_data]|>
-          l_data_choices()
+          l_data_dropdown()
         
         # remove row and page selection 
         last_selected_page(NA)
@@ -1301,18 +1616,18 @@ server <- function(input, output, session) {
         # remove temp render
         df_temp_to_render(NULL)
       })
-
+      
       shiny::incProgress(1 / 3, detail = paste("Inputdaten / Dropdown", 3, "of 3"))
       
     })
   })
-    
+  
   ## Disconnect from DB ####
   observeEvent(input$SQL_disconnect,{
     print("SQL_disconnect")
     dbDisconnect(DB_con())
     c_connected_to_db(FALSE)
-    DB_con(NULL)
+    
     # remove row and page selection 
     last_selected_page(NA)
     last_selected_row(NA)
@@ -1370,15 +1685,347 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Abort changes and update ####
-  observeEvent(input$abort_save, {
-    current_data(l_data()[[input$dataset]])
-    lastEdited_data_set_name(input$dataset)
+  ## Abort: do nothing! ####
+  observeEvent(input$abort,{
     removeModal()
   })
   
-  ## Abort: do nothing! ####
-  observeEvent(input$abort,{
+  ## Render modal table ####
+  output$modal_table <- renderDataTable({
+    req(df_temp_to_render())  
+    datatable(df_temp_to_render(), 
+              rownames = FALSE,
+              selection = "single",
+              options = list(
+                searching = FALSE,     # removes search box
+                language = DT_language,
+                pageLength = nrow(df_temp_to_render()),
+                paging = FALSE        # disables pagination
+              )
+    )
+  })
+  
+  ## Edit row ####
+  ### Edit row modal Dialog ####
+  observeEvent(input$edit_row, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    if (!is.null(input$table_rows_selected)) {
+      # Joined table handling 
+      if (lastEdited_data_set_name() %in% c("Einsatzplan")) {
+        df_temp <- current_data()
+        # filter ID
+        df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- df_temp |> 
+          select(1:8)
+        # editable
+        df_row <- df_temp|> 
+          select(-(1:8))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[, ii]))
+          )
+        })
+      } else {
+        df_temp <- current_data()
+        # filter ID
+        df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
+        # Store HTML elements
+        l_temp <- list()
+        # only display
+        df_info <- df_temp|> 
+          select(1)
+        df_info
+        # editable
+        df_row <- df_temp|> 
+          select(2:ncol(current_data()))
+        # Display the display columns (read-only)
+        l_temp <- lapply(1:ncol(df_info), function(ii) {
+          fluidRow(
+            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[, ii]))
+          )
+        })
+      }
+      
+      if(r_is.defined(l_temp)) {
+        cnt <- length(l_temp) + 1
+      } else {
+        # Store HTML elements
+        l_temp <- list()
+        cnt <- 0
+      }
+      
+      # create Modal 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save info for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Zeile editieren",
+          l_temp,
+          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } else {
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
+  })
+  
+  ### Edit row value action button ####
+  observeEvent(input$edit_row_value, {
+    shiny::withProgress(message = "login... ", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+      removeModal()
+      
+      # get actual data 
+      df_temp <- current_data()
+      df_temp_ <- current_data()
+      
+      # Extract data from user input
+      df_updated <- get_data_from_modal(temp_02())
+      
+      #### Data to update ####
+      df_updated <- bind_cols(temp_01(), df_updated)|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
+      #### handle factors #####
+      df_temp <- factor_handling(df_temp, df_updated)
+      
+      #### check input E-Mail if correct #####
+      df_Email <- df_updated[,names(df_updated) == "E-Mail"]
+      if(ncol(df_Email) > 0){
+        if(!is.na(df_Email$`E-Mail`)){
+          # E-Mail regex pattern
+          p <- "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}"
+          p <- "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
+          
+          c_select <- df_Email$`E-Mail`|>
+            str_detect(pattern = p)
+          
+          if(!c_select){
+            # User interaction 
+            removeModal()
+            showModal(
+              modalDialog(title = "Die E-Mailadresse ist nicht korrekt, bitte korrigieren!",
+                          tagList(
+                            renderText(df_Email$`E-Mail`),
+                            hr(),
+                            shiny::textInput("email","E-Mail korrigieren!",value = df_Email$`E-Mail`)
+                          ),
+                          easyClose = FALSE, 
+                          footer = tagList(
+                            actionButton("check_email","Speichern"),
+                            actionButton("abort","Abbrechen")
+                          )
+              )
+            )
+          }
+        }
+      }
+      
+      #### check input Suisanummer if correct #####
+      df_suisa <- df_updated[,names(df_updated) == "Suisanummer"]
+      if(ncol(df_suisa) > 0){
+        if(!is.na(df_suisa$Suisanummer)){
+          # Suisanummer regex pattern
+          p <- "^\\d{4}\\.\\d{3}$"
+          
+          c_select <- df_suisa$Suisanummer|>
+            str_detect(pattern = p)
+          
+          if(!c_select){
+            # User interaction 
+            showModal(
+              modalDialog(title = "Suisanummer nicht korrekt, bitte korrigieren!",
+                          tagList(
+                            renderText(df_suisa$Suisanummer),
+                            hr(),
+                            shiny::textInput("suisa", "Suisanummer korrigieren!", value = df_suisa$Suisanummer)
+                          ),
+                          easyClose = FALSE, 
+                          footer = tagList(
+                            actionButton("check_suisa","Speichern"),
+                            actionButton("abort","Abbrechen")
+                          )
+              )
+            )
+          }
+        }
+      }
+      
+      #### Handling uniqueness checks for Dropdowns ####
+      if (data_selection_() == "Dropdowns") {
+        # Find duplicates (keeping only duplicate rows)
+        df_temp1 <- df_temp |>
+          group_by(across(-ID)) |>
+          mutate(duplicate_flag = n() > 1) |>
+          ungroup() |>
+          filter(duplicate_flag)|>
+          select(-duplicate_flag)
+        
+        df_temp_to_render(df_temp1)
+        
+        if(nrow(df_temp1) > 1){
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_temp1)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_temp1) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Bitte Zeile selektieren und anpassen!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("modal_select_row", "Zeile editieren"),
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        }
+      }
+      
+      #### check for changed data #####
+      test <- is.logical(all.equal(df_temp, df_temp_))
+      if( test ){
+        # User interaction 
+        showModal(
+          modalDialog(title = "Es wurde nichts geändert!",
+                      easyClose = TRUE, 
+                      footer = actionButton("abort","Abbrechen")
+          )
+        )
+      }else{
+        # check DB connection
+        if (!dbIsValid(DB_con())) {
+          showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+          DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+            DB_con()
+          showNotification(paste("Database connection recovered"), type = "message")
+        }
+        # update data base 
+        c_class <- get_data_type(df_temp)
+        DB_edit_row_in_table(DB_con(), 
+                             lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
+                             c_class
+        )
+        
+        # Update the list
+        l_temp <- l_data()
+        l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        # update all data
+        l_data(l_temp)
+        # update choices
+        update_choices(l_data())|>
+          column_choices()
+        
+        ##### update joined data sets and choices ####
+        if(lastEdited_data_set_name() == "Programm"){
+          # render 
+          df_temp|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+            arrange(desc(`Event ID`))|>
+            current_data()
+          
+          # update Einsatzplan
+          Update_Einsatzplan(df_updated, c_class)
+          
+        } else if (lastEdited_data_set_name() == "Einsatzplan"){
+          # update 
+          df_temp2 <- l_data()$Programm|>
+            filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
+            select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
+          
+          df_temp3 <- 
+            left_join(
+              df_temp2,
+              df_temp,
+              by = join_by(`Event ID`)
+            )|>
+            arrange(desc(`Event ID`))
+          
+          # render
+          df_temp3|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+            current_data()
+          
+        } else {
+          # render 
+          df_temp|>
+            convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
+            arrange(desc(ID))|>
+            current_data()
+        }
+      }
+      
+      shiny::incProgress(1 , detail = paste("data selection", 2, "of 2"))
+    })
+  })
+  
+  ## Data checks ####
+  ### Check Suisanummer Modal ####
+  observeEvent(input$check_suisa,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    print(input$suisa)
+    DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+    DB_update_cell(DB_con(), "Einsatzplan", "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+    df_temp <- current_data()
+    df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
+    current_data(df_temp)
+    removeModal()
+  })
+  
+  ### Check E-Mail Modal ####
+  observeEvent(input$check_email,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    print(input$email)
+    DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "E-Mail", input$email)
+    df_temp <- current_data()
+    df_temp[last_selected_row(),"E-Mail"] <- input$email
+    current_data(df_temp)
     removeModal()
   })
   
@@ -1425,6 +2072,7 @@ server <- function(input, output, session) {
           ),
           easyClose = FALSE, 
           footer = tagList(
+            actionButton("delete_row_modal", "Zeile Löschen", class = "btn-danger"),
             actionButton("modal_select_row", "Zeile editieren"),
             actionButton("abort", "Abbrechen")
           )
@@ -1443,8 +2091,6 @@ server <- function(input, output, session) {
         )
       )
     }
-    # # Trigger the edit_row button click
-    # shinyjs::click("check_unique")
   })
   
   ## selected row modal data table ####
@@ -1509,7 +2155,7 @@ server <- function(input, output, session) {
           title = "Zeile editieren",
           l_temp,
           actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
+          actionButton("abort", "Abbrechen"),
           easyClose = FALSE,
           footer = NULL
         )
@@ -1526,468 +2172,511 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Render modal table ####
-  output$modal_table <- renderDataTable({
-    req(df_temp_to_render())  
-    datatable(df_temp_to_render(), 
-              rownames = FALSE,
-              selection = "single",
-              options = list(
-                searching = FALSE,     # removes search box
-                language = DT_language,
-                pageLength = nrow(df_temp_to_render()),
-                paging = FALSE        # disables pagination
-              )
-    )
-  })
-  
-  ## Edit row ####
-  ### Edit row modal Dialog ####
-  observeEvent(input$edit_row, {
+  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
+  ###  add row ####
+  observeEvent(input$add_row, {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-    if (!is.null(input$table_rows_selected)) {
-      # Joined table handling 
-      if (lastEdited_data_set_name() %in% c("Einsatzplan")) {
-        df_temp <- current_data()
-        # filter ID
-        df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
-        # Store HTML elements
-        l_temp <- list()
-        # only display
-        df_info <- df_temp |> 
-          select(1:6)
-        # editable
-        df_row <- df_temp|> 
-          select(-(1:6))
-        # Display the display columns (read-only)
-        l_temp <- lapply(1:ncol(df_info), function(ii) {
-          fluidRow(
-            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[, ii]))
-          )
-        })
-      } else {
-        df_temp <- current_data()
-        # filter ID
-        df_temp <- df_temp[df_temp[,1] == ID_to_edit(),]
-        # Store HTML elements
-        l_temp <- list()
-        # only display
-        df_info <- df_temp|> 
-          select(1)
-        df_info
-        # editable
-        df_row <- df_temp|> 
-          select(2:ncol(current_data()))
-        # Display the display columns (read-only)
-        l_temp <- lapply(1:ncol(df_info), function(ii) {
-          fluidRow(
-            column(6, strong(paste(names(df_info)[ii], ":")), pull(df_info[, ii]))
-          )
-        })
-      }
+    
+    # Create an empty row
+    new_row <- current_data()[1, ] |> 
+      mutate(across(everything(), ~ NA))|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    new_row[1,1] <- max(current_data()[,1]) + 1L
+    
+    # add row on top
+    updated_data <-
+      bind_rows(new_row, 
+                current_data()
+      )|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    
+    # updata SQL DB and current data 
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+    if(lastEdited_data_set_name() == "Programm"){
+      Update_Einsatzplan(new_row ,get_data_type(new_row),new_row = TRUE)
+    }
+    
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
+    # update to render 
+    current_data(updated_data)
+    
+    #### select last edited row and page ####
+    last_selected_row(1)
+    last_selected_page(1)
+    
+  })
+  
+  
+  ###  add row new entry Ausgaben ####
+  observeEvent(input$add_row_ausgaben, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    c_select <- tbl(DB_con(), "Kategorie", downlaod = FALSE)|>
+      filter(Ausgaben)|>
+      select(Auswahl)|>
+      pull()
+    
+    showModal(modalDialog(
+      title = "Was für ein Eintrag soll erstellt werden",
+      tagList(
+        div(class = "custom-select",
+            selectizeInput("Kategorie", "Bitte Kategorie wählen", selected = c_select[1], choices = c_select
+            )
+        ),
+      ),
+      footer = tagList(
+        actionButton("add_row_new_entry","Eintrag erstellen"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+    req(NULL)
+  })
+  
+  ###  add row new entry ####
+  observeEvent(input$add_row_new_entry, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }    
+    
+    removeModal()
+    
+    # Create an empty row
+    new_row <- current_data()[1, ] |> 
+      mutate(across(everything(), ~ NA))|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    new_row[1,1] <- max(current_data()[,1]) + 1L
+    
+    #### use case Ausgaben Kategorie Verleiher ####
+    if((input$Kategorie == "Verleiher") & (lastEdited_data_set_name() == "Ausgaben")){
       
-      if(r_is.defined(l_temp)) {
-        cnt <- length(l_temp) + 1
-      } else {
-        # Store HTML elements
-        l_temp <- list()
-        cnt <- 0
-      }
-      # create Modal 
+      # remember use case
+      new_entry("ausgaben_verleiher")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        select(3:(ncol(new_row) - 1),
+               -Firmennamen, -Adresse, -Buchungskonto)
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
       l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
       
       # User interaction to save
       showModal(
         modalDialog(
-          title = "Zeile editieren",
+          title = "Verleiherrechnung erstellen",
           l_temp,
-          actionButton("edit_row_value", "Werte übernehmen", class = "btn-info"),
-          actionButton("abort_save", "Abbrechen"),
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
           easyClose = FALSE,
           footer = NULL
         )
       )
-    } else {
-      # User interaction
+    } 
+    #### use case Ausganen Kategorie Event ####
+    else if ((input$Kategorie == "Event") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_event")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        select(3:(ncol(new_row))
+        )
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
       showModal(
         modalDialog(
-          title = "Bitte eine Zeile markieren",
-          easyClose = TRUE,
-          footer = modalButton("Abbrechen")
+          title = "Ausgabe für Event erfassen",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    } 
+    #### use case Ausganen Kategorie Kiosk ####
+    else if ((input$Kategorie == "Kiosk") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_kiosk")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:2)
+      # editable
+      df_row <- new_row|> 
+        rename(Lieferant = Firmennamen)|>
+        mutate(Lieferant = as.factor(Lieferant))|>
+        select(3:(ncol(new_row)),
+               -`Event ID`,-Buchungskonto,
+               -Adresse)
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = "Kiosk Einkauf erfassen",
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
         )
       )
     }
-  })
-  
-  ### Edit row value action button ####
-  observeEvent(input$edit_row_value, {
-    shiny::withProgress(message = "login... ", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("data selection", 1, "of 2"))
+    #### use case Ausgaben Kategorie Personalaufwand ####
+    else if ((input$Kategorie == "Personalaufwand") & (lastEdited_data_set_name() == "Ausgaben")){
+      # remember use case
+      new_entry("ausgaben_personalaufwand")
       
-      # get actual data 
-      df_temp <- current_data()
-      df_temp_ <- current_data()
-      
-      #### Special user input handling #####
-      if(lastEdited_data_set_name() == "Einsatzplan"){
-        # select columns to be updated 
-        c_select <- 7:ncol(df_temp)
-        df_temp <- current_data()[,c_select]
-        # input columns
-        c_select_input <- 1:7
-        # get the user input
-        generated_code <- paste0("input$`",c_select_input, "`")
-        c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-        names(c_input) <- NULL
-        c_input
-      } 
-      #### standard handling user input ####
-      else{
-        # get the user input
-        generated_code <- paste0("input$`", 1:ncol(df_temp), "`")
-        c_input <- sapply(generated_code, function(x) eval(parse(text = x)))
-        names(c_input) <- NULL
-        c_input
-        
-        df_temp <- current_data()[,2:ncol(current_data())]
-      }
-      removeModal()
-      
-      #### Coerce user input to correct data type ####
-      l_input <- list()
-      
-      for (ii in 1:ncol(df_temp)) {
-        c_input_class <- df_temp[input$table_rows_selected,ii]|>pull()|>class()
-        c_table_name <- names(df_temp[,ii])
-        
-        if(length(c_input_class) > 1) c_input_class <- c_input_class[1]
-        
-        ##### handle characters ####
-        if(c_input_class == "character") {
-          if (c_input[ii] == "" | c_input[ii] == "..."){
-            l_input[[ii]] <- as.character(NA)
-          } else {
-            l_input[[ii]] <- as.character(c_input[ii])
-          }
-        } 
-        ##### handle dates ####
-        else if (c_input_class == "Date") {
-          if(is.na(c_input[ii])){
-            l_input[[ii]] <- as.Date(NA)
-          }else{
-            l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
-          }
-        } 
-        ##### numeric inputs ####
-        else if (c_input_class %in% c("double", "numeric")) {
-          l_input[[ii]] <- as.numeric(c_input[ii])
-        } 
-        ##### integer inputs ####
-        else if (c_input_class == "integer") {
-          l_input[[ii]] <- as.integer(c_input[ii])
-        } 
-        ##### factor or choices inputs ####
-        else if (c_input_class == "factor"){
-          c_input[ii] <- as.character(c_input[ii])
-          if(names(df_temp[,ii]) == "Event ID"){
-            if (c_input[ii] == "" | c_input[ii] == "..."){
-              l_input[[ii]] <- as.integer(NA)
-            } else {
-              c_temp <- str_split(c_input[ii], ":")|>
-                lapply(function(x){
-                  x[[1]]
-                })|>
-                unlist()|>
-                as.integer()
-              
-              l_input[[ii]] <- as.integer(c_temp)
-            }
-          }else{
-            if ((c_input[ii] == "") | (c_input[ii] == "...") | (c_input[ii] == "NA")){
-              l_input[[ii]] <- as.character(NA)
-            } else {
-              l_input[[ii]] <- as.character(c_input[ii])
-            }
-          }
-          
-        } 
-        ##### time inputs ####
-        else if(c_input_class == "hms"){
-          c_input[ii] <- as.character(c_input[ii])
-          if (c_input[ii] == "" | c_input[ii] == "..."){
-            l_input[[ii]] <- NA
-          } else {
-            # library(rebus)
-            # p <- "min"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
-            p <- "min\\s=\\s([\\d]+)"       
-            # c_input[ii][[1]]|>
-            #   str_view(pattern = p, html = T)
-            c_minutes <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
-            c_minutes <- c_minutes[2]
-            
-            # p <- "hour"%R%SPC%R%"="%R%SPC%R%capture(one_or_more(DGT))
-            p <- "hour\\s=\\s([\\d]+)"
-            # c_input[ii][[1]]|>
-            #   str_view(pattern = p, html = T)
-            c_hours <- str_match_all(c_input[ii][[1]], pattern = p)|>unlist()
-            c_hours <- c_hours[2]
-            
-            c_time <- paste0(c_hours, ":",c_minutes)
-            # Add a leading zero to the minutes if necessary
-            c_time <- format(as.POSIXct(c_time, format = "%H:%M"), format = "%H:%M")
-            c_time
-            l_input[[ii]] <- readr::parse_time(c_time)
-          }
-        } ##### logical inputs ####
-        else if (c_input_class == "logical"){
-          l_input[[ii]] <- as.logical(c_input[ii]|>unlist())
-        }
-        #### not yet implemented #### 
-        else {
-          stop(paste("Error\nData type format:", c_input_class, "is not yet implemented."))
-        }
-      }
-      names(l_input) <- names(df_temp)
-      df_updated <- l_input|>
-        as_tibble()
-      
-      #### Handle columns containing `ID` in the column name ####
-      if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk")){
-        c_col_is_factor <- df_updated|>
-        select(starts_with("ID"))|>
-        names()
-      } else {
-        c_col_is_factor <- df_updated|>
-          select(contains("ID"))|>
-          names()
-      }
-      
-      # Convert `ID` columns to character
-      if(length(c_col_is_factor) > 0){
-        for (ii in 1:length(c_col_is_factor)) {
-          df_updated[,names(df_updated) == c_col_is_factor[ii]] <- as.character(df_updated[,names(df_updated) == c_col_is_factor[ii]])
-        }    
-      }
-      
-      #### map ID to row index ####
-      df_index <- current_data()|>
-        select(1)
-      
-      df_index <- df_index|>
-        mutate(index = row_number(),
-               select = (df_index|>select(1)|>pull() == ID_to_edit())
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
         )
-      df_index
       
-      select_row <- df_index|>
-        filter(select == TRUE)|>
-        select(index)|>
-        pull()
-      select_row
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:3)
+      df_info[1,2] <- input$Kategorie # Kategorie
+      df_info[1,3] <- NA # Event ID
+      # editable
+      df_row <- new_row|> 
+        select(4:ncol(new_row),
+               -Buchungskonto)|>
+        rename(Personal = Firmennamen)|>
+        mutate(Personal = factor(Personal))
       
-      #### Handel ID`s ####
-      df_updated <- bind_cols(current_data()[select_row,1],
-                              df_updated
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = paste0("Ausgabe für die Kategorie: ",input$Kategorie," erfassen"),
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
       )
-      df_temp <- bind_cols(current_data()[,1],
-                           df_temp
+    }
+    #### not yet implemented ####
+    else {
+      # remember use case
+      new_entry("ausgaben_generic")
+      
+      # populate with Kategorie
+      new_row <- new_row|>
+        mutate(Kategorie = input$Kategorie
+        )
+      
+      # Store HTML elements
+      l_temp <- list()
+      # only display
+      df_info <- new_row|> 
+        select(1:3)
+      df_info[1,2] <- input$Kategorie # Kategorie
+      df_info[1,3] <- NA # Event ID
+      # editable
+      df_row <- new_row|> 
+        select(4:ncol(new_row))
+      # Display the display columns (read-only)
+      l_temp <- lapply(1:ncol(df_info), function(ii) {
+        fluidRow(
+          column(6, strong(paste(names(df_info)[ii], ":")), df_info[1,ii])
+        )
+      })
+      
+      # create Modal input 
+      l_temp <- create_modal_input(df_row, l_temp)
+      
+      # save for later use
+      temp_01(df_info)
+      temp_02(df_row)
+      
+      # User interaction to save
+      showModal(
+        modalDialog(
+          title = paste0("Ausgabe für die Kategorie: ",input$Kategorie," erfassen"),
+          l_temp,
+          actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
       )
-      
-      #### check input E-Mail if correct #####
-      df_Email <- df_updated[,names(df_temp) == "E-Mail"]
-      if(ncol(df_Email) > 0){
-        if(!is.na(df_Email$`E-Mail`)){
-          # E-Mail regex pattern
-          p <- "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}"
-          p <- "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
-          
-          c_select <- df_Email$`E-Mail`|>
-            str_detect(pattern = p)
-          
-          if(!c_select){
-            # User interaction 
-            removeModal()
-            showModal(
-              modalDialog(title = "Die E-Mailadresse ist nicht korrekt, bitte korrigieren!",
-                          tagList(
-                            renderText(df_Email$`E-Mail`),
-                            hr(),
-                            shiny::textInput("email","E-Mail korrigieren!",value = df_Email$`E-Mail`)
-                          ),
-                          easyClose = FALSE, 
-                          footer = tagList(
-                            actionButton("check_email","Speichern"),
-                            actionButton("abort","Abbrechen")
-                          )
-              )
-            )
-          }
-        }
-      }
-      
-      #### check input Suisanummer if correct #####
-      df_suisa <- df_updated[select_row,names(df_temp) == "Suisanummer"]
-      if(ncol(df_suisa) > 0){
-        if(!is.na(df_suisa$Suisanummer)){
-          # Suisanummer regex pattern
-          p <- "^\\d{4}\\.\\d{3}$"
-          
-          c_select <- df_suisa$Suisanummer|>
-            str_detect(pattern = p)
-          
-          if(!c_select){
-            # User interaction 
-            showModal(
-              modalDialog(title = "Suisanummer nicht korrekt, bitte korrigieren!",
-                          tagList(
-                            renderText(df_suisa$Suisanummer),
-                            hr(),
-                            shiny::textInput("suisa", "Suisanummer korrigieren!", value = df_suisa$Suisanummer)
-                          ),
-                          easyClose = FALSE, 
-                          footer = tagList(
-                            actionButton("check_suisa","Speichern"),
-                            actionButton("abort","Abbrechen")
-                          )
-              )
-            )
-          }
-        }
-      }
-      
-      #### handle factors #####
-      df_temp <- factor_handling(df_temp, df_updated, select_row)
-      
-      #### Handling uniqueness checks for Dropdowns ####
-      if (data_selection_() == "Dropdowns") {
-        # Find duplicates (keeping only duplicate rows)
-        df_temp1 <- df_temp |>
-          group_by(across(-ID)) |>
-          mutate(duplicate_flag = n() > 1) |>
-          ungroup() |>
-          filter(duplicate_flag)|>
-          select(-duplicate_flag)
-        
-        df_temp_to_render(df_temp1)
-        
-        if(nrow(df_temp1) > 1){
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp1)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp1) <= 5, "auto", "600px")
-          
-          showModal(
-            modalDialog(
-              title = "Achtung die folgenden Zeilen sind nicht eindeutig.",
-              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
-              tagList(
-                renderText("Bitte Zeile selektieren und anpassen!"),
-                hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
-                )
-              ),
-              easyClose = FALSE, 
-              footer = tagList(
-                actionButton("modal_select_row", "Zeile editieren"),
-                actionButton("abort", "Abbrechen")
-              )
-            )
-          )
-        }
-      }
-      
-      #### check for changed data #####
-      test <- is.logical(all.equal(df_temp, df_temp_))
-      if( test ){
-        # User interaction 
-        showModal(
-          modalDialog(title = "Es wurde nichts geändert!",
-                      easyClose = TRUE, 
-                      footer = actionButton("abort","Abbrechen")
-          )
-        )
-      }else{
-        # update data base 
-        c_class <- get_data_type(df_temp)
-        DB_edit_row_in_table(DB_con(), 
-                             lastEdited_data_set_name(), names(df_updated[,1]), pull(df_updated[,1]), df_updated,
-                             c_class
-        )
-        
-        ##### update joined data sets and choices ####
-        if(lastEdited_data_set_name() == "Programm"){
-          # Update the list
-          l_temp <- l_data()
-          l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
-          
-          # update all data
-          l_data(l_temp)
-          # update choices
-          update_choices(l_data())|>
-            column_choices()
-          # update Einsatzplan
-          Update_Einsatzplan(df_updated, c_class)
-          
-          df_temp|>
-            current_data()
-          
-        } else if (lastEdited_data_set_name() == "Einsatzplan"){
-          left_join(
-            l_data()$Programm|>
-              filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-              select(1:8, -`Link to Event ID`,-Verleiher), 
-            df_temp,
-            by = join_by(`Event ID`)
-          )|>
-            current_data()
-        } else if(lastEdited_data_set_name() %in% c("Einnahmen", "Ausgaben")){
-          df_temp|>
-            arrange(desc(ID))|>
-            current_data()
-        } else {
-          df_temp|>
-            current_data()
-        }
-      }
-      
-      shiny::incProgress(1 , detail = paste("data selection", 2, "of 2"))
-    })
-  })
+    }
+  })  
   
-  ## Data checks ####
-  ### Check Suisanummer Modal ####
-  observeEvent(input$check_suisa,{
-    print(input$suisa)
-    DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
-    DB_update_cell(DB_con(), "Einsatzplan", "Event ID", last_selected_row(), "Suisanummer", input$suisa)
-    df_temp <- current_data()
-    df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
-    current_data(df_temp)
-    removeModal()
-  })
-  
-  ### Check E-Mail Modal ####
-  observeEvent(input$check_email,{
-    print(input$email)
-    DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "E-Mail", input$email)
-    df_temp <- current_data()
-    df_temp[last_selected_row(),"E-Mail"] <- input$email
-    current_data(df_temp)
-    removeModal()
-  })
-  
-  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
-  ###  add row on top of selected row ####
-  observeEvent(input$add_row_top, {
+  ### edit row modal ####
+  observeEvent(input$edit_row_modal, {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    } 
+    
+    removeModal()
+    
+    # Extract data from user input
+    df_updated <- get_data_from_modal(temp_02())
+    
+    # create new row
+    new_row <- bind_cols(temp_01(), df_updated)
+    
+    #### use case Ausgaben Kategorie Verleiher #### 
+    if(new_entry() == "ausgaben_verleiher"){
+      if(is.na(new_row$`Event ID`)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      # find Verleiher 
+      Verleiher <- tbl(DB_con(), "Programm")|>
+        filter(`Event ID` == new_row$`Event ID`)|>
+        select(Verleiher)|>
+        pull()
+      
+      Verleiher <- tbl(DB_con(), "Verleiher")|>
+        filter(Verleihername == Verleiher)|>
+        collect()
+      Verleiher
+      
+      # fill in Verleiher info
+      new_row <- new_row|>
+        mutate(Firmennamen = Verleiher$Verleihername,
+               Adresse = paste0(Verleiher$Adresse, ", ",Verleiher$PLZ, " ", Verleiher$Ort),
+               Buchungskonto = "4404 Filmmiete Kino")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    }
+    #### use case Ausgaben Kategorie Event ####
+    else if (new_entry() == "ausgaben_event"){
+      if(is.na(new_row$`Event ID`)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      # fill in Buchungskonto
+      new_row <- new_row|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+    #### use case Ausgaben Kategorie Kiosk ####
+    else if (new_entry() == "ausgaben_kiosk"){
+      c_Lieferant <- new_row$Lieferant
+      if(is.na(c_Lieferant)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss ein Lieferant angegeben werden um einen Kioskeinkauf zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
+      # find Verleiher 
+      Lieferant <- tbl(DB_con(), "Lieferanten")|>
+        filter(Lieferantenname == c_Lieferant)|>
+        collect()
+      
+      # fill in Verleiher info
+      new_row <- new_row|>
+        rename(Firmennamen = Lieferant)|>
+        mutate(`Event ID` = NA,
+               Firmennamen = Lieferant$Lieferantenname ,
+               Adresse = paste0(Lieferant$Adresse, ", ",Lieferant$PLZ, " ", Lieferant$Ort),
+               Buchungskonto = "4405 Einkauf Kioskwaren Kino")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+    #### use case Ausgaben Kategorie Personalaufwand ####
+    else if (new_entry() == "ausgaben_personalaufwand"){
+      c_temp <- new_row$Personal
+      if(is.na(c_temp)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss eine Personalresource angegeben werden.",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
+      # fill in Verleiher info
+      new_row <- new_row|>
+        rename(Firmennamen = Personal)|>
+        mutate(`Event ID` = NA,
+               Firmennamen = c_temp,
+               Adresse = NA,
+               Buchungskonto = "5000 Personalaufwand")|>
+        select("ID", "Kategorie", "Event ID", "Bezeichnung", "Datum", "Abrechnungsjahr", "Betrag [CHF]", 
+               "Firmennamen", "Adresse", "Referenz", "Rechnungsnummer", "Buchungskonto")|>
+        convert_to_template_types(l_template$Ausgaben)
+    } 
+    
+    
+    # add row on top
+    updated_data <-
+      bind_rows(new_row, 
+                current_data()
+      )|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    
+    # updata SQL DB and current data 
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+    
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
+    # update to render 
+    current_data(updated_data)
+    
+    # select last edited row and page 
+    last_selected_row(1)
+    last_selected_page(1)
+    
+  })
+  
+  
+  ###  add row on top of selected row ####
+  observeEvent(input$add_row_top, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2013,13 +2702,17 @@ server <- function(input, output, session) {
       if (input$table_rows_selected == 1) {
         # add row on top
         updated_data <-
-          bind_rows(new_row, current_data()[(input$table_rows_selected):nrow(current_data()), ])
+          bind_rows(new_row, 
+                    current_data()[(input$table_rows_selected):nrow(current_data()), ]
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       } else{
         updated_data <-
           bind_rows(current_data()[1:(input$table_rows_selected - 1), ], 
                     new_row, 
                     current_data()[(input$table_rows_selected):nrow(current_data()), ]
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }
       
       # updata SQL DB and current data 
@@ -2069,9 +2762,11 @@ server <- function(input, output, session) {
           )
         }
       }
+      
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       # update all data
       l_data(l_temp)
       # update choices
@@ -2087,9 +2782,10 @@ server <- function(input, output, session) {
   
   ### add row below selected row ####
   observeEvent(input$add_row_bottom, {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2121,17 +2817,22 @@ server <- function(input, output, session) {
         updated_data <- 
           bind_rows(current_data()[1:input$table_rows_selected,],
                     new_row
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+        
+        #### select last edited row and page ####
+        last_selected_row(last_selected_row() + 1)
         
       }else {
         updated_data <- 
           bind_rows(current_data()[1:(input$table_rows_selected),],
                     new_row,
                     current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
         
       }
-      ##### Handling uniqueness checks for Dropdowns #####
+      #### Handling uniqueness checks for Dropdowns #####
       if (data_selection_() == "Dropdowns") {
         # Find duplicates (keeping only duplicate rows)
         df_temp <- updated_data |>
@@ -2171,7 +2872,9 @@ server <- function(input, output, session) {
       }
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con()) 
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
       # update all data
       l_data(l_temp)
       # update choices
@@ -2184,9 +2887,10 @@ server <- function(input, output, session) {
   
   ### Duplicate selected row ####
   observeEvent(input$duplicate_row, {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2214,14 +2918,19 @@ server <- function(input, output, session) {
         updated_data <- 
           bind_rows(current_data()[1:input$table_rows_selected,],
                     new_row
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }else {
         updated_data <- 
           bind_rows(current_data()[1:(input$table_rows_selected),],
                     new_row,
                     current_data()[(input$table_rows_selected + 1):nrow(current_data()),]
-          )
+          )|>
+          convert_to_template_types(l_template[[lastEdited_data_set_name()]])
       }
+      # update the selected row
+      (input$table_rows_selected + 1)|>
+        last_selected_row()
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
@@ -2233,7 +2942,9 @@ server <- function(input, output, session) {
       }
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
       # update all data
       l_data(l_temp)
       # update choices
@@ -2246,9 +2957,10 @@ server <- function(input, output, session) {
   
   ### Duplicate Film and archive (Filmtitel ändern) ####
   observeEvent(input$archive_row,{
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2323,55 +3035,159 @@ server <- function(input, output, session) {
   })
   
   ### Delete selected row(s) ####
-  #### Modal to delete row ####
+  #### Delete row ####
   observeEvent(input$delete_row, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    selected_row|>
+      delete_row()
+  })
+  
+  #### Delete row from Modal input ####
+  observeEvent(input$delete_row_modal, {
+    # get selected row
+    selected_row <- input$modal_table_rows_selected
+    selected_row <- pull(df_temp_to_render()[selected_row,][1,1])
+    
+    # get row to delete 
+    df_temp <- current_data()
+    selected_row <- pull(df_temp[,1]) == selected_row
+    
+    selected_row|>
+      delete_row()
+  })
+  
+  #### Delete row helper function ####
+  delete_row <- function(selected_row) {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-    ##### now row has been selected ####
-    if(is.null(input$table_rows_selected)){
+    
+    # get row to delete 
+    df_temp <- current_data()[selected_row,]
+    
+    # row to render for user information
+    df_temp|>
+      df_temp_to_render()
+    
+    # Calculate modal size based on number of columns
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    ##### no row has been selected ####
+    if( !(sum( (!is.null(input$table_rows_selected)) | (!is.null(input$modal_table_rows_selected)) ) > 0)){
       showModal(modalDialog(
         title = "Bitte eine Zeile markieren!",
         footer = tagList(
           modalButton("Abbrechen")),
         easyClose = TRUE
       ))
+      req(NULL) # early exit
     } 
     ##### row has been selected ####
     else {
       ##### Programm ####
       if(lastEdited_data_set_name() == "Programm"){
-        showModal(modalDialog(
-          title = "Selektierte Zeile löschen?",
-          shiny::div(
-            shiny::renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!")
-          ),
-          footer = tagList(
-            modalButton("Abbrechen"),
-            actionButton("confirm_delete", "Löschen")
-          ),
-          easyClose = TRUE
-        ))
+        showModal(
+          modalDialog(
+            title = "Zeile löschen?",
+            size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+            tagList(
+              renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!"),
+              hr(),
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
+            easyClose = FALSE, 
+            footer = tagList(
+              actionButton("confirm_delete", "Löschen"),
+              modalButton("Abbrechen")
+            ),
+          )
+        )
+        
+      } ##### Spezialpreisekiosk #### 
+      else if (lastEdited_data_set_name() == "Spezialpreisekiosk"){
+        
+        df_Kiosk <- tbl(DB_con(), "df_Kiosk")|>
+          filter(`Event ID` == df_temp$`Event ID`,
+                 Artikelname == df_temp$Artikelname
+          )|>
+          collect()
+        
+        programm <- DB_get_table("Programm", DB_con())
+        
+        df_Kiosk <- df_Kiosk|>
+          left_join(
+            programm
+          )|>
+          select(ID, `Event ID`, `Artikel-Kassensystem`, Artikelname, Filmtitel, Suisanummer, Datum)
+        
+        if(nrow(df_Kiosk) > 0){
+          # to render for modal 
+          df_temp_to_render(df_Kiosk)
+          
+          # Calculate modal size based on number of columns
+          num_cols <- ncol(df_Kiosk)
+          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+          modal_height <- ifelse(nrow(df_Kiosk) <= 5, "auto", "600px")
+          
+          showModal(
+            modalDialog(
+              title = paste0("Achtung die Spezialpreisdefinition ID = ", df_temp$ID,", `", df_temp$Spezialpreis,"` kann nicht gelöscht werden verwendet!"),
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                renderText("Die Definition wird in der Tabelle `df_Kiosk` verwendet und muss da zuerst gelöscht werden!"),
+                hr(),
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("abort", "Abbrechen")
+              )
+            )
+          )
+        } else {
+          showModal(
+            modalDialog(
+              title = "Zeile löschen?",
+              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+              tagList(
+                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table")
+                )
+              ),
+              easyClose = FALSE, 
+              footer = tagList(
+                actionButton("confirm_delete", "Löschen"),
+                modalButton("Abbrechen")
+              ),
+            )
+          )
+        }
       } 
       ##### Kinoklubmitglieder #### 
       else if (lastEdited_data_set_name() == "Kinoklubmitglieder"){
-        df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
-        df_temp <- df_temp|>
-          filter(ID == c_ID)
-
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         c_search <- paste(df_temp$Vorname, df_temp$Nachname)
         
         df_Einsatzplan <- tbl(DB_con(), "Einsatzplan")|>
           filter((Verantwortlich %in% c_search) |
-                 (`Operateur*in` %in% c_search) |
-                 (`Kasse/Bar 1` %in% c_search) |
-                 (`Kasse/Bar 2` %in% c_search) |
-                 `Back-up` %in% c_search
-                 )|>
+                   (`Operateur*in` %in% c_search) |
+                   (`Kasse/Bar 1` %in% c_search) |
+                   (`Kasse/Bar 2` %in% c_search) |
+                   `Back-up` %in% c_search
+          )|>
           collect()
         
         if(nrow(df_Einsatzplan) > 0){
@@ -2402,7 +3218,12 @@ server <- function(input, output, session) {
           )
         } else {
           showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",
+            title = "Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2410,12 +3231,13 @@ server <- function(input, output, session) {
             easyClose = TRUE
           ))
         }
-
+        
       } 
       ##### Verleiher ####
       else if (lastEdited_data_set_name() == "Verleiher"){
-        df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2518,7 +3340,12 @@ server <- function(input, output, session) {
           
         } else {
           showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",
+            title = "Selektierte Zeile löschen?",              
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2529,8 +3356,9 @@ server <- function(input, output, session) {
       } 
       ##### Lieferanten #### 
       else if (lastEdited_data_set_name() == "Lieferanten"){
-        df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2570,6 +3398,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2581,8 +3414,9 @@ server <- function(input, output, session) {
       } 
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Buchhaltungskonten"){
-        df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2594,14 +3428,6 @@ server <- function(input, output, session) {
         df_temp
         
         if(nrow(df_temp) > 0){
-          # to render for modal 
-          df_temp_to_render(df_temp)
-          
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_temp)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-          
           showModal(
             modalDialog(
               title = paste0("Achtung der Lieferant \"",c_search,"\" wird in `Einkauf Kiosk` verwendet!"),
@@ -2622,6 +3448,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2633,8 +3464,9 @@ server <- function(input, output, session) {
       } 
       ##### Buchhaltungskonten #### 
       else if (lastEdited_data_set_name() == "Spezialpreis"){
-        df_temp <- current_data()
-        c_ID <- df_temp[input$table_rows_selected,1]|>pull()
+        
+        c_ID <- df_temp[1,1]|>pull()
+        
         df_temp <- df_temp|>
           filter(ID == c_ID)
         
@@ -2674,6 +3506,11 @@ server <- function(input, output, session) {
         } else {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
+            tagList(
+              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  dataTableOutput("modal_table")
+              )
+            ),
             footer = tagList(
               modalButton("Abbrechen"),
               actionButton("confirm_delete", "Löschen")
@@ -2681,12 +3518,16 @@ server <- function(input, output, session) {
             easyClose = TRUE
           ))
         }
-        
       } 
       ##### anything else ####
       else {
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
+          tagList(
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_table")
+            )
+          ),
           footer = tagList(
             modalButton("Abbrechen"),
             actionButton("confirm_delete", "Löschen")
@@ -2695,12 +3536,19 @@ server <- function(input, output, session) {
         ))
       }
     }
-  })
+  }
   
   #### Delete selected row ####
   observeEvent(input$confirm_delete, {
-    req(input$table_rows_selected)
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     if(nrow(current_data()) <= 1){
+      removeModal()
       showModal(modalDialog(
         title = "Die letzte Zeile kannn nicht gelöscht werden",
         footer = tagList(
@@ -2710,11 +3558,22 @@ server <- function(input, output, session) {
       ))
     }
     else {
+      # this is the ID to delete
+      selected_ID <- pull(df_temp_to_render()[1,1])
+      
+      # find row to delete
+      selected_row <- pull(current_data()[,1]) == selected_ID
+      
       # Find ID to delete
-      row <- current_data()[input$table_rows_selected, ]
+      row <- current_data()[selected_row, ]
       updated_data <- current_data()
+      
       # Delete in current data 
       updated_data <- updated_data[updated_data[,1] !=  row[[1,1]],]
+      # ensure correct data type
+      updated_data|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
       # update to render
       current_data(updated_data)
       
@@ -2723,12 +3582,13 @@ server <- function(input, output, session) {
       
       # Update the list
       l_temp <- l_data()
-      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())
-
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      
       # joined tables 
       if(lastEdited_data_set_name() == "Programm"){
         df_temp <- DB_get_table("Einsatzplan",DB_con())
-        DB_delete_row(DB_con(), "Einsatzplan", names(df_temp[,1]), pull(row[,1]))
+        DB_delete_row(DB_con(), "Einsatzplan", names(row[,1]), pull(row[,1]))
         df_temp <- DB_get_table("Einsatzplan",DB_con())
         l_temp[["Einsatzplan"]] <- df_temp
       }
@@ -2738,17 +3598,20 @@ server <- function(input, output, session) {
       
       ##### select last edited page ####
       last_selected_row(NA)
-
+      
       removeModal()
     }
+    # Remove table render modal dialogs
+    df_temp_to_render(NULL)
   })
   
   ### Takeover Filmvorschlag to Programm ####
   #### user modal ####
   observeEvent(input$add_to_programm,{
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -2767,11 +3630,7 @@ server <- function(input, output, session) {
       row <- current_data()[input$table_rows_selected, ]
       
       # get biggest ID from Programm
-      Last_Event_ID <- tbl(DB_con(), "Programm")|>
-        select(`Event ID`)|>
-        collect()|>
-        pull()|>
-        max()
+      Last_Event_ID <- DB_get_max_pk(DB_con(), "Programm")
       
       # paste0("\"",tbl(DB_con(), "Programm")|>
       #   colnames(),"\"")|>
@@ -2824,26 +3683,43 @@ server <- function(input, output, session) {
   
   #### define date ####
   observeEvent(input$Film_takover,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     req(input$table_rows_selected)
     removeModal()
-
+    
     # Find selected data
     row <- current_data()[input$table_rows_selected, ]
     
     # get biggest ID from Programm
-    Last_Event_ID <- tbl(DB_con(), "Programm")|>
-      select(`Event ID`)|>
-      collect()|>
-      pull()|>
-      max()
-
+    Last_Event_ID <- DB_get_max_pk(DB_con(), "Programm")
+    
     newrow <- tibble(
-      "Event ID" = Last_Event_ID + 1L, "Suisanummer" = row$Suisanummer, "Filmtitel" = row$Filmtitel,
-      "Datum" = NA, "Zeit" = NA, "Link to Event ID" = NA, 
-      "Verleiher" = row$Verleiher, "Verleiher Angefragt?" = "Anfrage läuft", "Procinema" = row$Procinema, "Trailer" = row$Trailer,
-      "Abzug [%]" = 30, "Minimal Abzug [CHF]" = 150, "Abzug fix [CHF]" = NA,
-      "Verleihervertrag abgelegt" = NA, "Anzahl bestellter Poster und Flyer" = NA,"Poster und Flyer erhalten?" = NA,
-      "Art der Filmlieferung" = NA, "Besucherzahlen an Verleiher gesendet" = NA, "Rechnung bezahlt und abgelegt" = NA,
+      "Event ID" = Last_Event_ID + 1L,
+      "Suisanummer" = row$Suisanummer,
+      "Filmtitel" = row$Filmtitel,
+      "Datum" = NA,
+      "Zeit" = NA,
+      "Link to Event ID" = NA,
+      "Verleiher" = row$Verleiher,
+      "Verleiher Angefragt?" = "Anfrage läuft",
+      "Procinema" = row$Procinema,
+      "Trailer" = row$Trailer,
+      "Produktionsland" = row$Produktionsland,
+      "Abzug [%]" = 30,
+      "Minimal Abzug [CHF]" = 150,
+      "Abzug fix [CHF]" = NA,
+      "Verleihervertrag abgelegt" = NA,
+      "Anzahl bestellter Poster und Flyer" = NA,
+      "Poster und Flyer erhalten?" = NA,
+      "Art der Filmlieferung" = NA,
+      "Besucherzahlen an Verleiher gesendet" = NA,
+      "Rechnung bezahlt und abgelegt" = NA,
       "KDM ja oder nein" = NA,
     )
     
@@ -2856,7 +3732,7 @@ server <- function(input, output, session) {
     modal_height <- ifelse(nrow(newrow) <= 5, "auto", "600px")
     
     showModal(modalDialog(
-      title = "Film wurde bereits gezeit.",
+      title = paste0("Der Film `",newrow$Filmtitel, "` wird ins Programm übernommen."),
       tagList(
         shiny::dateInput(
           "Modal_Date","Spieldatum",
@@ -2864,7 +3740,7 @@ server <- function(input, output, session) {
           language = "de",
           weekstart = 1,
           value = as.Date(Sys.Date())
-          ),
+        ),
         timeInput(
           inputId = "Modal_time",
           label = "Zeit",
@@ -2877,11 +3753,17 @@ server <- function(input, output, session) {
         actionButton("abort","Abbrechen")
       )
     ))
-    req(NULL)
   })  
   
   #### take over ####
   observeEvent(input$Film_takover_with_data,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
     removeModal()
     req(input$Modal_Date)
     req(input$Modal_time)
@@ -2893,11 +3775,11 @@ server <- function(input, output, session) {
     newrow <- newrow|>
       mutate(Datum = as.Date(input$Modal_Date),
              Zeit = c_time)|>
-    convert_to_template_types(l_template$Programm)
+      convert_to_template_types(l_template$Programm)
     
     # Add new row to Programm and update Einsatzplan
     DB_add_row(DB_con(),"Programm", newrow)
-
+    
     # update joined data
     c_class <- get_data_type(newrow)
     Update_Einsatzplan(newrow, c_class, new_row = TRUE)
@@ -2914,16 +3796,12 @@ server <- function(input, output, session) {
     # update choices
     update_choices(l_data())|>
       column_choices()
-    
-    removeModal()
-
   })
   
   ### Procinema search ####
   #### user modal ####
   observeEvent(input$procinema_search,{
     req(input$procinema_search)
-    
     showModal(modalDialog(
       title = "Suisanummer auf Procinema suchen",
       # Input panel at top
@@ -2932,7 +3810,7 @@ server <- function(input, output, session) {
       ),
       tagList(
         div(dataTableOutput("modal_table")
-            )
+        )
       ),
       easyClose = FALSE, 
       footer = tagList(
@@ -2944,9 +3822,10 @@ server <- function(input, output, session) {
   
   #### search and take over ####  
   observeEvent(input$procinema, {
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
@@ -3037,15 +3916,15 @@ server <- function(input, output, session) {
   
   #### takeover Film to Filmvorschlag by suisanummer ####
   observeEvent(input$takeover_suisa,{
+    # check DB connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
-      DB_connect(DB_host, DB_name, DB_user, DB_pw)|>
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
     req(input$takeover_suisa)
-    req(input$modal_table_rows_selected)
-    
+    removeModal()
     shiny::withProgress(message = "Procinema", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
       tryCatch(
@@ -3064,7 +3943,7 @@ server <- function(input, output, session) {
       )
       shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
     })
-
+    
     # update date if details have been found
     if(r_is.defined(df_temp)){
       # create new row
@@ -3075,29 +3954,39 @@ server <- function(input, output, session) {
         mutate(`Start-Datum` = dmy(`Start-Datum`))
       new_row
       
+      # check if Verleiher mapping is available 
+      df_Verleiher_mapping <- DB_get_table("Verleiher mapping", DB_con())
+      tail(df_Verleiher_mapping)
+      
+      
+      if(is.null(names(new_row$Verleiher))){
+        showModal(modalDialog(
+          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher mapping`."),
+          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher mapping` erfassen und dann nochmals probieren!"),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("abort","Abbrechen")
+          )
+        ))
+        req(NULL) # early exit
+      }
+      
+      # Create new row entry      
       new_row <- new_row|>
         bind_cols(Inhalt = df_temp$Inhalt,
                   director = df_temp$director,
                   Regie = df_temp$producer,
                   Schauspieler = df_temp$actors,
                   Kategorie = "",
-                  Trailer = ""
+                  Trailer = "",
+                  Produktionsland = df_temp$Produktionsland,
+                  Genre = df_temp$Genre
         )
       new_row <- bind_cols(ID = max(current_data()$ID) + 1,
                            new_row
       )|>
         select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
-               "Schauspieler", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
-      
-      
-      # paste0(paste0("\"",names(new_row)), "\"", collapse = ", ")|>
-      #   writeLines()
-      # 
-      # df_temp1 <- DB_get_table("Filmvorschlag", DB_con())|>
-      #   slice(1)|>
-      #   collect()
-      # paste0(paste0("\"",names(df_temp1)), "\"", collapse = ", ")|>
-      #   writeLines()
+               "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
@@ -3105,11 +3994,39 @@ server <- function(input, output, session) {
       # update to render
       DB_get_table("Filmvorschlag", DB_con())|>
         convert_to_template_types(l_template$Filmvorschlag)|>
+        arrange(desc(ID))|>
         current_data()
-      
-      removeModal()
+      # select the fist row in datatable
+      last_selected_row(1L)
     }
     df_temp_to_render(NULL)
+  })
+  
+  ## Timer to trigger every 5 seconds ####
+  poll_timer <- reactiveTimer(5000)
+  
+  ## Reactive that checks DB connection ####
+  db_connection_status <- reactive({
+    poll_timer()  # Triggered every 5s
+    if(dbIsValid(DB_con())){
+      DB_get_max_pk(DB_con(), "MWST")
+      writeLines(paste0("✅ Database connection is valid. Time: ", poll_timer()))
+      return(TRUE)
+    } else FALSE
+  })
+  
+  ## Render: Database connection status ####
+  output$db_status <- renderText({
+    if (db_connection_status()) {
+      paste0("✅ Database connection is valid. Time: ", poll_timer())
+    } else {
+      paste0("❌ Database connection is NOT valid! Time", poll_timer())
+    }
+  })
+  
+  ## Render: user help informaton text ####
+  output$help_info <- renderText({
+    help_information()
   })
   
   ## Dynamic UI ####
@@ -3117,9 +4034,10 @@ server <- function(input, output, session) {
     shiny::tagList(
       if(c_connected_to_db()) {
         div(
+          shiny::uiOutput("db_status"),
           style = "width: 100%; overflow-x: auto;",
           DTOutput("table", width = "100%"),
-          
+          # Make panel draggable
           tags$script(HTML("
             $(function() {
               // Make panel draggable
@@ -3137,17 +4055,12 @@ server <- function(input, output, session) {
             });
           ")),
           
-          # style tool box
-          shiny::tags$head(
-            shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-          ),
-          
-          # Toolbox floating and dragable 
+          # Toolbox floating and dragable and page length capture 
           tags$script(HTML(
             "$(function() {
               $('#floating-panel').draggable({ handle: '#floating-panel-header' });
             });",
-                      "
+            "
             $(document).on('change', '.dataTables_length select', function() {
               Shiny.setInputValue('page_length', $(this).val());
             });
@@ -3158,17 +4071,20 @@ server <- function(input, output, session) {
       if(c_connected_to_db()) {
         if(data_selection_() == "Inputdaten") {
           tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data)
+        } else if (data_selection_() == "Advance-Tickets"){
+          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
         } else {
-          tool_box(l_data_choices(), lastEdited_data_set_name(), c_select_dropdown_data, 2)
+          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 3)
         }
-      }
+      },
+      shiny::uiOutput("help_info")
     )
   })
   
 }
 
 # shinyApp(ui = ui, server = server)
- 
+
 # Run the shiny app ####
 shiny::runApp(
   host = "0.0.0.0",
