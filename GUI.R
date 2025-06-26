@@ -428,7 +428,6 @@ server <- function(input, output, session) {
     return(c_link)
   }
 
-  
   ### Update Film table and date range to choose from ####
   Update_Film_table <- function() {
     # check DB connection
