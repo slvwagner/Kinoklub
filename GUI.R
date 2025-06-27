@@ -1201,7 +1201,7 @@ server <- function(input, output, session) {
         last_selected_rows(input$dateTable_rows_selected)
       }
       
-      # last selected rows 
+      # recover last selected rows 
       input$dateTable_rows_selected|>
         last_selected_rows()
       
@@ -1287,7 +1287,7 @@ server <- function(input, output, session) {
         mutate(Datum = lubridate::dmy(Datum))
     }
     
-    # last selected rows 
+    # recover last selected rows 
     input$dateTable_rows_selected|>
       last_selected_rows()
     
