@@ -1250,7 +1250,7 @@ server <- function(input, output, session) {
           "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
           " wurden erstellt."
           )|>
-          ausgabe_text( )
+          ausgabe_text()
 
       }, error = function(e) {
         paste0(
