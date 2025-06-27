@@ -3,7 +3,7 @@ library(rvest)
 library(tidyverse)
 library(purrr)
 
-# spez. Round for Swiss currency "CHF"
+# spez. Round for Swiss currency "CHF" ####
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
     if(is.na(zahl)){
