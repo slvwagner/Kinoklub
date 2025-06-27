@@ -7,7 +7,7 @@ rm(list = ls())
 # Define libraries to be installed
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx","RMySQL",
+  "lubridate",  "DT", "xml2",  "furrr", "future", "processx","RMySQL",
   "shiny",  "shinyjs", "viridis", "colorspace"
 )
 
@@ -20,7 +20,7 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
-  "DT",  "magick",  "webshot",  "xml2",  "tidyverse",
+  "DT", "xml2",  "tidyverse",
   "furrr", "future"
 )
 invisible(lapply(packages, library, character.only = TRUE))
