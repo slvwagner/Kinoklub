@@ -615,7 +615,12 @@ server <- function(input, output, session) {
             
             # user information
             paste0(ausgabe_text(),
-                   "Removed ID: ", ID_to_remove,
+                   "Die Event ID `", ID_to_remove,"` wird gemeinsam abgerechnet mit der Event ID `",
+                   x$Abrechnung|>
+                     filter(!is.na(`Link to Event ID`))|>
+                     select(`Event ID`)|>
+                     pull(),
+                   "` abgerechnet.",
                    "\n"
             )|>
               ausgabe_text()
@@ -1207,6 +1212,12 @@ server <- function(input, output, session) {
       
       # Only create report if not linked to other ID
       df_temp <- check_if_report_needs_creation(df_mapping, data_env)
+      # Backup message
+      c_message <- ausgabe_text()
+      if(c_message != "") {
+        ausgabe_text("")
+        add_msg <- TRUE
+        }
       
       # Filmabrechnungen erstellen
       tryCatch({
@@ -1245,9 +1256,9 @@ server <- function(input, output, session) {
         
         paste0(
           ausgabe_text(),
-          "\nDie Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
+          "Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
           "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
-          " wurden erstellt."
+          " wurden erstellt.\n"
           )|>
           ausgabe_text()
 
@@ -1261,6 +1272,12 @@ server <- function(input, output, session) {
       })
       
       Report_links()
+      
+      # recover message 
+      if(add_msg){
+        paste0(c_message, ausgabe_text())|>
+          ausgabe_text()
+      }
 
       shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
     })
