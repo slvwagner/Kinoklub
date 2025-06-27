@@ -1238,10 +1238,7 @@ server <- function(input, output, session) {
             l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
           }
         })
-        
-        l_links|>
-          unlist()|>
-          links_to_webserver()
+      
         
         paste0(
           ausgabe_text(),
@@ -1315,15 +1312,10 @@ server <- function(input, output, session) {
             })|>
             unlist()
         }
-        
-        l_links|>
-          unlist()|>
-          links_to_webserver()
-
       }, error = function(e) {
         ausgabe_text(
           paste0(
-            "\nVerleiherabrechnung erstellen, Fehler beim Bericht erstellen:\n",
+            "\n Fehler beim Verleiherabrechnung erstellen:\n",
             e$message
           )
         )
@@ -1344,9 +1336,13 @@ server <- function(input, output, session) {
           }
         })
         
-        l_links|>
-          unlist()|>
-          links_to_webserver()
+        paste0(
+          ausgabe_text(),
+          "\nDie Verleiherabrechnung ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
+          "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+          " wurden erstellt."
+        )|>
+          ausgabe_text()
         
       }, error = function(e) {
         ausgabe_text(
@@ -1367,7 +1363,7 @@ server <- function(input, output, session) {
     # calculate execution time
     c_time <- c(c_time,end = Sys.time())|>
       diff()
-    c(paste0("Ausführungszeit: ",r_signif(c_time)), "\n",paste0(ausgabe_text(),"\n"))|>
+    c(paste0("Ausführungszeit: ",r_signif(c_time)),"\n", ausgabe_text())|>
       ausgabe_text()
   })
   
@@ -2131,7 +2127,7 @@ server <- function(input, output, session) {
           shiny::incProgress(1 / n, detail = paste("Datei", ii, "of", n))
           
           tryCatch({
-            ftp_delete_file(df_temp$Dateiname[ii], ftp_server, ftp_user, ftp_password, ftp_basepath)
+            ftp_delete_file(df_temp$Dateiname[ii], ftp_server, ftp_user, ftp_password, ftp_basepath, FALSE)
           }, error = function(e) {
             paste0("Die Dateien: ", df_temp$Dateiname, " konnte nicht gelöscht werden.", e, collapse = "\n")|>
               ausgabe_text()
