@@ -7,7 +7,7 @@ rm(list = ls())
 # Define libraries to be installed
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "xml2",  "furrr", "future", "processx","RMySQL",
+  "lubridate",  "DT", "furrr", "future", "processx","RMySQL",
   "shiny",  "shinyjs", "viridis", "colorspace"
 )
 
@@ -20,7 +20,7 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 packages <- c(
   "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
-  "DT", "xml2",  "tidyverse",
+  "DT",  "tidyverse",
   "furrr", "future"
 )
 invisible(lapply(packages, library, character.only = TRUE))
@@ -2158,11 +2158,6 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Render liks ####
-  output$link_output <- renderUI({
-    links_to_webserver()|>
-      HTML()
-  })
   
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
