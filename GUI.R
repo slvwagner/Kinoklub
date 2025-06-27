@@ -1242,7 +1242,6 @@ server <- function(input, output, session) {
             l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
           }
         })
-      
         
         paste0(
           ausgabe_text(),
