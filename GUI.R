@@ -1279,10 +1279,13 @@ server <- function(input, output, session) {
       )
       req(input$dateTable_rows_selected) # exit early from the function
     }else{
-      input$dateTable_cells_selected
       df_mapping <- current_data()[input$dateTable_rows_selected,]|>
         mutate(Datum = lubridate::dmy(Datum))
     }
+    
+    # last selected rows 
+    input$dateTable_rows_selected|>
+      last_selected_rows()
     
     # Only create report if not linked to other ID
     df_temp <- check_if_report_needs_creation(df_mapping, data_env)
@@ -2417,17 +2420,9 @@ server <- function(input, output, session) {
                         "table", page_length_var()
     )
     
+    # select page
     l_temp$last_selected_page|>
       last_selected_page()
-    
-    # if more than a single row was selected 
-    if(length(input$dateTable_row_last_clicked) < length(input$dateTable_rows_selected)){
-      input$dateTable_rows_selected|>
-        last_selected_rows()
-    } else {
-      l_temp$last_selected_page|>
-        last_selected_page()
-    }
     
     # only update if it is not NULL to prevent infinite loop 
     if(!is.null(l_temp$last_user_filter)){
@@ -2441,9 +2436,29 @@ server <- function(input, output, session) {
     req(input$dateTable_state$length)
     writeLines(paste("Page length changed to:", input$dateTable_state$length))
     
-    # Update page length
-    as.integer(input$dateTable_state$length) |>
-      page_length_var()
+    if(input$dateTable_state$length != page_length_var()){
+      # Update page length
+      as.integer(input$dateTable_state$length) |>
+        page_length_var()
+      
+      req(input$dateTable_rows_selected)
+      
+      # find page 
+      l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,
+                          current_data(), 
+                          "table", page_length_var()
+      )
+      
+      # select page
+      l_temp$last_selected_page|>
+        last_selected_page()
+      
+      # only update if it is not NULL to prevent infinite loop 
+      if(!is.null(l_temp$last_user_filter)){
+        l_temp$last_user_filter|>
+          last_user_filter()
+      }
+    }
   })
   
   ## file upload render: txt file rendering ####
