@@ -2140,6 +2140,7 @@ server <- function(input, output, session) {
         }
       })
 
+      Report_links()
 
     }
   })
