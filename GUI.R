@@ -606,7 +606,7 @@ server <- function(input, output, session) {
         lapply(function(x){
           IDs <- x$IDs|>
             arrange(IDs)
-          # only remove IDs if more than one can be found so a linked ID is found
+          # only remove IDs if linked ID is found
           if(nrow(IDs) > 1){
             ID_to_remove <- x$Abrechnung|>
               filter(is.na(`Link to Event ID`))|>
