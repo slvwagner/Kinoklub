@@ -1673,6 +1673,21 @@ ftp_delete_file <- function(remote_file, ftp_server, ftp_user, password, basepat
   }
 }
 
+ftp_delete_file_curl <- function(filename, ftp_server, ftp_user, ftp_password, basepath) {
+  if (!grepl("/$", ftp_server)) {
+    ftp_server <- paste0(ftp_server, "/")
+  }
+  
+  # Use CWD to change directory before deleting the file by name
+  cmd <- sprintf(
+    'curl -s -u "%s:%s" -Q "CWD %s" -Q "DELE %s" "%s"',
+    ftp_user, ftp_password, basepath, filename, ftp_server
+  )
+  
+  message("🔧 Running command:\n", cmd)
+  res <- system(cmd, intern = TRUE)
+  return(res)
+}
 
 
 
