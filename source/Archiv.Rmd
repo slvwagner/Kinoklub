@@ -9,7 +9,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Bereits gezeigte Filme im Atelierkino
+## Procinema-Archiv
 ```{r}
 df_temp <- df_Procinema|>
   arrange(desc(Datum)) |>
