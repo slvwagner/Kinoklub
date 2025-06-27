@@ -2091,7 +2091,7 @@ server <- function(input, output, session) {
           renderText("Daten aus der Datenbank:"),
           shiny::hr(),
           div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-              dataTableOutput("modal_table_1"))
+              dataTableOutput("modal_delete_file"))
         ),
         easyClose = FALSE,
         footer = tagList(
@@ -2106,7 +2106,7 @@ server <- function(input, output, session) {
   ## Button: ftp file deleting ####
   observeEvent(input$ftp_delete_file,{
     removeModal()
-    if(is.null(input$modal_table_1_rows_selected)){
+    if(is.null(input$modal_delete_file_rows_selected)){
       showModal(
         modalDialog(
           title = "Bitte eine Zeile in der Tabelle markieren",
@@ -2115,7 +2115,7 @@ server <- function(input, output, session) {
         )
       )
     } else {
-      df_temp <- df_temp_1()[input$modal_table_1_rows_selected,]
+      df_temp <- df_temp_1()[input$modal_delete_file_rows_selected,]
       df_temp
       
       paste0("Die Dateien: ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
@@ -2212,6 +2212,28 @@ server <- function(input, output, session) {
            test$message, c_message)|>
       ausgabe_text()
     
+  })
+  
+  ## Render modla delete file ####
+  output$modal_delete_file <- DT::renderDT({
+    req(df_temp_1())  
+    
+    df_temp <- df_temp_1()|>
+      mutate(Report = factor(Report),
+             order = factor(order))|>
+      rename(Sortierung = order)
+    
+    datatable(df_temp, 
+              rownames = FALSE,
+              selection = "multiple",
+              filter = "top",
+              options = list(
+                # searching = FALSE,     # removes search box
+                language = DT_language,
+                pageLength = nrow(df_temp_1()),
+                paging = FALSE        # disables pagination
+              )
+    )
   })
 
   ## Render modal table 1 ####
