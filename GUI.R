@@ -1201,6 +1201,10 @@ server <- function(input, output, session) {
         last_selected_rows(input$dateTable_rows_selected)
       }
       
+      # last selected rows 
+      input$dateTable_rows_selected|>
+        last_selected_rows()
+      
       # Only create report if not linked to other ID
       df_temp <- check_if_report_needs_creation(df_mapping, data_env)
       
