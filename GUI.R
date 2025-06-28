@@ -2439,12 +2439,21 @@ server <- function(input, output, session) {
   ## Select a row and find page ####
   observeEvent(input$dateTable_rows_selected, {
     req(input$dateTable_rows_selected)
+    # req(input$dateTable_search_columns)
 
     # find page 
     l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,
                         current_data(), 
                         "table", page_length_var()
     )
+    if(sum(is.na(last_selected_rows())) > 0){
+      input$dateTable_rows_selected|>
+        last_selected_rows()
+    }
+    if(length(last_selected_rows()) != length(input$dateTable_rows_selected)){
+        input$dateTable_rows_selected|>
+          last_selected_rows()
+    }
     
     # select page
     l_temp$last_selected_page|>
