@@ -1217,7 +1217,8 @@ server <- function(input, output, session) {
       if(c_message != "") {
         ausgabe_text("")
         add_msg <- TRUE
-        }
+      } else add_msg <- FALSE
+      
       
       # Filmabrechnungen erstellen
       tryCatch({
