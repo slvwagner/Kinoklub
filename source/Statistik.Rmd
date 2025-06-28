@@ -807,22 +807,19 @@ df_temp <- left_join(
   by = join_by(`Event ID`)
   )|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr )
-
-df_temp|>
-  filter(is.na(ID_Spezialpreisekiosk))|>
-  group_by(Artikelname)|>
-  reframe(Anzahl = sum(Anzahl), 
-          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
-          )|>
-  arrange(desc(Anzahl))|>
-  filter(Artikelname != "Keine Kioskverkäufe")
-
 ```
 
 
 ```{r }
 df_temp|>
+  filter(is.na(ID_Spezialpreisekiosk))|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl), 
+          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
+          `Gewinn [CHF]` = round5Rappen(sum(`Gewinn [CHF]`, na.rm = TRUE))
+          )|>
+  arrange(desc(Anzahl))|>
+  filter(Artikelname != "Keine Kioskverkäufe")|>
   DT::datatable()
 ```
 
@@ -836,7 +833,8 @@ df_temp|>
           `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
           `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
           )|>
-  arrange(desc(Anzahl))
+  arrange(desc(Anzahl))|>
+  knitr::kable()
 ```
 
 
@@ -878,57 +876,21 @@ df_temp <- `Einkauf Kiosk`|>
               reframe(Anzahl = sum(Anzahl)),
             by = c("Artikelname-Kassensystem"="Artikelname")
             )
+```
+
+
+```{r }
+df_temp <- df_Kiosk|>
+  filter(Anzahl == 0, is.na(ID_Spezialpreisekiosk))|>
+  select(`Artikel-Kassensystem`, Artikelname, `Einzelpreis [CHF]`, `Einkaufspreis [CHF]`)
+  
   
 df_temp|>
-  filter(is.na(Anzahl))|>
-  select(-Anzahl)|>
   DT::datatable()
 
 ```
 
 ### Kiosk Umsatz pro Gast
-```{r }
-
-df_temp <- left_join(
-  df_Kiosk,
-  Programm|>
-    select(`Event ID`, Datum),
-  by = join_by(`Event ID`)
-  )|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
-    mutate(cumsum = cumsum(`Gewinn [CHF]`))
-
-df_temp <- df_temp|>
-  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
-         Datum_display = format(Datum, "%d.%m.%Y"))|>
-  rename(`Umsatz [CHF]` = `Betrag [CHF]`)|>
-  select(Datum_display, Datum,`Event ID`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
-
-```
-
-
-```{r echo=FALSE}
-df_temp|> 
-    DT::datatable(
-    df_temp,
-    options = list(columnDefs = list(
-      # list(targets = 3,visible = F),
-      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-    )),
-    colnames = c(Datum = "Datum_display")
-  )
-```
-
-
-```{r }
-df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = 
-            sum(`Umsatz [CHF]`, na.rm = T) / sum(Anzahl, na.rm = T)
-          )|>
-  knitr::kable(digits = 2)
-```
-
 
 ```{r fig.width=10}
 df_temp <- left_join(
@@ -959,15 +921,20 @@ df_temp <- l_abrechnung|>
               select(1:5), 
             by = c("Event ID"))|>
   mutate(Zahlend = if_else(is.na(`Gewinn [CHF]`),TRUE,FALSE))
-df_temp
 ```
 
 ```{r}
-df_temp|>
-  group_by(Suisanummer, Filmtitel)|>
+df_plot <- df_temp|>
+  group_by(Datum, Suisanummer, Filmtitel)|>
   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = round(sum(`Umsatz [CHF]`) / sum(Anzahl),2)
           )|>
-  arrange(desc(`Durchschnittlicher Umsatz pro Gast [CHF]`))
+  arrange(desc(`Durchschnittlicher Umsatz pro Gast [CHF]`))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
+
+df_plot|>
+  select(Datum_display, Suisanummer, Filmtitel, `Durchschnittlicher Umsatz pro Gast [CHF]`)|>
+  rename(Datum = Datum_display)|>
+  knitr::kable()
 ```
 
 
@@ -976,7 +943,6 @@ df_temp|>
 s_df_temp <- df_temp|>
   group_by(Zahlend)|>
   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`) / sum(Anzahl))
-s_df_temp
 ```
 
 
@@ -986,10 +952,10 @@ s_df_temp|>
 ```
 
 
-```{r fig.width=10}
-df_temp|>
+```{r fig.width=10, warning=FALSE}
+df_plot|>
   ggplot()+
-  geom_col(aes(x = Datum, y = `Umsatz [CHF]`, fill = as.factor(Zahlend)),
+  geom_col(aes(x = Datum, y = `Durchschnittlicher Umsatz pro Gast [CHF]`),
            position = "jitter",
            show.legend =  FALSE)+
   geom_hline(data = s_df_temp, aes(yintercept = `Durchschnittlicher Umsatz pro Gast [CHF]`, color = Zahlend), linewidth =2 )+
