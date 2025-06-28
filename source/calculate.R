@@ -34,7 +34,7 @@ if(!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2025L
+  c_Abrechnungsjahr <- 2024L
 }
 
 # load data from Database ####
@@ -696,7 +696,7 @@ while (TRUE) {
 l_abrechnung
 
 # Gemeinsame Abrechnung erstellen ####
-ID <- "5"
+ID <- "35"
 cnt <- 1
 for (ID in names(l_abrechnung)) {
   ## Event ID`s ####
@@ -802,6 +802,7 @@ for (ID in names(l_abrechnung)) {
             `Umsatz [CHF]` = sum(`Betrag [CHF]`),
             `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
             )
+  Kiosk
   
   ## summary Kiosk #####
   df_temp <- bind_rows(
@@ -820,13 +821,13 @@ for (ID in names(l_abrechnung)) {
   df_temp
   
   Gewinn <- Kiosk|>
-    reframe(`Gewinn [CHF]` = sum(`Gewinn [CHF]`) - sum(event_ausgaben$`Betrag [CHF]`)
+    reframe(`Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE) - sum(event_ausgaben$`Betrag [CHF]`, na.rm = TRUE)
             )|>
     pull()
   Gewinn
   
   Umsatz <- Kiosk|>
-    reframe(`Gewinn [CHF]` = sum(`Umsatz [CHF]`)
+    reframe(`Gewinn [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)
     )|>
     pull()
   Umsatz
