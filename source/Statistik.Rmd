@@ -32,13 +32,22 @@ Bericht wurde am `r act_date` erstellt.
 
 ### Gewinn/Verlust aus Filmvorführung
 
-
-```{r}
+```{r message=FALSE, warning=FALSE}
 df_temp <- l_abrechnung|>
   lapply(function(x){
-    x$Abrechnung
+    bind_cols(`Event ID` = x$IDs$IDs[1], 
+              Datum = x$Abrechnung$Datum[1],
+              Zeit = x$Abrechnung$Zeit[1], 
+              Suisanummer  = x$Abrechnung$Suisanummer[1] ,
+              Filmtitel = x$Abrechnung$Filmtitel[1], 
+              x$s_Abrechnung)
   })|>
-  bind_rows()|>
+  bind_rows()
+```
+
+
+```{r}
+df_temp <- df_temp|>
   arrange(desc(Datum)) |>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
@@ -47,7 +56,8 @@ df_temp <- l_abrechnung|>
 
 ```{r}
 # Create the datatable with a hidden Datum column and sort by it
-DT::datatable(df_temp, 
+DT::datatable(df_temp|>
+                mutate(`Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)), 
           options = list(
             columnDefs = list(
               # list(targets = 3,visible = F),
@@ -941,21 +951,36 @@ df_temp <- df_temp|>
 ```{r }
 df_temp <- l_abrechnung|>
   lapply(function(x){
-    x$s_Kiosk
+    x$Kiosk
   })|>
   bind_rows(.id = "Event ID")|>
   mutate(`Event ID` = as.integer(`Event ID`))|>
   left_join(Programm|>
               select(1:5), 
-            by = c("Event ID"))
-
+            by = c("Event ID"))|>
+  mutate(Zahlend = if_else(is.na(`Gewinn [CHF]`),TRUE,FALSE))
+df_temp
 ```
+
+```{r}
+df_temp|>
+  group_by(Suisanummer, Filmtitel)|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = round(sum(`Umsatz [CHF]`) / sum(Anzahl),2)
+          )|>
+  arrange(desc(`Durchschnittlicher Umsatz pro Gast [CHF]`))
+```
+
 
 
 ```{r }
 s_df_temp <- df_temp|>
   group_by(Zahlend)|>
   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`) / sum(Anzahl))
+s_df_temp
+```
+
+
+```{r }
 s_df_temp|>
   knitr::kable(digits = 2)
 ```
@@ -964,7 +989,7 @@ s_df_temp|>
 ```{r fig.width=10}
 df_temp|>
   ggplot()+
-  geom_col(aes(x = Datum, y = `Umsatz [CHF] pro Gast`, fill = as.factor(Zahlend)),
+  geom_col(aes(x = Datum, y = `Umsatz [CHF]`, fill = as.factor(Zahlend)),
            position = "jitter",
            show.legend =  FALSE)+
   geom_hline(data = s_df_temp, aes(yintercept = `Durchschnittlicher Umsatz pro Gast [CHF]`, color = Zahlend), linewidth =2 )+
