@@ -2188,7 +2188,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
