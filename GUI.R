@@ -615,12 +615,12 @@ server <- function(input, output, session) {
             
             # user information
             paste0(ausgabe_text(),
-                   "Die Event ID `", ID_to_remove,"` wird gemeinsam abgerechnet mit der Event ID `",
+                   "`Event ID` ", ID_to_remove," wird gemeinsam mit `Event ID` ",
                    x$Abrechnung|>
                      filter(!is.na(`Link to Event ID`))|>
                      select(`Event ID`)|>
                      pull(),
-                   "` abgerechnet.",
+                   " abgerechnet.",
                    "\n"
             )|>
               ausgabe_text()
