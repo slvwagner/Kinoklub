@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 81
+ii <- 35
 ```
 
 
@@ -51,9 +51,9 @@ if(r_is.defined(df_keine_Rechnung)){
 ```
 
 
-## Filmvorführung
+## Tickets
 
-### Kino Umsatz
+### Umsatz
 
 ```{r echo=FALSE}
 df_temp <- l_abrechnung[[as.character(ii)]]$Eintritt
@@ -71,24 +71,32 @@ Umsatz|>
 
 ```
 
-### Kino Besucherzahlen
+### Besucherzahlen
 
 ```{r echo=FALSE}
-df_temp <- l_abrechnung[[as.character(ii)]]$s_Eintritt
+df_temp <- l_abrechnung[[as.character(ii)]]$s_Eintritt|>
+  mutate(Zahlend = if_else(Zahlend == TRUE, "ja", "nein"))
 
 ```
 
 ```{r echo=FALSE}
 df_temp|>
-  # select(-`Besucherzahl nach Umsatz [CHF] verteilt`)|>
+  select(- `Umsatz [CHF]`)|>
   knitr::kable(digits = 2)
 ```
 
 ```{r echo=FALSE}
 df_temp|>
+  group_by(Zahlend)|>
   reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
   knitr::kable(digits = 2)
 
+```
+
+```{r}
+df_temp|>
+  reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
+  knitr::kable(digits = 2)
 ```
 
 ### Filmabgaben
@@ -133,7 +141,7 @@ Filmabgaben <- l_abrechnung[[as.character(ii)]]$Abrechnung|>
   mutate(Datum = format(Datum, "%d.%m.%Y"),
          `Kinoförderer gratis?` = if_else(`Kinoförderer gratis?`, "ja", "nein, müssen mit dem Verleiher abgerechnet werden"))
 Filmabgaben|>
-  select(-`Ticketgewinn [CHF]`)|>
+  select(-`Ticketgewinn [CHF]`, -`Link to Event ID`)|>
   knitr::kable(digits = 2)
 ```
 
@@ -156,7 +164,7 @@ Filmabgaben|>
 ```
 
 
-#### Abgaben
+### Abgaben
 
 ```{r}
 df_temp <- l_abrechnung[[as.character(ii)]]$s_Abrechnung
@@ -306,13 +314,12 @@ Eventeinnahmen|>
 ### Ausgaben
 
 Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ... werden mit den Kioskausgaben verrechnet.\ 
-[Ausgaben (Eventausgaben)](#ausgaben-eventausgaben)\
 
 \
 
 ## Kiosk
 
-### Gewinn für Kiosk Artikel
+### Kiosk Artikel
 
 ```{r echo=FALSE}
 Gewinn_Kiosk <- l_abrechnung[[as.character(ii)]]$Kiosk|>
@@ -330,23 +337,15 @@ Gewinn_Kiosk|>
 ```
 
 
-### Umsatz Spezialverkaufsartikel
-
-```{r echo=FALSE}
-Spezialpreise <- l_abrechnung[[as.character(ii)]]$Kiosk|>
-  filter(str_detect(`Artikel-Kassensystem`, rebus::or("spez", "Spez")))
-
-Spezialpreise <- Spezialpreise|>
-  group_by(`Artikel-Kassensystem`, Artikelname)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` =  sum(`Umsatz [CHF]`)
-          )|>
-  mutate(`Verkaufspreis [CHF]` = `Umsatz [CHF]` / Anzahl)|>
-  select(`Artikel-Kassensystem`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+### Spezialartikel
+```{r}
+Spezialpreise <- l_abrechnung[[as.character(ii)]]$df_spezpreise
 
 Spezialpreise|>
     knitr::kable(digits = 2)
+
 ```
+
 
 ```{r}
 Spezialpreise <- Spezialpreise|>
@@ -383,7 +382,7 @@ if(df_temp|>nrow() > 0){
 
 
 
-### Ausgaben (Eventausgaben)
+### Eventausgaben
 
 Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 
@@ -412,7 +411,6 @@ Eventausgaben|>
     knitr::kable(digits = 2)
 ```
 
-
 ### Manko / Überschuss
 
 Achtung!\
@@ -435,12 +433,13 @@ Manko|>
 ```
 
 ### Differenz
+
 ```{r echo=FALSE}
 s_Kiosk <-  bind_cols(tibble(
   Bezeichnung = c(
-    "Gewinn Kioskartikel",
-    "Umsatz Spezialartikel",
-    "Ausgaben für den Event",
+    "Kioskartikel",
+    "Spezialartikel",
+    "Eventausgaben",
     "Manko / Überschuss"
   )),
   bind_rows(
@@ -450,7 +449,10 @@ s_Kiosk <-  bind_cols(tibble(
     Manko
     )
   )|>
-  rename(`Betrag [CHF]` = `Summe [CHF]`)
+  rename(`Betrag [CHF]` = `Summe [CHF]`)|>
+  mutate(`Betrag [CHF]` = round5Rappen(`Betrag [CHF]`))
+
+
 s_Kiosk|>
   knitr::kable(digits = 2)
 
@@ -480,13 +482,6 @@ df_temp <- tibble(
 )
 
 df_temp|>
-  knitr::kable(digits = 2)
-```
-
-
-```{r}
-test <- l_abrechnung[[as.character(ii)]]$s_Abrechnung
-test|>
   knitr::kable(digits = 2)
 ```
 

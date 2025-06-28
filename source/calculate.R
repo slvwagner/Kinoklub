@@ -702,10 +702,6 @@ for (ID in names(l_abrechnung)) {
   ## Event ID`s ####
   IDs <- l_abrechnung[[ID]]
 
-  # if(length(IDs) > 1){
-  #   print("here")
-  # }
-  
   ## Eintritte ####
   Eintritte <- df_Eintritt|> 
     select(- `SUISA-Vorabzug [%]`)|>
@@ -713,29 +709,21 @@ for (ID in names(l_abrechnung)) {
     select(`Event ID`,Platzkategorie, Verkaufspreis, Anzahl, `Umsatz [CHF]`)
   Eintritte
 
-  ## Verteilschlüssel ####
-  Verteilschlüssel <- Eintritte|>
-    group_by(`Event ID`)|>
-    reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
-    mutate(Verteilschlüssel = `Umsatz [CHF]` / sum(`Umsatz [CHF]`))|>
-    select(-`Umsatz [CHF]`)
-  Verteilschlüssel
-  
   ## s_Eintritte ####
-  s_Eintritte <- Eintritte|>
+  s_Eintritte <- 
+    bind_rows(
+      Eintritte|>
+        filter(`Umsatz [CHF]` != 0)|>
+        mutate(Zahlend = TRUE),
+      Eintritte|>
+        filter(`Umsatz [CHF]` == 0)|>
+        mutate(Zahlend = FALSE)
+      )|>
+    group_by(Zahlend, `Event ID`)|>
     reframe(Besucherzahl = sum(Anzahl),
             `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-            )
-  s_Eintritte
-  
-  s_Eintritte <- Eintritte|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    group_by(`Event ID`, Verteilschlüssel)|>
-    reframe(Besucherzahl = sum(Anzahl),
-            `Besucherzahl nach Umsatz [CHF] verteilt` = signif(s_Eintritte$Besucherzahl * Verteilschlüssel[1], 4),
-            `Umsatz [CHF]` = sum(`Umsatz [CHF]`)
             )|>
-    select(`Event ID`, `Umsatz [CHF]`, `Besucherzahl nach Umsatz [CHF] verteilt`, Verteilschlüssel, Besucherzahl)
+    arrange(desc(Zahlend))
   s_Eintritte
   
   # keine Verleiherrechnung vorhanden für gemeinsame Abrechnung
@@ -772,31 +760,37 @@ for (ID in names(l_abrechnung)) {
   ## Eventeinnahmen ####
   event_einnahmen <- Einnahmen|>
     filter(`Event ID` %in% IDs, Kategorie == "Event")|>
-    mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    mutate(`Betrag [CHF]` = `Betrag [CHF]` * Verteilschlüssel)
+    mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
   event_einnahmen
+  
+  s_event_einnahmen <- event_einnahmen|>
+    reframe(`Eventausgaben [CHF]` = sum(`Betrag [CHF]`))
+  s_event_einnahmen
   
   ## Eventausgaben ####
   event_ausgaben <- Ausgaben|>
     filter(`Event ID` %in% IDs, Kategorie == "Event")|>
-    mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
-    mutate(`Betrag [CHF]` = `Betrag [CHF]` * Verteilschlüssel)
+    mutate(`Event ID` = as.character(`Event ID`)|>as.integer())
   event_ausgaben
+  
+  s_event_ausgaben <- event_ausgaben|>
+    reframe(`Eventausgaben [CHF]` = sum(`Betrag [CHF]`))
+  s_event_ausgaben
   
   ## Manko/ Überschuss ####
   manko <- df_Kiosk|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     group_by(`Event ID`)|>
     reframe(`Überschuss / Manko [CHF]` = `Überschuss / Manko [CHF]`[1])
+  manko
   
+  s_manko <- manko|>
+    reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`))
+  s_manko
   
   ## Kiosk ####
   Kiosk <- df_Kiosk|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     group_by(`Event ID`, `Artikel-Kassensystem`, Artikelname)|>
     reframe(Anzahl = sum(Anzahl),
             `Umsatz [CHF]` = sum(`Betrag [CHF]`),
@@ -804,47 +798,44 @@ for (ID in names(l_abrechnung)) {
             )
   Kiosk
   
+  ## Spezpreise ####
+  df_spezpreise <- Kiosk|>
+    filter(is.na(`Gewinn [CHF]`))|>
+    select(-`Gewinn [CHF]`)|>
+    group_by(`Artikel-Kassensystem`,Artikelname)|>
+    reframe(Anzahl = sum(Anzahl), 
+            `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
+  df_spezpreise
+  
+  ## Summary Spezpreise ####
+  s_df_spezpreise <-
+    bind_cols(
+      df_spezpreise |>
+        reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`)),
+      event_ausgaben |>
+        reframe(`Eventausgaben [CHF]` = sum(`Betrag [CHF]`))
+    ) |>
+    mutate(`Gewinn Spezialartikel [CHF]` = `Umsatz [CHF]` - `Eventausgaben [CHF]`)|>
+    select(`Gewinn Spezialartikel [CHF]`)
+  s_df_spezpreise
+
   ## summary Kiosk #####
-  df_temp <- bind_rows(
-    Eintritte|>
-      filter(Verkaufspreis != 0 )|>
-      reframe(Anzahl = sum(Anzahl), 
-              `Umsatz [CHF]` = sum(`Umsatz [CHF]`)
-      )|>
-      mutate(Zahlend = TRUE),
-    Eintritte|>
-      reframe(Anzahl = sum(Anzahl), 
-              `Umsatz [CHF]` = sum(`Umsatz [CHF]`)
-      )|>
-      mutate(Zahlend = FALSE)
-  )
-  df_temp
-  
-  Gewinn <- Kiosk|>
-    reframe(`Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE) - sum(event_ausgaben$`Betrag [CHF]`, na.rm = TRUE)
-            )|>
-    pull()
-  Gewinn
-  
-  Umsatz <- Kiosk|>
-    reframe(`Gewinn [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)
-    )|>
-    pull()
-  Umsatz
-  
-  s_Kiosk <- df_temp|>
-    mutate(`Umsatz [CHF] pro Gast` = Umsatz / Anzahl,
-           `Gewinn [CHF] pro Gast` = Gewinn / Anzahl)
-  s_Kiosk
+  s_Kiosk <-
+    bind_cols(Kiosk |>
+                filter(!is.na(`Gewinn [CHF]`)) |>
+                reframe(`Gewinn Kioskartikel [CHF]` = sum(`Gewinn [CHF]`)),
+              s_df_spezpreise,
+              s_manko
+    )
+  s_Kiosk|>
+    t()
   
   ## Abrechnung ####
   Abrechnung <- df_Abrechnung|>
     filter(`Event ID` %in% IDs)|>
-    left_join(Verteilschlüssel, by = join_by(`Event ID`))|>
     select(-`Besucherzahlen an Verleiher gesendet`, -`Rechnung bezahlt und abgelegt`,
            - Abrechnungsjahr
-           )|>
-    mutate(`Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]` ,na.rm = TRUE))
+           )
   Abrechnung
   
   ### Abzug [%] ckeck ####
@@ -898,6 +889,9 @@ for (ID in names(l_abrechnung)) {
     )
   }
 
+  Abrechnung|>
+    t()
+  
   ## Summary Abrechnung ####
   s_Abrechnung <- Abrechnung|>
     reframe(
@@ -907,16 +901,17 @@ for (ID in names(l_abrechnung)) {
       `Abzug fix [CHF]` = `Abzug fix [CHF]`[1],
       `Kinoförderer gratis?` = `Kinoförderer gratis?`[1], 
       `SUISA-Vorabzug [%]` = `SUISA-Vorabzug [%]`[1],
-      `Umsatz [CHF]` = sum(`Umsatz [CHF]`) , # this will not change anything because Verteilschlüssel was calculated by Umsatz
+      `Umsatz [CHF]` = sum(`Umsatz [CHF]`) ,
       `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) ,
-      `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) ,
-      `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) ,
+      `Suisavorabzug [CHF]` = `Umsatz für Netto3 [CHF]` * (`SUISA-Vorabzug [%]` / 100) ,
+      `Umsatz Netto 3 [CHF]` = `Umsatz für Netto3 [CHF]` - `Suisavorabzug [CHF]`,
       `Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1],
-      `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`),
       `Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`),
       `Eventeinnahmen [CHF]` = sum(`Eventeinnahmen [CHF]`),
       `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`)
     )
+  s_Abrechnung|>
+    t()
   
   s_Abrechnung <- s_Abrechnung|>
     mutate(           
@@ -943,31 +938,15 @@ for (ID in names(l_abrechnung)) {
           `Verleiherrechnungsbetrag [CHF]`
         ),
       `Ticketgewinn [CHF]` = `Umsatz [CHF]` - `Verleiherabzug [CHF]`,
+      `Gewinn Kioskartikel [CHF]` = s_Kiosk$`Gewinn Kioskartikel [CHF]`,
+      `Gewinn Spezialartikel [CHF]` = s_Kiosk$`Gewinn Spezialartikel [CHF]`,
+      `Überschuss / Manko [CHF]` = s_Kiosk$`Überschuss / Manko [CHF]`,
       `Gewinn aus Fimvorführung [CHF]` = 
-        sum(`Ticketgewinn [CHF]`, `Kioskgewinn [CHF]`, 
-            `Eventeinnahmen [CHF]`, -`Eventausgaben [CHF]`, `Überschuss / Manko [CHF]`, na.rm = TRUE
-            )
+        `Ticketgewinn [CHF]` + `Gewinn Kioskartikel [CHF]` + `Gewinn Spezialartikel [CHF]` + `Überschuss / Manko [CHF]`
       )
-  s_Abrechnung
+  s_Abrechnung|>
+    t()
   
-  ## Abrechnung (Verteilen nach Verteilschlüssel) ####
-  Abrechnung <- Abrechnung|>
-    mutate(`Verleiherrechnungsbetrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`[1] * Verteilschlüssel,
-           `Umsatz [CHF]` = sum(`Umsatz [CHF]`) * Verteilschlüssel, # this will not change anything because Verteilschlüssel was calculated by Umsatz
-           `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`) * Verteilschlüssel,
-           `Suisavorabzug [CHF]` = sum(`Suisavorabzug [CHF]`) * Verteilschlüssel,
-           `Umsatz Netto 3 [CHF]` = sum(`Umsatz Netto 3 [CHF]`) * Verteilschlüssel,
-           `Verleiherrechnungsbetrag [CHF]` = sum(`Verleiherrechnungsbetrag [CHF]`) * Verteilschlüssel,
-           `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) * Verteilschlüssel,
-           `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`) * Verteilschlüssel,
-           `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`) * Verteilschlüssel,
-           `Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`) * Verteilschlüssel,
-           `Eventeinnahmen [CHF]` = sum(`Eventeinnahmen [CHF]`) * Verteilschlüssel,
-           `Eventausgaben [CHF]` = sum(`Eventausgaben [CHF]`) * Verteilschlüssel,
-           `Gewinn aus Fimvorführung [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`) * Verteilschlüssel
-           )
-  Abrechnung
-
   ## Return values ####
   l_abrechnung[[cnt]] <- 
     list(
@@ -981,21 +960,21 @@ for (ID in names(l_abrechnung)) {
       s_Eintritte = s_Eintritte,
       Kiosk = Kiosk,
       s_Kiosk = s_Kiosk,
+      df_spezpreise = df_spezpreise,
+      s_df_spezpreise = s_df_spezpreise,
       manko = manko,
-      `Summary Kiosk` = s_Eintritte,
-      Verteilschlüssel = Verteilschlüssel
+      `Summary Kiosk` = s_Eintritte
     )
   cnt <- cnt + 1
 }
 remove(Eintritte, 
        df_mapping, df_temp,
-       Verteilschlüssel,
        Abrechnung,
        event_ausgaben,
        event_einnahmen,
        s_Eintritte,
        s_Kiosk,
-       cnt, ID, p, Umsatz, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt, Gewinn,
+       cnt, ID, p, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt,
        df_Abrechnung
        )
 l_abrechnung
