@@ -4,27 +4,8 @@ library(tidyverse)
 library(purrr)
 
 # spez. Round for Swiss currency "CHF" ####
-round5Rappen <- function(zahl) {
-  result <- lapply(zahl, function(zahl){
-    if(is.na(zahl)){
-      return(NA)
-    }
-    else{
-      x <- round(zahl-as.integer(zahl*10)/10,6)
-      if(x>=0.075){
-        return((as.integer(zahl*10)/10)+0.1)
-      }else {
-        if(x>=0.025){
-          return((as.integer(zahl*10)/10)+0.05)
-        }else{
-          return((as.integer(zahl*10)/10)+0.0)
-        }
-      }  
-    }
-  })
-  result|>
-    unlist()|>
-    round(2)
+round5Rappen <- function(x) {
+  round(x * 20) / 20
 }
 
 # variable is present in global environment ####
