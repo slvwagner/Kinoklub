@@ -1279,6 +1279,12 @@ server <- function(input, output, session) {
           ausgabe_text()
       }
 
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      c(paste0("Ausführungszeit: ",r_signif(c_time)),"\n", ausgabe_text())|>
+        ausgabe_text()
+      
       shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
     })
   })
