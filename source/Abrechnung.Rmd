@@ -390,7 +390,7 @@ Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 Eventausgaben <- l_abrechnung[[as.character(ii)]]$Ausgaben
 
 
-if(nrow(Eventausgaben) == 0) {
+if((nrow(Eventausgaben) == 0) & (nrow(df_temp) > 0)) {
   writeLines("Achtung es gibt keine Eventausgaben obwohl Spezialverkaufsartikel verkauft wurden.
              \nBitte die Einkäufe unter Eventausgaben in den Ausgaben nachtragen")
 }
