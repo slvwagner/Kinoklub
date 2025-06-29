@@ -91,7 +91,6 @@ data_env <- new.env()
 # # concatenate feedback 
 # ausgabe_text <- paste0(calculate_warnings, ausgabe_text, collapse = "\n")
 ausgabe_text <- ""
-startup_error <<- FALSE
 
 # Error handling
 if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
@@ -156,46 +155,6 @@ ui <-
 # Server-Logik ####
 server <- function(input, output, session) {
   ## Helper functions ####
-  ### Function to create icons for the site map #####
-  create_icons <- function(m_Film, c_path, c_url) {
-    library(furrr)
-    library(webshot)  # Ensure webshot is loaded
-    library(magick)   # Ensure magick is loaded
-    c_select <- !((m_Film$FileName |> str_remove(".html")) %in% 
-                    (list.files("output/pict/") |> str_remove(".html.png")))
-    
-    # Determine the number of cores to use
-    num_cores <- availableCores() - 1  # Use all but one core to avoid overloading the system
-    if(num_cores > 5) num_cores <- 5
-    if(nrow(m_Film) < num_cores) {
-      num_cores <- nrow(m_Film)
-    }
-    paste("Number of cores:", num_cores) |>
-      writeLines()
-    
-    # Set up parallel processing
-    plan(multisession, workers = num_cores)  # Use all but one core
-    
-    # Function to render a single icon
-    render_icons <- function(ii, m_Film, c_path, c_url, c_select) {
-      # Set the path to the input image
-      input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
-      # Create a webshot, printed html
-      webshot::webshot(url = c_url[c_select][ii], file = input_path)
-      # Read the image, crop, resize, and save
-      image_read(input_path) |>
-        image_crop(geometry = "992x992+0+0") |>
-        image_resize("400x400") |>
-        image_write(input_path)
-    }
-    
-    # Apply the function in parallel with a seed for parallel-safe random numbers
-    future_map(1:length(m_Film$FileName[c_select]), 
-               ~render_icons(.x, m_Film, c_path, c_url, c_select), 
-               .options = furrr_options(seed = TRUE)
-    )
-  }
-  
   ### Function to render a single RMarkdown file ####
   render_single_file <- function(input, output, envir) {
     rmarkdown::render(
@@ -754,9 +713,6 @@ server <- function(input, output, session) {
   last_selected_page <- shiny::reactiveVal(NA)
   ### User filter in data table ####
   last_user_filter <- shiny::reactiveVal(NULL)
-  
-  ### Links to webserver ####
-  links_to_webserver <- shiny::reactiveVal(NULL)
   
   ## Button: Datenbank backup ####
   shiny::observeEvent(input$DB_backup,{
@@ -2514,7 +2470,6 @@ server <- function(input, output, session) {
         renderText("Bitte korrigieren!")
       )
     } else {
-      
       # Abrechnungsjahr
       choices_select <- Abrechungsjahr()
       choices <- 2023:lubridate::year(Sys.Date())
@@ -2633,11 +2588,9 @@ server <- function(input, output, session) {
         ),
         # shiny::uiOutput("db_status"),
         shiny::hr(),
-        if(!startup_error){
-          shiny::div(
-            DT::DTOutput("dateTable")
-          )
-        },
+        shiny::div(
+          DT::DTOutput("dateTable")
+          ),
         shiny::hr(),
         shiny::tags$h4("Systemrückmeldungen"),
         shiny::verbatimTextOutput("ausgabe"),
