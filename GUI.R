@@ -185,7 +185,7 @@ server <- function(input, output, session) {
   }
   
   ### Erstellen der Abrechnung pro `Event ID` ####
-  AbrechnungErstellen <- function(df_mapping, df_Abrechnung) {
+  AbrechnungErstellen <- function(df_mapping) {
     for (ii in df_mapping$`Event ID`) {
       # Template der Abrechnung einlesen
       c_raw <- readLines("source/Abrechnung.Rmd")
@@ -1185,8 +1185,7 @@ server <- function(input, output, session) {
 
         shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
         AbrechnungErstellen(
-          df_mapping__,
-          df_temp
+          df_mapping__
         )
         # upload ftp
         if(nrow(df_mapping__) == 1){
