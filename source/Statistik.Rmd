@@ -666,9 +666,9 @@ df_temp|>
 ```
 
 
-## Kiosk-Gewinn pro Vorführung 
+## Kiosk
 
-### Kiosk-Gewinn pro Vorführung 
+### Gewinn pro Vorführung 
 ```{r echo=FALSE}
 df_temp <- l_abrechnung|>
   lapply(function(x){
@@ -804,8 +804,6 @@ df_temp|>
 ```
 
 
-## Kiosk 
-
 ### Verkaufsartikel 
 
 ```{r }
@@ -908,9 +906,11 @@ df_temp <- left_join(
     select(`Event ID`, Datum, Zeit),
   by = join_by(`Event ID`)
   )|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
-  mutate(cumsum = cumsum(`Gewinn [CHF]`))
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+```
 
+
+```{r fig.width=10}
 df_temp <- df_temp|>
   mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
          Datum_display = format(Datum, "%d.%m.%Y"))|>
@@ -933,47 +933,52 @@ df_temp <- l_abrechnung|>
 ```
 
 ```{r}
-df_plot <- df_temp|>
-  group_by(Datum, Suisanummer, Filmtitel)|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = round(sum(`Umsatz [CHF]`) / sum(Anzahl),2)
-          )|>
-  arrange(desc(`Durchschnittlicher Umsatz pro Gast [CHF]`))|>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$s_Eintritte
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe(Besucherzahl = sum(Besucherzahl))|>
+  left_join(
+    l_abrechnung|>
+  lapply(function(x){
+    x$Kiosk
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)),
+  by = join_by(`Event ID`)
+  )
 
-df_plot|>
-  select(Datum_display, Suisanummer, Filmtitel, `Durchschnittlicher Umsatz pro Gast [CHF]`)|>
-  rename(Datum = Datum_display)|>
-  knitr::kable()
+df_temp <- df_temp|>
+  left_join(Programm,
+            by = join_by(`Event ID`)
+            )|>
+  mutate(Display_datum = format(Datum, "%d.%m.%Y"))|>
+  select("Event ID", "Suisanummer", Display_datum ,"Datum", "Zeit", "Filmtitel", "Besucherzahl", "Umsatz [CHF]")|>
+  mutate(`Kioskumsatz pro Gast [CHF]` =  round(`Umsatz [CHF]` /  Besucherzahl, 2))
 ```
 
 
+```{r}
+df_temp|>  
+  select(Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`)|>  DT::datatable(
+  df_temp, 
+  options = list(columnDefs = list( # list(targets = 3,visible = F), 
+    list(targets = 0, visible = FALSE), # Hide the 'Datum' column -->
+    list(targets = 1, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' 
+    )), 
+  colnames = c(Datum = "Display_datum") ,
+  rownames = FALSE
+)
 
-```{r }
-s_df_temp <- df_temp|>
-  group_by(Zahlend)|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`) / sum(Anzahl))
 ```
 
 
-```{r }
-s_df_temp|>
-  knitr::kable(digits = 2)
-```
-
-
-```{r fig.width=10, warning=FALSE}
-df_plot|>
-  ggplot()+
-  geom_col(aes(x = Datum, y = `Durchschnittlicher Umsatz pro Gast [CHF]`),
-           position = "jitter",
-           show.legend =  FALSE)+
-  geom_hline(data = s_df_temp, aes(yintercept = `Durchschnittlicher Umsatz pro Gast [CHF]`, color = Zahlend), linewidth =2 )+
-  labs(title = "Umsatz pro Gast aus Kioskverkäufen",
-       y = "Kumulierter Umsatz [CHF]")+
-  my_template
-```
-
-#### Wochentaganalyse
+### Gewinn Wochentaganalyse
 
 ```{r }
 if(nrow(df_temp)>1){
@@ -1036,131 +1041,3 @@ df_temp|>
   my_template
 ```
 
-<!-- ### Kiosk Umsatz pro zahlender Gast -->
-<!-- ```{r } -->
-<!-- # df_temp <- df_show |> -->
-<!-- #   left_join( -->
-<!-- #     df_Eintritt |> -->
-<!-- #       filter(Zahlend)|> -->
-<!-- #       group_by(Datum, `Suisanummer`) |> -->
-<!-- #       reframe(`Besucher` = sum(Anzahl))|> -->
-<!-- #       left_join(df_Kiosk |> -->
-<!-- #                   group_by(Datum, Suisanummer) |> -->
-<!-- #                   reframe(Umsatz = sum(Kassiert)), -->
-<!-- #                 by = c("Datum" = "Datum", "Suisanummer" = "Suisanummer") -->
-<!-- #                 ) |> -->
-<!-- #       mutate(`Umsatz pro Gast [CHF]` = (Umsatz / `Besucher`) |> round(2)), -->
-<!-- #   by = c("Datum", "Suisa Nummer" = "Suisanummer") -->
-<!-- #   )|> -->
-<!-- #   arrange(desc(Datum))|> -->
-<!-- #   select(-Ende, -Saal, -Version, -Alter)|> -->
-<!-- #   filter(!is.na(`Suisa Nummer`))|> -->
-<!-- #   rename(`Umsatz [CHF]`= Umsatz, -->
-<!-- #          Suisanummer = `Suisa Nummer`)|> -->
-<!-- #   mutate(Datum_display = format(Datum, "%d.%m.%Y") -->
-<!-- #          ) -->
-<!-- ``` -->
-
-
-<!-- ```{r echo=FALSE} -->
-<!-- df_temp|>  -->
-<!--   select(Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, Besucher, `Umsatz [CHF]`, `Umsatz pro Gast [CHF]`)|> -->
-<!--     DT::datatable( -->
-<!--     df_temp, -->
-<!--     options = list(columnDefs = list( -->
-<!--       # list(targets = 3,visible = F), -->
-<!--       list(targets = 1, visible = FALSE), # Hide the 'Datum' column -->
-<!--       list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' -->
-<!--     )), -->
-<!--     colnames = c(Datum = "Datum_display") -->
-<!--   ) -->
-<!-- ``` -->
-
-<!-- ```{r } -->
-<!-- df_temp1 <- df_temp|> -->
-<!--   reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T)) -->
-<!-- df_temp1|> -->
-<!--   knitr::kable(digits = 2) -->
-<!-- ``` -->
-
-
-<!-- ```{r fig.width=10} -->
-<!-- df_temp|> -->
-<!--   ggplot()+ -->
-<!--   geom_col(aes(x = Datum, y = `Umsatz pro Gast [CHF]`, fill = `Suisanummer`), -->
-<!--            color = "black", -->
-<!--            show.legend =  FALSE)+ -->
-<!--   geom_hline(yintercept = mean(df_temp1$`Durchschnittlicher Umsatz pro Gast [CHF]`), linewidth =2 , color = "darkorange2")+ -->
-<!--   labs(title = "Umsatz pro Gast aus Kioskverkäufen", -->
-<!--        y = "Kumulierter Umsatz [CHF]")+ -->
-<!--   my_template -->
-<!-- ``` -->
-
-<!-- #### Wochentaganalyse -->
-
-
-<!-- ```{r } -->
-<!-- df_temp <- df_temp|> -->
-<!--   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)), -->
-<!--          Zeit = paste0(lubridate::hour(Zeit),":", lubridate::minute(Zeit)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")) -->
-<!--          ) -->
-<!-- ``` -->
-
-
-<!-- ```{r } -->
-<!-- if(nrow(df_temp)>1){ -->
-<!--   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00") -->
-<!--   m <- str_split(timeRange, "-")|> -->
-<!--     sapply(function(range){ -->
-<!--       hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2]) -->
-<!--     }) -->
-<!--   colnames(m) <- timeRange -->
-<!--   m <- m|> -->
-<!--   as_tibble()|> -->
-<!--   pivot_longer(cols = everything(), names_to = "Time Range")|> -->
-<!--   filter(`value` == TRUE) -->
-<!-- }else{ -->
-<!--   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00") -->
-<!--   m <- str_split(timeRange, "-")|> -->
-<!--     sapply(function(range){ -->
-<!--       hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2]) -->
-<!--     }) -->
-
-<!--   m <- tibble( -->
-<!--     `Time Range` = timeRange,  -->
-<!--     value = m -->
-<!--     ) -->
-<!-- } -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- df_temp <- m|> -->
-<!--   # as_tibble()|> -->
-<!--   # pivot_longer(cols = everything(), names_to = "Time Range")|> -->
-<!--   filter(`value` == TRUE)|> -->
-<!--   bind_cols(df_temp)|> -->
-<!--   select(-value)|> -->
-<!--   mutate( -->
-<!--     Datum = dmy(Datum), -->
-<!--     weekday = sapply(Datum, convert_to_german_weekdays), -->
-<!--     weekday = factor(weekday, levels = german_weekdays) -->
-<!--   ) |> -->
-<!--   group_by(weekday, `Time Range`)|> -->
-<!--   reframe(d_gewinn = sum(`Umsatz pro Gast [CHF]`) / n(), -->
-<!--           d_gewinn = round5Rappen(d_gewinn) -->
-<!--           )|>  -->
-<!--   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1]) -->
-<!--          ) -->
-<!-- ``` -->
-
-<!-- ```{r fig.width=10} -->
-<!-- df_temp|> -->
-<!--   mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|> -->
-<!--   ggplot(aes(weekday, `Time Range`))+ -->
-<!--   geom_point(size = 20, color = "grey30" )+ -->
-<!--   geom_text(aes(label = d_gewinn), color = "darkorange2")+ -->
-<!--   labs(title = "Durchschnittlicher Umsatz pro Gast", -->
-<!--        subtitle = "[CHF]")+ -->
-<!--   my_template -->
-<!-- ``` -->
