@@ -14,7 +14,7 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 
 Dokumentation wurde am `r act_date` erstellt.
 
-## Kinoklub
+# Kinoklub
 
 Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
@@ -34,7 +34,7 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-## Installation
+# Installation
 
 1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
@@ -109,7 +109,7 @@ Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
-## Datensätze
+# Datensätze
 
 ### Upload von neuen Dateien
 
@@ -163,29 +163,17 @@ Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
-### Input Dateien
+# Datenbanktabellen
 
 Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten" 
 
-#### Spezialpreise Kiosk
+## Inputdaten
+### Filmvorschlag
+Ein Filmvorschlag kann am einfachsten mit dem Feature: "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden. 
 
-In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
-\
-Die Zuweisung erfolgt über die `Event ID`.
+### Programm
 
--   Spez 1
--   Spez 2
--   Spez 3
--   Spez 4
--   Spez 4
--   Keine Kioskverkäufe
-
-
-#### Verleiherabgaben
-
-Die Tabelle **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu berechnen.\
-
--   Für jeden gezeigten Film muss ein Datum definiert sein.
+-   Für jeden gezeigten Film muss ein Datum und einen Zeit definiert werde.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Mit dem "Link Datum" ist es möglich gemeinsam mit einem weiteren `Event ID` oder weiteren `Event IDs` abzurechnen.
 -   In der Spalte **Verleiherabgaben** muss der **"minimal Abzug [CHF]"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
@@ -193,8 +181,9 @@ Die Tabelle **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
-#### Einnahmen
+### Einsatzplan
 
+### Einnahmen
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle weiteren Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
 -   Kurze Erklärung der **Spaltennamen**
@@ -230,8 +219,7 @@ Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **
 -   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 
-#### Ausgaben
-
+### Ausgaben
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
     
@@ -271,7 +259,22 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
     -   **Buchungskonto** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
 -   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
-#### Einkauf Kiosk
+### Spezialpreise Kiosk
+
+In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
+\
+Die Zuweisung erfolgt über die `Event ID`.
+
+-   Spez 1
+-   Spez 2
+-   Spez 3
+-   Spez 4
+-   Spez 4
+-   Keine Kioskverkäufe
+
+
+
+### Einkauf Kiosk
 In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
 Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
@@ -279,12 +282,42 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
 
-#### Mehrwertsteuersatz
+## Advanced-Tickets
+### Eintritt files
+Rohdaten Eintritt
 
+### df_Eintritt
+Konvertierte Eintritt files
+
+### Kiosk files
+Rohdaten Kiosk
+
+### df_Kiosk
+Konvertierer Kioskfiles 
+
+## Dropdowns
+### Kinoklubmitglieder
+
+### Verleiher
+
+### Verleihermapping
+
+### Verleiher mapping
+
+### Lieferanten
+
+### Platzkategorien zum Verrechnen
+
+### Buchhaltungskonten
+
+###  Spezialpreis
+
+### MWST
 In der Tabelle Dropdowns **MWST** 
 muss der MWST-Satz für jedes Jahr festgelegt werden. 
 
-#### WordPress Filmvorschläge auswerten
+# GUI Berichete erstellen
+## WordPress Filmvorschläge auswerten
 
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
 
