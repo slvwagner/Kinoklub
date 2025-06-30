@@ -48,5 +48,5 @@ c_raw
 c_raw[3] <- paste0("\"",r_exe,"\""," ","\"", r_wd, "\"")
 c_raw
 
-writeLines(c_raw, "source/OS_support/Kinoklub.bat")
+writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
 message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub.bat` wurde erstellt.")
