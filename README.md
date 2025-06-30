@@ -155,7 +155,8 @@ Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet w
 
 ## Inputdaten
 ### Filmvorschlag
-Ein Filmvorschlag kann am einfachsten mit dem Feature: "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden. 
+Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden. 
+
 
 ### Programm
 
@@ -258,12 +259,10 @@ Die Zuweisung erfolgt über die `Event ID`.
 -   Spez 4
 -   Keine Kioskverkäufe
 
-
-
 ### Einkauf Kiosk
 In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
-Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
-Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
+Der Einkaufspreise ist gültig ab dem Datum in der Spalte "Gültig ab Datum" . \
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über die Zeit ändern können wird immer der korrekte Einkaufspreis gesucht und für die Gewinn berechnung verwendet. \
 
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
