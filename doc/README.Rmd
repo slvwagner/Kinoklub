@@ -90,7 +90,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       ftp_pw=""
     ```
 
-## Run the Appliction
+# Run the Appliction
 
 Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5003/>
 
@@ -105,7 +105,7 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man 
 
 # Datensätze
 
-### Upload von neuen Dateien
+## Upload von neuen Dateien
 
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert.
@@ -113,18 +113,18 @@ Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung
 -   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
-### Input Advance-Tickets
+## Input Advance-Tickets
 
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und und können mittels drag&drop abgespeichert werden. Die Dateien sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** zu finden.
 
-#### Eintritte
+### Eintritte
 
 **Eintritte ID??.txt**\
 Copy paste von html für jede Vorführung, die ID ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
-#### Kiosk
+### Kiosk
 
 **Kiosk ID??.txt**\
 Copy paste von html für jede Vorführung, die **ID** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen\
@@ -134,23 +134,23 @@ Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierki
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt") oder über GUI hochladen.
 
 
-#### Gutscheine und Abos
+### Gutscheine und Abos
 
-##### Abos
+#### Abos
 
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt**\
 ![Shows](doc/picts/atelierkino_abo.png)
 
-##### Förderer
+#### Förderer
 
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt**\
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
-##### Gutschein
+#### Gutschein
 
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
