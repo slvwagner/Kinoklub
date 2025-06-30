@@ -597,4 +597,4 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2025 V2.05 Bereits gezeigte Filme im Archiv\
 2025 V2.06 Script running status bar\
 2025 V2.07 Speed up\
-2025 V3.00 SQL Database, FTP file upload, Input Dateien.  
+2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt  
