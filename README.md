@@ -50,7 +50,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       invisible(lapply(packages, library, character.only = TRUE))
     }
     ```
-7.  SQL Passwort \
+7.  User and password setup \
     Windows
     ```         
       setx DB_host "your host name here"
@@ -64,18 +64,22 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     ```         
       setx DB_PASSWORD_KINOKLUB "your password here"
     ```
-    MAC / Linux
+        ```         
+      setx ftp_user "your password here"
     ```
-      export DB_host="your host name here"
+        ```         
+      setx ftp_pw "your password here"
     ```
+    User and password setup \
+    MAC / Linux \
+    Create a file where your you Rstudio installation can be found (User): .Renviron and setup the following system variables:  
     ```
-      export DB_name="your database name here"
-    ```
-    ```
-      export DB_user="your database user name here"
-    ```
-    ```
-      export DB_PASSWORD_KINOKLUB="your password here"
+      DB_host=""
+      DB_name=""
+      DB_user=""
+      DB_PASSWORD_KINOKLUB="
+      "ftp_user=""
+      ftp_pw=""
     ```
 7.  Run this command once in R-Terminal, error MSG can be ignored
     
