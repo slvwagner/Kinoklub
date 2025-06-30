@@ -70,7 +70,7 @@ if(nrow(df_temp2)>0){
 df_temp2 |>
   mutate(Datum = format(Datum, "%d.%m.%Y")
          ) |>
-  knitr::kable()
+  knitr::kable(digits = 2)
 
 ```
 
@@ -79,7 +79,7 @@ df_temp2 <- df_temp2|>
   reframe(`Summe [CHF]` = sum(`Verleiherabzug [CHF]`, na.rm = T))
 
 df_temp2|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 
@@ -96,7 +96,8 @@ df_temp <- l_abrechnung|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Zeit = paste0(lubridate::hour(Zeit), ":", 
                          lubridate::minute(Zeit) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                         )
+                         ),
+         `Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
         )|>
   select(Datum, Datum_display, Filmtitel, `Suisavorabzug [CHF]`)
 ```
@@ -171,7 +172,7 @@ df_temp1|>
 ```
 
 
-#### Differenz
+### Gewinn / Verlust
 
 ```{r}
 df_temp <- l_abrechnung|>   
@@ -368,7 +369,7 @@ EinkaufGetränke|>
 ```
 
 
-#### Einkauf Kino
+#### Einkauf Kiosk
 ```{r echo=FALSE}
 
 EinkaufKino <- Ausgaben|>
