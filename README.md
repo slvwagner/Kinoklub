@@ -2,13 +2,7 @@ Script Version: V3.00
  
 # Kinoklub
 
-Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
-Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
-
-```         
-source("GUI.R")
-```
-
+Shiny app zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
 \
 Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 <https://github.com/slvwagner/Kinoklub/issues>\
