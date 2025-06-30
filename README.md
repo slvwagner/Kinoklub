@@ -64,12 +64,10 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     ```         
       setx DB_PASSWORD_KINOKLUB "your password here"
     ```
-        ```         
+    ```         
       setx ftp_user "your password here"
     ```
-        ```         
-      setx ftp_pw "your password here"
-    ```
+    setx ftp_pw "your password here"
     User and password setup \
     MAC / Linux \
     Create a file where your you Rstudio installation can be found (User): .Renviron and setup the following system variables:  
