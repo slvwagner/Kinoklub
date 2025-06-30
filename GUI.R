@@ -1523,7 +1523,6 @@ server <- function(input, output, session) {
     
   ## file Upload handler #####
   file_data <- shiny::reactive({
-    
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
