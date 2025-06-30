@@ -599,21 +599,28 @@ df_temp <-  l_abrechnung|>
          # `SUISA-Abzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
          # `Verleiher-Abzug [CHF]` = round(`Verleiherrechnungsbetrag [CHF]`,2)
          )|>
-  select(Datum, Datum_display, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`MWST [CHF]`,`Verleiherrechnungsbetrag [CHF]`)|>
+  select(`Event ID`, Datum, Datum_display, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`MWST [CHF]`,`Verleiherrechnungsbetrag [CHF]`)|>
   arrange(desc(Datum))
+```
+
+
+```{r echo=FALSE}
+df_temp <- df_temp|>
+  mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2), 
+         `MWST [CHF]` = round(`MWST [CHF]`,2))
 ```
 
 
 ```{r echo=FALSE}
 df_temp|>
   DT::datatable(
-    df_temp,
+    rownames = FALSE,
     options = list(columnDefs = list(
       # list(targets = 3,visible = F),
       list(targets = 1, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-    )),
-    colnames = c(Datum = "Datum_display")
+      list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
+      )),
+      colnames = c(Datum = "Datum_display")
   )
 ```
 
@@ -670,10 +677,13 @@ df_temp <- l_abrechnung|>
   bind_rows()|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
+  select(`Event ID`, Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
+```
 
+
+```{r echo=FALSE}
 df_temp <- df_temp|>
-  mutate(`Kiosk Gewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`))
+  mutate(`Kioskgewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`))
 
 ```
 
@@ -682,10 +692,11 @@ df_temp <- df_temp|>
 df_temp|>
     DT::datatable(
     df_temp,
+    rownames = FALSE,
     options = list(columnDefs = list(
       # list(targets = 3,visible = F),
       list(targets = 1, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+      list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
     )),
     colnames = c(Datum = "Datum_display")
   )
@@ -694,7 +705,7 @@ df_temp|>
 ```{r echo=FALSE}
 df_temp|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-          `Kiosk Gewinn [CHF]` = sum(`Kiosk Gewinn [CHF]`)
+          `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`)
           )|>
   knitr::kable()
 
@@ -729,7 +740,7 @@ if(nrow(df_temp)>1){
 ```
 
 ```{r}
-df_temp <- m|>
+m <- m|>
   filter(value)|>
   bind_cols(df_temp)|>
   select(-value)|>
@@ -738,7 +749,7 @@ df_temp <- m|>
     weekday = factor(weekday, levels = german_weekdays)
   ) |>
   group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Kiosk Gewinn [CHF]`) / n(),
+  reframe(d_gewinn = sum(`Kioskgewinn [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
           )|> 
   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
@@ -746,7 +757,7 @@ df_temp <- m|>
 ```
 
 ```{r fig.width=10}
-df_temp|>
+m|>
   mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
   ggplot(aes(weekday, `Time Range`))+
   geom_point(size = 20, color = "grey30" )+
@@ -761,19 +772,17 @@ df_temp|>
 
 ### Prognose
 ```{r }
-df_temp <- left_join(
-  df_Kiosk,
-  Programm|>
-    select(`Event ID`, Datum),
-  by = join_by(`Event ID`)
-  )|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr )|>
-    mutate(cumsum = cumsum(`Gewinn [CHF]`))
+df_temp <- df_temp|>
+  arrange(`Event ID`)|>
+  mutate(cumsum = cumsum(`Kioskgewinn [CHF]`))
+```
 
-if((df_temp$`Gewinn [CHF]`|>mean(na.rm = TRUE)) > (df_temp$`Gewinn [CHF]`|>median(na.rm = TRUE))){
-  gewinn <- df_temp$`Gewinn [CHF]`|>median(na.rm = TRUE)
+
+```{r }
+if((df_temp$`Kioskgewinn [CHF]`|>mean(na.rm = TRUE)) > (df_temp$`Kioskgewinn [CHF]`|>median(na.rm = TRUE))){
+  gewinn <- df_temp$`Kioskgewinn [CHF]`|>median(na.rm = TRUE)
 }else{
-  gewinn <- df_temp$`Gewinn [CHF]`|>mean(na.rm = TRUE)
+  gewinn <- df_temp$`Kioskgewinn [CHF]`|>mean(na.rm = TRUE)
 }
 
 s <- (gewinn * shows_per_year)/365
