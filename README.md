@@ -40,8 +40,8 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
     # Define libraries to be installed
     packages <- c(
       "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-      "lubridate",  "DT", "magick",  "webshot",  "xml2",  "furrr", "future", "processx",
-      "shiny",  "shinyBS", "shinyjs", "viridis", "colorspace"
+      "lubridate",  "DT",   "furrr", "future", "processx",
+      "shiny", "shinyjs", "viridis", "colorspace"
     )
     # Install packages not yet installed
     installed_packages <- packages %in% rownames(installed.packages())
@@ -78,18 +78,13 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       DB_name=""
       DB_user=""
       DB_PASSWORD_KINOKLUB="
-      "ftp_user=""
+      ftp_user=""
       ftp_pw=""
-    ```
-7.  Run this command once in R-Terminal, error MSG can be ignored
-    
-    ```         
-        webshot::install_phantomjs()
     ```
 
 ## Run the Appliction
 
-Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5000/>
+Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5003/>
 
 ```         
     source("GUI.R")
@@ -102,42 +97,34 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man 
 
 ## Datensätze
 
-### Upload von neuen Dateine
+### Upload von neuen Dateien
 
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert.
 
--   "xlsx" Dateien werden im Verzeichniss ".../Kinoklub/Input/" gespeichert.
 -   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
 ### Input Advance-Tickets
 
-Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** abzuspeichern.
+Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und und können mittels drag&drop abgespeichert werden. Die Dateien sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** zu finden.
 
 #### Eintritte
 
-**Eintritte Suisanummer Datum.txt**\
-Copy paste von html für jede Vorführung und Suisanummer: Bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+**Eintritte ID??.txt**\
+Copy paste von html für jede Vorführung, die ID ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
 #### Kiosk
 
-**Kiosk Suisanummer Datum.txt**\
-Copy paste von html für jede Vorführung und Suisanummer: Bitte speichern unter "input/advance tickets/Kiosk xxxx.xxx xx.xx.xx.txt". oder über GUI hochladen\
+**Kiosk ID??.txt**\
+Copy paste von html für jede Vorführung, die **ID** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/picts/Kiosk.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt") oder über GUI hochladen.
 
-#### Shows
-
-**Shows.txt**\
-Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "Input/advance tickets/Shows.txt"\
-Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
-Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
-![Shows](doc/picts/shows.png)
 
 #### Gutscheine und Abos
 
@@ -164,32 +151,30 @@ Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Inpu
 
 ### Input Dateien
 
-Alle Input Dateien können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung muss gespeichert und die Daten im Gui "Daten einlesen" neu eingelesen werden. 
+Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten" 
 
 #### Spezialpreise Kiosk
 
-In der Datei **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
-
--   Für jeden gezeigten Film muss ein Datum definiert sein.
--   Für jeden gezeigten Film muss eine Suisanummer definiert sein.
+In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
 \
-Datum und Suisanummer sind nötig um die Zuweisung der "Spezialartikel"
+Die Zuweisung erfolgt über die `Event ID`.
 
 -   Spez 1
 -   Spez 2
 -   Spez 3
 -   Spez 4
+-   Spez 4
+-   Keine Kioskverkäufe
 
-vorzunehmen.
 
 #### Verleiherabgaben
 
-Die Input Datei **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu berechnen.\
+Die Tabelle **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu berechnen.\
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
--   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf beiden Daten zu verteilen. Die Verteilung wird prozentual zu den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt .
--   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
+-   Mit dem "Link Datum" ist es möglich gemeinsam mit einem weiteren `Event ID` oder weiteren `Event IDs` abzurechnen.
+-   In der Spalte **Verleiherabgaben** muss der **`minimal Abzug [CHF]`** sowie **`Abzug %`** oder nur der **`Abzug fix [CHF]` [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
