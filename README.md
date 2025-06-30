@@ -31,7 +31,6 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
     ```         
     # Define libraries to be installed
-    # Define libraries to be installed
     packages <- c(
       "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
       "lubridate",  "DT",   "furrr", "future", "processx",
@@ -75,6 +74,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       ftp_user=""
       ftp_pw=""
     ```
+
 ## Git Passwort / Personal Access Token (PAT)
 
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
@@ -107,18 +107,18 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 ### Eintritte
 
 **Eintritte ID??.txt**\
-Copy paste von html für jede Vorführung, die ID ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
 ### Kiosk
 
 **Kiosk ID??.txt**\
-Copy paste von html für jede Vorführung, die **ID** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen\
+Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen.\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
-Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
+Spalte 1: Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/picts/Kiosk.png)\
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt") oder über GUI hochladen.
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk ID???.txt") oder über GUI hochladen.
 
 
 ### Gutscheine und Abos
@@ -157,13 +157,17 @@ Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst 
 
 -   Für jeden gezeigten Film muss ein Datum und einen Zeit definiert werde.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
--   Mit dem "Link Datum" ist es möglich gemeinsam mit einem weiteren `Event ID` oder weiteren `Event IDs` abzurechnen.
--   In der Spalte **Verleiherabgaben** muss der **"minimal Abzug [CHF]"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
--   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
+-   Ist kein Suisanummer vorhanden z.B. weil es nur einen Ausländischen verleiher gibt kann die Suisanummer die von Advanced-Tickets erzeugt wird verwendet werden. 
+-   Mit der Spalte **"Link to Event ID"** ist es möglich gemeinsam mit weitere(n) `Event ID(s)` abzurechnen.\
+    Es wird nur noch für die erste **"Event ID"** ein Bericht erstellt. Es werden alle Einahmen und Ausgaben zusammengefasst für diesen Bericht. 
+-   Es muss der **"minimal Abzug [CHF]"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
+-   In der Tabelle Dropdowns Verleiher Spalte **Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
 ### Einsatzplan
+Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder können sich selbständig eintragen. 
+Welche Funktion die Kinoklubmitglieder belegen dürfen ist in der Tabelle Dropdowns Kinoklubmitglieder definiert. 
 
 ### Einnahmen
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle weiteren Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
