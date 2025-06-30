@@ -302,35 +302,6 @@ In der Tabelle Dropdowns **MWST**
 muss der MWST-Satz für jedes Jahr festgelegt werden. 
 
 # Berichete erstellen
-## WordPress Filmvorschläge auswerten
-
-Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
-
-```         
-.../Kinoklub/output/data/Filmvorschläge.xlsx
-```
-
-## Archiv
-
-Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. \
-Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
-
-## Benutzereinstellungen
-
-Die Datei **"user_settings.R"** enthält die Benutzereinstellungen.
-
-### Sommerpause
-
-Wiel lange dauer die Sommerpause?\
-Im file user_settings.R kann die sommerpause definiert werden:\
-`Sommerpause <- 65 #Tage`
-
-## Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
-
-Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
-Falls die "Kinoförderer gratis" == FALSE werden die Tabelle Dropdowns **Platzkategorien zum Verrechnen** verwendet um die Verleiherabrechnung zu erstellen. 
-
-# Berichte
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
@@ -533,6 +504,38 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Umsatz pro zahlender Gast
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
+
+
+## WordPress Filmvorschläge auswerten
+
+Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
+
+```         
+.../Kinoklub/output/data/Filmvorschläge.xlsx
+```
+
+## Archiv
+
+Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. \
+Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
+
+# Benutzereinstellungen
+
+Die Datei **"user_settings.R"** enthält die Benutzereinstellungen.
+
+### Sommerpause
+
+Wiel lange dauer die Sommerpause?\
+Im file user_settings.R kann die sommerpause definiert werden:\
+`Sommerpause <- 65 #Tage`
+
+## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
+
+Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
+Falls die "Kinoförderer gratis" == FALSE werden die Tabelle Dropdowns **Platzkategorien zum Verrechnen** verwendet um die Verleiherabrechnung zu erstellen. 
+
+
+
 
 # Daten als Excel-Datei
 
