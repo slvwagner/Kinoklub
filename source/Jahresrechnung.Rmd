@@ -13,11 +13,9 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 
 Bericht wurde am `r act_date` erstellt.
 
-## Filmvorführungen
+## Tickets
 
-### Eintritte
-
-### Einnahmen Ticketverkauf
+### Einnahmen 
 ```{r}
 df_temp <- df_Eintritt|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
@@ -43,7 +41,7 @@ df_temp|>
 ```
 
 
-### Abgaben Ticketverkauf
+### Ausgaben
 
 #### Keine Verleiherabrechnung vorhanden
 ```{r}
@@ -80,6 +78,58 @@ df_temp2 <- df_temp2|>
 
 df_temp2|>
   knitr::kable(digits = 2)
+```
+
+#### Verleiherrechnungen
+
+```{r}
+df_temp1 <- Ausgaben|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  filter(Kategorie == "Verleiher")|>
+  arrange(desc(Datum))|>
+  mutate(`Event ID` = as.integer(`Event ID`))
+```
+
+
+```{r}
+df_temp1 <- left_join(df_temp1,
+          Programm|>
+            select(-Datum),
+          by = c(`Event ID` = "Event ID")
+          )
+```
+
+
+```{r}
+df_temp1 <- df_temp1|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(ID,`Event ID`,Datum, Abrechnungsjahr,Datum_display,Bezeichnung, `Betrag [CHF]`)|>
+  rename(`Betrag [CHF]` = `Betrag [CHF]`)|>
+  arrange(`Event ID`)
+```
+
+
+```{r}
+DT::datatable(
+  df_temp1,
+  rownames = FALSE,
+  options = list(
+    columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 2, visible = FALSE),  # Hide the 'Datum' column
+      list(targets = 3, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
+      )
+    ),
+  colnames = c(Datum = "Datum_display")
+  )
+```
+
+```{r}
+df_temp1 <- df_temp1|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+
+df_temp1|>
+  knitr::kable()
 ```
 
 
@@ -123,53 +173,6 @@ df_temp|>
   knitr::kable()
 ```
 
-#### Verleiherrechnungen
-
-```{r}
-df_temp1 <- Ausgaben|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  filter(Kategorie == "Verleiher")|>
-  arrange(desc(Datum))|>
-  mutate(`Event ID` = as.integer(`Event ID`))|>
-  left_join(l_abrechnung|>   
-        lapply(function(x){     
-          x$Abrechnung   
-          })|>
-        bind_rows(),
-            by = join_by(`Event ID`))|>
-  rename(Datum = Datum.x)
-
-```
-
-
-```{r}
-df_temp1 <- df_temp1|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, Datum_display, `Suisanummer`,Bezeichnung, `Betrag [CHF]`)|>
-  rename(`Betrag [CHF]` = `Betrag [CHF]`)
-```
-
-
-```{r}
-DT::datatable(df_temp1,
-          options = list(
-            columnDefs = list(
-              # list(targets = 3,visible = F),
-              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
-)
-```
-
-```{r}
-df_temp1 <- df_temp1|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
-
-df_temp1|>
-  knitr::kable()
-```
 
 
 ### Gewinn / Verlust
@@ -803,13 +806,12 @@ df_temp|>
 ```{r echo=FALSE}
 df_temp1 <- Ausgaben|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  filter(Kategorie == "Personalaufwand")
+  filter(Kategorie == "Sonstiges")
 
 if(nrow(df_temp1) > 0){
   df_temp1 <- df_temp1|>
     select(Datum, Bezeichnung,`Betrag [CHF]`)|>
     arrange(Datum)|>
-    arrange(Datum)|>   
     mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
   
   df_temp1|>
