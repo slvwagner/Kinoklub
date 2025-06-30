@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 35
+ii <- 49
 ```
 
 
@@ -86,16 +86,20 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-df_temp|>
+Besucherzahlen <- df_temp|>
   group_by(Zahlend)|>
-  reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
-  knitr::kable(digits = 2)
+  reframe(`Summe` = sum(Besucherzahl, na.rm = T))
+```
 
+
+```{r echo=FALSE}
+Besucherzahlen|>
+  knitr::kable(digits = 2)
 ```
 
 ```{r}
-df_temp|>
-  reframe(`Summe` = sum(Besucherzahl, na.rm = T))|>
+Besucherzahlen|>
+  reframe(`Summe` = sum(Summe, na.rm = T))|>
   knitr::kable(digits = 2)
 ```
 
@@ -205,7 +209,7 @@ c_suisa_vorabzug <- c_Umsatz_Kinoförderer * df_temp$`SUISA-Vorabzug [%]` / 100
 ```
 
 
-### Ticket Gewinn / Verlust
+### Gewinn / Verlust
 ```{r}
 if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
   if(df_temp$`Kinoförderer gratis?`){
@@ -343,8 +347,13 @@ Gewinn_Kiosk|>
 
 ### Spezialartikel
 ```{r}
-Spezialpreise <- l_abrechnung[[as.character(ii)]]$df_spezpreise
+Spezialpreise <- l_abrechnung[[as.character(ii)]]$df_spezpreise|>
+  mutate(`Einzelpreis [CHF]` = `Umsatz [CHF]` / Anzahl)|>
+  select("Artikel-Kassensystem", "Artikelname", "Anzahl", "Einzelpreis [CHF]", "Umsatz [CHF]")
+```
 
+
+```{r}
 Spezialpreise|>
     knitr::kable(digits = 2)
 
@@ -383,7 +392,17 @@ if(df_temp|>nrow() > 0){
 }
 ```
 
-
+### Umsatz pro Gast
+```{r}
+Besucherzahlen|>
+  mutate(Zahlend = if_else(Zahlend == "ja",T,F))|>
+  filter(Zahlend)|>
+  mutate(`Umsatz pro zahlender Gast [CHF]` = 
+           (Spezialpreise$`Summe [CHF]` + sum(Kiosk$`Umsatz [CHF]`, na.rm = TRUE)) / Summe
+         )|>
+  select(-Zahlend, -Summe)|>
+  knitr::kable(digits = 2)
+```
 
 
 ### Eventausgaben
