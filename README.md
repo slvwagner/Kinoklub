@@ -174,14 +174,14 @@ Die Tabelle **Verleiherabgaben** wird genutzt um die Abgaben an den Verleiher zu
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Mit dem "Link Datum" ist es möglich gemeinsam mit einem weiteren `Event ID` oder weiteren `Event IDs` abzurechnen.
--   In der Spalte **Verleiherabgaben** muss der **`minimal Abzug [CHF]`** sowie **`Abzug %`** oder nur der **`Abzug fix [CHF]` [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
+-   In der Spalte **Verleiherabgaben** muss der **"minimal Abzug [CHF]"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
 #### Einnahmen
 
-Alle Ausgaben müssen in der Datei **Ausgaben** definiert werden. Ja nach **Ausgabentyp** muss eine **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle Einnahmen die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle weiteren Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
 -   Kurze Erklärung der **Spaltennamen**
     -   **Kategorie**\
