@@ -29,7 +29,11 @@ c(paste0("Script Version: ",c_script_version, collapse = ""),
 # Create TOC for Dokumentation
 source("source/functions.R")
 
-readLines("doc/README.Rmd")|>
+# Html
+r_toc_for_Rmd(readLines("doc/README.Rmd"),
+              toc_heading_string = "Inhaltsverzeichnis",
+              pagebreak_level = "1",
+              create_nb = T)|>
   writeLines("README.Rmd")
 
 rmarkdown::render(input = paste0("README.Rmd"),
@@ -37,10 +41,10 @@ rmarkdown::render(input = paste0("README.Rmd"),
                   output_dir  = "doc/",
                   output_file = "Dokumentation.html")
 
-r_toc_for_Rmd(readLines("doc/README.Rmd"),
-              toc_heading_string = "Inhaltsverzeichnis",
-              pagebreak_level = "1",
-              create_nb = T)|>
+
+
+# PDF
+readLines("doc/README.Rmd")|>
   writeLines("README.Rmd")
 
 rmarkdown::render(input = paste0("README.Rmd"),
