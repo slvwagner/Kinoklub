@@ -227,13 +227,13 @@ Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **
     -   **Adresse** Rechnungsteller
     -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung 
--   In der Datei **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+-   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 
 #### Ausgaben
 
-Alle Ausgaben müssen in der Datei **Ausgaben** definiert werden.\
-Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. In der Datei **Ausgaben** werden alle Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
+Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
+Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
     
 -   Kurze Erklärung der **Spaltennamen**
     -   **Kategorie**\
@@ -269,19 +269,19 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
     -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
     -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
     -   **Buchungskonto** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
--   In der Datei **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+-   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 #### Einkauf Kiosk
-In der Datei **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
+In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel. \
 Die Einkaufspreise die ab einem bestimmten Datum gültig sind. \
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über eine Abrechnungsperiode ändern können. Der Gewinn pro Kioskverkaufsartikel kann sich demnach über die Abrechnungsperiode ändern. \
 
--   Achtung!\
-    Die alten Dateien dürfen nicht gelöscht werden.
+-   Achtung\
+    Die alten datensätze dürfen nicht gelöscht werden!
 
 #### Mehrwertsteuersatz
 
-In der Datei **Einkauf Kiosk** 
+In der Tabelle **Einkauf Kiosk** 
 c_MWST \<- 8.1 #%
 
 #### WordPress Filmvorschläge auswerten
