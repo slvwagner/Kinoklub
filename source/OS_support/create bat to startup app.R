@@ -33,20 +33,32 @@ if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
   message("Systemvarible `Kinoklub_wd` wurde erstellt.")
 }
 
-r_wd <- paste0(r_wd, "/Start_Input_data_edit.R")|>
+r_file <- paste0(r_wd, "/Start_Input_data_edit.R")|>
   r_win_path()
-r_wd
+r_file
 
-r_wd|>
+c_raw <- readLines("source/OS_support/Kinoklub.template")
+c_raw
+
+
+c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
+c_raw
+
+writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
+message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub_input.bat` wurde erstellt.")
+
+
+r_file <- paste0(r_wd, "/Start_GUI.R")|>
   r_win_path()
 r_wd
 
 c_raw <- readLines("source/OS_support/Kinoklub.template")
 c_raw
 
-
-c_raw[3] <- paste0("\"",r_exe,"\""," ","\"", r_wd, "\"")
+c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
 c_raw
 
-writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
-message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub.bat` wurde erstellt.")
+writeLines(c_raw, "source/OS_support/Kinoklub_GUI.bat")
+message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub_GUI.bat` wurde erstellt.")
+
+

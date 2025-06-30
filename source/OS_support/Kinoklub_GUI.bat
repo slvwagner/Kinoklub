@@ -2,7 +2,7 @@
 echo Starting Kinoklub Shiny app...
 :: Set the path to Pandoc used by RStudio Quarto
 set "RSTUDIO_PANDOC=C:\Program Files\RStudio\resources\app\bin\quarto\bin\tools"
-"C:\Program Files\R\R-4.5.0\bin\x64\Rscript.exe" "Z:\R Packages\Kinoklub\Start_Input_data_edit.R"
+"C:\Program Files\R\R-4.5.0\bin\x64\Rscript.exe" "Z:\R Packages\Kinoklub\Start_GUI.R"
 echo.
 echo App has exited. Press any key to close.
 pause
