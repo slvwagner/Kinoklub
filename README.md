@@ -330,8 +330,6 @@ Wiel lange dauer die Sommerpause?\
 
 sommerpause \<- 65 \# Tage
 
-
-
 ## Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
@@ -346,7 +344,8 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 -   Es wird eine Statistik mit Porgnosen erstellt.
 -   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
-### Abrechnung Filmvorführung
+
+## Abrechnung Filmvorführung
 
 Es wird eine Filmabrechnung pro Event ID erstellt.
 
@@ -402,7 +401,7 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
 -   Gewinn / Verlust\
     Summe aus Einnahmen und Ausgaben
 
-#### Berechnung der prozentuallen Abgaben
+### Berechnung der prozentuallen Abgaben
 
 -   Verleiherrechnung noch nicht vorhanden
     -   Umsatz:\
@@ -429,7 +428,7 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
     -   Gewinn / Verlust:\
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
-#### Berechnung der Fixen Abgaben
+### Berechnung der Fixen Abgaben
 
 -   Verleiherrechnung noch nicht vorhanden
     -   Umsatz:\
@@ -452,7 +451,7 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
     -   Gewinn / Verlust:\
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
-### Jahresabrechnungen
+## Jahresabrechnungen
 
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
@@ -506,7 +505,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben\
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
-### Statistik
+## Statistik
 
 -   Gewinn/Verlust
     -   Prognose\
@@ -540,7 +539,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
-### Daten als Excel-Datei
+## Daten als Excel-Datei
 
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 
@@ -554,7 +553,7 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 .../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
-## Versionshistorie
+# Versionshistorie
 
 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
