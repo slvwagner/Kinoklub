@@ -75,8 +75,12 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
       ftp_user=""
       ftp_pw=""
     ```
+## Git Passwort / Personal Access Token (PAT)
 
-# Run the Appliction
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
+![](doc/picts/PAT.png)
+
+## Run the Appliction
 
 Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5003/>
 
@@ -84,10 +88,7 @@ Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse
     source("GUI.R")
 ```
 
-## Git Passwort / Personal Access Token (PAT)
 
-Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
-![](doc/picts/PAT.png)
 
 # Datensätze
 
@@ -533,7 +534,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
-## Daten als Excel-Datei
+# Daten als Excel-Datei
 
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 
