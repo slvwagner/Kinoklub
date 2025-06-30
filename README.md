@@ -301,7 +301,7 @@ Spezialpeise die Ausgewählt werden können.
 In der Tabelle Dropdowns **MWST** 
 muss der MWST-Satz für jedes Jahr festgelegt werden. 
 
-# GUI Berichete erstellen
+# Berichete erstellen
 ## WordPress Filmvorschläge auswerten
 
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
@@ -322,8 +322,8 @@ Die Datei **"user_settings.R"** enthält die Benutzereinstellungen.
 ### Sommerpause
 
 Wiel lange dauer die Sommerpause?\
-
-sommerpause \<- 65 \# Tage
+Im file user_settings.R kann die sommerpause definiert werden:\
+`Sommerpause <- 65 #Tage`
 
 ## Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
 

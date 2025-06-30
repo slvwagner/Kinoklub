@@ -41,6 +41,11 @@ rmarkdown::render(input = paste0("README.Rmd"),
                   output_dir  = "doc/",
                   output_file = "Dokumentation.html")
 
+# word
+# rmarkdown::render(input = paste0("README.Rmd"),
+#                   output_format = "word_document",
+#                   output_dir  = "doc/",
+#                   output_file = "Dokumentation.docx")
 
 
 # PDF
@@ -51,12 +56,5 @@ rmarkdown::render(input = paste0("README.Rmd"),
                   output_format = "pdf_document",
                   output_dir  = "doc/",
                   output_file = "Dokumentation.pdf")
-
-
-
-# rmarkdown::render(input = paste0("README.Rmd"),
-#                   output_format = "word_document",
-#                   output_dir  = "doc/",
-#                   output_file = "Dokumentation.docx")
 
 file.remove("README.Rmd")
