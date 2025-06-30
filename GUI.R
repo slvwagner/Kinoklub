@@ -682,8 +682,6 @@ server <- function(input, output, session) {
     file_exists_archiv <- shiny::reactiveVal(FALSE)
   })
 
-  
-
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
   End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
