@@ -184,80 +184,98 @@ Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder könne
 Welche Funktion die Kinoklubmitglieder belegen dürfen ist in der Tabelle Dropdowns Kinoklubmitglieder definiert. 
 
 ### Einnahmen
-Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. Im **Einnahmen** werden alle weiteren Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten. \
+In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
--   Kurze Erklärung der **Spaltennamen**
+-   Erklärung der **Spaltennamen**
+    -   **ID**\
+        Fortlaufendenummer (automatisch erzeugt)
     -   **Kategorie**\
         Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
         -   Event\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. 
+            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein. \
+            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
         -   Kiosk\
             Ausgaben für den Einkauf des Kino-Kiosks
         -   Personalaufwand\
             Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Sonstiges\
-            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
         -   Verleiher\
-            Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
+            Rechnungen vom Filmverleiher\
+            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
         -   Vermietung\
-            Einnahmen 
+            Einnahmen durch die Vermietung
         -   Werbung\
             Werbeeinnahmen z.B. Kinoweischer
+        -   Sonstiges\
+            Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen werden können.            
     -   **Bezeichnung**\
         Umschreibung der Buchung
+    -   **Event ID**\
+        Zu welcher Filmvorführung gehört diese Buchung?\
+        Das ist wichtig für die Kategorie Event und Verleiher, siehe oben. 
     -   **Datum**\
-        Für die Event und Verleiher wird das Datum und die Suisanummer verwendet um die zuweisung auf die betreffende Filmvorführung vorzunehmen benötigt.
-    -   **Suisanummer** \
-        Für die Event und Verleiher wird das Datum und die Suisanummer verwendet um die zuweisung auf die betreffende Filmvorführung vorzunehmen benötigt.
+        Buchungsdatum
+    -   **Abrechnungsjahr**\
+        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
     -   **Betrag**\
-        Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
+        Betrag in [CHF]
     -   **Firmenname**\
-        Name der rechnugsstellenden Firma oder jene deren ein Betrag ausbezahlt werden muss.
-    -   **Adresse** Rechnungsteller
-    -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung 
+        Name der rechnugsstellenden Firma oder oder Person and die der Betrag ausbezahlt werden muss.
+    -   **Adresse**\
+        Rechnungsteller
+    -   **Rechnungsnummer**\
+        Rechnungsnummer des Rechnungsstellers
+    -   **Buchungskonto**\
+        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung 
 -   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 
 ### Ausgaben
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
-Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht aus den Advanced Tickets Daten extrahiert werden können. Für jede Buchung muss einen Kategorie (Buchhaltungskonto) ausgewählt werden.
+Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten. \
+In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können. 
     
--   Kurze Erklärung der **Spaltennamen**
+-   Erklärung der **Spaltennamen**
+    -   **ID**\
+        Fortlaufendenummer (automatisch erzeugt)
     -   **Kategorie**\
         Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   Event\
+        -   **Event**\
             Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden. 
-        -   Kiosk\
+        -   **Kiosk**\
             Ausgaben für den Einkauf des Kino-Kiosks
-        -   Personalaufwand\
+        -   **Personalaufwand**\
             Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Sonstiges\
+        -   **Sonstiges**\
             Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
-        -   Verleiher\
+        -   **Verleiher**\
             Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
-        -   Vermietung\
+        -   **Vermietung**\
             Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
-        -   Werbung\
+        -   **Werbung**\
             Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
-    -   **Spieldatum**\
-        Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben die sich nicht auf ein spezifisches Datum respektive Suisanummer beziehen, kann dieses Feld leer gelassen werden. 
-    -   **Suisanummer** \
-        Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+    -   **Event ID**\
+        Wird die Kategorie Event oder Verleiher ausgewählt muss hier die **"Event ID"** des Films dazugehörigen Films eingetragen werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen werden. Bei Ausgaben die sich nicht auf ein spezifische **"Event ID"** beziehen, muss dieses Feld leer gelassen werden. Diese Ausgaben werden nur in der Jahresabrechnung berücksichtigt.  
     -   **Bezeichnung**\
         Umschreibung der Buchung
     -   **Datum**\
         Datum der Rechnung/Buchung. 
+    -   **Abrechnungsjahr**\
+        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
     -   **Betrag**\
-        Betrag der Buchung WICHTIG: Das Format der Zelle muss beibehalten werden.
+        Betrag [CHF]
     -   **Firmenname**\
-        Name der rechnugsstellenden Firma oder bei Spesen der Name an welchen die Spesen ausbezahlt werden müssen.
-    -   **Adresse** Rechnungsteller
-    -   **Referenz** Referenznummer der Rechnung
-    -   **Rechnungsnummer** Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto** Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
-    -   **Buchungskonto** Buchungskonto Name in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen
--   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+        Firmenname oder Person des Rechnungstellers an welchen der **Betrag** ausbezahlt werden muss.
+    -   **Adresse** \
+        Rechnungsteller
+    -   **Referenz** \
+        Referenznummer der Rechnung
+    -   **Rechnungsnummer** \
+        Rechnungsnummer des Rechnungsstellers
+    -   **Buchungskonto** \
+        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
+
+        
 
 ### Spezialpreise Kiosk
 
