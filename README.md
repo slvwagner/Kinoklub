@@ -267,8 +267,8 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 
 #### Mehrwertsteuersatz
 
-In der Tabelle **Einkauf Kiosk** 
-c_MWST \<- 8.1 #%
+In der Tabelle Dropdowns **MWST** 
+muss der MWST-Satz für jedes Jahr festgelegt werden. 
 
 #### WordPress Filmvorschläge auswerten
 
@@ -280,7 +280,8 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 
 #### Archiv
 
-Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. Die Datei muss so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
+Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. \
+Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
 
 ## Benutzereinstellungen
 
@@ -296,19 +297,9 @@ sommerpause \<- 65 \# Tage
 
 ### Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
 
-Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Defintion findet sich in der Datei "Verleiherabgaben.xlsx" TAB "Kinoförderer gratis".\
-Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz zusätzlich verrechnet werden und zu welchem Preis.\
-`df_P_kat_verechnen` \<- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkarte"), Verkaufspreis = c(13,13)).
+Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
+Falls die "Kinoförderer gratis" == FALSE werden die Tabelle Dropdowns **Platzkategorien zum Verrechnen** verwendet um die Verleiherabrechnung zu erstellen. 
 
-### Ausgabeformate
-
--   `c_render_option` \<- "1" only html
--   `c_render_option` \<- "2" only docx
--   `c_render_option` \<- "3" only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
--   `c_render_option` \<- "4" html and docx
--   `c_render_option` \<- "5" html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
--   `c_render_option` \<- "6" docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
--   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 
 ## Berichte
 
@@ -321,7 +312,7 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 
 ### Abrechnung Filmvorführung
 
-Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
+Es wird eine Filmabrechnung pro Event ID erstellt.
 
 -   Übericht
 -   Filmvorführung
@@ -329,12 +320,11 @@ Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
         -   Filmabgaben
 
         -   Verleiherrechnung\
-            In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
-            wird die Kategorie **Verleiher** berücksichtigt.
+            In der Tabelle Inputdaten **Ausgaben** wird die Kategorie **Verleiher** berücksichtigt.
 
         -   Prozentualle Abgaben\
             Der Suisaabzug wird vom Umsatz berechnet.\
-            In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert.\
+            In der Tabelle Inputdaten **Programm** sind **Abzug [%]**, **Minimal Abzug [CHF]** oder **Abzug fix [CHF]** definiert.\
 
             -   Fall 1:\
                 $(N_{etto3} \cdot \frac {A_{bzug}}{100}) > M_{inimalAbzug}$\
@@ -346,9 +336,6 @@ Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
                 "Abzug fix [CHF]"\
                 Verleiherabzug: $A_{bzugFix}$
 
-        -   Reklamematerial und Porto\
-            Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
-
         -   MWST auf Verleiherrechnung\
 
             -   Fall 1:\
@@ -356,18 +343,16 @@ Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
             -   Fall 2:\
                 Vereiherrechnung nicht vorhanden: MWST wird aus dem Umsatz berechnet.
     -   Gewinn / Verlust aus Tickerverkauf\
-        Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
+        Der Gewinn/Verlust wird aus **Umsatz** - (**Suisavorabzug**+**Verleiherabzug**+**MWST**)
 -   Event
     -   Einnahmen
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
-            wird die Kategorie **Vermietung** wird pro Filmabrechnung (Datum) berücksichtigt.
+        -   In der Tabelle Inputdaten **Einnahmen** Kategorie **Event** werden alle Einnahmen für einen Spezifischen Event erfasst. Bitte Event ID korrekt auswählen. 
     -   Ausgaben
-        -   In der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"** in den **Ausgaben**\
+        -   In der Tabelle **Ausgaben**\
             wird die **Eventausgaben** wird pro Filmabrechnung (Spieldatum) berücksichtigt.
 -   Kiosk
     -   Gewinn pro Artikel\
-        In der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"** ist der Gewinn pro Artikel definiert.
-    -   Umsatz Für den Verkaufsartikel gibte es keine Definition in der Datei **".../Kinoklub/input/Einkauf Kiosk xx.xxx.xx.xlsx"**\
+        In der Tabelle **** ist der Gewinn pro Artikel definiert.
     -   Einnahmen\
         Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für Spezialpreise berechnet.
     -   Ausgaben\
@@ -454,10 +439,10 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben
         -   Einkauf Getränke\
             Die Getränke werden von Theater am Bahnhof eingekauft.\
-            Falls in der Datei ".../Kinoklub/input/**Einkauf Kiosk xx.xx.xx.xlsx**" der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben.\
+            Falls in der Tabelle ".../Kinoklub/input/**Einkauf Kiosk xx.xx.xx.xlsx**" der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben.\
             Der Getränkeeinkauf wird mit $A_{nzahl} \cdot E_{inkaufspreis}$ berechnet.
         -   Einkauf Kino\
-            Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei ".../Kinoklub/input/**Einnahmen und Ausgaben.xlsx**" mit Kategorie **Kiosk** definiert.
+            Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Tabelle ".../Kinoklub/input/**Einnahmen und Ausgaben.xlsx**" mit Kategorie **Kiosk** definiert.
 -   Abos / Kinogutscheine
     -   Einnahmen
         -   Abos
