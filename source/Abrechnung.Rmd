@@ -101,7 +101,7 @@ df_temp|>
 
 ### Filmabgaben
 
-Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden.
+Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. 
 
 ```{r echo=FALSE}
 if(r_is.defined(df_keine_Rechnung)){
@@ -140,10 +140,14 @@ Filmabgaben <- l_abrechnung[[as.character(ii)]]$Abrechnung|>
          )|>
   mutate(Datum = format(Datum, "%d.%m.%Y"),
          `Kinoförderer gratis?` = if_else(`Kinoförderer gratis?`, "ja", "nein, müssen mit dem Verleiher abgerechnet werden"))
-Filmabgaben|>
-  select(-`Ticketgewinn [CHF]`, -`Link to Event ID`)|>
-  knitr::kable(digits = 2)
 ```
+
+
+<!-- ```{r} -->
+<!-- Filmabgaben|> -->
+<!--   select(-`Ticketgewinn [CHF]`, -`Link to Event ID`)|> -->
+<!--   knitr::kable(digits = 2) -->
+<!-- ``` -->
 
 ```{r}
 Filmabgaben <- Filmabgaben|>
@@ -157,11 +161,11 @@ Filmabgaben <- Filmabgaben|>
 ```
 
 
-```{r}
-Filmabgaben|>
-  select(-`Summe Ticketgewinn [CHF]`)|>
-  knitr::kable(digits = 2)
-```
+<!-- ```{r} -->
+<!-- Filmabgaben|> -->
+<!--   select(-`Summe Ticketgewinn [CHF]`)|> -->
+<!--   knitr::kable(digits = 2) -->
+<!-- ``` -->
 
 
 ### Abgaben
@@ -174,7 +178,7 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
   abgaben_text <- paste0(
     "Der Suisa-Vorabzug ist **",df_temp$`SUISA-Vorabzug [%]`,"%** des Umsatz. ", 
     "Für diesen Film wurde mit dem Verleiher **", df_temp$Verleiher,", ", df_temp$`Abzug [%]`, "%** des Ticket-Umsatz als Verleiherabgabe verhandelt. ",
-    "Die mindest Garantie an den Verleiher ist im Programm mit **", df_temp$`Minimal Abzug [CHF]`, ".-** definiert worden. ",
+    "Die mindest Garantie an den Verleiher ist **", df_temp$`Minimal Abzug [CHF]`, ".-** [CHF].",
     collapse = ""
   )
 } else {
