@@ -283,20 +283,25 @@ Konvertierer Kioskfiles
 
 ## Dropdowns
 ### Kinoklubmitglieder
+Erfassung aller Kinklubmitglieder mit Skill-Matrix
 
 ### Verleiher
+Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden müssen. 
 
 ### Verleihermapping
-
-### Verleiher mapping
+Zuweisung Procinema Verleihername an Verleiher
 
 ### Lieferanten
+Lieferanten definition
 
 ### Platzkategorien zum Verrechnen
+Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
 
 ### Buchhaltungskonten
+Buchhaltungskonten werden in den Ausgaben verwendet. 
 
 ###  Spezialpreis
+Spezialpeise die Ausgewählt werden können. 
 
 ### MWST
 In der Tabelle Dropdowns **MWST** 
@@ -311,7 +316,7 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 .../Kinoklub/output/data/Filmvorschläge.xlsx
 ```
 
-#### Archiv
+## Archiv
 
 Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt. \
 Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
@@ -328,13 +333,12 @@ sommerpause \<- 65 \# Tage
 
 
 
-### Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
+## Platzkategorien ohne Umsatz die dennoch abgerechnet werden müssen.
 
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
 Falls die "Kinoförderer gratis" == FALSE werden die Tabelle Dropdowns **Platzkategorien zum Verrechnen** verwendet um die Verleiherabrechnung zu erstellen. 
 
-
-## Berichte
+# Berichte
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
