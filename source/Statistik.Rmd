@@ -833,19 +833,30 @@ df_temp|>
 
 
 ```{r}
-df_temp|>
+df_temp1 <-  df_temp|>
   filter(is.na(ID_Spezialpreisekiosk))|>
   # group_by(Artikelname)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
           `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
           )|>
-  arrange(desc(Anzahl))|>
+  arrange(desc(Anzahl))
+
+df_temp1|>
   knitr::kable()
 ```
 
+#### Druchschnittliche Marge
+```{r}
+df_temp1|>
+  mutate(`Durchschnittsmarge [%]` =(`Umsatz [CHF]` / `Gewinn [CHF]`) - 1)|>
+  select(`Durchschnittsmarge [%]`)|>
+  knitr::kable(digits = 2)
+
+```
 
 
+#### Rang
 ```{r fig.height=8, fig.width=10}
 df_plot <-df_temp|>
   group_by(Artikelname)|>
