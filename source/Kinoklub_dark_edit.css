@@ -25,6 +25,12 @@ code {
     opacity: 1;
 }
 
+.input-group .form-control:last-child, .input-group-addon:last-child, .input-group-btn:first-child>.btn-group:not(:first-child)>.btn, .input-group-btn:first-child>.btn:not(:first-child), .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group>.btn, .input-group-btn:last-child>.dropdown-toggle {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background: #fff;
+}
+
 /**/
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
