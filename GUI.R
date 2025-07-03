@@ -136,7 +136,9 @@ DT_language <- list(
 ui <- 
   shiny::fluidPage(
     shiny::tags$head(
-      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css")
+      shiny::tags$link(rel = "stylesheet", type = "text/css", 
+                       href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time()))
+                       )
     ),
     paste("Kinoklub GUI", c_script_version) |>
       shiny::titlePanel(),
