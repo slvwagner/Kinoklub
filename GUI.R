@@ -434,8 +434,7 @@ server <- function(input, output, session) {
     df_temp <- df_temp|>
       select(`Event ID`, `Link to Event ID`, Filmtitel, Datum, Zeit, Suisanummer, Verleiher)
   
-    
-    # Render
+    # Create links and render Datatable
     current_data(df_temp)
     Report_links()
     
@@ -1227,6 +1226,7 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
       
+      # Create links and render Datatable
       Report_links()
       
       # recover message 
@@ -1338,8 +1338,7 @@ server <- function(input, output, session) {
         )
       })
       
-      
-      # update links in table
+      # Create links and render Datatable
       Report_links()
       
       shiny::incProgress(1 / 4, detail = paste("Step", 3, "of 4"))
@@ -2119,7 +2118,7 @@ server <- function(input, output, session) {
           })
         }
       })
-
+      # Create links and render Datatable
       Report_links()
 
     }
