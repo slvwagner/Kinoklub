@@ -4079,18 +4079,20 @@ server <- function(input, output, session) {
           tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, 3)
         }
       },
-      shiny::uiOutput("help_info")
+      if(c_connected_to_db()){
+        shiny::uiOutput("help_info")
+      }
     )
   })
   
 }
 
-shinyApp(ui = ui, server = server)
+# shinyApp(ui = ui, server = server)
  
-# # Run the shiny app ####
-# shiny::runApp(
-#   host = "0.0.0.0",
-#   shiny::shinyApp(ui = ui, server = server),
-#   port = 5001,
-#   launch.browser = TRUE
-# )
+# Run the shiny app ####
+shiny::runApp(
+  host = "0.0.0.0",
+  shiny::shinyApp(ui = ui, server = server),
+  port = 5001,
+  launch.browser = TRUE
+)
