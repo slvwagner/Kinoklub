@@ -92,6 +92,13 @@ a:hover {
   color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
 }
 
+
+.btn-default {
+    color: #a09292;
+    background-color: #423665;
+    border-color: #ccc;
+}
+
 .modal-content {
     position: relative;
     background-color: #023a3a;
@@ -107,7 +114,6 @@ table.dataTable thead input {
 
 input.form-control {
   background-color: #023a3a;
-  color: #ffffff !important;
   border: 1px solid #555;
   padding: 6px 12px;
   font-size: 14px;
