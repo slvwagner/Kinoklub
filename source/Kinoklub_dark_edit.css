@@ -20,6 +20,26 @@ code {
 }
 */
 
+/**/
+a {
+  color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
+  text-decoration: none; /* Optional: Remove the default underline */
+}
+
+a:hover {
+  color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
+}
+
+.btn-default {
+    color: #f4eacc;
+    background-color: #3f2985;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #023a3a;
+}
+
 /*main panel*/
 pre{
   background-color: #330937 !important;
@@ -79,29 +99,6 @@ body {
 }
 .dataTables_scroll {
   width: 100% !important;
-}
-
-
-/**/
-a {
-  color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
-  text-decoration: none; /* Optional: Remove the default underline */
-}
-
-a:hover {
-  color: #4DE1FF; /* Set a different color when the link is hovered over (optional) */
-}
-
-
-.btn-default {
-    color: #a09292;
-    background-color: #423665;
-    border-color: #ccc;
-}
-
-.modal-content {
-    position: relative;
-    background-color: #023a3a;
 }
 
 /* Filter inputs (when filter = "top") */
