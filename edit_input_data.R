@@ -4029,7 +4029,7 @@ server <- function(input, output, session) {
     help_information()
   })
   
-  ## Dynamic UI ####
+  ## Dynamic content output panel ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       if(c_connected_to_db()) {
