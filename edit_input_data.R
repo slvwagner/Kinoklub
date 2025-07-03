@@ -73,7 +73,10 @@ shiny::addResourcePath("custom_styles", "source/www")
 ui <- fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
-    tags$script(src = "https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"),
+    tags$script(src="https://code.jquery.com/ui/1.14.1/jquery-ui.js",
+                integrity="sha256-9zljDKpE/mQxmaR4V2cGVaQ7arF3CcXxarvgr7Sj8Uc=",
+                crossorigin="anonymous"
+                ),
     tags$style(HTML("
       .custom-select .selectize-dropdown-content {
         background-color: #330937;
@@ -186,7 +189,6 @@ ui <- fluidPage(
   
   # Functions
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css"),
     # Initialize drag and collapse functionality for the login panel
     tags$script(HTML("
     $(function() {
@@ -4083,12 +4085,12 @@ server <- function(input, output, session) {
   
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
