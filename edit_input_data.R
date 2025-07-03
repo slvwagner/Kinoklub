@@ -1517,7 +1517,7 @@ server <- function(input, output, session) {
       } else if (input$dataset == "MWST"){
         help_information("Diese Tabelle liefert die Werte für die Dropdowns in `MWST` und 'Abrechnugnsjahr' in 'Einnamhen' und 'Ausgaben'")
       } else if (input$dataset == "Programm"){
-        help_information("Die Spalte `Link to Event ID` wird verwendet um gemeinsam abzurechnen.")
+        help_information("Die Spalte `Link to Event ID` wird verwendet um gemeinsam über mehrere `Event ID`s abzurechnen.")
       } else {
         help_information(" ")
       }
