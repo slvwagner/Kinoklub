@@ -103,7 +103,7 @@ data_env$round5Rappen <- round5Rappen
 data_env$my_template <- my_template
 
 # Serve the custom_styles directory
-shiny::addResourcePath("custom_styles", "source")
+shiny::addResourcePath("custom_styles", "source/www")
 
 # Map the URL path "custom" to the local directory "output"
 # Webserver root directory
