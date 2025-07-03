@@ -20,6 +20,11 @@ code {
 }
 */
 
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+    background-color: #19432b;
+    opacity: 1;
+}
+
 /**/
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
