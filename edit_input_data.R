@@ -636,8 +636,6 @@ server <- function(input, output, session) {
     }
   }
   
-
-  
   ### Convert data frame columns to factors ####
   factor_handling <- function(df_temp, df_updated){
     
@@ -1039,8 +1037,6 @@ server <- function(input, output, session) {
     return(dt)
   }
   
-
-
   ## Render data table ####
   output$table <- DT::renderDT({
     writeLines("renderDT")
@@ -1262,7 +1258,6 @@ server <- function(input, output, session) {
 
   }, server = FALSE)
   
-  
   ## Signal: Datatable has been rendered ####
   observeEvent(input$table_rendered, {
     writeLines("Signal: Datatable has been rendered")
@@ -1313,7 +1308,6 @@ server <- function(input, output, session) {
       message("Filter is still active: ", paste(last_filter(), collapse = ", "))
     }
   })
-  
   
   ## Check for change in page length ####
   observeEvent(input$page_length, {
@@ -2226,7 +2220,6 @@ server <- function(input, output, session) {
     
   })
   
-  
   ###  add row new entry Ausgaben ####
   observeEvent(input$add_row_ausgaben, {
     # check DB connection
@@ -2675,7 +2668,6 @@ server <- function(input, output, session) {
     
   })
     
-  
   ###  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     # check DB connection
