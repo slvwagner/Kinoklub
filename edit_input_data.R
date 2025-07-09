@@ -1317,10 +1317,15 @@ server <- function(input, output, session) {
   })
   
   
-  ## Change in page length ####
+  ## Check for change in page length ####
   observeEvent(input$page_length, {
     writeLines("page_length")
     req(input$page_length)
+    
+    # update page length variable
+    if(is.null(input$table_rows_selected)) page_length_var(input$page_length)
+    
+    # early exit if no row is selected
     req(input$table_rows_selected)
     
     # Update page length
