@@ -624,6 +624,9 @@ server <- function(input, output, session) {
   ### render modla 2 ####
   df_temp_2 <- shiny::reactiveVal(NULL)
   
+  ### render selected rows ####
+  temp_selected_rows <- shiny::reactiveVal(NULL)
+  
   ### last uploaded filename ####
   last_uploaded_file <- shiny::reactiveVal(NULL)
 
@@ -1138,32 +1141,50 @@ server <- function(input, output, session) {
       ausgabe_text()
   })
   
-  ## Button: Filmabrechnung(en) erstellen #####
+  ## Button: Modal Filmabrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung, {
+    if(is.null(input$dateTable_rows_selected)){
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine oder mehrere Zeile(n) in der Tabelle markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(NULL) # exit early from the function
+    }
+    
+    showModal(modalDialog(
+      title = "Filmabrechnung(en) erstellen",
+      tagList(
+        div(DT::DTOutput("render_selected_rows")
+            )
+        ),
+      easyClose = FALSE, 
+      footer = tagList(
+        actionButton("Abrechnung_exe","Erstellen", class = "btn-success"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+    
+    # recover last selected rows 
+    input$dateTable_rows_selected|>
+      last_selected_rows()
+  })
+  
+  ## Button: Verleiherabrechnung(en) erstellen #####
+  shiny::observeEvent(input$Abrechnung_exe, {
     # Execution time 
     c_time <- Sys.time()
-    
+
     shiny::withProgress(message = "Script running... ", value = 0, {
       shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
-    
-      if(is.null(input$dateTable_rows_selected)){
-        # User interaction
-        showModal(
-          modalDialog(
-            title = "Bitte eine Zeile in der Tabelle markieren",
-            easyClose = TRUE,
-            footer = modalButton("Abbrechen")
-          )
-        )
-        req(input$dateTable_rows_selected) # exit early from the function
-      }else{
-        df_mapping <- current_data()[input$dateTable_rows_selected,]
-        last_selected_rows(input$dateTable_rows_selected)
-      }
       
-      # recover last selected rows 
-      input$dateTable_rows_selected|>
-        last_selected_rows()
+      removeModal()
+
+      df_mapping <- current_data()[input$dateTable_rows_selected,]
+      last_selected_rows(input$dateTable_rows_selected)
       
       # Only create report if not linked to other ID
       df_temp <- check_if_report_needs_creation(df_mapping, data_env)
@@ -1245,36 +1266,58 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button: Verleiherabrechnung(en) erstellen #####
+  ## Button: Modal Verleiherabrechnung(en) erstellen #####
   shiny::observeEvent(input$Verleiherrechnung, {
-    # Execution time 
-    c_time <- Sys.time()
-
     if(is.null(input$dateTable_rows_selected)){
       # User interaction
       showModal(
         modalDialog(
-          title = "Bitte eine Zeile in der Tabelle markieren",
+          title = "Bitte eine oder mehrere Zeile(n) in der Tabelle markieren",
           easyClose = TRUE,
           footer = modalButton("Abbrechen")
         )
       )
-      req(input$dateTable_rows_selected) # exit early from the function
-    }else{
-      df_mapping <- current_data()[input$dateTable_rows_selected,]|>
-        mutate(Datum = lubridate::dmy(Datum))
+      req(NULL) # exit early from the function
     }
+    
+    showModal(modalDialog(
+      title = "Verleiherabrechnung(en) erstellen",
+      tagList(
+        div(DT::DTOutput("render_selected_rows")
+        )
+      ),
+      easyClose = FALSE, 
+      footer = tagList(
+        actionButton("Verleiherrechnung_exe","Erstellen", class = "btn-success"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
     
     # recover last selected rows 
     input$dateTable_rows_selected|>
       last_selected_rows()
-    
-    # Only create report if not linked to other ID
-    df_temp <- check_if_report_needs_creation(df_mapping, data_env)
-    
-    
+  })
+  
+  ## Button: Verleiherabrechnung(en) erstellen #####
+  shiny::observeEvent(input$Verleiherrechnung_exe, {
+    # Execution time 
+    c_time <- Sys.time()
+
     shiny::withProgress(message = "Script running... ", value = 0, {
       shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
+      
+      df_mapping <- current_data()[input$dateTable_rows_selected,]|>
+        mutate(Datum = lubridate::dmy(Datum))
+      
+      # recover last selected rows 
+      input$dateTable_rows_selected|>
+        last_selected_rows()
+      
+      # Only create report if not linked to other ID
+      df_temp <- check_if_report_needs_creation(df_mapping, data_env)
+      
+      removeModal()
+      
       # Verleiherrechnung erstellen mit dateRange user input
       tryCatch({
         df_mapping__ <- 
@@ -2248,6 +2291,25 @@ server <- function(input, output, session) {
     )
   })
   
+  ## Render selected rows ####
+  output$render_selected_rows <- DT::renderDT({
+    if(!is.null(temp_selected_rows())){
+      df_temp <- temp_selected_rows()|>
+        select(1:5, -`Link to Event ID`)
+    
+      datatable(df_temp, 
+                rownames = FALSE,
+                selection = "none",
+                options = list(
+                  searching = FALSE,     # removes search box
+                  language = DT_language,
+                  pageLength = nrow(df_temp),
+                  paging = FALSE        # disables pagination
+                  )
+                )
+    }
+  })
+  
   ## Reder: Datatable #####
   output$dateTable <-  DT::renderDT({
     writeLines("DT::renderDT")
@@ -2394,6 +2456,10 @@ server <- function(input, output, session) {
     req(input$dateTable_rows_selected)
     # req(input$dateTable_search_columns)
 
+    # Render selected rows
+    current_data()[input$dateTable_rows_selected,]|>
+      temp_selected_rows()
+    
     # find page 
     l_temp <- find_page(input$dateTable_row_last_clicked, input$dateTable_search_columns,
                         current_data(), 
