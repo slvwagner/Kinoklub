@@ -2,7 +2,7 @@
 title: "Statistik Kinoklub"
 output:
   html_document:
-    css: Kinoklub_dark.css
+    css: www/Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}

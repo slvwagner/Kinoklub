@@ -2,7 +2,7 @@
 title: "Abrechnung Filmvorführung:"
 output: 
   html_document:
-    css: source/Kinoklub_dark.css
+    css: www/Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}
