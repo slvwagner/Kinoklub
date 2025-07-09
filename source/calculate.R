@@ -77,7 +77,9 @@ Einnahmen <- DB_get_table("Einnahmen", con)|>
 ## Ausgaben ####
 Ausgaben <- DB_get_table("Ausgaben", con)|>
   convert_to_template_types(l_template$Ausgaben)|>
-  filter(Abrechnungsjahr == c_Abrechnungsjahr)
+  filter(Abrechnungsjahr == c_Abrechnungsjahr)|>
+  arrange(desc(Datum))
+Ausgaben
 
 ## `Einkauf Kiosk` ####
 `Einkauf Kiosk` <- DB_get_table("Einkauf Kiosk",con)|>
