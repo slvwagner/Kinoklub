@@ -1391,6 +1391,11 @@ get_data_type <- function(df){
     unlist()
 }
 
+# Escape regex literals ####
+escape_regex <- function(pattern) {
+  gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", pattern)
+}
+
 # Find datatable page ####
 find_page <- function(table_rows_selected, table_search_columns, table_data, lastEdited_data_set_name, page_length_var){
   # map selected row to ID
@@ -1445,8 +1450,12 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
       }
       # character 
       else { 
+        col_filter <- col_filter|>
+          tolower()|>
+          escape_regex()
+        
         # filters for data table are not case sensitive so tolower() conversion is needed 
-        df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter|>tolower()),] 
+        df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter),] 
         df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
       }
     }
