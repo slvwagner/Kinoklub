@@ -121,6 +121,7 @@ table.dataTable thead input {
 }
 
 input.form-control {
+  color: #fff;
   background-color: #023a3a;
   border: 1px solid #555;
   padding: 6px 12px;
