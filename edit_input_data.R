@@ -1191,9 +1191,9 @@ server <- function(input, output, session) {
       selection = "single",
       filter = "top",
       # width = NULL,  # Let the container handle width
-      extensions = c('FixedHeader'),
+      # extensions = c('FixedHeader'),
       options = list(
-        fixedHeader = TRUE,  # This keeps headers visible
+        # fixedHeader = TRUE,  # This keeps headers visible
         scrollX = TRUE,  # Enable horizontal scrolling
         # scrollY = "500px",
         autoWidth = TRUE,  # auto-width enable to controll columnwidth
