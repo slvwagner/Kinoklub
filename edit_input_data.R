@@ -1283,7 +1283,7 @@ server <- function(input, output, session) {
   last_filter <- reactiveVal(NULL)
   filter_state_cleared <- reactiveVal(TRUE)
   
-  ## check if last user filter has been cleared ####
+  ## Check if last user filter has been cleared ####
   observeEvent(input$table_search_columns,{
     c_filters <- input$table_search_columns
     c_filters[c_filters == ""] <- NA
