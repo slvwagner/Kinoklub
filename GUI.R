@@ -2596,7 +2596,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   ## Timer to trigger every 5 seconds ####
   poll_timer <- reactiveTimer(5000)
   
