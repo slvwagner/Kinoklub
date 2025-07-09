@@ -240,6 +240,44 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
+# check Ausgaben ####
+## check if more than one Verleiherrechnung per Event ID can be found ####
+IDs <- Ausgaben|>
+  mutate(`Event ID` = as.integer(as.character(`Event ID`)))|>
+  filter(Kategorie == "Verleiher")|>
+  arrange(`Event ID`)|>
+  select(`Event ID`)|>
+  pull()
+IDs
+
+for (ii in IDs) {
+  temp <- Ausgaben|>
+    mutate(`Event ID` = as.integer(as.character(`Event ID`)))|>
+    filter(Kategorie == "Verleiher", `Event ID` == ii)
+  temp
+  
+  if(nrow(temp) > 1) {
+    temp <- temp |>
+      left_join(
+        Programm |>
+          mutate(`Event ID` = as.character(`Event ID`) |> as.integer()) |>
+          select(`Event ID`, Filmtitel, Suisanummer)
+        ,
+        by = join_by(`Event ID`)
+      )
+    temp 
+    
+    stop(
+      paste0(
+        "\nFür `Event ID`: ",
+        temp$`Event ID`,", in der Tabelle `Ausgaben` gibt es mehrere gleiche `Event ID`s",
+        "\nBezeichnung: ", temp$Bezeichnung, ", Datum: ", format(temp$Datum, format = "%d.%m.%Y"),
+        "\nBitte in der Tabelle Ausgaben korrigieren!"
+      )
+    )
+  }
+}
+
 # Überschuss / Manko ####
 df_manko_uerberschuss <- df_Kiosk|>
   distinct(`Event ID`,.keep_all = TRUE)|>
