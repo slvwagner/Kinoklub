@@ -1483,10 +1483,26 @@ server <- function(input, output, session) {
           current_data()
         
       } else if(input$dataset == "df_Abrechnung"){
+        df_temp <- l_temp[[input$dataset]]
+        df_temp <- df_temp|>
+          mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
+                 `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
+                 `Umsatz für Netto3 [CHF]` = round(`Umsatz für Netto3 [CHF]`),
+                 `Umsatz Netto 3 [CHF]` = round(`Umsatz Netto 3 [CHF]`, 2),
+                 `Verleiherabzug [CHF]` = round(`Verleiherabzug [CHF]`, 2),
+                 `MWST [CHF]` = round(`MWST [CHF]`,2),
+                 `Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`, 2),
+                 `Gewinn Kioskartikel [CHF]` = round(`Gewinn Kioskartikel [CHF]`, 2),
+                 `Gewinn Spezialartikel [CHF]` = round(`Gewinn Spezialartikel [CHF]`, 2),
+                 `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
+                 )
+        
         # render 
-        l_temp[[input$dataset]]|>
+        df_temp|>
           arrange(desc(`Event ID`))|>
+          mutate()|>
           current_data()
+        
       }else {
         # render 
         l_temp[[input$dataset]]|>
