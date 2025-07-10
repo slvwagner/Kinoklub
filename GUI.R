@@ -1468,8 +1468,8 @@ server <- function(input, output, session) {
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-      
-      # Show links if file is available 
+
+      # Show links if Jahresrechnung file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
@@ -1528,7 +1528,7 @@ server <- function(input, output, session) {
         ))
       })
 
-      # Show links if file is available 
+      # Show links if Archive file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
@@ -2161,6 +2161,28 @@ server <- function(input, output, session) {
           })
         }
       })
+
+      # Show link if Statistik file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+      
+      if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_statistk(TRUE)
+      else file_exists_statistk(FALSE)
+            
+      # Show links if file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+
+      if(sum(ftp_files == paste0("Jahresrechnung ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_jahhresrechnung(TRUE)
+      else file_exists_jahhresrechnung(FALSE)
+      
+      # Show links if Archive file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+      
+      if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
+        file_exists_archiv(TRUE)
+      else file_exists_archiv(FALSE)
+      
       # Create links and render Datatable
       Report_links()
 
@@ -2562,36 +2584,22 @@ server <- function(input, output, session) {
         shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
         shiny::tags$hr(),
         
-        # # Datumsbereich auswählen für die Abrechnung Filmvorführungen
-        # shiny::dateRangeInput(
-        #   inputId = "dateRange",
-        #   label = "Wählen Sie einen Datumsbereich aus:",
-        #   start = START_date_choose(),
-        #   # Default start date (one week ago)
-        #   end = End_date_choose(),
-        #   # Default end date (last show)
-        #   min = START_date_choose(),
-        #   # Earliest selectable date
-        #   max = End_date_choose(),
-        #   # Latest selectable date
-        #   format = "dd.mm.yyyy",
-        #   # Set input format to German (DD.MM.YYYY)
-        #   separator = " bis ", # Separator for the two dates in German
-        #   language = "de",
-        #   weekstart = 1
-        # ),
-        
         # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
         shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
         shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
         
         shiny::tags$hr(),
-        
         # Button zum Ausführen von Code Statistik erstellen
-        shiny::actionButton("Statistik", "Statistik erstellen"),
+        shiny::actionButton("Statistik", "Jahresstatistik erstellen"),
         
         # Button zum Ausführen von Code Jahresrechnung erstellen
         shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
+
+        shiny::tags$hr(),
+
+        # Button zum Ausführen von Code Statistik erstellen
+        shiny::actionButton("Statistik_all", "Statistik"),
+        
         shiny::tags$hr(),
         
         # Button zum Download der Werbung

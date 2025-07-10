@@ -1,0 +1,1054 @@
+---
+title: "Statistik Kinoklub"
+output:
+  html_document:
+    css: www/Kinoklub_dark.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+act_date <- Sys.time()|>as.Date()
+act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
+
+# Weekdas definition in different languages
+german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
+english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+# Function to convert English weekday names to German, if necessary
+convert_to_german_weekdays <- function(date) {
+  weekday_name <- weekdays(date, abbreviate = FALSE)
+  if (weekday_name %in% english_weekdays) {
+    german_weekday <- german_weekdays[match(weekday_name, english_weekdays)]
+  } else {
+    german_weekday <- weekday_name
+  }
+  return(german_weekday)
+}
+```
+
+Bericht wurde am `r act_date` erstellt.
+
+## Gewinn/Verlust aus Filmvorführung
+
+### Gewinn/Verlust aus Filmvorführung
+
+```{r message=FALSE, warning=FALSE}
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    bind_cols(`Event ID` = x$IDs$IDs[1], 
+              Datum = x$Abrechnung$Datum[1],
+              Zeit = x$Abrechnung$Zeit[1], 
+              Suisanummer  = x$Abrechnung$Suisanummer[1] ,
+              Filmtitel = x$Abrechnung$Filmtitel[1], 
+              x$s_Abrechnung)
+  })|>
+  bind_rows()
+```
+
+
+```{r}
+df_temp <- df_temp|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
+```
+
+
+```{r}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp|>
+                mutate(`Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)), 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 2, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 3, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
+```
+
+
+```{r}
+df_temp|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`,na.rm = TRUE))|>
+  knitr::kable()
+```
+
+### Durchschnitt / Median
+```{r}
+n <- df_temp|>
+  reframe(`Anzahl Vorführungen` = n())
+
+n|>
+    knitr::kable()
+```
+
+
+```{r}
+mean_median <- df_temp|>
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
+          )
+
+mean_median|>
+  knitr::kable()
+```
+
+```{r include=FALSE}
+start_of_year <- paste0(c_Abrechnungsjahr,"-01-01")|>as.Date()
+end_of_year <- paste0(c_Abrechnungsjahr,"-12-31")|>as.Date()
+
+n_days_till_now <- (start_of_year - act_date|>dmy()) 
+n_days_till_now <- n_days_till_now|>as.integer()|>abs()
+n_days_till_now
+
+n_days_per_year <- (365 - sommerpause) 
+n_days_per_year
+
+if(is_tibble(n)) n <- n$`Anzahl Vorführungen`
+
+shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
+
+if(n > shows_per_year) shows_per_year <- n
+```
+
+### Wochentaganalyse
+```{r }
+if(nrow(df_temp)>1){
+  df_temp
+  
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m
+  
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
+```
+
+```{r}
+df_temp <- m|>
+  filter(`value` == TRUE)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Gewinn aus Fimvorführung [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
+  my_template
+```
+
+
+
+### Prognose
+
+```{r include=FALSE}
+
+if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` < mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
+  Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
+} else {
+  Gewinn_pro_Vorführung <- mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]`
+}
+gewinn <- Gewinn_pro_Vorführung * shows_per_year
+gewinn <- r_signif(gewinn)
+
+# Calculate the time difference to zero
+time_diff <- difftime("1970-01-01", paste0(c_Abrechnungsjahr,"-01-01")|>as.Date(), units = "days")
+```
+
+
+Bis jetzt gabe es `r n` Vorführungen in `r n_days_till_now` Tagen. \
+Es wird von einer Sommerpause von `r sommerpause` Tage ausgegangen. In dieser Zeit gibt es  keinen Vorführungen. \
+Es kann deshalb mit folgenden **Spieltagen** gerechnet werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
+Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
+\
+Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r gewinn` [CHF]** ausgegangen werden.
+
+
+```{r }
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Gewinn aus Fimvorführung [CHF]`))
+
+s <- (Gewinn_pro_Vorführung * shows_per_year)/365
+```
+
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill ="darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Gewinn/Verlust [CHF]")+
+  my_template
+
+
+```
+
+
+## Ticketverkauf
+
+### Gewinn pro Vorführung
+Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
+
+```{r}
+df_temp <- df_temp|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Zeit = paste0(lubridate::hour(Zeit), ":",
+                         lubridate::minute(Zeit)|>
+                         as.character() |> 
+                         formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                         ),
+         `Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`, 2)
+  )|>
+  select(Datum, Datum_display,Zeit, Suisanummer, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)
+
+```
+
+
+```{r}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
+```
+
+
+```{r}
+df_temp|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Ticketgewinn [CHF]`))|>
+  knitr::kable()
+```
+
+
+### Wochentaganalyse
+
+```{r }
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
+```
+
+
+
+```{r}
+df_temp <- m|>
+  filter(value)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Umsatz [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
+  my_template
+```
+
+### Prognose
+```{r }
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
+```
+
+
+```{r }
+df_temp <- df_temp|>
+  select(Datum, Zeit, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)|>
+  arrange(Datum)
+
+df_temp <- df_temp|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Ticketgewinn [CHF]`))
+```
+
+
+```{r }
+if(df_temp$`Ticketgewinn [CHF]`|>mean(na.rm = T) > df_temp$`Ticketgewinn [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Ticketgewinn [CHF]`|>median(na.rm = T)
+}else{
+  gewinn <- df_temp$`Ticketgewinn [CHF]`|>mean(na.rm = T)
+}
+
+s <- (gewinn * shows_per_year)/365
+```
+
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill ="darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Gewinn/Verlust [CHF]")+
+  my_template
+
+```
+
+
+
+### Eintritte
+#### Anzahl
+
+```{r echo=FALSE}
+
+df_temp <- 
+  df_Eintritt|>  
+    filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+    arrange(Datum)|> 
+    select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
+    group_by(Zahlend)|>
+    reframe(Anzahl = sum(Anzahl))|>
+    mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
+           `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+    rename(Eintritt = Zahlend)|>
+    arrange(desc(Anzahl))
+
+df_temp|>
+  DT::datatable(df_temp)
+
+```
+
+```{r echo=FALSE}
+df_temp <- 
+  df_Eintritt|>
+    filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+    arrange(Datum)|> 
+    group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
+    reframe(Anzahl = sum(Anzahl))|>
+    mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+    arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
+  DT::datatable()
+
+```
+
+```{r}
+df_temp|>
+  reframe(Summe = sum(Anzahl, na.rm = T))|>
+  knitr::kable()
+```
+
+
+
+
+```{r fig.width=10}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  group_by(Platzkategorie, Verkaufspreis, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(desc(Zahlend),desc(Anzahl))
+
+# Sortierung für Plot
+c_sort <- df_temp|>
+  distinct(Platzkategorie)|>
+  pull()
+
+c_sort <- c_sort[length(c_sort):1]
+
+df_temp|> # arrange the plot
+  mutate(Platzkategorie = factor(Platzkategorie, levels = c_sort),
+         `Verkaufspreis [CHF]` = paste(Verkaufspreis,".-")
+         )|>
+  mutate(`Gäste` = if_else(Zahlend,"Zahlend", "Gratiseintritt"))|>
+  ggplot(aes(Platzkategorie, Anzahl, fill = `Verkaufspreis [CHF]`))+
+  geom_col()+
+  coord_flip()+
+  my_template+
+  theme(legend.position = "inside")+
+  theme(legend.position.inside = c(1, .4))
+
+```
+
+
+#### Umsatz
+
+```{r}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  filter(Zahlend)|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(desc(`Umsatz [CHF]`))
+
+```
+
+
+```{r}
+df_temp <- df_temp|>
+  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
+         `Anteil [%]` = round(`Umsatz [CHF]`/(sum(`Umsatz [CHF]`)/100),1)
+         )|>
+  select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, `Umsatz [CHF]`)
+
+df_temp|>
+  DT::datatable(df_temp)
+
+```
+
+```{r}
+df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  knitr::kable()
+```
+
+```{r fig.width=10, fig.height=3}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  filter(Zahlend)|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(desc(`Umsatz [CHF]`))
+
+# Sortierung für Plot
+c_sort <- df_temp|>
+  distinct(Platzkategorie)|>
+  pull()
+
+c_sort <- c_sort[length(c_sort):1]
+
+df_temp|>
+  mutate(Platzkategorie = factor(Platzkategorie, levels = c_sort),
+         `Verkaufspreis [CHF]` = paste0(Verkaufspreis,".-"))|>
+  ggplot(aes(x = Platzkategorie, `Umsatz [CHF]`, fill = `Verkaufspreis [CHF]`))+
+  geom_col()+
+  labs(x = "Platzkategorie")+
+  coord_flip()+
+  my_template+
+  theme(legend.position = "inside")+
+  theme(legend.position.inside = c(1, 0.7))
+
+```
+
+
+```{r}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
+  filter(Zahlend)|>
+  arrange(desc(`Verkaufspreis [CHF]`))|>
+  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-"))
+         )
+```
+
+
+##### Prognose
+```{r fig.width=10}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  filter(Zahlend)|>
+  group_by(Datum)|>
+  reframe(`Film Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Film Umsatz [CHF]`))
+```
+
+
+```{r fig.width=10}
+if(df_temp$`Film Umsatz [CHF]`|>mean() > df_temp$`Film Umsatz [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>median(na.rm = T)
+}else{
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>mean(na.rm = T)
+}
+
+s <- (gewinn * shows_per_year)/365
+```
+
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+df_temp|>
+  ggplot(aes(Datum,cumsum))+
+  geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se =F)+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  # scale_y_continuous(limits = c(0, s * 365))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Umsatz [CHF]")+
+  my_template
+
+```
+
+
+### Filmabgaben
+
+```{r echo=FALSE}
+df_temp <-  l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Zeit = paste0(lubridate::hour(Zeit),":", 
+                         lubridate::minute(Zeit)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         # `SUISA-Abzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
+         # `Verleiher-Abzug [CHF]` = round(`Verleiherrechnungsbetrag [CHF]`,2)
+         )|>
+  select(`Event ID`, Datum, Datum_display, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`MWST [CHF]`,`Verleiherrechnungsbetrag [CHF]`)|>
+  arrange(desc(Datum))
+```
+
+
+```{r echo=FALSE}
+df_temp <- df_temp|>
+  mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2), 
+         `MWST [CHF]` = round(`MWST [CHF]`,2))
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  DT::datatable(
+    rownames = FALSE,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
+      )),
+      colnames = c(Datum = "Datum_display")
+  )
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  reframe(`Abgabe and die SUISA [CHF]` = sum(`Suisavorabzug [CHF]`, na.rm = T),
+          `Abgaben and den Verleiher [CHF]` = sum(`MWST [CHF]`, na.rm = T),
+          `MWST [CHF]` = sum(`MWST [CHF]`,na.rm = T)
+          )|>
+  knitr::kable()
+
+```
+
+#### Prognose
+```{r}
+df_temp <- df_temp|>
+  arrange(Datum)|>
+  mutate(cumsum = cumsum(`Verleiherrechnungsbetrag [CHF]`))
+
+if(df_temp$`Verleiherrechnungsbetrag [CHF]`|>mean(na.rm = T) > df_temp$`Verleiherrechnungsbetrag [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Verleiherrechnungsbetrag [CHF]`|>mean(na.rm = T)
+}else{
+  gewinn <- df_temp$`Verleiherrechnungsbetrag [CHF]`|>median(na.rm = T)
+}
+
+s <- (gewinn * shows_per_year)/365
+```
+
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  scale_y_continuous(limits = c(0, s * 365))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierte Verleiherabgaben [CHF]")+
+  my_template
+
+```
+
+
+## Kiosk
+
+### Gewinn pro Vorführung 
+```{r echo=FALSE}
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(`Event ID`, Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
+```
+
+
+```{r echo=FALSE}
+df_temp <- df_temp|>
+  mutate(`Kioskgewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`))
+
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+    DT::datatable(
+    df_temp,
+    rownames = FALSE,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
+```
+
+```{r echo=FALSE}
+df_temp|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+          `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`)
+          )|>
+  knitr::kable()
+
+```
+
+
+### Wochentaganalyse
+```{r }
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
+```
+
+```{r}
+m <- m|>
+  filter(value)|>
+  bind_cols(df_temp)|>
+  select(-value)|>
+  mutate(
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
+  group_by(weekday, `Time Range`)|>
+  reframe(d_gewinn = sum(`Kioskgewinn [CHF]`) / n(),
+          d_gewinn = round5Rappen(d_gewinn)
+          )|> 
+  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
+         )
+```
+
+```{r fig.width=10}
+m|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
+  my_template
+```
+
+
+### Prognose
+```{r }
+df_temp <- df_temp|>
+  arrange(`Event ID`)|>
+  mutate(cumsum = cumsum(`Kioskgewinn [CHF]`))
+```
+
+
+```{r }
+if((df_temp$`Kioskgewinn [CHF]`|>mean(na.rm = TRUE)) > (df_temp$`Kioskgewinn [CHF]`|>median(na.rm = TRUE))){
+  gewinn <- df_temp$`Kioskgewinn [CHF]`|>median(na.rm = TRUE)
+}else{
+  gewinn <- df_temp$`Kioskgewinn [CHF]`|>mean(na.rm = TRUE)
+}
+
+s <- (gewinn * shows_per_year)/365
+```
+
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill = "darkorange2")+
+  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
+  scale_x_date(limits = c(start_of_year, end_of_year))+
+  # scale_y_continuous(limits = c(0, s * 365))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Gewinn [CHF]")+
+  my_template
+
+```
+
+
+### Verkaufsartikel 
+
+```{r }
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+```
+
+
+```{r }
+df_temp|>
+  filter(is.na(ID_Spezialpreisekiosk))|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl), 
+          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
+          `Gewinn [CHF]` = round5Rappen(sum(`Gewinn [CHF]`, na.rm = TRUE))
+          )|>
+  arrange(desc(Anzahl))|>
+  filter(Artikelname != "Keine Kioskverkäufe")|>
+  DT::datatable()
+```
+
+
+
+```{r}
+df_temp1 <-  df_temp|>
+  filter(is.na(ID_Spezialpreisekiosk))|>
+  # group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl), 
+          `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
+          )|>
+  arrange(desc(Anzahl))
+
+df_temp1|>
+  knitr::kable()
+```
+
+#### Druchschnittliche Marge
+```{r}
+df_temp1|>
+  mutate(`Durchschnittsmarge [%]` =(`Umsatz [CHF]` / `Gewinn [CHF]`) - 1)|>
+  select(`Durchschnittsmarge [%]`)|>
+  knitr::kable(digits = 2)
+
+```
+
+
+#### Rang
+```{r fig.height=8, fig.width=10}
+df_plot <-df_temp|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  filter(!is.na(Artikelname))|>
+  arrange(Anzahl)
+
+df_plot|>
+  mutate(Artikelname = factor(Artikelname, levels = df_plot$Artikelname)
+         )|>
+  group_by(Artikelname)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  arrange(desc(Anzahl))|>
+  ggplot(aes(Artikelname,Anzahl))+
+  geom_col(show.legend = F, fill = "cyan4")+
+  coord_flip()+
+  theme_bw()+
+  theme(
+  panel.background = element_rect(fill = "#322f3b",
+                                colour = "#322f3b",
+                                linewidth = 0.5, linetype = "solid"),
+  plot.background = element_rect(fill = "#322f3b"),
+  axis.title = element_text(colour = "#f4cccc", size  = 20),
+  axis.text= element_text(colour = "#f4cccc")
+  )
+```
+
+
+### Ladenhüter (keine Verkäufe)
+```{r }
+df_temp <- `Einkauf Kiosk`|>
+  distinct(`Artikelname-Kassensystem`)|>
+  left_join(df_Kiosk|>
+            group_by(Artikelname)|>
+              reframe(Anzahl = sum(Anzahl)),
+            by = c("Artikelname-Kassensystem"="Artikelname")
+            )
+```
+
+
+```{r }
+df_temp <- df_Kiosk|>
+  filter(Anzahl == 0, is.na(ID_Spezialpreisekiosk))|>
+  select(`Artikel-Kassensystem`, Artikelname, `Einzelpreis [CHF]`, `Einkaufspreis [CHF]`)
+  
+  
+df_temp|>
+  DT::datatable()
+
+```
+
+### Kiosk Umsatz pro Gast
+
+```{r fig.width=10}
+df_temp <- left_join(
+  df_Kiosk,
+  Programm|>
+    select(`Event ID`, Datum, Zeit),
+  by = join_by(`Event ID`)
+  )|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr )
+```
+
+
+```{r fig.width=10}
+df_temp <- df_temp|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+         Datum_display = format(Datum, "%d.%m.%Y"))|>
+  rename(`Umsatz [CHF]` = `Betrag [CHF]`)|>
+  select(Datum_display, Datum, Zeit,`Event ID`, Artikelname, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+```
+
+
+```{r }
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Kiosk
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.integer(`Event ID`))|>
+  left_join(Programm|>
+              select(1:5), 
+            by = c("Event ID"))|>
+  mutate(Zahlend = if_else(is.na(`Gewinn [CHF]`),TRUE,FALSE))
+```
+
+```{r}
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$s_Eintritte
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe(Besucherzahl = sum(Besucherzahl))|>
+  left_join(
+    l_abrechnung|>
+  lapply(function(x){
+    x$Kiosk
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer())|>
+  group_by(`Event ID`)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)),
+  by = join_by(`Event ID`)
+  )
+
+df_temp <- df_temp|>
+  left_join(Programm,
+            by = join_by(`Event ID`)
+            )|>
+  mutate(Display_datum = format(Datum, "%d.%m.%Y"))|>
+  select("Event ID", "Suisanummer", Display_datum ,"Datum", "Zeit", "Filmtitel", "Besucherzahl", "Umsatz [CHF]")|>
+  mutate(`Kioskumsatz pro Gast [CHF]` =  round(`Umsatz [CHF]` /  Besucherzahl, 2))
+```
+
+
+```{r}
+df_temp|>  
+  select(Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`)|>  DT::datatable(
+  df_temp, 
+  options = list(columnDefs = list( # list(targets = 3,visible = F), 
+    list(targets = 0, visible = FALSE), # Hide the 'Datum' column -->
+    list(targets = 1, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' 
+    )), 
+  colnames = c(Datum = "Display_datum") ,
+  rownames = FALSE
+)
+
+```
+
+
+### Gewinn Wochentaganalyse
+
+```{r }
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      (df_temp$Zeit) >= lubridate::hm(range[1]) & (df_temp$Zeit) < lubridate::hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m
+  
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      lubridate::hm(df_temp$Zeit) >= lubridate::hm(range[1]) & lubridate::hm(df_temp$Zeit) < lubridate::hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
+```
+
+
+```{r}
+df_temp <- m |>
+  filter(value == TRUE) |>
+  bind_cols(df_temp) |>
+  select(-value) |>
+  mutate(
+    Datum = (Datum),
+    weekday = sapply(Datum, convert_to_german_weekdays),
+    weekday = factor(weekday, levels = german_weekdays)
+  ) |>
+  group_by(weekday, `Time Range`) |>
+  reframe(
+    d_gewinn = round5Rappen(sum(`Umsatz [CHF]`) / n())
+  ) |>
+  mutate(
+    `Time Range` = factor(`Time Range`, levels = rev(timeRange))
+  )
+```
+
+```{r fig.width=10}
+df_temp|>
+  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
+  ggplot(aes(weekday, `Time Range`))+
+  geom_point(size = 20, color = "grey30" )+
+  geom_text(aes(label = d_gewinn), color = "darkorange2")+
+  labs(title = "Durchschnittlicher Gewinn / Verlust",
+       subtitle = "[CHF]",
+       x = "Wochentag", y = "Zeit-Interval"
+       )+
+  my_template
+```
+
