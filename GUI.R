@@ -319,30 +319,6 @@ server <- function(input, output, session) {
     return(NULL)
   }
   
-  ### Statistik-Bericht erstellen ####
-  StatistikErstellen <- function() {
-    # Einlesen
-    c_raw <- readLines("source/Statistik.Rmd")
-    
-    # change title 
-    c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
-    
-    # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines(paste0("source/temp.Rmd"))
-    
-    c_filePath <- paste0("output/Statistik ",Abrechungsjahr(),".html")
-
-    # Render
-    render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
-    
-    # Ftp upload
-    c_link <- c_filePath|>
-      ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
-    return(c_link)
-  }
-  
   ### Filmvorschlag erstellen ####
   FilmvorschlagErstellen <- function(data_env) {
     # Einlesen
@@ -1413,7 +1389,26 @@ server <- function(input, output, session) {
       ))
       if (exists("data_env")) {
         tryCatch({
-          c_link <- StatistikErstellen()
+          # Einlesen
+          c_raw <- readLines("source/Statistik.Rmd")
+          
+          # change title 
+          c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
+          
+          # neues file schreiben mit toc
+          c_raw |>
+            r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+            writeLines(paste0("source/temp.Rmd"))
+          
+          c_filePath <- paste0("output/Statistik ",Abrechungsjahr(),".html")
+          
+          # Render
+          render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+          
+          # Ftp upload
+          c_link <- c_filePath|>
+            ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
+          
           shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         }, error = function(e) {
           ausgabe_text(paste(
