@@ -40,7 +40,7 @@ c_select_input_data <-
 l_template[c_select_input_data]
 
 ## Avanced tickets files ####
-c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk")
+c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk", "df_Abrechnung")
 l_template[c_select_input_advanced_tickets]
 
 ## Drop down data and calculation definitions ####
@@ -1482,7 +1482,12 @@ server <- function(input, output, session) {
         l_temp$Einsatzplan|>
           current_data()
         
-      } else {
+      } else if(input$dataset == "df_Abrechnung"){
+        # render 
+        l_temp[[input$dataset]]|>
+          arrange(desc(`Event ID`))|>
+          current_data()
+      }else {
         # render 
         l_temp[[input$dataset]]|>
           arrange(desc(ID))|>
