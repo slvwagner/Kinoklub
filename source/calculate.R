@@ -1081,11 +1081,11 @@ remove(df_s_Eintritte, df_temp)
 DBI::dbDisconnect(con)
 
 # # Daten für Berichet ####
-# ## Besucherzahlen  ####
-# df_Besucherzahlen <- df_Eintritt|>
-#   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
-#   reframe(Besucher = sum(Anzahl))
-# df_Besucherzahlen
+## Besucherzahlen  ####
+df_Besucherzahlen <- df_Eintritt|>
+  group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
+  reframe(Besucher = sum(Anzahl))
+df_Besucherzahlen
 # 
 # ## Eventeinnahmen ####
 # df_Eventeinnahmen <- Einnahmen|>

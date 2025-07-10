@@ -71,9 +71,6 @@ if(n != length(c_credentials)) {
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
-# create environment to run WordPress scripts
-WordPress_env <- new.env()
-
 # Erstellen von Verzeichnissen ####
 dir.create("output/", showWarnings = FALSE, recursive = TRUE)
 dir.create("output/data/", showWarnings = FALSE, recursive = TRUE) 
@@ -590,7 +587,7 @@ server <- function(input, output, session) {
   ### last uploaded file path #### 
   last_uploaded_table_name <- shiny::reactiveVal(NULL)
   
-  ## last user filter ####
+  ### last user filter ####
   last_filter <- reactiveVal(NULL)
   filter_state_cleared <- reactiveVal(TRUE)
   
@@ -638,6 +635,11 @@ server <- function(input, output, session) {
       file_exists_jahhresrechnung <- shiny::reactiveVal(TRUE)
     else file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
     
+    #### Does Fimvorschläge.xlsx file exist ####
+    if(file.exists("output/data/Filmvorschläge.xlsx"))
+      file_exists_filmvorschlag <- shiny::reactiveVal(TRUE)
+    else file_exists_filmvorschlag <- shiny::reactiveVal(FALSE)
+    
     #### Does the Archiv.html file exist ####
     if(sum(ftp_files == paste0("Archiv.html.html"), na.rm = TRUE) == 1){
       file_exists_archiv <- shiny::reactiveVal(TRUE)
@@ -645,6 +647,7 @@ server <- function(input, output, session) {
     
   }, error = function(e) {
     file_exists_statistk <- shiny::reactiveVal(FALSE)
+    file_exists_statistk_all <- shiny::reactiveVal(FALSE)
     file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
     file_exists_archiv <- shiny::reactiveVal(FALSE)
   })
@@ -1555,7 +1558,7 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
     shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 3"))
       paste0(
         "Filmumfrage, Wordpress daten auswertung ausgeführt.",
         "\nDie Exceldatei kann jetzt heruntergeladen werden."
@@ -1564,37 +1567,17 @@ server <- function(input, output, session) {
       
       # read WordPress and procinema data and create excel file for Kinoprogramm
       tryCatch({
-        source("source/procinema.R", local = WordPress_env)
-        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        WordPress_env <- new.env()
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
-        shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-        
-        # Einlesen
-        c_raw <- readLines("source/Archiv.Rmd")
-        # Inhaltsverzeichnis
-        
-        # neues file schreiben mit toc
-        c_raw |>
-          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-          writeLines(paste0("source/temp.Rmd"))
-        
-        c_filePath <- paste0("output/Archiv.html")
-        
-        # Render
-        render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = WordPress_env)
-        
-        # Ftp upload
-        c_link <- c_filePath|>
-          ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
-
-        shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       }, error = function(e) {
         ausgabe_text(paste(
           "Filmvorschläge, Fehler beim Bericht erstellen:\n",
           e$message
         ))
       })
-
+      
+      shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+      
       # Show links if Archive file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
@@ -1608,7 +1591,7 @@ server <- function(input, output, session) {
       paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
         ausgabe_text()
       
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+      shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
     })
   })
   
@@ -1632,6 +1615,10 @@ server <- function(input, output, session) {
     
   ## file Upload handler #####
   file_data <- shiny::reactive({
+    # Execution time 
+    c_time <- Sys.time()
+    
+    # check database connection
     if (!dbIsValid(DB_con())) {
       showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
       DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
@@ -1668,26 +1655,12 @@ server <- function(input, output, session) {
         file.copy(from = file_path,
                   to = save_path,
                   overwrite = TRUE)
-        # user interaction
-        paste0(
-          "Die Datei \"",
-          file_name,
-          "\" wurde im Verzeichniss \n.../Kinoklub/",
-          save_path,
-          " abgespeichert"
-        ) |>
-          ausgabe_text()
-        
+
         # read file
         c_raw <- readLines(file_path)|>suppressWarnings()
         
         shiny::withProgress(message = "Running script...", value = 0, {
           shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 1"))
-          paste0(
-            "Procinemadatei wurde eingelesen und das Archiv erstellt."
-          ) |>
-            ausgabe_text()
-          
           # read WordPress and procinema data and create excel file for Kinoprogramm
           tryCatch({
             # convert procinema data
@@ -1716,6 +1689,21 @@ server <- function(input, output, session) {
             c_link <- c_filePath|>
               ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
             
+            # calculate execution time
+            c_time <- c(c_time,end = Sys.time())|>
+              diff()
+            
+            # isolate to prevent infinite loop
+            isolate({
+              paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+                     "Die Datei \"",
+                     file_name,
+                     "\" wurde im Verzeichniss: .../Kinoklub/Input/Procinema/ abgespeichert.\n",
+                     "Die Datei wurde eingelesen und das Archiv wurde erstellt."
+              )|>
+                ausgabe_text()
+            })
+            
             shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
           }, error = function(e) {
             ausgabe_text(paste0(
@@ -1724,7 +1712,7 @@ server <- function(input, output, session) {
             ))
           })
         })
-        
+  
         # return file string
         return(c_raw)
       }
@@ -1766,7 +1754,7 @@ server <- function(input, output, session) {
             paste0(c_message)|>
               ausgabe_text()
             
-            return(list(type = "txt", data = df_file_upload$results))
+            return(df_file_upload$results)
             
           } else {
             showModal(
@@ -1843,12 +1831,12 @@ server <- function(input, output, session) {
             paste0(c_message)|>
               ausgabe_text()
             
-            return(list(type = "txt", data = df_file_upload$results))
+            return(df_file_upload$results)
           }
         } 
       }
     } 
-    ### csv #####
+    ### csv Wordpress #####
     else if (file_ext == "csv") {
       # save csv files (WordPress input)
       # Define save path
@@ -1860,15 +1848,47 @@ server <- function(input, output, session) {
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory
       file.copy(from = file_path, to = save_path)
-      # user interaction
-      paste0(
-        "Die Datei \"",
-        file_name,
-        "\" wurde im Verzeichniss \n.../Kinoklub",
-        save_path,
-        " abgespeichert"
-      ) |>
-        ausgabe_text()
+
+      shiny::withProgress(message = "Running script...", value = 0, {
+        shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 3"))
+        # read WordPress and procinema data and create excel file for Kinoprogramm
+        tryCatch({
+          WordPress_env <- new.env()
+          source("source/procinema.R", local = WordPress_env)
+          source("source/read_and_convert_wordPress.R", local = WordPress_env)
+          shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+          
+          if(file.exists("output/data/Filmvorschläge.xlsx")){
+            file_exists_filmvorschlag(TRUE)
+          } else {
+            file_exists_filmvorschlag(FALSE)
+          }
+          
+          # calculate execution time
+          c_time <- c(c_time,end = Sys.time())|>
+            diff()
+          
+          # isolate to prevent infinite loop
+          isolate({
+            paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+                   "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/ abgespeichert.",
+                   "\nDie Filmvorschläge können nun heruntergeladen werden."
+                   )|>
+              ausgabe_text()
+          })
+          
+          shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
+          
+        }, error = function(e) {
+          ausgabe_text(paste(
+            "Filmvorschläge, Fehler beim Bericht erstellen:\n",
+            e$message
+          ))
+        })
+        
+
+      })
+      
       return(list(type = "csv", data = readLines(file_path)))
     } 
     ### not yet implemented #####
@@ -2723,15 +2743,16 @@ server <- function(input, output, session) {
         shiny::actionButton("Statistik_all", "Statistik"),
         
         shiny::tags$hr(),
-        
         # Button zum Download der Werbung
         shiny::downloadButton("downloadExcel", "Download Werbung"),
+        # Button zum herunterladen der Filmvorschläge
+        if(file_exists_filmvorschlag()) {
+          shiny::downloadButton("downloadWordPress", "Download Filmvorschläge")
+        },
+        
         shiny::tags$hr(),
         
-        # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-        shiny::actionButton("wordpress", "Filmvorschläge auswerten"),
-        shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
-        shiny::tags$hr(),
+        # Database backup
         shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),        
         shiny::uiOutput("db_status")
       )
