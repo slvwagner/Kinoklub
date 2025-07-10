@@ -2192,8 +2192,9 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Row Operations (Add/Delete/Duplicate/change title/takeover) ####
-  ###  add row ####
+  ### Row Operations (Add/Delete/Duplicate/change title/takeover) ####
+
+  ####  add row ####
   observeEvent(input$add_row, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2241,7 +2242,7 @@ server <- function(input, output, session) {
     
   })
   
-  ###  add row new entry Ausgaben ####
+  ####  add row new entry Ausgaben ####
   observeEvent(input$add_row_ausgaben, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2272,7 +2273,7 @@ server <- function(input, output, session) {
     req(NULL)
   })
   
-  ###  add row new entry ####
+  ####  add row new entry ####
   observeEvent(input$add_row_new_entry, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2527,7 +2528,7 @@ server <- function(input, output, session) {
     }
   })  
   
-  ### edit row modal ####
+  #### edit row modal ####
   observeEvent(input$edit_row_modal, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2689,7 +2690,7 @@ server <- function(input, output, session) {
     
   })
     
-  ###  add row on top of selected row ####
+  ####  add row on top of selected row ####
   observeEvent(input$add_row_top, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2798,7 +2799,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### add row below selected row ####
+  #### add row below selected row ####
   observeEvent(input$add_row_bottom, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2903,7 +2904,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Duplicate selected row ####
+  #### Duplicate selected row ####
   observeEvent(input$duplicate_row, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2973,7 +2974,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Duplicate Film and archive (Filmtitel ändern) ####
+  #### Duplicate Film and archive (Filmtitel ändern) ####
   observeEvent(input$archive_row,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3052,8 +3053,8 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Delete selected row(s) ####
-  #### Delete row ####
+  #### Delete selected row(s) ####
+  ##### Delete row ####
   observeEvent(input$delete_row, {
     # get selected row
     selected_row <- input$table_rows_selected
@@ -3061,7 +3062,7 @@ server <- function(input, output, session) {
       delete_row()
   })
   
-  #### Delete row from Modal input ####
+  ##### Delete row from Modal input ####
   observeEvent(input$delete_row_modal, {
     # get selected row
     selected_row <- input$modal_table_rows_selected
@@ -3075,7 +3076,7 @@ server <- function(input, output, session) {
       delete_row()
   })
   
-  #### Delete row helper function ####
+  ##### Delete row helper function ####
   delete_row <- function(selected_row) {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3556,7 +3557,7 @@ server <- function(input, output, session) {
     }
   }
 
-  #### Delete selected row ####
+  ##### Delete selected row ####
   observeEvent(input$confirm_delete, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3623,8 +3624,8 @@ server <- function(input, output, session) {
     df_temp_to_render(NULL)
   })
   
-  ### Takeover Filmvorschlag to Programm ####
-  #### user modal ####
+  #### Takeover Filmvorschlag to Programm ####
+  ##### user modal ####
   observeEvent(input$add_to_programm,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3699,7 +3700,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #### define date ####
+  ##### define date ####
   observeEvent(input$Film_takover,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3773,7 +3774,7 @@ server <- function(input, output, session) {
     ))
   })  
   
-  #### take over ####
+  ##### take over ####
   observeEvent(input$Film_takover_with_data,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3816,8 +3817,8 @@ server <- function(input, output, session) {
       column_choices()
   })
   
-  ### Procinema search ####
-  #### user modal ####
+  #### Procinema search ####
+  ##### user modal ####
   observeEvent(input$procinema_search,{
     req(input$procinema_search)
     showModal(modalDialog(
@@ -3838,7 +3839,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  #### search and take over ####  
+  ##### search and take over ####  
   observeEvent(input$procinema, {
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -3932,7 +3933,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #### takeover Film to Filmvorschlag by suisanummer ####
+  ##### takeover Film to Filmvorschlag by suisanummer ####
   observeEvent(input$takeover_suisa,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
