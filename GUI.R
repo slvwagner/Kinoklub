@@ -1402,7 +1402,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       ausgabe_text(paste0(
-        "Bericht: Statistik erstellt",
+        "Bericht: Jahresstatistik erstellt",
         paste0("\n", getwd(), "/output")
       ))
       if (exists("data_env")) {
@@ -1417,7 +1417,7 @@ server <- function(input, output, session) {
         })
       } else{
         ausgabe_text(
-          "Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
+          "Jahresstatistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
         )
       }
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
@@ -1425,6 +1425,104 @@ server <- function(input, output, session) {
       # Show links if file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
 
+      if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
+        file_exists_statistk(TRUE)
+      else file_exists_statistk(FALSE)
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+        ausgabe_text()
+      
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
+    })
+    
+  })
+  
+  ## Button: Statistik all #####
+  shiny::observeEvent(input$Statistik_all, {
+    # Execution time 
+    c_time <- Sys.time()
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
+      # User feedback
+      ausgabe_text(paste0(
+        "Bericht: Statistik erstellt",
+        paste0("\n", getwd(), "/output")
+      ))
+      if (exists("data_env")) {
+        # export Abrechnungsjahre
+        data_env$c_Abrechnungsjahr <- 2023:lubridate::year(Sys.Date())
+        
+        # read data
+        tryCatch({
+          # Fehler abfangen
+          ausgabe_text(capture.output({
+            withCallingHandlers(
+              {
+                source("source/calculate.R", local = data_env)
+                shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+              },
+              warning = function(w) {
+                # Capture warnings and store them in calculate_warnings
+                calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+                invokeRestart("muffleWarning")  # Suppress the warning from being printed
+              }
+            )
+          }, type = "message"))
+        }, error = function(e) {
+          ausgabe_text(
+            paste0(
+              error_calculate,
+              e$message,
+              collapse = ""
+            )
+          )
+        })
+        
+        tryCatch({
+          # Einlesen
+          c_raw <- readLines("source/Statistik_all.Rmd")
+          
+          # # change title 
+          # c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
+          
+          # neues file schreiben mit toc
+          c_raw |>
+            r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+            writeLines(paste0("source/temp.Rmd"))
+          
+          c_filePath <- paste0("output/Statistik ",Abrechungsjahr(),".html")
+          
+          # Render
+          render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+          
+          # Ftp upload
+          c_link <- c_filePath|>
+            ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
+
+          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        }, error = function(e) {
+          ausgabe_text(paste(
+            "Statistik, Fehler beim Bericht erstellen:\n",
+            e$message
+          ))
+        })
+      } else{
+        ausgabe_text(
+          "Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
+        )
+      }
+      
+      # export Abrechnungsjahr
+      data_env$c_Abrechnungsjahr <- Abrechungsjahr()
+      
+      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
+      
+      # Show links if file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+      
       if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
         file_exists_statistk(TRUE)
       else file_exists_statistk(FALSE)

@@ -1015,34 +1015,38 @@ remove(Eintritte,
        s_Eintritte,
        s_Kiosk,
        cnt, ID, p, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt,
-       df_Abrechnung
+       df_Abrechnung,
+       l_template,
+       s_event_einnahmen, s_event_ausgaben, s_df_spezpreise, s_Abrechnung, 
+       `Platzkategorien zum Verrechnen`, manko, s_manko, Verleiherrechnung, 
+       ii, temp
        )
 l_abrechnung
 l_abrechnung[["35"]]
 
-# Daten für Berichet #### 
-## Besucherzahlen  ####
-df_Besucherzahlen <- df_Eintritt|>
-  group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
-  reframe(Besucher = sum(Anzahl))
-df_Besucherzahlen
-
-## Eventeinnahmen ####
-df_Eventeinnahmen <- Einnahmen|>
-  filter(Kategorie == "Event")
-
-## Eventausgaben ####
-df_Eventausgaben <- Ausgaben|>
-  filter(Kategorie == "Event")
-
+# # Daten für Berichet ####
+# ## Besucherzahlen  ####
+# df_Besucherzahlen <- df_Eintritt|>
+#   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
+#   reframe(Besucher = sum(Anzahl))
+# df_Besucherzahlen
+# 
+# ## Eventeinnahmen ####
+# df_Eventeinnahmen <- Einnahmen|>
+#   filter(Kategorie == "Event")
+# 
+# ## Eventausgaben ####
+# df_Eventausgaben <- Ausgaben|>
+#   filter(Kategorie == "Event")
+# 
 ## Keine Rechnung vorhanden ####
 df_keine_Rechnung <- Ausgaben|>
   filter(is.na(`Betrag [CHF]`))
 
-# Data export: write to Excel ####
-c_filePath <- "output/data/"
-if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
-
+# # Data export: write to Excel ####
+# c_filePath <- "output/data/"
+# if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
+# 
 # list(`Werbung` = df_Besucherzahlen,
 #      `Tickets` = df_Eintritt,
 #      `Kiosk` = df_Kiosk,
@@ -1051,11 +1055,11 @@ if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
 #      `Filmvorführung` = df_Abrechnung
 # )|>
 #   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
-
-# remove not used variables ####
-remove(ii,
-       c_filePath
-)
+# 
+# # remove not used variables ####
+# remove(ii,
+#        c_filePath
+# )
 
 
 
