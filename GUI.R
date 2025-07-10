@@ -1681,16 +1681,53 @@ server <- function(input, output, session) {
         # read file
         c_raw <- readLines(file_path)|>suppressWarnings()
         
-        # convert file
-        procinema <- readr::read_delim(
-          file_path, 
-          delim = "\t", escape_double = FALSE, 
-          trim_ws = TRUE
-          )
+        shiny::withProgress(message = "Running script...", value = 0, {
+          shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 1"))
+          paste0(
+            "Procinemadatei wurde eingelesen und das Archiv erstellt."
+          ) |>
+            ausgabe_text()
+          
+          # read WordPress and procinema data and create excel file for Kinoprogramm
+          tryCatch({
+            # convert procinema data
+            procinema_env <- new.env()
+            source("source/procinema.R", local = procinema_env)
+            # get data 
+            df_Procinema <- procinema_env$df_Procinema
+            s_df_Procinema <- procinema_env$s_df_Procinema
+            
+            shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+            # Einlesen
+            c_raw <- readLines("source/Archiv.Rmd")
+            # Inhaltsverzeichnis
+            
+            # neues file schreiben mit toc
+            c_raw |>
+              r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+              writeLines(paste0("source/temp.Rmd"))
+            
+            c_filePath <- paste0("output/Archiv.html")
+            
+            # Render
+            render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = procinema_env)
+            
+            # Ftp upload
+            c_link <- c_filePath|>
+              ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
+            
+            shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
+          }, error = function(e) {
+            ausgabe_text(paste0(
+              "Fehler beim einlesen der Datei: ",c_filePath,"\n",
+              e$message
+            ))
+          })
+        })
         
         # return file string
         return(c_raw)
-      } 
+      }
       #### Eintritte #####
       else{
         if(str_detect(file_name, pattern = "Eintritte")){
