@@ -2024,8 +2024,13 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     print(input$suisa)
-    DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
-    DB_update_cell(DB_con(), "Einsatzplan", "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+    if(lastEdited_data_set_name() == "Filmvorschlag"){
+      DB_update_cell(DB_con(), lastEdited_data_set_name(), "ID", last_selected_row(), "Suisanummer", input$suisa)
+    } else {
+      DB_update_cell(DB_con(), lastEdited_data_set_name(), "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+      DB_update_cell(DB_con(), "Einsatzplan", "Event ID", last_selected_row(), "Suisanummer", input$suisa)
+      
+    }
     df_temp <- current_data()
     df_temp[last_selected_row(),"Suisanummer"] <- input$suisa
     current_data(df_temp)
