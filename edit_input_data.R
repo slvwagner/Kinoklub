@@ -854,7 +854,13 @@ server <- function(input, output, session) {
         if(is.na(c_input[ii])){
           l_input[[ii]] <- as.Date(NA)
         }else{
-          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+          c_temp <- c_input[ii]|>as.integer()|>as.Date()
+          if(lubridate::year(c_temp) < 2000){
+            l_input[[ii]] <- paste0(lubridate::year(c_temp) + 2000 , "-", lubridate::month(c_temp), "-", lubridate::day(c_temp))|>
+              as.Date()
+          } else {
+            l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
+          }
         }
       } 
       ##### numeric inputs ####
@@ -1881,13 +1887,13 @@ server <- function(input, output, session) {
             showModal(
               modalDialog(title = "Suisanummer nicht korrekt, bitte korrigieren!",
                           tagList(
-                            renderText(df_suisa$Suisanummer),
+                            renderText(paste0("Die Angegebenen Suisanummer: `",df_suisa$Suisanummer, "` ist nicht korrekt.")),
                             hr(),
-                            shiny::textInput("suisa", "Suisanummer korrigieren!", value = df_suisa$Suisanummer)
+                            shiny::textInput("suisa", "Bitte die Suisanummer korrigieren!", value = df_suisa$Suisanummer)
                           ),
                           easyClose = FALSE, 
                           footer = tagList(
-                            actionButton("check_suisa","Speichern"),
+                            actionButton("check_suisa","Übernehmen"),
                             actionButton("abort","Abbrechen")
                           )
               )
