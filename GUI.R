@@ -921,7 +921,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Button: Advace-Tickets neu Einlesen ####
+  ## Button: Advanced-Tickets neu Einlesen ####
   shiny::observeEvent(input$advance_tickets,{
     showModal(
       modalDialog(
