@@ -318,29 +318,7 @@ server <- function(input, output, session) {
     
     return(NULL)
   }
-  
-  ### Filmvorschlag erstellen ####
-  FilmvorschlagErstellen <- function(data_env) {
-    # Einlesen
-    c_raw <- readLines("source/Archiv.Rmd")
-    # Inhaltsverzeichnis
 
-    # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-      writeLines(paste0("source/temp.Rmd"))
-
-    c_filePath <- paste0("output/Archiv.html")
-    
-    # Render
-    render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = data_env)
-    
-    # Ftp upload
-    c_link <- c_filePath|>
-      ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
-    return(c_link)
-  }
-  
   ### Jahresrechnung-Bericht erstellen ####
   JahresrechnungErstellen <- function() {
     # Einlesen
@@ -1590,7 +1568,25 @@ server <- function(input, output, session) {
         shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
-        FilmvorschlagErstellen(WordPress_env)
+        
+        # Einlesen
+        c_raw <- readLines("source/Archiv.Rmd")
+        # Inhaltsverzeichnis
+        
+        # neues file schreiben mit toc
+        c_raw |>
+          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+          writeLines(paste0("source/temp.Rmd"))
+        
+        c_filePath <- paste0("output/Archiv.html")
+        
+        # Render
+        render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = WordPress_env)
+        
+        # Ftp upload
+        c_link <- c_filePath|>
+          ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
+
         shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       }, error = function(e) {
         ausgabe_text(paste(
@@ -1682,7 +1678,7 @@ server <- function(input, output, session) {
         ) |>
           ausgabe_text()
         
-        return(readLines(file_path))
+        return(readLines(file_path)|>suppressWarnings())
       } 
       #### Eintritte #####
       else{
