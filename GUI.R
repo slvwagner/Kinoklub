@@ -1553,48 +1553,6 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Button: Wordpress #####
-  shiny::observeEvent(input$wordpress, {
-    # Execution time 
-    c_time <- Sys.time()
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 3"))
-      paste0(
-        "Filmumfrage, Wordpress daten auswertung ausgeführt.",
-        "\nDie Exceldatei kann jetzt heruntergeladen werden."
-      ) |>
-        ausgabe_text()
-      
-      # read WordPress and procinema data and create excel file for Kinoprogramm
-      tryCatch({
-        WordPress_env <- new.env()
-        source("source/read_and_convert_wordPress.R", local = WordPress_env)
-      }, error = function(e) {
-        ausgabe_text(paste(
-          "Filmvorschläge, Fehler beim Bericht erstellen:\n",
-          e$message
-        ))
-      })
-      
-      shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
-      
-      # Show links if Archive file is available 
-      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
-      
-      if(sum(ftp_files == paste0("Archiv.html"), na.rm = TRUE) == 1)
-        file_exists_archiv(TRUE)
-      else file_exists_archiv(FALSE)
-
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-        ausgabe_text()
-      
-      shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
-    })
-  })
-  
   ## Button: Handler Wordpress #####
   output$downloadWordPress <- downloadHandler(
     filename = function() {
