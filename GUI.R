@@ -665,10 +665,15 @@ server <- function(input, output, session) {
     # Show links if file is available on ftp server
     ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
     
-    #### Does the Statistik.html file exist ####
+    #### Does the Jahresstatistik.html file exist ####
     if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
       file_exists_statistk <- shiny::reactiveVal(TRUE)
     else file_exists_statistk <- shiny::reactiveVal(FALSE)
+    
+    #### Does the Jahresstatistik.html file exist ####
+    if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
+      file_exists_statistk_all <- shiny::reactiveVal(TRUE)
+    else file_exists_statistk_all <- shiny::reactiveVal(FALSE)
     
     #### Does the Jahresrechnung.html file exist ####
     if(sum(ftp_files == paste0("Jahresrechnung ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1)
@@ -763,7 +768,8 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+      paste0(ausgabe_text(),
+             "\nAusführungszeit: ",r_signif(c_time),"\n",
              "Datenbank-Backup durchgeführt!\n",
              "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!",
              calculate_warnings())|>
@@ -1451,81 +1457,49 @@ server <- function(input, output, session) {
         "Bericht: Statistik erstellt",
         paste0("\n", getwd(), "/output")
       ))
-      if (exists("data_env")) {
-        # export Abrechnungsjahre
-        data_env$c_Abrechnungsjahr <- 2023:lubridate::year(Sys.Date())
+      
+      tryCatch({
+        # Einlesen
+        c_raw <- readLines("source/Statistik_all.Rmd")
         
-        # read data
-        tryCatch({
-          # Fehler abfangen
-          ausgabe_text(capture.output({
-            withCallingHandlers(
-              {
-                source("source/calculate.R", local = data_env)
-                shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
-              },
-              warning = function(w) {
-                # Capture warnings and store them in calculate_warnings
-                calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
-                invokeRestart("muffleWarning")  # Suppress the warning from being printed
-              }
-            )
-          }, type = "message"))
-        }, error = function(e) {
-          ausgabe_text(
-            paste0(
-              error_calculate,
-              e$message,
-              collapse = ""
-            )
-          )
-        })
+        # # change title 
+        # c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
         
-        tryCatch({
-          # Einlesen
-          c_raw <- readLines("source/Statistik_all.Rmd")
-          
-          # # change title 
-          # c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
-          
-          # neues file schreiben mit toc
-          c_raw |>
-            r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-            writeLines(paste0("source/temp.Rmd"))
-          
-          c_filePath <- paste0("output/Statistik ",Abrechungsjahr(),".html")
-          
-          # Render
-          render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
-          
-          # Ftp upload
-          c_link <- c_filePath|>
-            ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
+        # neues file schreiben mit toc
+        c_raw |>
+          r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+          writeLines(paste0("source/temp.Rmd"))
+        
+        c_filePath <- paste0("output/Statistik.html")
+        
+        # Render
+        render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+        
+        # Ftp upload
+        c_link <- c_filePath|>
+          ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
 
-          shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-        }, error = function(e) {
-          ausgabe_text(paste(
+        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+      }, error = function(e) {
+        ausgabe_text(
+          paste(
+            ausgabe_text(),
             "Statistik, Fehler beim Bericht erstellen:\n",
             e$message
-          ))
-        })
-      } else{
-        ausgabe_text(
-          "Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!"
-        )
-      }
-      
-      # export Abrechnungsjahr
-      data_env$c_Abrechnungsjahr <- Abrechungsjahr()
-      
+            )
+          )
+      })
+
       shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
       
       # Show links if file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
-      if(sum(ftp_files == paste0("Statistik ", Abrechungsjahr(), ".html"), na.rm = TRUE) == 1)
-        file_exists_statistk(TRUE)
-      else file_exists_statistk(FALSE)
+      if(sum(ftp_files == paste0("Statistik.html"), na.rm = TRUE) == 1){
+        file_exists_statistk_all(TRUE)
+      } else {
+        file_exists_statistk_all(FALSE)
+      }
       
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -2281,6 +2255,15 @@ server <- function(input, output, session) {
         file_exists_archiv(TRUE)
       else file_exists_archiv(FALSE)
       
+      # Show links if file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
+      
+      if(sum(ftp_files == paste0("Statistik.html"), na.rm = TRUE) == 1){
+        file_exists_statistk_all(TRUE)
+      } else {
+        file_exists_statistk_all(FALSE)
+      }
+      
       # Create links and render Datatable
       Report_links()
 
@@ -2743,6 +2726,14 @@ server <- function(input, output, session) {
           if(file_exists_jahhresrechnung()){
             shiny::tags$a(
               href = paste0("https://kinoklub.ch/kkTeam/reports/Jahresrechnung ",Abrechungsjahr(),".html")|>utils::URLencode(), paste("Jahresrechnung", Abrechungsjahr()),
+              target = "_blank",
+              style = "font-size: 24px;"
+            )
+          },
+          if(file_exists_statistk_all()){
+            shiny::tags$a(
+              href = paste0("https://kinoklub.ch/kkTeam/reports/Statistik.html")|>utils::URLencode(), 
+              paste("Statistik"),
               target = "_blank",
               style = "font-size: 24px;"
             )
