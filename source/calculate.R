@@ -1015,7 +1015,6 @@ remove(Eintritte,
        s_Kiosk,
        cnt, ID, p, IDs, c_test, c_Kiosk, c_EventIDs_Eintritte, c_eintritt,
        df_Abrechnung,
-       l_template,
        s_event_einnahmen, s_event_ausgaben, s_df_spezpreise, s_Abrechnung, 
        `Platzkategorien zum Verrechnen`, manko, s_manko, Verleiherrechnung, 
        ii, temp
@@ -1074,6 +1073,9 @@ if(!DB_table_exists(con,"df_Abrechnung")){
   }
   
 } 
+
+df_Abrechnung <- DB_get_table("df_Abrechnung", con)|>
+  convert_to_template_types(l_template$df_Abrechnung)
 
 remove(df_s_Eintritte, df_temp)
 

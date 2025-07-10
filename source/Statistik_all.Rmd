@@ -39,24 +39,7 @@ df_temp <- df_Abrechnung|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, Besucherzahl, `Umsatz [CHF]`, 
          `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Gewinn aus Fimvorführung [CHF]`
          )
-```
 
-
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- df_temp <- l_abrechnung|> -->
-<!--   lapply(function(x){ -->
-<!--     bind_cols(`Event ID` = x$IDs$IDs[1],  -->
-<!--               Datum = x$Abrechnung$Datum[1], -->
-<!--               Zeit = x$Abrechnung$Zeit[1],  -->
-<!--               Suisanummer  = x$Abrechnung$Suisanummer[1] , -->
-<!--               Filmtitel = x$Abrechnung$Filmtitel[1],  -->
-<!--               x$s_Abrechnung) -->
-<!--   })|> -->
-<!--   bind_rows() -->
-<!-- ``` -->
-
-
-```{r}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
   df_temp, 

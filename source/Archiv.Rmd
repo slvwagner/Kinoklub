@@ -9,7 +9,12 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Procinema-Archiv
+## ProCinema - Archiv
+
+Achtung das Archiv wird aus der Datei: .../Input/Input/Procinema/procinema.txt erstellt.\
+Um das Archiv zu aktualisieren muss auf der homepage <https://procinema.ch/de/login/account/> eine neue procinema.txt Datei heruntergeladen werden. Datei muss im "Kinoklub GUi" hochgeladen werden. Damit werden die Daten konvertiert und das Archiv aktualisiert.  \
+\
+
 ```{r}
 df_temp <- df_Procinema|>
   arrange(desc(Datum)) |>
