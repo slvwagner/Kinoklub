@@ -1,4 +1,27 @@
 YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro_OV_2D	Adm_OV_2D	Box_OV_2D	Pro_GV_2D	Adm_GV_2D	Box_GV_2D	Pro_FV_2D	Adm_FV_2D	Box_FV_2D	Pro_IV_2D	Adm_IV_2D	Box_IV_2D	Pro_OV_3D	Adm_OV_3D	Box_OV_3D	Pro_GV_3D	Adm_GV_3D	Box_GV_3D	Pro_FV_3D	Adm_FV_3D	Box_FV_3D	Pro_IV_3D	Adm_IV_3D	Box_IV_3D	TotPro_OV	TotAdm_OV	TotBox_OV	TotPro_GV	TotAdm_GV	TotBox_GV	TotPro_FV	TotAdm_FV	TotBox_FV	TotPro_IV	TotAdm_IV	TotBox_IV	TotPro_2D	TotAdm_2D	TotBox_2D	TotPro_3D	TotAdm_3D	TotBox_3D
+202522	108414	Reinach, TaB* Atelierkino	G	JMH	1020835	Un Ours dans le Jura	1	14	193	r	1	14	193	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	14	193	0	0	0	0	0	0	0	0	0	1	14	193	0	0	0
+202521	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1020176	Niki	1	30	429	r	1	30	429	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	30	429	0	0	0	0	0	0	0	0	0	1	30	429	0	0	0
+202520	108414	Reinach, TaB* Atelierkino	G	OUTSIDE THE BOX	1018390	Sidonie au Japon	1	8	119	r	1	8	119	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	8	119	0	0	0	0	0	0	0	0	0	1	8	119	0	0	0
+202520	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1020744	Ein Mädchen namens Willow	1	4	56	r	1	4	56	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	4	56	0	0	0	0	0	0	0	0	0	1	4	56	0	0	0
+202519	108414	Reinach, TaB* Atelierkino	G	TRIGON	1021021	On Becoming a Guinea Fowl	1	7	106	r	1	7	106	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	7	106	0	0	0	0	0	0	0	0	0	1	7	106	0	0	0
+202518	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1010858	An - Von Kirschblüten und roten Bohnen	1	10	148	r	1	10	148	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	10	148	0	0	0	0	0	0	0	0	0	1	10	148	0	0	0
+202518	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1020294	Paddington in Peru 	1	26	343	r	0	0	0	1	26	343	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	26	343	0	0	0	0	0	0	1	26	343	0	0	0
+202517	108414	Reinach, TaB* Atelierkino	G	TEMP IMPORT	1022317	O Artista Mãe	1	42	748	t	1	42	748	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	42	748	0	0	0	0	0	0	0	0	0	1	42	748	0	0	0
+202516	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1021875	Das Licht	1	9	129	r	1	9	129	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	129	0	0	0	0	0	0	0	0	0	1	9	129	0	0	0
+202515	108414	Reinach, TaB* Atelierkino	G	WB	1018952	Wunderschöner	1	12	135	r	1	12	135	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	12	135	0	0	0	0	0	0	0	0	0	1	12	135	0	0	0
+202515	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1019535	Friedas Fall	1	15	143	r	1	15	143	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	15	143	0	0	0	0	0	0	0	0	0	1	15	143	0	0	0
+202515	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1020059	Heldin	1	77	1041	r	1	77	1041	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	77	1041	0	0	0	0	0	0	0	0	0	1	77	1041	0	0	0
+202514	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1018523	Sauvages	1	2	26	r	0	0	0	1	2	26	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	26	0	0	0	0	0	0	1	2	26	0	0	0
+202514	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1020059	Heldin	1	32	379	r	1	32	379	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	32	379	0	0	0	0	0	0	0	0	0	1	32	379	0	0	0
+202514	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1020846	Wir Erben	1	23	272	r	1	23	272	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	23	272	0	0	0	0	0	0	0	0	0	1	23	272	0	0	0
+202513	108414	Reinach, TaB* Atelierkino	G	PATHE	1018950	Emilia Perez	1	3	42	r	1	3	42	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	3	42	0	0	0	0	0	0	0	0	0	1	3	42	0	0	0
+202512	108414	Reinach, TaB* Atelierkino	G	XENIX	1018767	Antarctica Calling - Voyage au pôle Sud	1	18	257	r	0	0	0	1	18	257	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	18	257	0	0	0	0	0	0	1	18	257	0	0	0
+202512	108414	Reinach, TaB* Atelierkino	G	CINEWORX	1019051	Prisoners of Fate	1	21	105	r	1	21	105	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	21	105	0	0	0	0	0	0	0	0	0	1	21	105	0	0	0
+202511	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1020928	The Substance	1	9	141	r	1	9	141	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	141	0	0	0	0	0	0	0	0	0	1	9	141	0	0	0
+202510	108414	Reinach, TaB* Atelierkino	G	UNIVERSAL	1019964	The Wild Robot	1	5	68	r	0	0	0	1	5	68	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	5	68	0	0	0	0	0	0	1	5	68	0	0	0
+202509	108414	Reinach, TaB* Atelierkino	G	UNIVERSAL	1021270	The Brutalist	1	6	90	r	1	6	90	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0
+202507	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1020521	Widow Clicquot	1	28	360	r	1	28	360	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	28	360	0	0	0	0	0	0	0	0	0	1	28	360	0	0	0
+202506	108414	Reinach, TaB* Atelierkino	G	DCM FILM	1020652	Der Vierer	1	10	154	r	1	10	154	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	10	154	0	0	0	0	0	0	0	0	0	1	10	154	0	0	0
 202505	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1019343	Die Drei ??? und der Karpatenhund	1	28	388	r	1	28	388	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	28	388	0	0	0	0	0	0	0	0	0	1	28	388	0	0	0
 202505	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1020428	The Missile	1	15	145	r	1	15	145	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	15	145	0	0	0	0	0	0	0	0	0	1	15	145	0	0	0
 202505	108414	Reinach, TaB* Atelierkino	G	MOVIEBIZ	1021174	Hölde - die stillen Helden vom Säntis	1	38	503	r	1	38	503	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	38	503	0	0	0	0	0	0	0	0	0	1	38	503	0	0	0
@@ -742,7 +765,7 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201939	108414	Reinach, TaB* Atelierkino	G	ELITE	1013325	Late Night	1	2	32	r	0	0	0	1	2	32	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0	0	0	0	1	2	32	0	0	0
 201939	108414	Reinach, TaB* Atelierkino	G	MILIEU PICTURES GMBH	1013368	Der Büezer	1	8	119	r	1	8	119	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	8	119	0	0	0	0	0	0	0	0	0	1	8	119	0	0	0
 201939	108414	Reinach, TaB* Atelierkino	G	CINEWORX	1013417	Die fruchtbaren Jahre sind vorbei	1	9	117	r	1	9	117	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	117	0	0	0	0	0	0	0	0	0	1	9	117	0	0	0
-201939	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite	1	1	16	r	1	1	16	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	16	0	0	0	0	0	0	0	0	0	1	1	16	0	0	0
+201939	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite (2019)	1	1	16	r	1	1	16	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	16	0	0	0	0	0	0	0	0	0	1	1	16	0	0	0
 201939	108414	Reinach, TaB* Atelierkino	G	TRIGON	1013465	Le miracle du saint inconnu	1	4	52	r	1	4	52	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	4	52	0	0	0	0	0	0	0	0	0	1	4	52	0	0	0
 201939	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1013474	Yoga - Die Kraft des Lebens	1	8	116	r	1	8	116	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	8	116	0	0	0	0	0	0	0	0	0	1	8	116	0	0	0
 201938	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012492	Once Upon A Time... In Hollywood	1	11	170	r	1	11	170	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	11	170	0	0	0	0	0	0	0	0	0	1	11	170	0	0	0
@@ -752,7 +775,7 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201938	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013254	La Paranza dei bambini	1	6	81	r	1	6	81	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	6	81	0	0	0	0	0	0	0	0	0	1	6	81	0	0	0
 201938	108414	Reinach, TaB* Atelierkino	G	ELITE	1013325	Late Night	1	9	126	r	0	0	0	1	9	126	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	126	0	0	0	0	0	0	1	9	126	0	0	0
 201938	108414	Reinach, TaB* Atelierkino	G	CINEWORX	1013417	Die fruchtbaren Jahre sind vorbei	1	6	90	r	1	6	90	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0
-201938	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite	1	10	157	r	1	10	157	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	10	157	0	0	0	0	0	0	0	0	0	1	10	157	0	0	0
+201938	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite (2019)	1	10	157	r	1	10	157	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	10	157	0	0	0	0	0	0	0	0	0	1	10	157	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012492	Once Upon A Time... In Hollywood	1	3	48	r	1	3	48	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	3	48	0	0	0	0	0	0	0	0	0	1	3	48	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1013061	Die Drei !!!	2	14	180	r	2	14	180	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	14	180	0	0	0	0	0	0	0	0	0	2	14	180	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	PRAESENS	1013062	Leberkäsjunkie	1	2	32	r	1	2	32	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0
@@ -760,7 +783,7 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201937	108414	Reinach, TaB* Atelierkino	G	TRIGON	1013233	Monos	1	2	26	r	1	2	26	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	26	0	0	0	0	0	0	0	0	0	1	2	26	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	ELITE	1013325	Late Night	1	7	106	r	0	0	0	1	7	106	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	7	106	0	0	0	0	0	0	1	7	106	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	CINEWORX	1013417	Die fruchtbaren Jahre sind vorbei	1	5	71	r	1	5	71	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	5	71	0	0	0	0	0	0	0	0	0	1	5	71	0	0	0
-201937	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite	1	2	32	r	1	2	32	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0
+201937	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1013419	Parasite (2019)	1	2	32	r	1	2	32	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1013474	Yoga - Die Kraft des Lebens	1	2	32	r	1	2	32	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0	0	0	0	0	0	0	1	2	32	0	0	0
 201937	108414	Reinach, TaB* Atelierkino	G	MOVIEBIZ	1013536	Erde	1	0	0	r	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
 201936	108414	Reinach, TaB* Atelierkino	G	DISNEY	1012352	The Lion King	2	32	434	r	0	0	0	2	32	434	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	32	434	0	0	0	0	0	0	2	32	434	0	0	0
@@ -1038,14 +1061,14 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201841	108414	Reinach, TaB* Atelierkino	G	WB	1012334	Klassentreffen 1.0 - Die Unglaubliche Reise der Silberrücken	3	59	899	r	3	59	899	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	59	899	0	0	0	0	0	0	0	0	0	3	59	899	0	0	0
 201841	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1012788	Grüner Wird's Nicht, Sagte der Gärtner und Flog Davon	1	5	65	r	1	5	65	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	5	65	0	0	0	0	0	0	0	0	0	1	5	65	0	0	0
 201841	108414	Reinach, TaB* Atelierkino	G	CINEWORX	1011580	Yvette Z'Graggen – Une femme au volant de sa vie	1	10	136	r	1	10	136	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	10	136	0	0	0	0	0	0	0	0	0	1	10	136	0	0	0
-201840	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha	2	17	252	r	0	0	0	2	17	252	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	17	252	0	0	0	0	0	0	2	17	252	0	0	0
+201840	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha (2018)	2	17	252	r	0	0	0	2	17	252	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	17	252	0	0	0	0	0	0	2	17	252	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	ELITE	1012461	Book Club	2	35	521	r	0	0	0	2	35	521	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	35	521	0	0	0	0	0	0	2	35	521	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1012788	Grüner Wird's Nicht, Sagte der Gärtner und Flog Davon	1	9	129	r	1	9	129	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	129	0	0	0	0	0	0	0	0	0	1	9	129	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	ELITE	1012465	Tout le monde debout (rolling to you)	2	10	139	r	0	0	0	2	10	139	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	10	139	0	0	0	0	0	0	2	10	139	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1012561	Pettersson & Findus: Findus Zieht um	2	12	165	r	2	12	165	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	12	165	0	0	0	0	0	0	0	0	0	2	12	165	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1012488	Place publique 	2	0	0	r	2	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	2	0	0	0	0	0
 201840	108414	Reinach, TaB* Atelierkino	G	ELITE	1012859	Swimming with Men	1	8	119	r	0	0	0	1	8	119	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	8	119	0	0	0	0	0	0	1	8	119	0	0	0
-201839	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha	2	11	143	r	0	0	0	2	11	143	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	11	143	0	0	0	0	0	0	2	11	143	0	0	0
+201839	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha (2018)	2	11	143	r	0	0	0	2	11	143	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	11	143	0	0	0	0	0	0	2	11	143	0	0	0
 201839	108414	Reinach, TaB* Atelierkino	G	FRENETIC	1012488	Place publique 	2	2	29	r	2	2	29	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	2	29	0	0	0	0	0	0	0	0	0	2	2	29	0	0	0
 201839	108414	Reinach, TaB* Atelierkino	G	ELITE	1012465	Tout le monde debout (rolling to you)	2	15	204	r	0	0	0	2	15	204	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	15	204	0	0	0	0	0	0	2	15	204	0	0	0
 201839	108414	Reinach, TaB* Atelierkino	G	ELITE	1012859	Swimming with Men	1	9	138	r	0	0	0	1	9	138	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	9	138	0	0	0	0	0	0	1	9	138	0	0	0
@@ -1054,7 +1077,7 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201839	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1012788	Grüner Wird's Nicht, Sagte der Gärtner und Flog Davon	1	5	71	r	1	5	71	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	5	71	0	0	0	0	0	0	0	0	0	1	5	71	0	0	0
 201838	108414	Reinach, TaB* Atelierkino	G	ELITE	1011982	The Children Act	1	7	112	r	1	7	112	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	7	112	0	0	0	0	0	0	0	0	0	1	7	112	0	0	0
 201838	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012015	Hotel Transylvania 3: A Monster Vacation	2	28	374	r	0	0	0	2	28	374	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	28	374	0	0	0	0	0	0	2	28	374	0	0	0
-201838	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha	3	11	156	r	0	0	0	3	11	156	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	11	156	0	0	0	0	0	0	3	11	156	0	0	0
+201838	108414	Reinach, TaB* Atelierkino	G	SONY PICTURES	1012176	Alpha (2018)	3	11	156	r	0	0	0	3	11	156	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	11	156	0	0	0	0	0	0	3	11	156	0	0	0
 201838	108414	Reinach, TaB* Atelierkino	G	UNIVERSAL	1012747	Blackkklansman	1	6	90	r	1	6	90	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0	0	0	0	0	0	0	1	6	90	0	0	0
 201838	108414	Reinach, TaB* Atelierkino	G	MOVIEBIZ	1012909	The Green Lie	1	4	58	r	1	4	58	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	4	58	0	0	0	0	0	0	0	0	0	1	4	58	0	0	0
 201838	108414	Reinach, TaB* Atelierkino	G	ELITE	1012859	Swimming with Men	1	16	241	r	0	0	0	1	16	241	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	16	241	0	0	0	0	0	0	1	16	241	0	0	0
@@ -1884,17 +1907,17 @@ YearWeek	ScreenID	Screen	Part	Distr	SUISA	OrigTitle	TotPro	TotAdm	TotBox	Dac	Pro
 201435	108414	Reinach, TaB* Atelierkino	G	DISNEY	1009766	Planes: Fire & Rescue	3	43	586	r	0	0	0	3	43	586	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	43	586	0	0	0	0	0	0	3	43	586	0	0	0
 201435	108414	Reinach, TaB* Atelierkino	G	WB	1009904	Jersey Boys	3	19	292	r	3	19	292	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	19	292	0	0	0	0	0	0	0	0	0	3	19	292	0	0	0
 201435	108414	Reinach, TaB* Atelierkino	G	ELITE	1009986	The Hundred Foot Journey	4	86	1269	r	3	59	853	1	27	416	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	59	853	1	27	416	0	0	0	0	0	0	4	86	1269	0	0	0
-201434	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2	2	19	244	r	0	0	0	2	19	244	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	19	244	0	0	0	0	0	0	2	19	244	0	0	0
+201434	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2 (2014)	2	19	244	r	0	0	0	2	19	244	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	19	244	0	0	0	0	0	0	2	19	244	0	0	0
 201434	108414	Reinach, TaB* Atelierkino	G	ELITE	1009769	Fading Gigolo	2	11	164	r	2	11	164	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	11	164	0	0	0	0	0	0	0	0	0	2	11	164	0	0	0
 201434	108414	Reinach, TaB* Atelierkino	G	ELITE	1009986	The Hundred Foot Journey	5	90	1328	r	4	56	812	1	34	516	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	56	812	1	34	516	0	0	0	0	0	0	5	90	1328	0	0	0
-201433	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2	3	30	405	r	0	0	0	3	30	405	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	30	405	0	0	0	0	0	0	3	30	405	0	0	0
+201433	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2 (2014)	3	30	405	r	0	0	0	3	30	405	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	3	30	405	0	0	0	0	0	0	3	30	405	0	0	0
 201433	108414	Reinach, TaB* Atelierkino	G	ELITE	1009769	Fading Gigolo	5	55	862	r	5	55	862	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	5	55	862	0	0	0	0	0	0	0	0	0	5	55	862	0	0	0
 201433	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1010168	Wir Sind die Neuen	2	48	729	r	2	48	729	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	48	729	0	0	0	0	0	0	0	0	0	2	48	729	0	0	0
 201432	108414	Reinach, TaB* Atelierkino	G	ELITE	1009330	Thanks For Sharing	2	7	106	r	2	7	106	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	7	106	0	0	0	0	0	0	0	0	0	2	7	106	0	0	0
-201432	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2	2	50	674	r	0	0	0	2	50	674	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	50	674	0	0	0	0	0	0	2	50	674	0	0	0
+201432	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2 (2014)	2	50	674	r	0	0	0	2	50	674	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	50	674	0	0	0	0	0	0	2	50	674	0	0	0
 201432	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1010168	Wir Sind die Neuen	5	53	774	r	5	53	774	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	5	53	774	0	0	0	0	0	0	0	0	0	5	53	774	0	0	0
 201431	108414	Reinach, TaB* Atelierkino	G	ELITE	1009330	Thanks For Sharing	2	3	44	r	2	3	44	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	3	44	0	0	0	0	0	0	0	0	0	2	3	44	0	0	0
-201431	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2	2	66	877	r	0	0	0	2	66	877	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	66	877	0	0	0	0	0	0	2	66	877	0	0	0
+201431	108414	Reinach, TaB* Atelierkino	G	FOX	1009448	How to Train Your Dragon 2 (2014)	2	66	877	r	0	0	0	2	66	877	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	66	877	0	0	0	0	0	0	2	66	877	0	0	0
 201431	108414	Reinach, TaB* Atelierkino	G	FILMCOOPI	1010168	Wir Sind die Neuen	4	78	1127	r	4	78	1127	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	78	1127	0	0	0	0	0	0	0	0	0	4	78	1127	0	0	0
 201430	108414	Reinach, TaB* Atelierkino	G	DISNEY	1009880	Tinker Bell: The Pirate Fairy	2	50	690	r	0	0	0	2	50	690	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	50	690	0	0	0	0	0	0	2	50	690	0	0	0
 201430	108414	Reinach, TaB* Atelierkino	G	FOX	1009920	The Fault in Our Stars	5	46	634	r	0	0	0	5	46	634	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	5	46	634	0	0	0	0	0	0	5	46	634	0	0	0
