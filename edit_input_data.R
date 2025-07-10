@@ -854,13 +854,7 @@ server <- function(input, output, session) {
         if(is.na(c_input[ii])){
           l_input[[ii]] <- as.Date(NA)
         }else{
-          c_temp <- c_input[ii]|>as.integer()|>as.Date()
-          if(lubridate::year(c_temp) < 2000){
-            l_input[[ii]] <- paste0(lubridate::year(c_temp) + 2000 , "-", lubridate::month(c_temp), "-", lubridate::day(c_temp))|>
-              as.Date()
-          } else {
-            l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
-          }
+          l_input[[ii]] <- c_input[ii]|>as.integer()|>as.Date()
         }
       } 
       ##### numeric inputs ####
