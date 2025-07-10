@@ -612,6 +612,10 @@ server <- function(input, output, session) {
   ### last uploaded file path #### 
   last_uploaded_table_name <- shiny::reactiveVal(NULL)
   
+  ## last user filter ####
+  last_filter <- reactiveVal(NULL)
+  filter_state_cleared <- reactiveVal(TRUE)
+  
   ### warning ####
   # calculate_warnings <- shiny::reactiveVal(as.character(calculate_warnings))
   calculate_warnings <- shiny::reactiveVal("")
@@ -1672,12 +1676,13 @@ server <- function(input, output, session) {
         paste0(
           "Die Datei \"",
           file_name,
-          "\" wurde im Verzeichniss \n.../Kinoklub",
+          "\" wurde im Verzeichniss \n.../Kinoklub/",
           save_path,
           " abgespeichert"
         ) |>
           ausgabe_text()
-        return(list(type = "txt", data = readLines(file_path)))
+        
+        return(readLines(file_path))
       } 
       #### Eintritte #####
       else{
@@ -2511,11 +2516,7 @@ server <- function(input, output, session) {
         selectPage(last_selected_page())
     }
   })
-  
-  ## last user filter ####
-  last_filter <- reactiveVal(NULL)
-  filter_state_cleared <- reactiveVal(TRUE)
-  
+
   ## check if last user filter has been cleared ####
   observeEvent(input$dateTable_search_columns,{
     c_filters <- input$dateTable_search_columns
@@ -2616,6 +2617,7 @@ server <- function(input, output, session) {
   ## file upload render: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data())
+    file_data()
   })
   
   ## Render: Systemrückmeldungen aktualisieren #####
