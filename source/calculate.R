@@ -349,8 +349,7 @@ df_spez_preis_na <- df_Kiosk|>
   filter(is.na(ID_Spezialpreisekiosk) & is.na(ID_Kioskartikel ))
 df_spez_preis_na
 
-## Disconnect from database ####
-DBI::dbDisconnect(con)
+
 
 if(nrow(df_spez_preis_na) > 0){
   warning(
@@ -1024,6 +1023,63 @@ remove(Eintritte,
 l_abrechnung
 l_abrechnung[["35"]]
 
+# Abrechnung ####
+df_s_Abrechnung <- l_abrechnung|>
+  lapply(function(x){
+    x$s_Abrechnung
+  })|>
+  bind_rows(.id = "Event ID")|>
+  mutate(`Event ID` = as.integer(`Event ID`))
+df_s_Abrechnung
+
+# Push Abrechnung to Database ####
+df_s_Eintritte <- l_abrechnung|>
+  lapply(function(x){
+    x$s_Eintritte
+  })|>
+  bind_rows()|>
+  filter(Zahlend)|>
+  select(-Zahlend, -`Umsatz [CHF]`)
+df_s_Eintritte
+
+df_Abrechnung <- df_s_Abrechnung|>
+  left_join(df_s_Eintritte, by = join_by(`Event ID`))
+df_Abrechnung
+
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung[1,]
+  })|>
+  bind_rows()|>
+  select(1:6)
+df_temp
+
+df_Abrechnung <- df_Abrechnung|>
+  left_join(df_temp, by = join_by(`Event ID`))
+
+if(!DB_table_exists(con,"df_Abrechnung")){
+  df_Abrechnung|>
+    DB_copy_table(con,"df_Abrechnung", delete_existing = FALSE)
+} else {
+  df_temp <- DB_get_table("df_Abrechnung", con)
+  df_temp
+  df_temp <- anti_join(df_Abrechnung, 
+                       df_temp,
+                       by = join_by(`Event ID`))
+  df_temp
+  
+  if(nrow(df_temp) > 0){
+    df_temp|>
+      DB_copy_table(con,"df_Abrechnung", delete_existing = FALSE)
+  }
+  
+} 
+
+remove(df_s_Eintritte, df_temp)
+
+## Disconnect from database ####
+DBI::dbDisconnect(con)
+
 # # Daten für Berichet ####
 # ## Besucherzahlen  ####
 # df_Besucherzahlen <- df_Eintritt|>
@@ -1060,8 +1116,6 @@ df_keine_Rechnung <- Ausgaben|>
 # remove(ii,
 #        c_filePath
 # )
-
-
 
 # user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
