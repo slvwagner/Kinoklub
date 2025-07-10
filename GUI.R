@@ -1678,7 +1678,18 @@ server <- function(input, output, session) {
         ) |>
           ausgabe_text()
         
-        return(readLines(file_path)|>suppressWarnings())
+        # read file
+        c_raw <- readLines(file_path)|>suppressWarnings()
+        
+        # convert file
+        procinema <- readr::read_delim(
+          file_path, 
+          delim = "\t", escape_double = FALSE, 
+          trim_ws = TRUE
+          )
+        
+        # return file string
+        return(c_raw)
       } 
       #### Eintritte #####
       else{
