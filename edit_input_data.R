@@ -2035,7 +2035,7 @@ server <- function(input, output, session) {
   
   ## Check unique ####
   observeEvent(input$check_unique, {
-    if(lastEdited_data_set_name() == "Programm"){
+    if(lastEdited_data_set_name() %in% c("Programm", "df_Abrechnung")){
       # Find duplicates (keeping only duplicate rows)
       df_temp <- current_data() |>
         group_by(across(-`Event ID`)) |>
