@@ -571,7 +571,7 @@ server <- function(input, output, session) {
       )
     }
     ### anything else ####
-    else if (lastEdited_data_set_name() == "Einkauf Kiosk") {
+    else if (lastEdited_data_set_name() == "df_Abrechnung") {
       tags$div(
         id = "floating-panel",
         tags$div(id = "floating-panel-header", 
@@ -586,17 +586,17 @@ server <- function(input, output, session) {
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
         ),
-        shiny::tags$hr(),
-        actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
-        actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-        shiny::tags$hr(),
+        # shiny::tags$hr(),
+        # actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+        # actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+        # shiny::tags$hr(),
         # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
         # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-        actionButton("duplicate_row", "Neuer Einkaufpreis", class = "btn-info"),
-        shiny::tags$hr(),
-        actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-        shiny::tags$hr(),
-        actionButton("check_unique", "Prüfen", class = "btn-success"),
+        # actionButton("duplicate_row", "Neuer Einkaufpreis", class = "btn-info"),
+        # shiny::tags$hr(),
+        # actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+        # shiny::tags$hr(),
+        # actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
