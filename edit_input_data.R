@@ -297,7 +297,7 @@ server <- function(input, output, session) {
   temp_01 <- reactiveVal(NULL)
   ### temp_02 ####
   temp_02 <- reactiveVal(NULL)
-  # new entry use case ####
+  ### new entry use case ####
   new_entry <- reactiveVal(NULL)
   
   ## helper functions ####
