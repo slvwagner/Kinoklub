@@ -2248,7 +2248,6 @@ server <- function(input, output, session) {
   })
   
   ### Row Operations (Add/Delete/Duplicate/change title/takeover) ####
-
   ####  add row / create empty row ####
   observeEvent(input$add_row, {
     # check DB connection
@@ -3337,9 +3336,6 @@ server <- function(input, output, session) {
           column_choices()
         # update to render 
         current_data(updated_data)
-        
-        #### select last edited row and page ####
-        
       } 
     }else{
       # User interaction
