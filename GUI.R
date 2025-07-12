@@ -154,17 +154,6 @@ ui <-
 # Server-Logik ####
 server <- function(input, output, session) {
   ## Helper functions ####
-  ### Function to render a single RMarkdown file ####
-  render_single_file <- function(input, output, envir) {
-    rmarkdown::render(
-      input = input,        # input file name
-      output_file = output, # output file name
-      output_dir = "output",# where to put the output file (directory) 
-      envir = envir, 
-      quiet = TRUE  # Suppress output for cleaner logs
-    )
-  }
-  
   ### Abrechnungen mapping erstellen ####
   Abrechnung_mapping <- function(Abrechnung) {
     # Soll die Verleiherabrechnung erzeugt werden?
@@ -1435,102 +1424,32 @@ server <- function(input, output, session) {
     c_time <- Sys.time()
     shiny::withProgress(message = "Statistik...", value = 0, {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
-      
-      # calculate data 
-      c_years <- 2023:lubridate::year(Sys.time())
-      n <- length(c_years)
-      l_data <- list()
-      
-      shiny::withProgress(message = "Calculate year...", value = 0, {
-        for (ii in 1:length(c_years)) {
-          data_env_all <- new.env()
-          # set Abrechnungsjahr
-          data_env_all$c_Abrechnungsjahr <- c_years[ii]
-          # calculate data
-          tryCatch({
-            # Fehler abfangen
-            ausgabe_text(capture.output({
-              withCallingHandlers({
-                source("source/calculate.R", local = data_env_all)
-                l_data[[ii]] <- data_env_all$l_abrechnung
-              }, warning = function(w) {
-                # Capture warnings and store them in calculate_warnings
-                calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
-                invokeRestart("muffleWarning")  # Suppress the warning from being printed
-              })
-            }, type = "message"))
-          }, error = function(e) {
-            ausgabe_text(paste0(error_calculate, e$message, collapse = ""))
-          })
-          shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-        }
+      data_env_all <- new.env()
+
+      shiny::withProgress(message = "Calculate...", value = 0, {
+        shiny::incProgress(1 / n, detail = paste("Step", 1, "of 1"))
+        # calculate data
+        tryCatch({
+          # Fehler abfangen
+          ausgabe_text(capture.output({
+            withCallingHandlers({
+              source("source/calc_stat_all.R", local = data_env_all)
+            }, warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste("Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            })
+          }, type = "message"))
+        }, error = function(e) {
+          ausgabe_text(
+            "Fehler beim Dateneinlesen:\n",
+            e$message
+            )
+          req(NULL)
+        })
       })
       
-      # Eintritte
-      df_Eintritte <- l_data|>
-        lapply(function(x){
-          lapply(x, function(x){
-            x$s_Eintritte
-          })|>
-            bind_rows(.id = "Event ID")|>
-            mutate(`Event ID` = as.integer(`Event ID`))
-        })
-      names(df_Eintritte) <- c_years
-      df_Eintritte <- df_Eintritte|>
-        bind_rows(.id = "Abrechnungsjahr")|>
-        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
-      df_Eintritte
-      
-      # Summary Eintritte
-      s_df_Eintritte <- df_Eintritte|>
-        group_by(Abrechnungsjahr, `Event ID`)|>
-        reframe(Besucherzahl = sum(Besucherzahl),
-                `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-                )
-      
-      # Summary Abrechnung 
-      df_s_Abrechnung <- l_data|>
-        lapply(function(x){
-          lapply(x, function(x){
-            x$s_Abrechnung
-          })|>
-            bind_rows(.id = "Event ID")|>
-            mutate(`Event ID` = as.integer(`Event ID`))
-        })
-      names(df_s_Abrechnung) <- c_years
-      df_s_Abrechnung <- df_s_Abrechnung|>
-        bind_rows(.id = "Abrechnungsjahr")|>
-        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
-      df_s_Abrechnung
-      
-      # Abrechnung add 
-      df_Abrechnung <- df_s_Abrechnung|>
-        select(-`Umsatz [CHF]`)|>
-        left_join(s_df_Eintritte, by = join_by(`Event ID`, Abrechnungsjahr))
-      df_Abrechnung
-
-      df_temp <- l_data|>
-        lapply(function(x){
-          lapply(x,function(x){
-            x$Abrechnung[1,]
-          })|>
-            bind_rows()|>
-            select(1:6)
-        })
-      names(df_temp) <- c_years
-      df_temp <- df_temp|>
-        bind_rows(.id = "Abrechnungsjahr")|>
-        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
-
-      df_Abrechnung <- df_Abrechnung|>
-        left_join(df_temp, by = join_by(`Event ID`, Abrechnungsjahr))
-
-      shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
-      
-      # data_env_all <- new.env()
-      
-      # export Abrechnung to environment
-      data_env_all$df_Abrechnung <- df_Abrechnung
+      data_env_all <<- data_env_all
       
       tryCatch({
         # Einlesen
@@ -1540,31 +1459,28 @@ server <- function(input, output, session) {
         c_raw |>
           r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
           writeLines(paste0("source/temp.Rmd"))
-        
         c_filePath <- paste0("output/Statistik.html")
         
-        shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         # Render
+        shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env_all)
         
-        shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         # Ftp upload
+        shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         c_link <- c_filePath|>
           ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
-
         
       }, error = function(e) {
         ausgabe_text(
           paste(
-            ausgabe_text(),
             "Statistik, Fehler beim Bericht erstellen:\n",
             e$message
             )
           )
+        req(NULL)
       })
 
-      shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
-      
+      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
       # Show links if file is available 
       ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
@@ -1584,7 +1500,7 @@ server <- function(input, output, session) {
              )
              )|>
         ausgabe_text()
-      
+    
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
     

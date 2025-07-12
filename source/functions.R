@@ -1672,5 +1672,14 @@ is_shiny_server <- function() {
   Sys.getenv("SHINY_PORT", unset = "") != ""
 }
 
-
+### Function to render a single RMarkdown file ####
+render_single_file <- function(input, output, envir) {
+  rmarkdown::render(
+    input = input,        # input file name
+    output_file = output, # output file name
+    output_dir = "output",# where to put the output file (directory) 
+    envir = envir, 
+    quiet = TRUE  # Suppress output for cleaner logs
+  )
+}
 
