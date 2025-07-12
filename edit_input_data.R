@@ -1933,7 +1933,7 @@ server <- function(input, output, session) {
                           tagList(
                             renderText(paste0("Die Angegebenen Suisanummer: `",df_suisa$Suisanummer, "` ist nicht korrekt.")),
                             hr(),
-                            shiny::textInput("suisa", "Bitte die Suisanummer korrigieren!", value = df_suisa$Suisanummer)
+                            shiny::textInput("suisa", "Bitte die Suisanummer korrigieren:", value = df_suisa$Suisanummer)
                           ),
                           easyClose = FALSE, 
                           footer = tagList(
