@@ -1140,12 +1140,12 @@ server <- function(input, output, session) {
       last_selected_rows()
   })
   
-  ## Button: Verleiherabrechnung(en) erstellen #####
+  ## Button: Abrechnung(en) erstellen #####
   shiny::observeEvent(input$Abrechnung_exe, {
     # Execution time 
     c_time <- Sys.time()
 
-    shiny::withProgress(message = "Script running... ", value = 0, {
+    shiny::withProgress(message = "Abrechnung... ", value = 0, {
       shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
       
       removeModal()
@@ -1270,7 +1270,7 @@ server <- function(input, output, session) {
     # Execution time 
     c_time <- Sys.time()
 
-    shiny::withProgress(message = "Script running... ", value = 0, {
+    shiny::withProgress(message = "Verleiherabrechnung... ", value = 0, {
       shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
       
       df_mapping <- current_data()[input$dateTable_rows_selected,]|>
@@ -1365,7 +1365,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Statistik, {
     # Execution time 
     c_time <- Sys.time()
-    shiny::withProgress(message = "Running script...", value = 0, {
+    shiny::withProgress(message = "Jahresstatistik...", value = 0, {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       ausgabe_text(paste0(
@@ -1430,7 +1430,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Statistik_all, {
     # Execution time 
     c_time <- Sys.time()
-    shiny::withProgress(message = "Statistik erstellen...", value = 0, {
+    shiny::withProgress(message = "Statistik...", value = 0, {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       
       # calculate data 
@@ -1586,7 +1586,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Jahresrechnung, {
     # Execution time 
     c_time <- Sys.time()
-    shiny::withProgress(message = "Running script...", value = 0, {
+    shiny::withProgress(message = "Jahresrechnung...", value = 0, {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
       # User feedback
       paste0("Bericht: Jahresrechnung erstellt",
