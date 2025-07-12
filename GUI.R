@@ -231,7 +231,8 @@ server <- function(input, output, session) {
       library(furrr)
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if(num_cores > 4) num_cores <- 5
+      if(num_cores >= 8) num_cores <- 8
+      print(num_cores)
       if(nrow(df_mapping) < num_cores) {
         num_cores <- nrow(df_mapping)
       }
@@ -285,8 +286,8 @@ server <- function(input, output, session) {
     } else {
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if (num_cores > 4) num_cores <- 5
-      
+      if (num_cores >= 8) num_cores <- 8
+      print(num_cores)
       # Adjust cores based on workload
       if (nrow(df_mapping) < num_cores) {
         num_cores <- nrow(df_mapping)
@@ -1477,11 +1478,11 @@ server <- function(input, output, session) {
         
       names(df_s_Abrechnung) <- c_years
       
+      # Abrechnung
       df_s_Abrechnung <- df_s_Abrechnung|>
         bind_rows(.id = "Abrechnungsjahr")|>
         mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
       
-      # Push Abrechnung to Database
       df_s_Eintritte <- l_data|>
         lapply(function(x){
           lapply(x,function(x){
@@ -1519,16 +1520,13 @@ server <- function(input, output, session) {
 
       shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
       
-      # data_env_all <- new.env()
-      
+      data_env_all <- new.env()
+      # export Abrechnung to environment
       data_env_all$df_Abrechnung <- df_Abrechnung
       
       tryCatch({
         # Einlesen
         c_raw <- readLines("source/Statistik_all.Rmd")
-        
-        # # change title 
-        # c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
         
         # neues file schreiben mit toc
         c_raw |>
