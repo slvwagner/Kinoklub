@@ -729,11 +729,13 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0(ausgabe_text(),
-             "\nAusführungszeit: ",r_signif(c_time),"\n",
-             "Datenbank-Backup durchgeführt!\n",
-             "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!",
-             calculate_warnings())|>
+      paste0(
+        "Ausführungszeit: ",r_signif(c_time),"\n",
+        paste0(ausgabe_text(), collapse = ", "),"\n",
+        "Datenbank-Backup durchgeführt!\n",
+        "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!",
+        calculate_warnings()
+        )|>
         ausgabe_text()
     })
   })
