@@ -40,7 +40,7 @@ c_select_input_data <-
 l_template[c_select_input_data]
 
 ## Avanced tickets files ####
-c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk", "df_Abrechnung")
+c_select_input_advanced_tickets <- c("Eintritt files", "df_Eintritt", "Kiosk files","df_Kiosk")
 l_template[c_select_input_advanced_tickets]
 
 ## Drop down data and calculation definitions ####
@@ -600,38 +600,6 @@ server <- function(input, output, session) {
         shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
                             choices = choices, selected = choices[choices_select]
         ),
-        shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
-        shiny::downloadButton("table_export", "Tabelle herunterladen")
-      )
-    }
-    #### df_Abrechnung ####
-    else if (lastEdited_data_set_name() == "df_Abrechnung") {
-      tags$div(
-        id = "floating-panel",
-        tags$div(id = "floating-panel-header", 
-                 "Werkzeuge",
-                 span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-        ),
-        div(class = "custom-select",
-            selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-            )
-        ),
-        # Function selection 
-        shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                            choices = choices, selected = choices[choices_select]
-        ),
-        # shiny::tags$hr(),
-        # actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
-        # actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-        # shiny::tags$hr(),
-        # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-        # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-        # actionButton("duplicate_row", "Neuer Einkaufpreis", class = "btn-info"),
-        # shiny::tags$hr(),
-        # actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-        # shiny::tags$hr(),
-        # actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
         actionButton("get_email", "Email-Verteiler", class = "btn-info"),
         shiny::downloadButton("table_export", "Tabelle herunterladen")
@@ -1517,28 +1485,7 @@ server <- function(input, output, session) {
         l_temp$Einsatzplan|>
           current_data()
         
-      } else if(input$dataset == "df_Abrechnung"){
-        df_temp <- l_temp[[input$dataset]]
-        df_temp <- df_temp|>
-          mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
-                 `Umsatz [CHF]` = round(`Umsatz [CHF]`,2),
-                 `Umsatz für Netto3 [CHF]` = round(`Umsatz für Netto3 [CHF]`),
-                 `Umsatz Netto 3 [CHF]` = round(`Umsatz Netto 3 [CHF]`, 2),
-                 `Verleiherabzug [CHF]` = round(`Verleiherabzug [CHF]`, 2),
-                 `MWST [CHF]` = round(`MWST [CHF]`,2),
-                 `Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`, 2),
-                 `Gewinn Kioskartikel [CHF]` = round(`Gewinn Kioskartikel [CHF]`, 2),
-                 `Gewinn Spezialartikel [CHF]` = round(`Gewinn Spezialartikel [CHF]`, 2),
-                 `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
-                 )
-        
-        # render 
-        df_temp|>
-          arrange(desc(`Event ID`))|>
-          mutate()|>
-          current_data()
-        
-      }else {
+      } else {
         # render 
         l_temp[[input$dataset]]|>
           arrange(desc(ID))|>
@@ -2106,7 +2053,7 @@ server <- function(input, output, session) {
   
   ## Check unique ####
   observeEvent(input$check_unique, {
-    if(lastEdited_data_set_name() %in% c("Programm", "df_Abrechnung")){
+    if(lastEdited_data_set_name() %in% c("Programm")){
       # Find duplicates (keeping only duplicate rows)
       df_temp <- current_data() |>
         group_by(across(-`Event ID`)) |>
