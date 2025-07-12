@@ -680,7 +680,8 @@ df_Abrechnung <- left_join(df_Abrechnung,
                            by = join_by(`Event ID`)
 )  
 df_Abrechnung|>
-  select(1:3, `Umsatz [CHF]`, 20:ncol(df_Abrechnung))
+  select(1:3, `Umsatz [CHF]`, 25:ncol(df_Abrechnung))|>
+  filter(`Event ID` == 67)
 
 
 ### Eventausgaben der Abrechnung hinzufügen ####
@@ -985,7 +986,9 @@ for (ID in names(l_abrechnung)) {
       `Gewinn Spezialartikel [CHF]` = s_Kiosk$`Gewinn Spezialartikel [CHF]`,
       `Überschuss / Manko [CHF]` = s_Kiosk$`Überschuss / Manko [CHF]`,
       `Gewinn aus Fimvorführung [CHF]` = 
-        `Ticketgewinn [CHF]` + `Gewinn Kioskartikel [CHF]` + `Gewinn Spezialartikel [CHF]` + `Überschuss / Manko [CHF]`
+        sum(`Ticketgewinn [CHF]`, `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Überschuss / Manko [CHF]`, 
+            `Eventeinnahmen [CHF]`,
+            na.rm = TRUE)
       )
   s_Abrechnung|>
     t()
