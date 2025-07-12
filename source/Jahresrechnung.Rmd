@@ -227,7 +227,7 @@ if(nrow(df_temp) > 0) {
     arrange(Datum)|>
     filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
     mutate(Datum = paste0(lubridate::day(Datum), ".", lubridate::month(Datum), ".", lubridate::year(Datum))) |>
-    select(Datum, Filmtitel, Bezeichnung, `Betrag [CHF]`)
+    select(`Event ID`, Filmtitel, Bezeichnung, `Betrag [CHF]`)
   
   df_temp |>
     knitr::kable()
