@@ -36,10 +36,13 @@ Bericht wurde am `r act_date` erstellt.
 df_temp <- df_Abrechnung|>
   arrange(desc(Datum)) |>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(`Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, Besucherzahl, `Umsatz [CHF]`, 
-         `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Gewinn aus Fimvorführung [CHF]`
-         )|>
-  mutate(`Gewinn aus Fimvorführung [CHF]` = round5Rappen(`Gewinn aus Fimvorführung [CHF]`))
+  select(`Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, Besucherzahl, `Umsatz [CHF]`, `Ticketgewinn [CHF]`, `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Gewinn aus Fimvorführung [CHF]`)|>
+  mutate(`Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`,2), 
+         `Gewinn Kioskartikel [CHF]` = round(`Gewinn Kioskartikel [CHF]`,2), 
+         `Gewinn Spezialartikel [CHF]` = round(`Gewinn Spezialartikel [CHF]`,2),
+         `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)
+         )
+  
 
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(

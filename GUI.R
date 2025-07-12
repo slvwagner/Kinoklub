@@ -1466,7 +1466,29 @@ server <- function(input, output, session) {
         }
       })
       
-      # Abrechnung 
+      # Eintritte
+      df_Eintritte <- l_data|>
+        lapply(function(x){
+          lapply(x, function(x){
+            x$s_Eintritte
+          })|>
+            bind_rows(.id = "Event ID")|>
+            mutate(`Event ID` = as.integer(`Event ID`))
+        })
+      names(df_Eintritte) <- c_years
+      df_Eintritte <- df_Eintritte|>
+        bind_rows(.id = "Abrechnungsjahr")|>
+        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
+      df_Eintritte
+      
+      # Summary Eintritte
+      s_df_Eintritte <- df_Eintritte|>
+        group_by(Abrechnungsjahr, `Event ID`)|>
+        reframe(Besucherzahl = sum(Besucherzahl),
+                `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+                )
+      
+      # Summary Abrechnung 
       df_s_Abrechnung <- l_data|>
         lapply(function(x){
           lapply(x, function(x){
@@ -1475,31 +1497,16 @@ server <- function(input, output, session) {
             bind_rows(.id = "Event ID")|>
             mutate(`Event ID` = as.integer(`Event ID`))
         })
-        
       names(df_s_Abrechnung) <- c_years
-      
-      # Abrechnung
       df_s_Abrechnung <- df_s_Abrechnung|>
         bind_rows(.id = "Abrechnungsjahr")|>
         mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
+      df_s_Abrechnung
       
-      df_s_Eintritte <- l_data|>
-        lapply(function(x){
-          lapply(x,function(x){
-            x$s_Eintritte
-          })|>
-            bind_rows()|>
-            filter(Zahlend)|>
-            select(-Zahlend, -`Umsatz [CHF]`)
-        })
-      names(df_s_Eintritte) <- c_years
-      df_s_Eintritte <- df_s_Eintritte|>
-        bind_rows(.id = "Abrechnungsjahr")|>
-        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
-      df_s_Eintritte
-
+      # Abrechnung add 
       df_Abrechnung <- df_s_Abrechnung|>
-        left_join(df_s_Eintritte, by = join_by(`Event ID`, Abrechnungsjahr))
+        select(-`Umsatz [CHF]`)|>
+        left_join(s_df_Eintritte, by = join_by(`Event ID`, Abrechnungsjahr))
       df_Abrechnung
 
       df_temp <- l_data|>
@@ -1520,7 +1527,8 @@ server <- function(input, output, session) {
 
       shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
       
-      data_env_all <- new.env()
+      # data_env_all <- new.env()
+      
       # export Abrechnung to environment
       data_env_all$df_Abrechnung <- df_Abrechnung
       
