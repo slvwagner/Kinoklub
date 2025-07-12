@@ -38,7 +38,8 @@ df_temp <- df_Abrechnung|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   select(`Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, Besucherzahl, `Umsatz [CHF]`, 
          `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Gewinn aus Fimvorführung [CHF]`
-         )
+         )|>
+  mutate(`Gewinn aus Fimvorführung [CHF]` = round5Rappen(`Gewinn aus Fimvorführung [CHF]`))
 
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
