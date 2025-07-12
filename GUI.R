@@ -1430,13 +1430,96 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Statistik_all, {
     # Execution time 
     c_time <- Sys.time()
-    shiny::withProgress(message = "Running script...", value = 0, {
+    shiny::withProgress(message = "Statistik erstellen...", value = 0, {
       shiny::incProgress(1 / 5, detail = paste("Step", 1, "of 5"))
-      # User feedback
-      ausgabe_text(paste0(
-        "Bericht: Statistik erstellt",
-        paste0("\n", getwd(), "/output")
-      ))
+      
+      # calculate data 
+      c_years <- 2023:lubridate::year(Sys.time())
+      n <- length(c_years)
+      l_data <- list()
+      
+      shiny::withProgress(message = "Calculate year...", value = 0, {
+        for (ii in 1:length(c_years)) {
+          data_env_all <- new.env()
+          # set Abrechnungsjahr
+          data_env_all$c_Abrechnungsjahr <- c_years[ii]
+          # calculate data
+          tryCatch({
+            # Fehler abfangen
+            ausgabe_text(capture.output({
+              withCallingHandlers({
+                source("source/calculate.R", local = data_env_all)
+                l_data[[ii]] <- data_env_all$l_abrechnung
+              }, warning = function(w) {
+                # Capture warnings and store them in calculate_warnings
+                calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+                invokeRestart("muffleWarning")  # Suppress the warning from being printed
+              })
+            }, type = "message"))
+          }, error = function(e) {
+            ausgabe_text(paste0(error_calculate, e$message, collapse = ""))
+          })
+          shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+        }
+      })
+      
+      # Abrechnung 
+      df_s_Abrechnung <- l_data|>
+        lapply(function(x){
+          lapply(x, function(x){
+            x$s_Abrechnung
+          })|>
+            bind_rows(.id = "Event ID")|>
+            mutate(`Event ID` = as.integer(`Event ID`))
+        })
+        
+      names(df_s_Abrechnung) <- c_years
+      
+      df_s_Abrechnung <- df_s_Abrechnung|>
+        bind_rows(.id = "Abrechnungsjahr")|>
+        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
+      
+      # Push Abrechnung to Database
+      df_s_Eintritte <- l_data|>
+        lapply(function(x){
+          lapply(x,function(x){
+            x$s_Eintritte
+          })|>
+            bind_rows()|>
+            filter(Zahlend)|>
+            select(-Zahlend, -`Umsatz [CHF]`)
+        })
+      names(df_s_Eintritte) <- c_years
+      df_s_Eintritte <- df_s_Eintritte|>
+        bind_rows(.id = "Abrechnungsjahr")|>
+        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
+      df_s_Eintritte
+
+      df_Abrechnung <- df_s_Abrechnung|>
+        left_join(df_s_Eintritte, by = join_by(`Event ID`, Abrechnungsjahr))
+      df_Abrechnung
+
+      df_temp <- l_data|>
+        lapply(function(x){
+          lapply(x,function(x){
+            x$Abrechnung[1,]
+          })|>
+            bind_rows()|>
+            select(1:6)
+        })
+      names(df_temp) <- c_years
+      df_temp <- df_temp|>
+        bind_rows(.id = "Abrechnungsjahr")|>
+        mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
+
+      df_Abrechnung <- df_Abrechnung|>
+        left_join(df_temp, by = join_by(`Event ID`, Abrechnungsjahr))
+
+      shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+      
+      # data_env_all <- new.env()
+      
+      data_env_all$df_Abrechnung <- df_Abrechnung
       
       tryCatch({
         # Einlesen
@@ -1452,14 +1535,16 @@ server <- function(input, output, session) {
         
         c_filePath <- paste0("output/Statistik.html")
         
+        shiny::incProgress(1 / 5, detail = paste("Step", 3, "of 5"))
         # Render
-        render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env)
+        render_single_file(input = "source/temp.Rmd", output = c_filePath, envir = data_env_all)
         
+        shiny::incProgress(1 / 5, detail = paste("Step", 4, "of 5"))
         # Ftp upload
         c_link <- c_filePath|>
           ftp_upload(ftp_server, ftp_user, ftp_password, ftp_basepath)
 
-        shiny::incProgress(1 / 5, detail = paste("Step", 2, "of 5"))
+        
       }, error = function(e) {
         ausgabe_text(
           paste(
@@ -1484,7 +1569,12 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+             paste0(
+               "Bericht: Statistik erstellt",
+               paste0("\n", getwd(), "/output")
+             )
+             )|>
         ausgabe_text()
       
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
