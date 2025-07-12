@@ -52,7 +52,10 @@ df_temp <- df_Abrechnung|>
 DT::datatable(
   df_temp, 
   rownames = FALSE,
+  
   options = list(
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
     columnDefs = list(
       # list(targets = 3,visible = F),
       list(targets = 4, visible = FALSE),  # Hide the 'Datum' column
