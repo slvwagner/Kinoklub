@@ -1667,7 +1667,10 @@ ftp_delete_file <- function(remote_file, ftp_server, ftp_user, ftp_password, bas
   return(TRUE)
 }
 
-
+# check if app runs on shiny depoly server ####
+is_shiny_server <- function() {
+  Sys.getenv("SHINY_PORT", unset = "") != ""
+}
 
 
 

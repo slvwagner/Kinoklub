@@ -399,7 +399,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       ) 
     } 
@@ -433,7 +433,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     } 
@@ -456,7 +456,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("edit_row", "Zeile editieren", class = "btn-info"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     } 
@@ -490,7 +490,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
@@ -524,7 +524,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     } 
@@ -552,7 +552,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
@@ -580,7 +580,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
@@ -601,7 +601,7 @@ server <- function(input, output, session) {
                             choices = choices, selected = choices[choices_select]
         ),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
@@ -633,7 +633,7 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         actionButton("check_unique", "Prüfen", class = "btn-success"),
         shiny::tags$hr(),
-        actionButton("get_email", "Email-Verteiler", class = "btn-info"),
+        if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
         shiny::downloadButton("table_export", "Tabelle herunterladen")
       )
     }
