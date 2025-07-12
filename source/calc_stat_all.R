@@ -1,4 +1,9 @@
-library(tidyverse)
+
+source("source/functions.R")
+
+if(!r_is.defined(sommerpause)){
+  sommerpause <- 65
+}
 
 # calculate data over all years
 c_years <- 2023:lubridate::year(Sys.time())

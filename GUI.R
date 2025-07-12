@@ -1448,8 +1448,10 @@ server <- function(input, output, session) {
           req(NULL)
         })
       })
-      
+      # Export variables to environment
       data_env_all <<- data_env_all
+      data_env_all$sommerpause <- sommerpause
+      data_env_all$my_template <- my_template
       
       tryCatch({
         # Einlesen
