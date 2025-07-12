@@ -1979,21 +1979,8 @@ server <- function(input, output, session) {
           Update_Einsatzplan(df_updated, c_class)
           
         } else if (lastEdited_data_set_name() == "Einsatzplan"){
-          # update 
-          df_temp2 <- l_data()$Programm|>
-            filter(`Verleiher Angefragt?` != "Wird nicht gespielt")|>
-            select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`)
-          
-          df_temp3 <- 
-            left_join(
-              df_temp2,
-              df_temp,
-              by = join_by(`Event ID`)
-              )|>
-            arrange(desc(`Event ID`))
-          
           # render
-          df_temp3|>
+          df_temp|>
             convert_to_template_types(l_template[[lastEdited_data_set_name()]])|>
             current_data()
 
