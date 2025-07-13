@@ -370,10 +370,10 @@ s_Ausgaben <- left_join(
   s_abrechnung,
   df_Ausgaben|>
     group_by(Abrechnungsjahr)|>
-    reframe(`Einnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
+    reframe(`Ausgaben [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
   by = join_by(Abrechnungsjahr)
 )|>
-  mutate(`Einnahmen pro Event [CHF]` = round(`Einnahmen [CHF]` / Events, 2))
+  mutate(`Ausgaben pro Event [CHF]` = round(`Ausgaben [CHF]` / Events, 2))
 
 ```
 
@@ -390,7 +390,43 @@ DT::datatable(
 
 ```
 
+## Einnahmen und Ausgaben pro Event
+```{r}
+df_temp <- left_join(s_Einnahmen, s_Ausgaben,
+                     by = join_by(Abrechnungsjahr, Events, `Ticketumsatz [CHF]`, `Besucherzahl total`, `Besucherzahl zahlend`,
+                                  `Besucherzahl gratis`, `Ticketgewinn [CHF]`, `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`,
+                                  `Kioskgewinn-Spezialpreise [CHF]`,
+                                  `Gewinn aus Fimvorführung [CHF]`, `Kioskumsatz pro Gast [CHF]`, 
+                                  `Kioskumsatz pro zahlender Gast [CHF]`,`Durchschnittlichergewinn pro Vorführung`))
+```
 
+```{r message=FALSE, warning=FALSE}
+DT::datatable(
+  df_temp,
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE  # Enable horizontal scrolling
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+
+```
+
+### Übersicht
+
+```{r message=FALSE, warning=FALSE}
+df_temp|>
+  select(Abrechnungsjahr, Events, `Einnahmen pro Event [CHF]`, `Ausgaben pro Event [CHF]`)|>
+  mutate(`Differenz [CHF]` = round(`Einnahmen pro Event [CHF]` -  `Ausgaben pro Event [CHF]`, 2) 
+         )|>
+  DT::datatable(
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE  # Enable horizontal scrolling
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+```
 
 
 
