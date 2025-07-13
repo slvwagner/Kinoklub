@@ -132,7 +132,7 @@ remove(l_data, df_s_Abrechnung, df_temp, df_Eintritte, s_df_Eintritte, c_years,
        data_env_all,
        ii)
 
-r_get_colnames(df_Abrechnung)
+# r_get_colnames(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
   select(
