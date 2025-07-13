@@ -605,6 +605,9 @@ server <- function(input, output, session) {
   ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
 
+  #### Does the stat file exist ####
+  stat_to_download <- shiny::reactiveVal(FALSE)
+  
   ### Init links to for Statistik, Jahresrechnung and Archiv ####
   tryCatch({
     # Show links if file is available on ftp server
@@ -629,7 +632,7 @@ server <- function(input, output, session) {
     if(file.exists("output/data/Filmvorschläge.xlsx"))
       file_exists_filmvorschlag <- shiny::reactiveVal(TRUE)
     else file_exists_filmvorschlag <- shiny::reactiveVal(FALSE)
-    
+
     #### Does the Archiv.html file exist ####
     if(sum(ftp_files == paste0("Archiv.html.html"), na.rm = TRUE) == 1){
       file_exists_archiv <- shiny::reactiveVal(TRUE)
@@ -1502,7 +1505,15 @@ server <- function(input, output, session) {
              )
              )|>
         ausgabe_text()
-    
+      
+      # enable download 
+      stat_to_download(TRUE)
+
+      openxlsx::write.xlsx(
+        data_env_all$df_Abrechnung, "output/data/Statistik.xlsx",
+        asTable = TRUE
+        )
+      
       shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
     })
     
@@ -1576,6 +1587,24 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       source_file <- "output/data/Filmvorschläge.xlsx"
+      # Check if the file exists before attempting to copy
+      if (file.exists(source_file)) {
+        file.copy(from = source_file,
+                  to = file,
+                  overwrite = TRUE)
+      } else {
+        stop("The file does not exist.")
+      }
+    }
+  )
+  
+  ## Button: Download handler Statistik #####
+  output$download_stat <- downloadHandler(
+    filename = function() {
+      "Statistik.xlsx"
+    },
+    content = function(file) {
+      source_file <- "output/data/Statistik.xlsx"
       # Check if the file exists before attempting to copy
       if (file.exists(source_file)) {
         file.copy(from = source_file,
@@ -2715,6 +2744,10 @@ server <- function(input, output, session) {
 
         # Button zum Ausführen von Code Statistik erstellen
         shiny::actionButton("Statistik_all", "Statistik"),
+        # Button zum herunterladen der Filmvorschläge
+        if(stat_to_download()) {
+          shiny::downloadButton("download_stat", "Download Statistik")
+        },
         
         shiny::tags$hr(),
         # Button zum Download der Werbung

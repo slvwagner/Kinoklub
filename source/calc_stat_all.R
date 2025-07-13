@@ -213,6 +213,7 @@ df_Abrechnung <- df_Abrechnung|>
     "Kioskumsatz [CHF]","Kioskgewinn [CHF]",
     "Kioskumsatz-Spezialpreise [CHF]","Kioskgewinn-Spezialpreise [CHF]",
     "Gewinn aus Fimvorführung [CHF]"
-    )
+    )|>
+  distinct(`Event ID`, .keep_all = TRUE)
 
 message("all data converted")
