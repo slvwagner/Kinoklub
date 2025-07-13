@@ -250,7 +250,6 @@ s_abrechnung|>
 ### Übersicht
 ```{r}
 df_temp <- df_Kiosk|>
-  filter(!str_detect(`Artikel-Kassensystem`, "Spez"))|>
   group_by(`Artikel-Kassensystem`)|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
@@ -273,6 +272,30 @@ DT::datatable(
 
 
 ### Jahresübersicht
+
+#### Übersicht
+```{r}
+df_temp <- df_Kiosk|>
+  group_by(Abrechnungsjahr)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)
+          )|>
+  mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
+```
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_temp, 
+  rownames = FALSE,
+  # options = list(
+  #   scrollX = TRUE,  # Enable horizontal scrolling
+  #   autoWidth = TRUE  # auto-width enable to controll columnwidth
+  #   )
+)
+```
+
 #### Durchschnittlicher Kioskumsatz pro Gast
 ```{r}
 s_abrechnung|>
