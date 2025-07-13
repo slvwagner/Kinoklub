@@ -128,11 +128,71 @@ df_Abrechnung <- df_Abrechnung|>
   left_join(df_temp, by = join_by(`Event ID`, Abrechnungsjahr))|>
   rename(`Ticketumsatz [CHF]` = `Umsatz [CHF]`)
 
-remove(l_data, df_s_Abrechnung, df_temp, df_Eintritte, s_df_Eintritte, c_years, 
+# Kiosk 
+df_Kiosk <- l_data|>
+  lapply(function(x){
+    lapply(x, function(x){
+      x$Kiosk
+    })|>
+      bind_rows()
+  })|>
+  bind_rows()
+df_Kiosk
+
+# Verkaufsartikel
+s_df_Kiosk <- df_Kiosk|>
+  filter(str_detect(`Artikel-Kassensystem`, "Spez"))|>
+  group_by(`Event ID`)|>
+  reframe(
+    `Kioskumsatz-Spezialpreise [CHF]` = sum(`Umsatz [CHF]`, na.rm = TRUE),
+    `Kioskgewinn-Spezialpreise [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
+  )
+s_df_Kiosk
+
+# Spezialpreise
+s_df_Kiosk_spez <- df_Kiosk|>
+  filter(!str_detect(`Artikel-Kassensystem`, "Spez"))|>
+  group_by(`Event ID`)|>
+  reframe(
+    `Kioskumsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = TRUE),
+    `Kioskgewinn [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE)
+  )
+s_df_Kiosk_spez
+
+# Manko / Überschuss
+df_manko <- l_data|>
+  lapply(function(x){
+    lapply(x, function(x){
+      x$manko
+    })|>
+      bind_rows()
+  })|>
+  bind_rows()|>
+  group_by(`Event ID`)|>
+  reframe(`Überschuss / Manko [CHF]` = sum(`Überschuss / Manko [CHF]`))
+df_manko
+
+
+# add information
+df_Abrechnung <- df_Abrechnung|>
+  left_join(s_df_Kiosk, 
+            by = join_by(`Event ID`)
+            )|>
+  left_join(s_df_Kiosk_spez, 
+            by = join_by(`Event ID`),
+            )
+df_Abrechnung
+
+# 
+df_Abrechnung <- df_Abrechnung|>
+  mutate(`Kioskgewinn-Spezialpreise [CHF]` = `Kioskumsatz-Spezialpreise [CHF]` - `Eventausgaben [CHF]` + `Überschuss / Manko [CHF]`)
+df_Abrechnung  
+
+remove(df_s_Abrechnung, df_temp, df_Eintritte, s_df_Eintritte, c_years, 
        data_env_all,
        ii)
 
-# r_get_colnames(df_Abrechnung)
+r_get_colnames(df_Abrechnung)
 
 df_Abrechnung <- df_Abrechnung|>
   select(
@@ -142,6 +202,7 @@ df_Abrechnung <- df_Abrechnung|>
     "Verleiherrechnungsbetrag [CHF]","Überschuss / Manko [CHF]","Eventeinnahmen [CHF]","Eventausgaben [CHF]",
     "Verleiherabzug [CHF]","MWST [CHF]",
     "Besucherzahl total","Besucherzahl zahlend","Besucherzahl gratis","Ticketumsatz [CHF]",
+    "Kioskumsatz-Spezialpreise [CHF]","Kioskgewinn-Spezialpreise [CHF]","Kioskumsatz [CHF]","Kioskgewinn [CHF]",
     "Ticketgewinn [CHF]","Gewinn Kioskartikel [CHF]","Gewinn Spezialartikel [CHF]","Gewinn aus Fimvorführung [CHF]"
     )
 

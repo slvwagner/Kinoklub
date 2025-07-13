@@ -40,10 +40,13 @@ df_temp <- df_Abrechnung|>
     `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, 
     `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`, `Ticketgewinn [CHF]`, 
     `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`,
-    `Ticketgewinn [CHF]`, `Gewinn Kioskartikel [CHF]`, `Gewinn Spezialartikel [CHF]`, `Gewinn aus Fimvorführung [CHF]`)|>
+    `Kioskumsatz [CHF]`, `Gewinn Kioskartikel [CHF]`, 
+    `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`,
+    `Gewinn aus Fimvorführung [CHF]`
+    )|>
   mutate(`Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`,2), 
          `Gewinn Kioskartikel [CHF]` = round(`Gewinn Kioskartikel [CHF]`,2), 
-         `Gewinn Spezialartikel [CHF]` = round(`Gewinn Spezialartikel [CHF]`,2),
+         `Kioskgewinn-Spezialpreise [CHF]` = round(`Kioskgewinn-Spezialpreise [CHF]`,2),
          `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)
          )
 ```
