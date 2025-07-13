@@ -275,10 +275,9 @@ DT::datatable(
 
 #### Übersicht
 ```{r}
-df_temp <- df_Kiosk|>
+s_df_Kiosk <- df_Kiosk|>
   group_by(Abrechnungsjahr)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE),
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE),
           `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)
           )|>
   mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
@@ -287,7 +286,7 @@ df_temp <- df_Kiosk|>
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
-  df_temp, 
+  s_df_Kiosk, 
   rownames = FALSE,
   # options = list(
   #   scrollX = TRUE,  # Enable horizontal scrolling
@@ -323,6 +322,33 @@ DT::datatable(
 )
 ```
 
+### Jahresübersicht
+```{r}
+s_Einnahmen <- left_join(
+  s_abrechnung,
+  df_Einnahmen|>
+    group_by(Abrechnungsjahr)|>
+    reframe(`Einnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
+  by = join_by(Abrechnungsjahr)
+  )|>
+  mutate(`Einnahmen pro Event [CHF]` = round(`Einnahmen [CHF]` / Events, 2))
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+DT::datatable( 
+  s_Einnahmen,
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE  # Enable horizontal scrolling
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+
+```
+
+
 ## Ausgaben
 
 ```{r message=FALSE, warning=FALSE}
@@ -336,6 +362,34 @@ DT::datatable(
     )
 )
 ```
+
+### Jahresübersicht
+
+```{r}
+s_Ausgaben <- left_join(
+  s_abrechnung,
+  df_Ausgaben|>
+    group_by(Abrechnungsjahr)|>
+    reframe(`Einnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
+  by = join_by(Abrechnungsjahr)
+)|>
+  mutate(`Einnahmen pro Event [CHF]` = round(`Einnahmen [CHF]` / Events, 2))
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+DT::datatable(
+  s_Ausgaben,
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE  # Enable horizontal scrolling
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+
+```
+
 
 
 

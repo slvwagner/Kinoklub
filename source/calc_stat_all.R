@@ -7,8 +7,10 @@ if(!r_is.defined(sommerpause)){
 
 # calculate data over all years
 c_years <- 2023:lubridate::year(Sys.time())
-l_data <- list()
-
+l_abrechnung <- list()
+l_einnahmen <- list()
+l_ausgaben <- list()
+ii <- 1
 for (ii in 1:length(c_years)) {
   data_env_all <- new.env()
   # set Abrechnungsjahr
@@ -19,7 +21,9 @@ for (ii in 1:length(c_years)) {
     ausgabe_text <-(capture.output({
       withCallingHandlers({
         source("source/calculate.R", local = data_env_all)
-        l_data[[ii]] <- data_env_all$l_abrechnung
+        l_abrechnung[[ii]] <- data_env_all$l_abrechnung
+        l_einnahmen[[ii]] <- data_env_all$Einnahmen
+        l_ausgaben[[ii]] <- data_env_all$Ausgaben
       }, warning = function(w) {
         # Capture warnings and store them in calculate_warnings
         ausgabe_text <- paste("Warning:", w$message, sep = "")
@@ -32,7 +36,7 @@ for (ii in 1:length(c_years)) {
 }
 
 # Eintritte
-df_Eintritte <- l_data|>
+df_Eintritte <- l_abrechnung|>
   lapply(function(x){
     lapply(x, function(x){
       x$s_Eintritte
@@ -90,7 +94,7 @@ s_df_Eintritte
 
 
 # Summary Abrechnung
-df_s_Abrechnung <- l_data|>
+df_s_Abrechnung <- l_abrechnung|>
   lapply(function(x){
     lapply(x, function(x){
       x$s_Abrechnung
@@ -110,7 +114,7 @@ df_Abrechnung <- df_s_Abrechnung|>
   left_join(s_df_Eintritte, by = join_by(`Event ID`, Abrechnungsjahr))
 df_Abrechnung
 
-df_temp <- l_data|>
+df_temp <- l_abrechnung|>
   lapply(function(x){
     lapply(x,function(x){
       x$Abrechnung[1,]
@@ -129,7 +133,7 @@ df_Abrechnung <- df_Abrechnung|>
   rename(`Ticketumsatz [CHF]` = `Umsatz [CHF]`)
 
 # Kiosk 
-df_Kiosk <- l_data|>
+df_Kiosk <- l_abrechnung|>
   lapply(function(x){
     lapply(x, function(x){
       x$Kiosk
@@ -163,7 +167,7 @@ s_df_Kiosk_spez <- df_Kiosk|>
 s_df_Kiosk_spez
 
 # Manko / Überschuss
-df_manko <- l_data|>
+df_manko <- l_abrechnung|>
   lapply(function(x){
     lapply(x, function(x){
       x$manko
@@ -231,37 +235,19 @@ df_Kiosk <- left_join(
 )  
 df_Kiosk
 
-l_data[[2]][["35"]]$Einahmen
 
 # Einnahmen
-df_Einnahmen <- l_data|>
-  lapply(function(x){
-    lapply(x, function(x){
-      x$Einahmen
-    })|>
-      bind_rows()
-  })|>
-  bind_rows()
-df_Einnahmen
-
-df_Einnahmen|>
+df_Einnahmen <- l_einnahmen|>
+  bind_rows()|>
   mutate(Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer())
 df_Einnahmen
 
 # Ausgaben
-df_Ausgaben <- l_data|>
-  lapply(function(x){
-    lapply(x, function(x){
-      x$Ausgaben
-    })|>
-      bind_rows()
-  })|>
-  bind_rows()
-df_Ausgaben
-
-df_Ausgaben|>
+df_Ausgaben <- l_ausgaben|>
+  bind_rows()|>
   mutate(Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer())
 df_Ausgaben
+
 
 message("all data converted")
 
