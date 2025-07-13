@@ -2686,7 +2686,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## file upload render: txt file rendering ####
+  ## Render: file upload: txt file rendering ####
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data())
     file_data()
