@@ -30,7 +30,8 @@ Bericht wurde am `r act_date` erstellt.
 
 ## Gewinn/Verlust aus Filmvorführung
 
-### Gewinn/Verlust aus Filmvorführung
+### Übersicht
+#### Gewinn/Verlust aus Filmvorführung
 
 ```{r message=FALSE, warning=FALSE}
 df_temp <- df_Abrechnung|>
@@ -78,7 +79,7 @@ df_temp|>
   knitr::kable()
 ```
 
-### Durchschnitt / Median
+##### Durchschnitt / Median
 ```{r}
 n <- df_temp|>
   reframe(`Anzahl Vorführungen` = n())
@@ -116,7 +117,7 @@ shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 if(n > shows_per_year) shows_per_year <- n
 ```
 
-### Wochentaganalyse
+##### Wochentaganalyse
 ```{r }
 if(nrow(df_temp)>1){
   df_temp
@@ -177,4 +178,113 @@ df_temp|>
        )+
   my_template
 ```
+
+### Jahreübersicht
+#### Gewinn/Verlust aus Filmvorführung
+
+```{r message=FALSE, warning=FALSE}
+df_temp <- df_Abrechnung|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  select(
+    Abrechnungsjahr, 
+    `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, 
+    `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`, 
+    `Ticketumsatz [CHF]`, `Ticketgewinn [CHF]`, 
+    `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`,
+    `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`, 
+    `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`,
+    `Gewinn aus Fimvorführung [CHF]`
+    )
+```
+
+```{r}
+s_abrechnung <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(Events = n(),
+          `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`, na.rm = TRUE),
+          `Besucherzahl total` = sum(`Besucherzahl total`, na.rm = TRUE),
+          `Besucherzahl zahlend` = sum(`Besucherzahl zahlend`, na.rm = TRUE),
+          `Besucherzahl gratis` = sum(`Besucherzahl gratis`, na.rm = TRUE),
+          `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`, na.rm = TRUE), 
+          `Kioskumsatz [CHF]` = sum(`Kioskumsatz [CHF]`, na.rm = TRUE), 
+         `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`, na.rm = TRUE), 
+         `Kioskgewinn-Spezialpreise [CHF]` = sum(`Kioskgewinn-Spezialpreise [CHF]`, na.rm = TRUE),
+         `Gewinn aus Fimvorführung [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)
+         )|>
+  mutate(`Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`,2),
+         `Kioskgewinn-Spezialpreise [CHF]` = round(`Kioskgewinn-Spezialpreise [CHF]`,2),
+         `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2),
+         `Kioskumsatz pro Gast [CHF]` = round(`Kioskumsatz [CHF]` / `Besucherzahl total`,2),
+         `Kioskumsatz pro zahlender Gast [CHF]` = 
+           round(`Kioskumsatz [CHF]` / (`Besucherzahl total` - `Besucherzahl gratis`),2),
+         `Durchschnittlichergewinn pro Vorführung` = round(`Gewinn aus Fimvorführung [CHF]` / `Events`, 2)
+         )
+
+```
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  s_abrechnung, 
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+```
+
+#### Duchschnittlicher Gewinn/Verlust pro Filmvorführung
+
+```{r}
+s_abrechnung|>
+  mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|>
+  ggplot(aes(Abrechnungsjahr, `Durchschnittlichergewinn pro Vorführung`, fill = `Besucherzahl total`))+
+  geom_col()+
+  my_template
+```
+
+## Kiosk
+
+### Übersicht
+```{r}
+df_temp <- df_Kiosk|>
+  filter(!str_detect(`Artikel-Kassensystem`, "Spez"))|>
+  group_by(`Artikel-Kassensystem`)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
+          )|>
+  mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
+```
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_temp, 
+  rownames = FALSE,
+  # options = list(
+  #   scrollX = TRUE,  # Enable horizontal scrolling
+  #   autoWidth = TRUE  # auto-width enable to controll columnwidth
+  #   )
+)
+```
+
+
+### Jahresübersicht
+#### Durchschnittlicher Kioskumsatz pro Gast
+```{r}
+s_abrechnung|>
+  mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|>
+  pivot_longer(cols = c(`Kioskumsatz pro zahlender Gast [CHF]`, `Kioskumsatz pro Gast [CHF]`), 
+               names_to = "Durchschnitt", values_to =  "Kioskumsatz pro Gast [CHF]")|>
+  ggplot(aes(Abrechnungsjahr, `Kioskumsatz pro Gast [CHF]`, fill = `Besucherzahl total`))+
+  geom_col()+
+  facet_grid(. ~ Durchschnitt)+
+  my_template
+
+```
+
+
 

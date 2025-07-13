@@ -135,8 +135,11 @@ df_Kiosk <- l_data|>
       x$Kiosk
     })|>
       bind_rows()
-  })|>
-  bind_rows()
+  })
+names(df_Kiosk) <- c_years
+
+df_Kiosk <- df_Kiosk|>
+  bind_rows(.id = "Abrechnungsjahr")
 df_Kiosk
 
 # Verkaufsartikel
