@@ -309,5 +309,35 @@ s_abrechnung|>
 
 ```
 
+## Einnahmen
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_Einnahmen, 
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+```
+
+## Ausgaben
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_Ausgaben, 
+  rownames = FALSE,
+  options = list(
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    )
+)
+```
+
+
+
 
 

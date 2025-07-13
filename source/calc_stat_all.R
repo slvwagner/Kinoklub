@@ -216,4 +216,52 @@ df_Abrechnung <- df_Abrechnung|>
     )|>
   distinct(`Event ID`, .keep_all = TRUE)
 
+# 
+df_Kiosk <- left_join(
+  df_Kiosk|>
+    mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr)),
+  df_Abrechnung |>
+    select(
+      Abrechnungsjahr ,
+      `Event ID`,
+      `Eventeinnahmen [CHF]`,
+      `Eventausgaben [CHF]`
+    ),
+  by = join_by(Abrechnungsjahr, `Event ID`)
+)  
+df_Kiosk
+
+l_data[[2]][["35"]]$Einahmen
+
+# Einnahmen
+df_Einnahmen <- l_data|>
+  lapply(function(x){
+    lapply(x, function(x){
+      x$Einahmen
+    })|>
+      bind_rows()
+  })|>
+  bind_rows()
+df_Einnahmen
+
+df_Einnahmen|>
+  mutate(Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer())
+df_Einnahmen
+
+# Ausgaben
+df_Ausgaben <- l_data|>
+  lapply(function(x){
+    lapply(x, function(x){
+      x$Ausgaben
+    })|>
+      bind_rows()
+  })|>
+  bind_rows()
+df_Ausgaben
+
+df_Ausgaben|>
+  mutate(Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer())
+df_Ausgaben
+
 message("all data converted")
+
