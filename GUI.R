@@ -605,9 +605,6 @@ server <- function(input, output, session) {
   ### Filmtabelle anzeigen ####
   df_Render <- shiny::reactiveVal(NULL)
 
-  #### Does the stat file exist ####
-  stat_to_download <- shiny::reactiveVal(FALSE)
-  
   ### Init links to for Statistik, Jahresrechnung and Archiv ####
   tryCatch({
     # Show links if file is available on ftp server
@@ -638,11 +635,19 @@ server <- function(input, output, session) {
       file_exists_archiv <- shiny::reactiveVal(TRUE)
     } else file_exists_archiv <- shiny::reactiveVal(FALSE)
     
+    #### Does the stat file exist ####
+    if(file.exists("output/data/Statistik.xlsx")){
+      stat_to_download <- shiny::reactiveVal(TRUE)
+    } else {
+      stat_to_download <- shiny::reactiveVal(FALSE)
+    }
+    
   }, error = function(e) {
     file_exists_statistk <- shiny::reactiveVal(FALSE)
     file_exists_statistk_all <- shiny::reactiveVal(FALSE)
     file_exists_jahhresrechnung <- shiny::reactiveVal(FALSE)
     file_exists_archiv <- shiny::reactiveVal(FALSE)
+    stat_to_download <- shiny::reactiveVal(FALSE)
   })
 
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
