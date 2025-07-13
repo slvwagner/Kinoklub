@@ -8,6 +8,11 @@ round5Rappen <- function(x) {
   round(x * 20) / 20
 }
 
+r_get_colnames <- function(x){
+  paste0("\"",names(x),"\"", collapse = ",")|>
+    writeLines()
+}
+
 # variable is present in global environment ####
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))

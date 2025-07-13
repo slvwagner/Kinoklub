@@ -46,12 +46,48 @@ df_Eintritte <- df_Eintritte|>
   mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
 df_Eintritte
 
+df_Eintritte |>
+  reframe(n = n(), .by = c(Abrechnungsjahr, `Event ID`, `Umsatz [CHF]`, Zahlend)) |>
+  filter(n > 1L) 
+
+df_temp <- left_join(
+  df_Eintritte |>
+    group_by(`Event ID`) |>
+    reframe(Besucherzahl_tot = sum(Besucherzahl)),
+  df_Eintritte |>
+    filter(Zahlend) |>
+    group_by(`Event ID`) |>
+    reframe(`Besucherzahl zahlend` = sum(Besucherzahl)),
+  join_by(`Event ID`)
+)
+df_temp
+
+df_temp <- df_temp|>
+  mutate(`Besucherzahl gratis` = Besucherzahl_tot -  `Besucherzahl zahlend`)|>
+  group_by(`Event ID`)|>
+  reframe(`Besucherzahl total` = sum(Besucherzahl_tot),
+          `Besucherzahl zahlend` = sum(`Besucherzahl zahlend`),
+          `Besucherzahl gratis` = sum(`Besucherzahl gratis`)
+          )
+df_temp
+
+df_temp <- left_join(
+  df_temp,
+  df_Eintritte|>
+    filter(Zahlend)|>
+    select(`Event ID`, `Umsatz [CHF]`),
+  by = join_by(`Event ID`)
+  )
+
 # Summary Eintritte
 s_df_Eintritte <- df_Eintritte|>
-  group_by(Abrechnungsjahr, `Event ID`)|>
-  reframe(Besucherzahl = sum(Besucherzahl),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-  )
+  distinct(`Event ID`,.keep_all = TRUE)|>
+  select(Abrechnungsjahr, `Event ID`)|>
+  left_join(df_temp,
+            by = join_by(`Event ID`)
+            )
+s_df_Eintritte
+
 
 # Summary Abrechnung
 df_s_Abrechnung <- l_data|>
@@ -89,10 +125,24 @@ df_temp <- df_temp|>
 
 # Abrechnung
 df_Abrechnung <- df_Abrechnung|>
-  left_join(df_temp, by = join_by(`Event ID`, Abrechnungsjahr))
+  left_join(df_temp, by = join_by(`Event ID`, Abrechnungsjahr))|>
+  rename(`Ticketumsatz [CHF]` = `Umsatz [CHF]`)
 
 remove(l_data, df_s_Abrechnung, df_temp, df_Eintritte, s_df_Eintritte, c_years, 
        data_env_all,
        ii)
+
+r_get_colnames(df_Abrechnung)
+
+df_Abrechnung <- df_Abrechnung|>
+  select(
+    "Abrechnungsjahr","Event ID","Link to Event ID","Suisanummer","Filmtitel","Datum","Zeit",
+    "Verleiher","Abzug [%]","Minimal Abzug [CHF]","Abzug fix [CHF]","Kinoförderer gratis?",
+    "SUISA-Vorabzug [%]","Umsatz für Netto3 [CHF]","Suisavorabzug [CHF]","Umsatz Netto 3 [CHF]",
+    "Verleiherrechnungsbetrag [CHF]","Überschuss / Manko [CHF]","Eventeinnahmen [CHF]","Eventausgaben [CHF]",
+    "Verleiherabzug [CHF]","MWST [CHF]",
+    "Besucherzahl total","Besucherzahl zahlend","Besucherzahl gratis","Ticketumsatz [CHF]",
+    "Ticketgewinn [CHF]","Gewinn Kioskartikel [CHF]","Gewinn Spezialartikel [CHF]","Gewinn aus Fimvorführung [CHF]"
+    )
 
 message("all data converted")
