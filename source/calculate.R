@@ -1046,10 +1046,16 @@ remove(Eintritte,
        df_Abrechnung,
        s_event_einnahmen, s_event_ausgaben, s_df_spezpreise, s_Abrechnung, 
        `Platzkategorien zum Verrechnen`, manko, s_manko, Verleiherrechnung, 
-       ii, temp
+       temp
        )
 l_abrechnung
-l_abrechnung[["35"]]
+l_abrechnung[["87"]]
+
+df_Abrechnung <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()
 
 # # Daten für Berichet ####
 ## Besucherzahlen  ####
@@ -1057,36 +1063,28 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(`Event ID`,Datum, Filmtitel, Suisanummer)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-# 
-# ## Eventeinnahmen ####
-# df_Eventeinnahmen <- Einnahmen|>
-#   filter(Kategorie == "Event")
-# 
-# ## Eventausgaben ####
-# df_Eventausgaben <- Ausgaben|>
-#   filter(Kategorie == "Event")
-# 
+
 ## Keine Rechnung vorhanden ####
 df_keine_Rechnung <- Ausgaben|>
   filter(is.na(`Betrag [CHF]`))
 
-# # Data export: write to Excel ####
-# c_filePath <- "output/data/"
-# if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
-# 
-# list(`Werbung` = df_Besucherzahlen,
-#      `Tickets` = df_Eintritt,
-#      `Kiosk` = df_Kiosk,
-#      `Eventeinnahmen` = df_Eventeinnahmen,
-#      `Eventausgaben` = df_Eventausgaben,
-#      `Filmvorführung` = df_Abrechnung
-# )|>
-#   write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
-# 
-# # remove not used variables ####
-# remove(ii,
-#        c_filePath
-# )
+# Data export: write to Excel ####
+c_filePath <- "output/data/"
+if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
+
+list(`Werbung` = df_Besucherzahlen,
+     `Tickets` = df_Eintritt,
+     `Kiosk` = df_Kiosk,
+     `Filmvorführung` = df_Abrechnung,
+     Einnahmen = Einnahmen,
+     Ausgaben = Ausgaben
+)|>
+  openxlsx::write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
+
+# remove not used variables ####
+remove(ii,
+       c_filePath
+)
 
 # user interaction ####
 writeLines("Good ... Berechnungen erfolgt")
