@@ -34,7 +34,7 @@ if(!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2024L
+  c_Abrechnungsjahr <- 2025L
 }
 
 # load data from Database ####
@@ -240,7 +240,29 @@ for (ii in df_Film$Suisanummer) {
 }
 remove(df_Film)
 
+# check Einnahmen ####
+## check if Kategorie Event have a `Event ID` ####
+df_temp <- Einnahmen|>
+  filter(Kategorie %in% c("Event"))|>
+  filter(is.na(`Event ID`))
+df_temp
+
+if(nrow(df_temp) > 0){
+  warning(paste0("\nIn der Tabelle `Einnahmen`, Kategorie `Event` ID = ", df_temp$ID, " ist keine `Event ID` zugewiesen. ",
+         "\nBitte korrigieren in der Tabelle `Einnahmen` !"),"\n\n")
+} 
+
 # check Ausgaben ####
+## check if Kategorie Event and Verleiher have a `Event ID` ####
+df_temp <- Ausgaben|>
+  filter(Kategorie %in% c("Event", "Verleiher"),
+         is.na(`Event ID`))
+if(nrow(df_temp) > 0){
+  warning(paste0("\nIn der Tabelle `Ausgaben`, Kategorie `Event` oder `Verleiher` ID = ", df_temp$ID, " ist keine `Event ID` zugewiesen. ",
+                 "\nBitte korrigieren in der Tabelle `Einnahmen` !"),"\n\n")
+} 
+
+ 
 ## check if more than one Verleiherrechnung per Event ID can be found ####
 IDs <- Ausgaben|>
   mutate(`Event ID` = as.integer(as.character(`Event ID`)))|>
