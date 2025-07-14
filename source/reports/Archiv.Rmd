@@ -2,7 +2,7 @@
 title: "Archiv"
 output:
   html_document:
-    css: www/Kinoklub_dark.css
+    css: source/www/Kinoklub_dark.css
 ---
 
 ```{r setup, include=FALSE}

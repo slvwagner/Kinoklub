@@ -163,10 +163,10 @@ server <- function(input, output, session) {
     
     if(nrow(df_mapping) > 0){
       df_mapping <- df_mapping|>
-        mutate(fileName_RMD            = paste0("source/Abrechnung ID",`Event ID`,".Rmd"),
-               fileName_html           = paste0("source/Abrechnung ID",`Event ID`,".html"),
-               fileName_RMD_Verleiher  = paste0("source/Verleiherabrechnung ID",`Event ID`,".Rmd"),
-               fileName_html_Verleiher = paste0("source/Verleiherabrechnung ID",`Event ID`,".html")
+        mutate(fileName_RMD            = paste0("source/reports/Abrechnung ID",`Event ID`,".Rmd"),
+               fileName_html           = paste0("source/reports/Abrechnung ID",`Event ID`,".html"),
+               fileName_RMD_Verleiher  = paste0("source/reports/Verleiherabrechnung ID",`Event ID`,".Rmd"),
+               fileName_html_Verleiher = paste0("source/reports/Verleiherabrechnung ID",`Event ID`,".html")
         )
     }else stop("Mapping not possible")
     return(df_mapping)
@@ -176,7 +176,7 @@ server <- function(input, output, session) {
   AbrechnungErstellen <- function(df_mapping) {
     for (ii in df_mapping$`Event ID`) {
       # Template der Abrechnung einlesen
-      c_raw <- readLines("source/Abrechnung.Rmd")
+      c_raw <- readLines("source/reports/Abrechnung.Rmd")
       
       # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
       index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
@@ -248,7 +248,7 @@ server <- function(input, output, session) {
     for (ii in df_mapping$`Event ID`) {
       # Create Verleiherabrechnung
       # Template der Abrechnung einlesen
-      c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+      c_raw <- readLines("source/reports/Verleiherabrechnung.Rmd")
       
       # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
       index <- (1:length(c_raw))[c_raw |> str_detect("variablen")]
@@ -309,7 +309,7 @@ server <- function(input, output, session) {
   ### Jahresrechnung-Bericht erstellen ####
   JahresrechnungErstellen <- function() {
     # Einlesen
-    c_raw <- readLines("source/Jahresrechnung.Rmd")
+    c_raw <- readLines("source/reports/Jahresrechnung.Rmd")
     
     # change title 
     c_raw[str_detect(c_raw, "Jahresabrechnung Kinoklub")] <- paste0("title: \"Jahresrechnung ",Abrechungsjahr(),"\"")
@@ -1162,9 +1162,8 @@ server <- function(input, output, session) {
         add_msg <- TRUE
       } else add_msg <- FALSE
       
-      
-      # Filmabrechnungen erstellen
       tryCatch({
+        # Filmabrechnungen erstellen
         df_mapping__ <- 
           Abrechnung_mapping(
             df_temp
@@ -1174,20 +1173,15 @@ server <- function(input, output, session) {
         AbrechnungErstellen(
           df_mapping__
         )
-        # upload ftp
-        if(nrow(df_mapping__) == 1){
-          c_filenames <- str_split(df_mapping__$fileName_html,"/")[[1]][2]
-        } else {
-          c_filenames <- str_split(df_mapping__$fileName_html,"/")|>
-            lapply(function(x){
-              x[2]
-            })|>
-            unlist()
-        }
+        
+        # files to upload
+        c_filenames <- regmatches(df_mapping__$fileName_html, regexpr("Abrechnung ID\\d+\\.html", df_mapping__$fileName_html))
+        c_filenames
         
         c_filesPath <- paste0("output/", c_filenames)
         n <- length(c_filenames)
         
+        # upload files
         shiny::withProgress(message = "Ftp upload:", value = 0, {
           l_links <- list()
           for (ii in 1:n) {
@@ -1296,17 +1290,6 @@ server <- function(input, output, session) {
         VerleiherabrechnungErstellen(
           df_mapping__
         )
-        
-        # upload ftp
-        if(nrow(df_mapping__) == 1){
-          c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")[[1]][2]
-        } else {
-          c_filenames <- str_split(df_mapping__$fileName_html_Verleiher,"/")|>
-            lapply(function(x){
-              x[2]
-            })|>
-            unlist()
-        }
       }, error = function(e) {
         ausgabe_text(
           paste0(
@@ -1316,12 +1299,17 @@ server <- function(input, output, session) {
         )
       })
       
+      # filename to upload
+      c_filenames <- regmatches(df_mapping__$fileName_html_Verleiher, 
+                                regexpr("Verleiherabrechnung ID\\d+\\.html", 
+                                        df_mapping__$fileName_html_Verleiher))
+      c_filenames
       
+      # upload to ftp server
+      c_filesPath <- paste0("output/", c_filenames)
+      n <- length(c_filenames)
+
       tryCatch({
-        # upload to ftp server
-        c_filesPath <- paste0("output/", c_filenames)
-        n <- length(c_filenames)
-        
         shiny::withProgress(message = "Ftp upload:", value = 0, {
           l_links <- list()
           for (ii in 1:n) {
@@ -1361,7 +1349,7 @@ server <- function(input, output, session) {
       ausgabe_text()
   })
   
-  ## Button: Statistik #####
+  ## Button: Jahresstatistik #####
   shiny::observeEvent(input$Statistik, {
     # Execution time 
     c_time <- Sys.time()
@@ -1375,7 +1363,7 @@ server <- function(input, output, session) {
       if (exists("data_env")) {
         tryCatch({
           # Einlesen
-          c_raw <- readLines("source/Statistik.Rmd")
+          c_raw <- readLines("source/reports/Statistik.Rmd")
           
           # change title 
           c_raw[str_detect(c_raw, "Statistik Kinoklub")] <- paste0("title: \"Statistik ",Abrechungsjahr(),"\"")
@@ -1463,7 +1451,7 @@ server <- function(input, output, session) {
       
       tryCatch({
         # Einlesen
-        c_raw <- readLines("source/Statistik_all.Rmd")
+        c_raw <- readLines("source/reports/Statistik_all.Rmd")
         
         # neues file schreiben mit toc
         c_raw |>
@@ -1680,18 +1668,21 @@ server <- function(input, output, session) {
             
             shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
             # Einlesen
-            c_raw <- readLines("source/Archiv.Rmd")
+            c_raw <- readLines("source/reports/Archiv.Rmd")
             # Inhaltsverzeichnis
             
             # neues file schreiben mit toc
             c_raw |>
               r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
-              writeLines(paste0("source/temp.Rmd"))
+              writeLines(paste0("temp.Rmd"))
             
             c_filePath <- paste0("output/Archiv.html")
             
             # Render
-            render_single_file(input = "source/Archiv.Rmd", output = c_filePath, envir = procinema_env)
+            render_single_file(input = "temp.Rmd", output = c_filePath, envir = procinema_env)
+            
+            # delete file
+            if(file.exists("temp.Rmd")) file.remove("temp.Rmd")
             
             # Ftp upload
             c_link <- c_filePath|>
@@ -1711,6 +1702,8 @@ server <- function(input, output, session) {
               )|>
                 ausgabe_text()
             })
+            
+            file_exists_archiv(TRUE)
             
             shiny::incProgress(1 / 3, detail = paste("Step", 3, "of 3"))
           }, error = function(e) {
