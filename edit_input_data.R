@@ -2482,7 +2482,7 @@ server <- function(input, output, session) {
     new_row[1,1] <- max(current_data()[,1]) + 1L
     
     ##### use case Ausgaben Kategorie Verleiher ####
-    if((input$Kategorie == "Verleiher") & (lastEdited_data_set_name() == "Ausgaben")){
+    if((input$Kategorie == "Verleiher")){
       
       # remember use case
       new_entry("ausgaben_verleiher")
@@ -2528,7 +2528,7 @@ server <- function(input, output, session) {
       )
     } 
     ##### use case Ausganen Kategorie Event ####
-    else if ((input$Kategorie == "Event") & (lastEdited_data_set_name() == "Ausgaben")){
+    else if ((input$Kategorie == "Event")){
       # remember use case
       new_entry("ausgaben_event")
       
@@ -2573,7 +2573,7 @@ server <- function(input, output, session) {
       )
     } 
     ##### use case Ausganen Kategorie Kiosk ####
-    else if ((input$Kategorie == "Kiosk") & (lastEdited_data_set_name() == "Ausgaben")){
+    else if ((input$Kategorie == "Kiosk")){
       # remember use case
       new_entry("ausgaben_kiosk")
       
@@ -2621,7 +2621,7 @@ server <- function(input, output, session) {
       )
     }
     ##### use case Ausgaben Kategorie Personalaufwand ####
-    else if ((input$Kategorie == "Personalaufwand") & (lastEdited_data_set_name() == "Ausgaben")){
+    else if ((input$Kategorie == "Personalaufwand")){
       # remember use case
       new_entry("ausgaben_personalaufwand")
       
@@ -2742,7 +2742,7 @@ server <- function(input, output, session) {
         # User interaction to save
         showModal(
           modalDialog(
-            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            title = "Es muss einen `Event ID` angegeben werden um eine Verleiherrechnung zu erfassen!",
             actionButton("abort", "Abbrechen"),
             easyClose = FALSE,
             footer = NULL
@@ -2784,7 +2784,7 @@ server <- function(input, output, session) {
         # User interaction to save
         showModal(
           modalDialog(
-            title = "Es muss einen Event ID angegeben werden um eine Verleiherrechnung zu erfassen!",
+            title = "Es muss einen `Event ID` angegeben werden um `Event-Ausgaben` zu erfassen!",
             actionButton("abort", "Abbrechen"),
             easyClose = FALSE,
             footer = NULL
@@ -2883,7 +2883,19 @@ server <- function(input, output, session) {
     } 
     ##### use case Einnahmen Kategorie Event ####
     else if (new_entry() == "einnahmen"){
-      message("einnahmen")
+      if(is.na(new_row$`Event ID`)){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss einen `Event ID` angegeben werden um `Event-Einnahmen` zu erfassen!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+
       df_temp <- current_data()|>
           mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
                  Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer(),
