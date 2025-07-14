@@ -313,7 +313,8 @@ s_abrechnung|>
 Alle Einnahmen die nicht über einen "Event ID" abgerechnet werden können. 
 ```{r}
 s_df_Einnahmen <-  df_Einnahmen|>
-    filter(is.na(`Event ID`))
+  filter(is.na(`Event ID`))|>
+  select(-`Event ID`)
 
 ```
 
@@ -366,12 +367,16 @@ DT::datatable(
 ## Ausgaben
 
 Alle Ausgaben die nicht über einen "Event ID" abgerechnet werden können. 
+```{r}
+s_df_Ausgaben <- df_Ausgaben|>
+    filter(is.na(`Event ID`))
+```
+
 
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
-  df_Ausgaben|>
-    filter(is.na(`Event ID`)), 
+  s_df_Ausgaben, 
   rownames = FALSE,
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
@@ -379,6 +384,14 @@ DT::datatable(
     )
 )
 ```
+
+
+```{r}
+s_df_Ausgaben|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE))|>
+  knitr::kable()
+```
+
 
 ### Jahresübersicht
 
