@@ -615,8 +615,8 @@ server <- function(input, output, session) {
       file_exists_statistk <- shiny::reactiveVal(TRUE)
     else file_exists_statistk <- shiny::reactiveVal(FALSE)
     
-    #### Does the Jahresstatistik.html file exist ####
-    if(sum(ftp_files == paste0("Statistik ", lubridate::year(Sys.time()), ".html"), na.rm = TRUE) == 1) 
+    #### Does the Statistik.html file exist ####
+    if(sum(ftp_files == paste0("Statistik.html"), na.rm = TRUE) == 1) 
       file_exists_statistk_all <- shiny::reactiveVal(TRUE)
     else file_exists_statistk_all <- shiny::reactiveVal(FALSE)
     
