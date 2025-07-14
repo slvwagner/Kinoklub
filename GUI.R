@@ -2256,16 +2256,16 @@ server <- function(input, output, session) {
     
     showModal(
       modalDialog(
-        title = paste0("Die Datensäze aus der Datei: ",last_uploaded_file(), " sind nicht gleich wie in der Datenbank!"),
+        title = paste0("Berichte löschen!"),
         tagList(
-          renderText("Daten aus der Datenbank:"),
+          renderText("Bitte Berichte selektieren die gelöscht werden sollen."),
           shiny::hr(),
           div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
               dataTableOutput("modal_delete_file"))
         ),
         easyClose = FALSE,
         footer = tagList(
-          actionButton("ftp_delete_file", "Selektierte Datensätze löschen?", class = "bnt-danger"),
+          actionButton("ftp_delete_file", "Selektierte Berichte löschen?", class = "bnt-danger"),
           actionButton("abort", "Abbrechen")
         )
       )
@@ -2288,7 +2288,7 @@ server <- function(input, output, session) {
       df_temp <- df_temp_1()[input$modal_delete_file_rows_selected,]
       df_temp
       
-      paste0("Die Dateien: ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
+      paste0("Die Datei(en): ", df_temp$Dateiname, " wurden auf dem FTP-Server gelöscht.", collapse = "\n")|>
         ausgabe_text()
       
       shiny::withProgress(message = "Löschen ", value = 0, {
@@ -2327,14 +2327,15 @@ server <- function(input, output, session) {
         file_exists_archiv(TRUE)
       else file_exists_archiv(FALSE)
       
-      # Show links if file is available 
-      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
-      
+      # Show links if Statistik is available
       if(sum(ftp_files == paste0("Statistik.html"), na.rm = TRUE) == 1){
         file_exists_statistk_all(TRUE)
       } else {
         file_exists_statistk_all(FALSE)
       }
+      
+      # Show links if file is available 
+      ftp_files <- ftp_list_files(ftp_server, ftp_user, ftp_password, ftp_basepath)
       
       # Create links and render Datatable
       Report_links()
