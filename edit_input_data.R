@@ -670,7 +670,7 @@ server <- function(input, output, session) {
         ) 
       } 
       #### Programm ####
-      else if (data_set_select == "Programm"){
+      else if (data_set_select == "Einsatzplan"){
         tags$div(
           id = "floating-panel",
           tags$div(id = "floating-panel-header", 
