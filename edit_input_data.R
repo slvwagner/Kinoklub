@@ -1717,15 +1717,15 @@ server <- function(input, output, session) {
           column_choices()
         
         # Input data set
-        l_data()[c_select_input_data]|>
+        l_data()[c_select_input_data()]|>
           l_data_input()
         
         # Advace-Tickets
-        l_data()[c_select_input_advanced_tickets]|>
+        l_data()[c_select_input_advanced_tickets()]|>
           l_data_advance_tickets()
         
         # Drop down data set
-        l_data()[c_select_dropdown_data]|>
+        l_data()[c_select_dropdown_data()]|>
           l_data_dropdown()
         
         # remove row and page selection 
