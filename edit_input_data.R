@@ -2519,6 +2519,7 @@ server <- function(input, output, session) {
                Verleiher = df_temp$Verleiher,
                Procinema = df_temp$Procinema,
                Trailer = df_temp$Trailer,
+               `Verleiher Angefragt?` = "Anfrage läuft",
                Produktionsland = df_temp$Produktionsland,
         )
     } 
