@@ -1315,6 +1315,7 @@ server <- function(input, output, session) {
         scrollX = TRUE,  # Enable horizontal scrolling
         # scrollY = "500px",
         autoWidth = TRUE,  # auto-width enable to controll columnwidth
+        language = DT_language,
         columnDefs = l_columnDefs,
         scrollCollapse = TRUE,  # Better scrolling behavior
         pageLength = page_length_var(),
