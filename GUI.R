@@ -960,11 +960,15 @@ server <- function(input, output, session) {
         l_Eintritt <- list()
         for (ii in 1:n) {
           shiny::incProgress(1 / n, detail = paste("Datei", ii, "of", n))
-          
+          message(df_files$filename[ii])
           # convert file 
           results <- Run_capture_error_warnings(
             convert_data_Film_txt, df_files$filename[ii], DB_con()
           )
+          if(nchar(results$messages) > 0){
+            ausgabe_text(results$messages)
+            req(NULL)
+          }
           # new rows
           l_Eintritt[[ii]] <- results$result
         }

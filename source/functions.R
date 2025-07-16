@@ -1347,10 +1347,12 @@ dict_update <- function(df, dict){
 # Run_capture_error_warnings(DB_copy_table, new_rows, DB_con(), "df_Eintritt")
 # Returns list with results and all captured messages, warnings and errors
 Run_capture_error_warnings <- function(fun, ...) {
-  # function results
+  # Initialize variables
   result <- NULL
   c_message <- ""
-  # Run fuction 
+  args <- list(...)
+  
+  # Run function 
   tryCatch({
     captured_output <- capture.output({
       withCallingHandlers(
@@ -1358,11 +1360,11 @@ Run_capture_error_warnings <- function(fun, ...) {
           result <- fun(...)
         },
         warning = function(w) {
-          c_message <<- paste0(c_message, "Warning: ", w$message, "\n")
+          c_message <<- paste0(c_message, "Warning: ", conditionMessage(w), "\n")
           invokeRestart("muffleWarning")
         },
         message = function(m) {
-          c_message <<- paste0(c_message, "Message: ", m$message, "\n")
+          c_message <<- paste0(c_message, "Message: ", conditionMessage(m), "\n")
           invokeRestart("muffleMessage")
         }
       )
@@ -1370,19 +1372,21 @@ Run_capture_error_warnings <- function(fun, ...) {
   }, error = function(e) {
     c_message <<- paste0(
       c_message,
-      "\nFehler bei Funktionsaufruf:\n",
-      fun,
-      "\nArgumente:\n",
-      ..., 
-      conditionMessage(e), "\n"
+      "\nError in function call:\n",
+      deparse(substitute(fun)),
+      "\nArguments:\n",
+      paste(names(args), "=", sapply(args, function(x) if(length(x) > 1) paste0("c(", paste(x, collapse = ","), ")") else x), collapse = "\n"),
+      "\nError message: ", conditionMessage(e), "\n"
     )
   })
+  
   # Return list with results and captured message
   list(
     result = result,
     messages = c_message
   )
 }
+
 
 ### get date type for each column from a data frame ####
 get_data_type <- function(df){
