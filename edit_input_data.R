@@ -420,7 +420,7 @@ server <- function(input, output, session) {
                               choices = choices, selected = choices[choices_select]
           ),
           shiny::tags$hr(),
-          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+          actionButton("add_row_programm", "Eintrag hinzufügen", class = "btn-info"),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
           shiny::tags$hr(),
           # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
@@ -2352,6 +2352,206 @@ server <- function(input, output, session) {
     
   })
   
+  ####  add row / new entry Programm ####
+  observeEvent(input$add_row_programm, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    c_select <- c("Aus Filmvorschag übernehmen", "Manuell erstellen")
+    temp_01(c_select)
+    
+    showModal(modalDialog(
+      title = "Programmeintrag erstellen",
+      tagList(
+        shiny::renderText("Soll der neue Eintrag manuell erstellt werden oder vom Filmvorschlag übernommen werden?"),
+        shiny::renderText("     "),
+        div(class = "custom-select",
+            selectizeInput("get_Filmvorschlag", "Wie soll der neue Eintrag erstellt werden?", 
+                           selected = c_select[1], choices = c_select
+            )
+        ),
+      ),
+      footer = tagList(
+        actionButton("new_entry_programm","weiter"),
+        actionButton("abort","Abbrechen")
+      )
+    ))
+  })
+
+  #### new entry Programm ####
+  observeEvent(input$new_entry_programm, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }    
+
+    req(input$get_Filmvorschlag)
+    removeModal()
+    
+    ##### use case from Filmvorschlag ####
+    if ("Manuell erstellen" == input$get_Filmvorschlag){
+      # remember use case
+      new_entry(" ")
+      
+      # Create an empty row
+      new_row <- current_data()[1, ] |> 
+        mutate(across(everything(), ~ NA))|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      new_row[1,1] <- max(current_data()[,1]) + 1L
+      
+      # updated data
+      updated_data <- bind_rows(
+        new_row,
+        current_data() 
+      )
+      
+      # updata SQL DB and current data 
+      DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+      Update_Einsatzplan(new_row ,get_data_type(new_row),new_row = TRUE)
+      
+      # Update the list
+      l_temp <- l_data()
+      l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+      # update all data
+      l_data(l_temp)
+      # update choices
+      update_choices(l_data())|>
+        column_choices()
+      # update to render 
+      current_data(updated_data)
+      # select last edited row and page 
+      last_selected_row(1)
+      last_selected_page(1)
+      
+    } else if ("Aus Filmvorschag übernehmen" == input$get_Filmvorschlag){
+      # remember use case
+      new_entry("programm_from_filmvorschlag")
+      
+      df_temp <- DB_get_table("Filmvorschlag", DB_con())|>
+        arrange(desc(ID))
+      
+      # data to select 
+      temp_01(df_temp)
+      
+      # render
+      df_temp|>
+        select(ID, Suisanummer, Filmtitel)|>
+        df_temp_to_render()
+      
+      
+      # Calculate modal size based on number of columns
+      num_cols <- ncol(df_temp)
+      modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+      modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+      
+      showModal(
+        modalDialog(
+          title = "Einnahmen für Event erfassen",
+          tagList(
+            renderText("Bitte eine Zeile markieren um diesen Filmvorschlag ins Programm zu übernehmen"),
+            shiny::hr(),
+            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                dataTableOutput("modal_filmvorschlag"))
+          ),
+          actionButton("new_programm_entry_exe", "Filmvorschlag übernehmen", class = "btn-info"),
+          actionButton("abort", "Abbrechen"),
+          easyClose = FALSE,
+          footer = NULL
+        )
+      )
+    }
+  })
+  
+  #### Render modal new entry Programm from Filmvorschlag ####
+  output$modal_filmvorschlag <- DT::renderDT({
+    req(df_temp_to_render())  
+    DT::datatable(
+      df_temp_to_render(), 
+      rownames = FALSE,
+      selection = "single",
+      filter = "top",
+      options = list(
+        # searching = FALSE,     # removes search box
+        language = DT_language,
+        pageLength = nrow(df_temp_to_render()),
+        paging = FALSE        # disables pagination
+      )
+    )
+  })
+  
+  #### new entry Programm from Filmvorschlag exe ####
+  observeEvent(input$new_programm_entry_exe, {
+    req(input$modal_filmvorschlag_rows_selected)
+    removeModal()
+    
+    if(is.null(input$modal_filmvorschlag_rows_selected)){
+      # User interaction 
+      showModal(
+        modalDialog(title = "Bitte eine Zeile markieren",
+                    easyClose = TRUE, 
+                    footer = modalButton("Abbrechen")
+        )
+      )
+      req(NULL) # early exit
+    }
+
+    # Create an empty row
+    new_row <- current_data()[1, ] |> 
+      mutate(across(everything(), ~ NA))|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    new_row[1,1] <- max(current_data()[,1]) + 1L
+        
+    if(new_entry() == "programm_from_filmvorschlag"){
+      df_temp <- temp_01()[input$modal_filmvorschlag_rows_selected,]
+      
+      new_row <- new_row|>
+        mutate(Suisanummer = df_temp$Suisanummer,
+               Filmtitel = df_temp$Filmtitel,
+               Verleiher = df_temp$Verleiher,
+               Procinema = df_temp$Procinema,
+               Trailer = df_temp$Trailer,
+               Produktionsland = df_temp$Produktionsland,
+        )
+    } 
+    
+    updated_data <- bind_rows(
+      new_row,
+      current_data() 
+    )
+    
+    # updata SQL DB and current data 
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+    Update_Einsatzplan(new_row ,get_data_type(new_row),new_row = TRUE)
+    
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    # update to render 
+    current_data(updated_data)
+    # select last edited row and page 
+    last_selected_row(1)
+    last_selected_page(1)
+    
+    print("here")
+  })
+
+  
+  
   ####  add row / new entry Einnahmen ####
   observeEvent(input$add_row_einnahmen, {
     # check DB connection
@@ -2382,7 +2582,6 @@ server <- function(input, output, session) {
         actionButton("abort","Abbrechen")
       )
     ))
-    req(NULL)
   })
   
   #### new entry Einnahmen ####
