@@ -120,8 +120,6 @@ if(n > shows_per_year) shows_per_year <- n
 ##### Wochentaganalyse
 ```{r }
 if(nrow(df_temp)>1){
-  df_temp
-
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
 
   m <- str_split(timeRange, "-")|>
@@ -129,7 +127,6 @@ if(nrow(df_temp)>1){
       (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2])
     })
   colnames(m) <- timeRange
-  m
 
   m <- m|>
   as_tibble()|>
