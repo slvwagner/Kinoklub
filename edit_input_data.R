@@ -2369,7 +2369,7 @@ server <- function(input, output, session) {
       title = "Programmeintrag erstellen",
       tagList(
         shiny::renderText("Soll der neue Eintrag manuell erstellt werden oder vom Filmvorschlag übernommen werden?"),
-        shiny::renderText("     "),
+        shiny::hr(),
         div(class = "custom-select",
             selectizeInput("get_Filmvorschlag", "Wie soll der neue Eintrag erstellt werden?", 
                            selected = c_select[1], choices = c_select
