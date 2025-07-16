@@ -37,6 +37,9 @@ l_template <- readRDS("source/SQL/template.Rds")
 # The super user can do everything but any other user can only do Filmvorschlag and Einsatzplan
 c_superuser <- c("ch367079_flo", "ch367079_leitung")
 
+# Dataset selection ####
+dataset_selection <- c("Inputdaten", "Advance-Tickets", "Dropdowns")
+
 # Data table in german ####
 DT_language <- list(
   lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
@@ -363,7 +366,7 @@ server <- function(input, output, session) {
   ### Toolbox for the user to interact ####
   tool_box <- function(l_data_input, data_set_select , c_select_dropdown_data, 
                        c_DB_user,
-                       choices_select, choices = c("Inputdaten", "Advance-Tickets", "Dropdowns")
+                       choices = c("Inputdaten", "Advance-Tickets", "Dropdowns"), choices_select
                        ) {
     if(c_DB_user %in% c_superuser){
       #### Filmvorschlag ####
@@ -4453,11 +4456,11 @@ server <- function(input, output, session) {
       },
       if(c_connected_to_db()) {
         if(data_selection_() == "Inputdaten") {
-          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), 1)
+          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 1)
         } else if (data_selection_() == "Advance-Tickets"){
-          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), 2)
+          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 2)
         } else {
-          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), 3)
+          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 3)
         }
       },
       if(c_connected_to_db()){
