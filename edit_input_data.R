@@ -42,7 +42,7 @@ dataset_selection <- c("Inputdaten", "Advance-Tickets", "Dropdowns")
 
 # Data table in german ####
 DT_language <- list(
-  lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
+  lengthMenu = "Zeige _MENU_ Zeilen pro Seite", # Text für das Dropdown-Menü
   search = "Suchen:", # Text für das Suchfeld
   searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
   zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
