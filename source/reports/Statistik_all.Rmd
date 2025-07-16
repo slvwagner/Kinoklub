@@ -365,7 +365,8 @@ s_df_Einnahmen |>
   knitr::kable()
 ```
 
-### Jahresübersicht
+<!-- ### Jahresübersicht -->
+
 ```{r}
 s_Einnahmen <- left_join(
   s_abrechnung,
@@ -380,18 +381,18 @@ s_Einnahmen <- left_join(
 ```
 
 
-```{r message=FALSE, warning=FALSE}
-DT::datatable( 
-  s_Einnahmen,
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth,
-    language = DT_language
-    )
-)
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- DT::datatable(  -->
+<!--   s_Einnahmen, -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth, -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
 
-```
+<!-- ``` -->
 
 
 ## Ausgaben
@@ -424,7 +425,7 @@ s_df_Ausgaben|>
 ```
 
 
-### Jahresübersicht
+<!-- ### Jahresübersicht -->
 
 ```{r}
 s_Ausgaben <- left_join(
@@ -440,18 +441,18 @@ s_Ausgaben <- left_join(
 ```
 
 
-```{r message=FALSE, warning=FALSE}
-DT::datatable(
-  s_Ausgaben,
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- DT::datatable( -->
+<!--   s_Ausgaben, -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
 
-```
+<!-- ``` -->
 
 ## Einnahmen und Ausgaben pro Event
 ```{r}
