@@ -467,20 +467,19 @@ df_temp <- left_join(
   )
 ```
 
-```{r message=FALSE, warning=FALSE}
-DT::datatable(
-  df_temp,
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- DT::datatable( -->
+<!--   df_temp, -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
 
-```
+<!-- ``` -->
 
-### Übersicht
 
 ```{r message=FALSE, warning=FALSE}
 df_temp|>
@@ -490,8 +489,8 @@ df_temp|>
   DT::datatable(
   rownames = FALSE,
   options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    # scrollX = TRUE,  # Enable horizontal scrolling
+    # autoWidth = TRUE,  # auto-width enable to controll columnwidth
     language = DT_language
     )
 )
