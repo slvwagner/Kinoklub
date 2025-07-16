@@ -48,7 +48,6 @@ Bericht wurde am `r act_date` erstellt.
 ## Gewinn/Verlust aus Filmvorführung
 
 ### Übersicht
-#### Gewinn/Verlust aus Filmvorführung
 
 ```{r message=FALSE, warning=FALSE}
 df_temp <- df_Abrechnung|>
@@ -96,7 +95,7 @@ df_temp|>
   knitr::kable()
 ```
 
-##### Durchschnitt / Median
+#### Durchschnitt / Median
 ```{r}
 n <- df_temp|>
   reframe(`Anzahl Vorführungen` = n())
@@ -134,7 +133,7 @@ shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 if(n > shows_per_year) shows_per_year <- n
 ```
 
-##### Wochentaganalyse
+#### Wochentaganalyse
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
@@ -194,7 +193,6 @@ df_temp|>
 ```
 
 ### Jahreübersicht
-#### Gewinn/Verlust aus Filmvorführung
 
 ```{r message=FALSE, warning=FALSE}
 df_temp <- df_Abrechnung|>
@@ -236,8 +234,10 @@ s_abrechnung <- df_temp|>
          `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)|>
            round(2)
          )
-s_abrechnung
+
 ```
+
+#### Duchschnittlicher Gewinn/Verlust pro Filmvorführung
 
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
@@ -252,7 +252,6 @@ DT::datatable(
 )
 ```
 
-#### Duchschnittlicher Gewinn/Verlust pro Filmvorführung
 
 ```{r}
 s_abrechnung|>
@@ -295,8 +294,8 @@ DT::datatable(
 ```{r}
 s_df_Kiosk <- df_Kiosk|>
   group_by(Abrechnungsjahr)|>
-  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)|>round(2),
+          `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)|>round(2)
           )|>
   mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
 ```
