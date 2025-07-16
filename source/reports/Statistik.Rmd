@@ -59,6 +59,7 @@ df_temp <- df_temp|>
 DT::datatable(df_temp|>
                 mutate(`Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)), 
           options = list(
+            language = DT_language,
             columnDefs = list(
               # list(targets = 3,visible = F),
               list(targets = 2, visible = FALSE),  # Hide the 'Datum' column
@@ -258,6 +259,7 @@ df_temp <- df_temp|>
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(df_temp, 
           options = list(
+            language = DT_language,
             columnDefs = list(
               # list(targets = 3,visible = F),
               list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
@@ -405,7 +407,17 @@ df_temp <-
     arrange(desc(Anzahl))
 
 df_temp|>
-  DT::datatable(df_temp)
+  DT::datatable(
+    df_temp,
+    options = list(
+      language = DT_language,
+      columnDefs = list(
+        # list(targets = 3,visible = F),
+        list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+        list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+        )
+      ),
+    )
 
 ```
 
@@ -424,7 +436,9 @@ df_temp <-
 ```{r echo=FALSE}
 df_temp|>
   select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
-  DT::datatable()
+  DT::datatable(
+    options = list(language = DT_language)
+    )
 
 ```
 
@@ -491,7 +505,10 @@ df_temp <- df_temp|>
   select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, `Umsatz [CHF]`)
 
 df_temp|>
-  DT::datatable(df_temp)
+  DT::datatable(
+    df_temp,
+    options = list(language = DT_language)
+    )
 
 ```
 
@@ -615,11 +632,14 @@ df_temp <- df_temp|>
 df_temp|>
   DT::datatable(
     rownames = FALSE,
-    options = list(columnDefs = list(
-      # list(targets = 3,visible = F),
-      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
-      )),
+    options = list(
+      language = DT_language,
+      columnDefs = list(
+        # list(targets = 3,visible = F),
+        list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+        list(targets = 2, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
+        )
+      ),
       colnames = c(Datum = "Datum_display")
   )
 ```

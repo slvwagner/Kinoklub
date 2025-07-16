@@ -14,6 +14,23 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
 english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+# Data table in german ####
+DT_language <- list(
+  lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
+  search = "Suchen:", # Text für das Suchfeld
+  searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+  zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+  info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+  infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+  infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+  paginate = list(
+    first = "Erste Seite", # Text für die erste Seite
+    last = "Letzte Seite", # Text für die letzte Seite
+    `next` = "Nächste Seite", # Text für die nächste Seite
+    previous = "Vorherige Seite" # Text für die vorherige Seite
+  )
+)
+
 # Function to convert English weekday names to German, if necessary
 convert_to_german_weekdays <- function(date) {
   weekday_name <- weekdays(date, abbreviate = FALSE)
@@ -62,6 +79,7 @@ DT::datatable(
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
     autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
     columnDefs = list(
       # list(targets = 3,visible = F),
       list(targets = 4, visible = FALSE),  # Hide the 'Datum' column
@@ -227,7 +245,8 @@ DT::datatable(
   rownames = FALSE,
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 ```
@@ -260,10 +279,11 @@ df_temp <- df_Kiosk|>
 DT::datatable(
   df_temp, 
   rownames = FALSE,
-  # options = list(
-  #   scrollX = TRUE,  # Enable horizontal scrolling
-  #   autoWidth = TRUE  # auto-width enable to controll columnwidth
-  #   )
+  options = list(
+    scrollX = TRUE,  # Enable horizontal scrolling
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    language = DT_language
+    )
 )
 ```
 
@@ -322,7 +342,8 @@ DT::datatable(
   rownames = FALSE,
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 ```
@@ -353,8 +374,9 @@ DT::datatable(
   s_Einnahmen,
   rownames = FALSE,
   options = list(
-    scrollX = TRUE  # Enable horizontal scrolling
-    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth,
+    language = DT_language
     )
 )
 
@@ -377,7 +399,8 @@ DT::datatable(
   rownames = FALSE,
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE  # auto-width enable to controll columnwidth
+    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 ```
@@ -411,8 +434,9 @@ DT::datatable(
   s_Ausgaben,
   rownames = FALSE,
   options = list(
-    scrollX = TRUE  # Enable horizontal scrolling
-    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 
@@ -434,8 +458,9 @@ DT::datatable(
   df_temp,
   rownames = FALSE,
   options = list(
-    scrollX = TRUE  # Enable horizontal scrolling
-    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 
@@ -451,8 +476,9 @@ df_temp|>
   DT::datatable(
   rownames = FALSE,
   options = list(
-    scrollX = TRUE  # Enable horizontal scrolling
-    # autoWidth = TRUE  # auto-width enable to controll columnwidth
+    scrollX = TRUE,  # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language
     )
 )
 ```
