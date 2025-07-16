@@ -483,8 +483,13 @@ df_temp <- left_join(
 
 ```{r message=FALSE, warning=FALSE}
 df_temp|>
-  select(Abrechnungsjahr, Events, `Einnahmen pro Event [CHF]`, `Ausgaben pro Event [CHF]`)|>
-  mutate(`Differenz [CHF]` = round(`Einnahmen pro Event [CHF]` -  `Ausgaben pro Event [CHF]`, 2) 
+  select(Abrechnungsjahr, Events, `Einnahmen pro Event [CHF]`, `Ausgaben pro Event [CHF]`, 
+         `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`)|>
+  mutate(`Gewinn / Verlust pro Event [CHF]` = 
+           round(`Einnahmen pro Event [CHF]` -  
+                   `Ausgaben pro Event [CHF]` + 
+                   `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`, 
+                 2) 
          )|>
   DT::datatable(
   rownames = FALSE,
