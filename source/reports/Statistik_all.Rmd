@@ -236,7 +236,7 @@ s_abrechnung <- df_temp|>
          `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)|>
            round(2)
          )
-s_abrechnung
+
 ```
 
 ```{r message=FALSE, warning=FALSE}
