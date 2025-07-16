@@ -112,23 +112,6 @@ shiny::addResourcePath("reports", "output")
 # Constants ####
 c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
-# Data table in german ####
-DT_language <- list(
-  lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
-  search = "Suchen:", # Text für das Suchfeld
-  searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
-  zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
-  info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
-  infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
-  infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
-  paginate = list(
-    first = "Erste Seite", # Text für die erste Seite
-    last = "Letzte Seite", # Text für die letzte Seite
-    `next` = "Nächste Seite", # Text für die nächste Seite
-    previous = "Vorherige Seite" # Text für die vorherige Seite
-  )
-)
-
 # UI-Definition fluid page ####
 ui <- 
   shiny::fluidPage(
