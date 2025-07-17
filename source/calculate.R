@@ -1066,6 +1066,19 @@ df_Abrechnung <- l_abrechnung|>
   })|>
   bind_rows()
 
+get_semester <- function(date) {
+  # Ensure input is of Date class
+  date <- as.Date(date)
+  
+  # Extract month
+  month <- as.integer(format(date, "%m"))
+  
+  # Semester 1 = Jan–Jun, Semester 2 = Jul–Dec
+  semester <- ifelse(month <= 6, 1, 2)
+  
+  return(semester)
+}
+
 # # Daten für Berichet ####
 ## Besucherzahlen  ####
 df_Besucherzahlen <- df_Eintritt|>
@@ -1078,17 +1091,44 @@ df_keine_Rechnung <- Ausgaben|>
   filter(is.na(`Betrag [CHF]`))
 
 # Data export: write to Excel ####
+## Auswertung ####
 c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
 
 list(`Werbung` = df_Besucherzahlen,
      `Eintritt` = df_Eintritt,
      `Kiosk` = df_Kiosk,
+     Kioskausgaben = Kioskausgaben,
+     s_Kioskausgaben = s_Kioskausgaben,
      Einnahmen = Einnahmen,
      Ausgaben = Ausgaben,
      `Filmvorführung` = df_Abrechnung
 )|>
   openxlsx::write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
+
+## Kiosausgaben ####
+Kioskausgaben <- df_Kiosk|>
+  mutate(Abrechnungsjahr = lubridate::year(Datum)|>as.integer(), 
+         Semester = get_semester(Datum))|>
+  select(ID, Datum, Abrechnungsjahr,Semester,`Artikel-Kassensystem`, Artikelname, Lieferant, Anzahl, `Einkaufspreis [CHF]`)|>
+  mutate(`Kiosausgaben [CHF]` = Anzahl * `Einkaufspreis [CHF]`)
+Kioskausgaben
+
+s_Kioskausgaben <- Kioskausgaben|>
+  filter(Lieferant == "Schüwo")|>
+  group_by(Abrechnungsjahr, Semester, Artikelname)|>
+  reframe(
+    Anzahl = sum(Anzahl), 
+    `Kioskausgaben [CHF]` = sum(`Kiosausgaben [CHF]`)
+  )
+s_Kioskausgaben  
+
+# write Excel
+list(
+     Kioskausgaben = Kioskausgaben,
+     Semesterausgaben = s_Kioskausgaben
+)|>
+  openxlsx::write.xlsx(file="output/data/Kioskausgaben.xlsx", asTable = TRUE, overwrite = TRUE)
 
 # remove not used variables ####
 remove(ii,
