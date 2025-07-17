@@ -21,10 +21,10 @@ df_temp
 l_data <- readRDS(df_temp$files)
 
 ## Data base credentials from system variables ####
-DB_host <- Sys.getenv("DB_host")
-DB_name <- Sys.getenv("DB_name")
-DB_user <- Sys.getenv("DB_user")
-DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+DB_host <- Sys.getenv("DB_host_local")
+DB_name <- Sys.getenv("DB_name_local")
+DB_user <- Sys.getenv("DB_user_local")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB_local")
 
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
