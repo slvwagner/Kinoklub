@@ -1098,13 +1098,11 @@ if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
 list(`Werbung` = df_Besucherzahlen,
      `Eintritt` = df_Eintritt,
      `Kiosk` = df_Kiosk,
-     Kioskausgaben = Kioskausgaben,
-     s_Kioskausgaben = s_Kioskausgaben,
      Einnahmen = Einnahmen,
      Ausgaben = Ausgaben,
      `Filmvorführung` = df_Abrechnung
 )|>
-  openxlsx::write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
+  openxlsx::write.xlsx(file=paste0("output/data/Auswertung ",c_Abrechnungsjahr,".xlsx"), asTable = TRUE, overwrite = TRUE)
 
 ## Kiosausgaben ####
 Kioskausgaben <- df_Kiosk|>
@@ -1128,7 +1126,7 @@ list(
      Kioskausgaben = Kioskausgaben,
      Semesterausgaben = s_Kioskausgaben
 )|>
-  openxlsx::write.xlsx(file="output/data/Kioskausgaben.xlsx", asTable = TRUE, overwrite = TRUE)
+  openxlsx::write.xlsx(file=paste0("output/data/Kioskausgaben ",c_Abrechnungsjahr,".xlsx"), asTable = TRUE, overwrite = TRUE)
 
 # remove not used variables ####
 remove(ii,
