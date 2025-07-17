@@ -358,12 +358,21 @@ for (ii in c_Event_IDs) {
 ##  df_Kiosk ####
 df_Kiosk <- tbl(con, "df_Kiosk")|>
   left_join(tbl(con, "Programm")|>
-              select(`Event ID`, Datum, Filmtitel),
+              select(`Event ID`, Datum, Filmtitel, Suisanummer),
             by = join_by(`Event ID`)
   )|>
   filter(c_Abrechnungsjahr == lubridate::year(Datum))|>
-  select(-Datum)|>
+  select("ID","Event ID","ID_Spezialpreisekiosk","ID_Kioskartikel",
+         "Datum","Filmtitel","Suisanummer",
+         "Artikel-Kassensystem","Artikelname","Einzelpreis [CHF]","Anzahl","Betrag [CHF]","Gewinn [CHF]",
+         "Überschuss / Manko [CHF]","Verkaufspreis [CHF]","Einkaufspreis [CHF]","Menge","Lieferant","Gültig ab Datum")|>
   collect()
+df_Kiosk
+
+df_Kiosk <- df_Kiosk|>
+  mutate(Datum = as.Date(Datum),
+         `Gültig ab Datum` = as.Date(`Gültig ab Datum`)
+         )
 df_Kiosk
 
 # check Spezialpreise ####
@@ -1073,11 +1082,11 @@ c_filePath <- "output/data/"
 if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T)
 
 list(`Werbung` = df_Besucherzahlen,
-     `Tickets` = df_Eintritt,
+     `Eintritt` = df_Eintritt,
      `Kiosk` = df_Kiosk,
-     `Filmvorführung` = df_Abrechnung,
      Einnahmen = Einnahmen,
-     Ausgaben = Ausgaben
+     Ausgaben = Ausgaben,
+     `Filmvorführung` = df_Abrechnung
 )|>
   openxlsx::write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
