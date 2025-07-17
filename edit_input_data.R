@@ -3927,7 +3927,7 @@ server <- function(input, output, session) {
           
         } else {
           showModal(modalDialog(
-            title = "Selektierte Zeile löschen?",              
+            title = "Zeile löschen?",              
             tagList(
               div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
@@ -4448,21 +4448,29 @@ server <- function(input, output, session) {
             df_temp_to_render(df_temp)  
             removeModal()
             
+            # Calculate modal size based on number of columns
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
             if(df_temp$Suisanummer %in% current_data()$Suisanummer){
               showModal(modalDialog(
                 title = "Filmvorschlag exisiert bereits",
+                tagList(
+                  renderText("Soll der bereits existierende Eintrag ersetzt werden?"),
+                  shiny::hr(),
+                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                      dataTableOutput("modal_table")
+                  )
+                ),
                 easyClose = TRUE, 
                 footer = tagList(
+                  actionButton("replace_suisa","Selektierter Zeile übernehmen", class = "btn-success"),
                   actionButton("abort","Abbrechen")
                 )
               ))
-              df_temp_to_render(NULL)
+
             } else {
-              # Calculate modal size based on number of columns
-              num_cols <- ncol(df_temp)
-              modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-              modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
-              
               showModal(modalDialog(
                 title = "Filmvorschlag übernehmen",
                 tagList(
@@ -4499,6 +4507,118 @@ server <- function(input, output, session) {
         )
       ))
     }
+  })
+  
+  
+  ##### replace Film to Filmvorschlag by suisanummer ####
+  observeEvent(input$replace_suisa,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    req(input$replace_suisa)
+    removeModal()
+    shiny::withProgress(message = "Procinema", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
+      tryCatch(
+        {
+          # search detail on procinema
+          df_temp <- df_temp_to_render()$link|>
+            film_details()|>
+            rename(Inhalt = synopsis,
+                   Filmtitel = title
+            )|>
+            mutate(across(contains("release"), 
+                          ~ as.Date(., format = "%d.%m.%Y")))
+        }, error = function(e){
+          showNotification(paste("Error:", e$message), type = "error")
+        }
+      )
+      shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
+    })
+    
+    # update date if details have been found
+    if(r_is.defined(df_temp)){
+      # create new row
+      new_row <- df_temp_to_render()|>
+        rename(Procinema = link,
+               `Start-Datum` = release_date,
+               `Eintritte eingespielt` = admissions)|>
+        mutate(`Start-Datum` = dmy(`Start-Datum`))
+      new_row
+      
+      # check if Verleiher mapping is available 
+      df_Verleiher_mapping <- DB_get_table("Verleiher mapping", DB_con())
+      tail(df_Verleiher_mapping)
+      
+      
+      if(is.null(names(new_row$Verleiher))){
+        showModal(modalDialog(
+          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher mapping`."),
+          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher mapping` erfassen und dann nochmals probieren!"),
+          easyClose = FALSE, 
+          footer = tagList(
+            actionButton("abort","Abbrechen")
+          )
+        ))
+        req(NULL) # early exit
+      }
+      
+      # Create new row entry      
+      new_row <- new_row|>
+        bind_cols(Inhalt = df_temp$Inhalt,
+                  director = df_temp$director,
+                  Regie = df_temp$producer,
+                  Schauspieler = df_temp$actors,
+                  Kategorie = "",
+                  Trailer = "",
+                  Produktionsland = df_temp$Produktionsland,
+                  Genre = df_temp$Genre
+        )
+      new_row
+      
+      # get ID by Suisanummer
+      df_temp <- current_data()
+      df_temp <- df_temp|>
+        filter(Suisanummer == df_temp_to_render()$Suisanummer)
+      
+      new_row <- bind_cols(
+        df_temp|>
+          select(ID),
+        new_row
+        )|>
+        select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
+               "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", 
+               "Procinema", "Trailer", "Kategorie")
+      
+      # updata SQL DB
+      DB_edit_row_in_table(DB_con(),"Filmvorschlag", "ID", new_row$ID, new_row, get_data_type(current_data()))
+
+      # select entry in datatable
+      c_row <- current_data()|>
+        mutate(index = row_number())|>
+        filter(ID == df_temp$ID)|>
+        select(index)|>
+        pull()
+
+      # find page
+      find_page(c_row, input$table_search_columns,
+                last_rendered_DT(), 
+                lastEdited_data_set_name(), page_length_var()
+      )
+      
+      # update to render
+      updated_data <- DB_get_table("Filmvorschlag", DB_con())|>
+        convert_to_template_types(l_template$Filmvorschlag)|>
+        arrange(desc(ID))|>
+        current_data()
+      
+    }
+    # 
+    df_temp_to_render(NULL)
   })
   
   ##### takeover Film to Filmvorschlag by suisanummer ####
