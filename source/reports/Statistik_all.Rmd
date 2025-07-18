@@ -14,6 +14,10 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
 english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+# Datatable page length 
+c_pageLength = 5 # Initial page length
+c_pageLengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
+
 # Data table in german ####
 DT_language <- list(
   lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
@@ -31,6 +35,27 @@ DT_language <- list(
   )
 )
 
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
 # Function to convert English weekday names to German, if necessary
 convert_to_german_weekdays <- function(date) {
   weekday_name <- weekdays(date, abbreviate = FALSE)
@@ -45,462 +70,814 @@ convert_to_german_weekdays <- function(date) {
 
 Bericht wurde am `r act_date` erstellt.
 
-## Gewinn/Verlust aus Filmvorführung
-
+## Einnahmen
 ### Übersicht
 
-```{r message=FALSE, warning=FALSE}
-df_temp <- df_Abrechnung|>
-  arrange(desc(Datum)) |>
+```{r}
+df_Einnahmen <- df_Einnahmen|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(
-    `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, 
-    `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`, `Ticketgewinn [CHF]`, 
-    `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`,
-    `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`, 
-    `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`,
-    `Gewinn aus Fimvorführung [CHF]`
-    )|>
-  mutate(`Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`,2), 
-         `Kioskgewinn [CHF]` = round(`Kioskgewinn [CHF]`,2), 
-         `Kioskgewinn-Spezialpreise [CHF]` = round(`Kioskgewinn-Spezialpreise [CHF]`,2),
-         `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)
-         )
+  select("ID","Abrechnungsjahr","Semester","Kategorie","Event ID",
+         "Datum_display", "Datum",
+         "Bezeichnung","Betrag [CHF]","Firmennamen","Adresse","Rechnungsnummer")
+
 ```
 
 
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
-  df_temp, 
+  df_Einnahmen,
+  filter = "top",
   rownames = FALSE,
   options = list(
     scrollX = TRUE,  # Enable horizontal scrolling
     autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
     language = DT_language,
     columnDefs = list(
-      # list(targets = 3,visible = F),
-      list(targets = 4, visible = FALSE),  # Hide the 'Datum' column
-      list(targets = 3, orderData = 4)    # Use the 'Datum' column for sorting 'Datum_display'
+      list(targets = 5, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 6, orderData = 5)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
+  colnames = c(Datum = "Datum_display")
+)
+```
+
+### Abrechnungsjahr / Semester
+```{r}
+s_df_Einnahmen <- df_Einnahmen|>
+  group_by(Abrechnungsjahr, Semester, Kategorie)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE))
+```
+
+
+```{r message=FALSE, warning=FALSE}
+s_df_Einnahmen|>
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE,
+    options = list(
+      # scrollX = TRUE,  # Enable horizontal scrolling
+      # autoWidth = TRUE,  # auto-width enable to controll columnwidth
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
+      language = DT_language
       )
-    ),
+    )
+```
+
+### Total 
+```{r}
+s_df_Einnahmen|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  knitr::kable()
+```
+
+
+## Ausgaben
+
+### Übersicht
+```{r}
+df_Ausgaben <- df_Ausgaben|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))
+
+# r_get_colnames(df_Ausgaben)
+```
+
+
+```{r}
+df_Ausgaben <- df_Ausgaben|>
+  select(
+    "ID","Abrechnungsjahr","Semester","Kategorie","Event ID","Datum", "Datum_display",
+    "Bezeichnung","Betrag [CHF]","Firmennamen","Adresse","Referenz","Rechnungsnummer","Buchungskonto")
+# df_Ausgaben
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_Ausgaben, 
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    scrollX = TRUE,    # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      list(targets = 5, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 6, orderData = 5)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
   colnames = c(Datum = "Datum_display")
 )
 ```
 
 
+### Abrechnungsjahr / Semester
 ```{r}
-df_temp|>
-  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`,na.rm = TRUE))|>
-  knitr::kable()
-```
-
-#### Durchschnitt / Median
-```{r}
-n <- df_temp|>
-  reframe(`Anzahl Vorführungen` = n())
-
-n|>
-    knitr::kable()
-```
-
-
-```{r}
-mean_median <- df_temp|>
-  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
-          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
+s_df_Ausgaben <- df_Ausgaben|>
+  group_by(Abrechnungsjahr, Semester, Kategorie)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)|>round(2)
           )
-
-mean_median|>
-  knitr::kable()
 ```
 
-```{r include=FALSE}
-start_of_year <- paste0(2023,"-01-01")|>as.Date()
-end_of_year <- paste0(lubridate::year(Sys.Date()) ,"-12-31")|>as.Date()
-
-n_days_till_now <- (start_of_year - end_of_year)
-n_days_till_now <- n_days_till_now|>as.integer()|>abs()
-n_days_till_now
-
-n_days_per_year <- (365 - sommerpause)
-n_days_per_year
-
-if(is_tibble(n)) n <- n$`Anzahl Vorführungen`
-
-shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
-
-if(n > shows_per_year) shows_per_year <- n
-```
-
-#### Wochentaganalyse
-```{r }
-if(nrow(df_temp)>1){
-  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-
-  m <- str_split(timeRange, "-")|>
-    sapply(function(range){
-      (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2])
-    })
-  colnames(m) <- timeRange
-
-  m <- m|>
-  as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
-  filter(`value` == TRUE)
-}else{
-  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-  m <- str_split(timeRange, "-")|>
-    sapply(function(range){
-      hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2])
-    })
-
-  m <- tibble(
-    `Time Range` = timeRange,
-    value = m
-    )
-}
-```
-
-```{r}
-df_temp <- m|>
-  filter(`value` == TRUE)|>
-  bind_cols(df_temp)|>
-  select(-value)|>
-  mutate(
-    weekday = sapply(Datum, convert_to_german_weekdays),
-    weekday = factor(weekday, levels = german_weekdays)
-  ) |>
-  group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Gewinn aus Fimvorführung [CHF]`) / n(),
-          d_gewinn = round5Rappen(d_gewinn)
-          )|>
-  mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
-         )
-```
-
-```{r fig.width=10}
-df_temp|>
-  mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|>
-  ggplot(aes(weekday, `Time Range`))+
-  geom_point(size = 20, color = "grey30" )+
-  geom_text(aes(label = d_gewinn), color = "darkorange2")+
-  labs(title = "Durchschnittlicher Gewinn / Verlust",
-       subtitle = "[CHF]",
-       x = "Wochentag", y = "Zeit-Interval"
-       )+
-  my_template
-```
-
-### Jahreübersicht
 
 ```{r message=FALSE, warning=FALSE}
-df_temp <- df_Abrechnung|>
-  arrange(desc(Datum)) |>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(
-    Abrechnungsjahr, 
-    `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit, 
-    `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`, 
-    `Ticketumsatz [CHF]`, `Ticketgewinn [CHF]`, 
-    `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`,
-    `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`, 
-    `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`,
-    `Gewinn aus Fimvorführung [CHF]`
+s_df_Ausgaben|>
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE,
+    options = list(
+      # scrollX = TRUE,  # Enable horizontal scrolling
+      # autoWidth = TRUE,  # auto-width enable to controll columnwidth
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
+      language = DT_language
+      )
     )
 ```
 
+### Total 
 ```{r}
-s_abrechnung <- df_temp|>
-  group_by(Abrechnungsjahr)|>
-  reframe(Events = n(),
-          `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`, na.rm = TRUE)|>
-           round(2),
-          `Besucherzahl total` = sum(`Besucherzahl total`, na.rm = TRUE)|>
-           round(2),
-          `Besucherzahl zahlend` = sum(`Besucherzahl zahlend`, na.rm = TRUE),
-          `Besucherzahl gratis` = sum(`Besucherzahl gratis`, na.rm = TRUE)|>
-           round(2),
-          `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`, na.rm = TRUE)|>
-           round(2), 
-          `Kioskumsatz [CHF]` = sum(`Kioskumsatz [CHF]`, na.rm = TRUE)|>
-           round(2), 
-         `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`, na.rm = TRUE)|>
-           round(2), 
-         `Kioskgewinn-Spezialpreise [CHF]` = sum(`Kioskgewinn-Spezialpreise [CHF]`, na.rm = TRUE)|>
-           round(2),
-         `Median Gewinn / Verlust pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`)|>
-           round(2),
-         `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)|>
-           round(2)
-         )
+s_df_Ausgaben|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  knitr::kable()
+```
+
+## Gewinn / Verlust
+
+### Übersicht
+```{r}
+df_temp <-
+  bind_rows(
+    df_Einnahmen |>
+      select(Datum, Bezeichnung,`Betrag [CHF]`) |>
+      mutate(type = "Einnahmen"
+             ),
+    df_Ausgaben |>
+      filter(!is.na(`Betrag [CHF]`))|>
+      select(Datum, Bezeichnung,`Betrag [CHF]`) |>
+      mutate(Type = "Ausgaben", 
+             `Betrag [CHF]` = -`Betrag [CHF]`
+             )
+  )|>
+  arrange((Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         type = factor(type),
+         Saldo = cumsum(`Betrag [CHF]`))|>
+  select("Datum_display","Datum","Bezeichnung","Betrag [CHF]","Saldo","type")
+
+# r_get_colnames(df_temp)
 
 ```
 
-#### Duchschnittlicher Gewinn/Verlust pro Filmvorführung
 
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
-  s_abrechnung, 
+  df_temp,
+  filter = "top",
   rownames = FALSE,
   options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
+    # scrollX = TRUE,  # Enable horizontal scrolling
+    # autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    language = DT_language,
+    columnDefs = list(
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 0, orderData = 1)    # Use the 'Datum' column for sorting 'Datum_display'
     )
+  ),
+  colnames = c(Datum = "Datum_display")
+)
+```
+
+### Total
+```{r}
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  knitr::kable()
+```
+
+
+
+### Cash flow
+```{r}
+df_temp|>
+  ggplot(aes(Datum, Saldo))+
+  geom_line(color = "magenta", linewidth = 1.1)+
+  labs(title = "Cashflow")+
+  my_template
+```
+
+
+### Geldfluss
+```{r}
+df_temp|>
+  ggplot(aes(Datum, `Betrag [CHF]`, fill = type))+
+  geom_col()+
+  labs(title = "Geldfluss")+
+  my_template
+  
+```
+
+
+## Tickets
+
+### Übersicht
+```{r}
+df_tickets <- df_tickets|>
+    mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+           `Event ID` = factor(`Event ID`),
+           # Platzkategorie = factor(Platzkategorie),
+           Zahlend = factor(Zahlend),
+           Semester = factor(get_semester(Datum)),
+           Abrechnungsjahr = factor(Abrechnungsjahr)
+           )
+
+df_tickets <- df_tickets|>
+  select("Abrechnungsjahr",Semester,"Event ID","Datum","Datum_display","Suisanummer","Filmtitel",
+         "Platzkategorie","Zahlend","Verkaufspreis","Anzahl","Umsatz [CHF]"
+         )
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_tickets,
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    scrollX = TRUE,    # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      list(targets = 3, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 4, orderData = 3)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
+  colnames = c(Datum = "Datum_display")
 )
 ```
 
 
+### Event
 ```{r}
-s_abrechnung|>
-  mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|>
-  ggplot(aes(Abrechnungsjahr, `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`, fill = `Besucherzahl total`))+
-  geom_col()+
-  my_template
+s_df_tickets <- df_tickets|>
+  group_by(Abrechnungsjahr, Semester,`Event ID`, Datum, Suisanummer, Filmtitel)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y")
+         )|>
+  arrange(desc(Datum))
+
+s_df_tickets <- s_df_tickets|>
+  select("Abrechnungsjahr","Semester","Event ID","Datum_display", "Datum",
+         "Suisanummer","Filmtitel","Umsatz [CHF]")
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  s_df_tickets,
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    scrollX = TRUE,    # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      list(targets = 4, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 5, orderData = 4)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
+  colnames = c(Datum = "Datum_display")
+)
+```
+
+### Abrechnungsjahr / Semester
+
+```{r}
+s_df_tickets <- df_tickets|>
+  group_by(Abrechnungsjahr, Semester)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(desc(Abrechnungsjahr))
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  s_df_tickets,
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    # scrollX = TRUE,    # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu
+  )
+)
+```
+
+### Total 
+```{r}
+s_df_tickets|>
+  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`))|>
+  knitr::kable()
 ```
 
 ## Kiosk
 
 ### Übersicht
 ```{r}
-df_temp <- df_Kiosk|>
-  group_by(`Artikel-Kassensystem`)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`)
-          )|>
-  mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
+df_Kiosk
 ```
 
-```{r message=FALSE, warning=FALSE}
-# Create the datatable with a hidden Datum column and sort by it
-DT::datatable(
-  df_temp, 
-  rownames = FALSE,
-  options = list(
-    # scrollX = TRUE,  # Enable horizontal scrolling
-    # autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
+### Abrechnungsjahr / Semester
+Das ist noch gar nicht fertig
 
 
-### Jahresübersicht
+<!-- ## Gewinn/Verlust aus Filmvorführung -->
 
-#### Übersicht
-```{r}
-s_df_Kiosk <- df_Kiosk|>
-  group_by(Abrechnungsjahr)|>
-  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)|>round(2),
-          `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)|>round(2)
-          )|>
-  mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2))
-```
-
-```{r message=FALSE, warning=FALSE}
-# Create the datatable with a hidden Datum column and sort by it
-DT::datatable(
-  s_df_Kiosk, 
-  rownames = FALSE,
-  options = list(
-    # scrollX = TRUE,  # Enable horizontal scrolling
-    # autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
-
-#### Durchschnittlicher Kioskumsatz pro Gast
-
-```{r}
-s_abrechnung <- s_abrechnung|>
-  mutate(
-    `Kioskumsatz pro Gast [CHF]` = `Kioskumsatz [CHF]` /  `Besucherzahl total`, 
-    `Kioskumsatz pro zahlender Gast [CHF]` =  `Kioskumsatz [CHF]` /  `Besucherzahl zahlend`
-    )
-```
-
-
-```{r}
-s_abrechnung|>
-  mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|>
-  pivot_longer(cols = c(`Kioskumsatz pro zahlender Gast [CHF]`, `Kioskumsatz pro Gast [CHF]`), 
-               names_to = "Durchschnitt", values_to =  "Kioskumsatz pro Gast [CHF]")|>
-  ggplot(aes(Abrechnungsjahr, `Kioskumsatz pro Gast [CHF]`, fill = `Besucherzahl total`))+
-  geom_col()+
-  facet_grid(. ~ Durchschnitt)+
-  my_template
-
-```
-
-## Einnahmen
-
-Alle Einnahmen die nicht über einen "Event ID" abgerechnet werden können. 
-```{r}
-s_df_Einnahmen <-  df_Einnahmen|>
-  filter(is.na(`Event ID`))|>
-  select(-`Event ID`)
-
-```
-
-```{r message=FALSE, warning=FALSE}
-# Create the datatable with a hidden Datum column and sort by it
-DT::datatable(
-  s_df_Einnahmen,
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
-
-```{r}
-s_df_Einnahmen |>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
-  knitr::kable()
-```
-
-<!-- ### Jahresübersicht -->
-
-```{r}
-s_Einnahmen <- left_join(
-  s_abrechnung,
-  df_Einnahmen|>
-    filter(is.na(`Event ID`))|>
-    group_by(Abrechnungsjahr)|>
-    reframe(`Einnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
-  by = join_by(Abrechnungsjahr)
-  )|>
-  mutate(`Einnahmen pro Event [CHF]` = round(`Einnahmen [CHF]` / Events, 2))
-
-```
-
+<!-- ### Übersicht -->
 
 <!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- DT::datatable(  -->
-<!--   s_Einnahmen, -->
-<!--   rownames = FALSE, -->
-<!--   options = list( -->
-<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
-<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth, -->
-<!--     language = DT_language -->
-<!--     ) -->
-<!-- ) -->
-
+<!-- df_temp <- df_Abrechnung|> -->
+<!--   arrange(desc(Datum)) |> -->
+<!--   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|> -->
+<!--   select( -->
+<!--     `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit,  -->
+<!--     `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`, `Ticketgewinn [CHF]`,  -->
+<!--     `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`, -->
+<!--     `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`,  -->
+<!--     `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`, -->
+<!--     `Gewinn aus Fimvorführung [CHF]` -->
+<!--     )|> -->
+<!--   mutate(`Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`,2),  -->
+<!--          `Kioskgewinn [CHF]` = round(`Kioskgewinn [CHF]`,2),  -->
+<!--          `Kioskgewinn-Spezialpreise [CHF]` = round(`Kioskgewinn-Spezialpreise [CHF]`,2), -->
+<!--          `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2) -->
+<!--          ) -->
 <!-- ``` -->
 
 
-## Ausgaben
-
-Alle Ausgaben die nicht über einen "Event ID" abgerechnet werden können. 
-```{r}
-s_df_Ausgaben <- df_Ausgaben|>
-    filter(is.na(`Event ID`))
-```
-
-
-```{r message=FALSE, warning=FALSE}
-# Create the datatable with a hidden Datum column and sort by it
-DT::datatable(
-  s_df_Ausgaben, 
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
-
-
-```{r}
-s_df_Ausgaben|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE))|>
-  knitr::kable()
-```
-
-
-<!-- ### Jahresübersicht -->
-
-```{r}
-s_Ausgaben <- left_join(
-  s_abrechnung,
-  df_Ausgaben|>
-    filter(is.na(`Event ID`))|>
-    group_by(Abrechnungsjahr)|>
-    reframe(`Ausgaben [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)),
-  by = join_by(Abrechnungsjahr)
-)|>
-  mutate(`Ausgaben pro Event [CHF]` = round(`Ausgaben [CHF]` / Events, 2))
-
-```
-
-
 <!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- DT::datatable( -->
-<!--   s_Ausgaben, -->
-<!--   rownames = FALSE, -->
-<!--   options = list( -->
-<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
-<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
-<!--     language = DT_language -->
-<!--     ) -->
-<!-- ) -->
-
-<!-- ``` -->
-
-## Einnahmen und Ausgaben pro Event
-```{r}
-df_temp <- left_join(
-  s_Einnahmen, s_Ausgaben,
-  by = join_by(Abrechnungsjahr, Events, `Ticketumsatz [CHF]`, `Besucherzahl total`, 
-               `Besucherzahl zahlend`, `Besucherzahl gratis`, 
-               `Ticketgewinn [CHF]`, `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`,
-               `Kioskgewinn-Spezialpreise [CHF]`, `Median Gewinn / Verlust pro Vorführung [CHF]`, 
-               `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`, 
-               `Kioskumsatz pro Gast [CHF]`, `Kioskumsatz pro zahlender Gast [CHF]`)
-  )
-```
-
-<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # Create the datatable with a hidden Datum column and sort by it -->
 <!-- DT::datatable( -->
 <!--   df_temp, -->
 <!--   rownames = FALSE, -->
 <!--   options = list( -->
+<!--     scrollX = TRUE, -->
+<!--     # Enable horizontal scrolling -->
+<!--     autoWidth = TRUE, -->
+<!--     # auto-width enable to controll columnwidth -->
+<!--     language = DT_language, -->
+<!--     columnDefs = list( -->
+<!--       # list(targets = 3,visible = F), -->
+<!--       list(targets = 4, visible = FALSE), -->
+<!--       # Hide the 'Datum' column -->
+<!--       list(targets = 3, orderData = 4)    # Use the 'Datum' column for sorting 'Datum_display' -->
+<!--     ) -->
+<!--   ), -->
+<!--   colnames = c(Datum = "Datum_display") -->
+<!-- ) -->
+<!-- ``` -->
+
+
+
+<!-- ```{r} -->
+<!-- df_temp|> -->
+<!--   reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`,na.rm = TRUE))|> -->
+<!--   knitr::kable() -->
+<!-- ``` -->
+
+<!-- #### Durchschnitt / Median -->
+<!-- ```{r} -->
+<!-- n <- df_temp|> -->
+<!--   reframe(`Anzahl Vorführungen` = n()) -->
+
+<!-- n|> -->
+<!--     knitr::kable() -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- mean_median <- df_temp|> -->
+<!--   reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2), -->
+<!--           `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2) -->
+<!--           ) -->
+
+<!-- mean_median|> -->
+<!--   knitr::kable() -->
+<!-- ``` -->
+
+<!-- ```{r include=FALSE} -->
+<!-- start_of_year <- paste0(2023,"-01-01")|>as.Date() -->
+<!-- end_of_year <- paste0(lubridate::year(Sys.Date()) ,"-12-31")|>as.Date() -->
+
+<!-- n_days_till_now <- (start_of_year - end_of_year) -->
+<!-- n_days_till_now <- n_days_till_now|>as.integer()|>abs() -->
+<!-- n_days_till_now -->
+
+<!-- n_days_per_year <- (365 - sommerpause) -->
+<!-- n_days_per_year -->
+
+<!-- if(is_tibble(n)) n <- n$`Anzahl Vorführungen` -->
+
+<!-- shows_per_year <- floor((n/n_days_till_now)*n_days_per_year) -->
+
+<!-- if(n > shows_per_year) shows_per_year <- n -->
+<!-- ``` -->
+
+<!-- #### Wochentaganalyse -->
+<!-- ```{r } -->
+<!-- if(nrow(df_temp)>1){ -->
+<!--   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00") -->
+
+<!--   m <- str_split(timeRange, "-")|> -->
+<!--     sapply(function(range){ -->
+<!--       (df_temp$Zeit) >= hm(range[1]) & (df_temp$Zeit) < hm(range[2]) -->
+<!--     }) -->
+<!--   colnames(m) <- timeRange -->
+
+<!--   m <- m|> -->
+<!--   as_tibble()|> -->
+<!--   pivot_longer(cols = everything(), names_to = "Time Range")|> -->
+<!--   filter(`value` == TRUE) -->
+<!-- }else{ -->
+<!--   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00") -->
+<!--   m <- str_split(timeRange, "-")|> -->
+<!--     sapply(function(range){ -->
+<!--       hm(df_temp$Zeit) >= hm(range[1]) & hm(df_temp$Zeit) < hm(range[2]) -->
+<!--     }) -->
+
+<!--   m <- tibble( -->
+<!--     `Time Range` = timeRange, -->
+<!--     value = m -->
+<!--     ) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- df_temp <- m|> -->
+<!--   filter(`value` == TRUE)|> -->
+<!--   bind_cols(df_temp)|> -->
+<!--   select(-value)|> -->
+<!--   mutate( -->
+<!--     weekday = sapply(Datum, convert_to_german_weekdays), -->
+<!--     weekday = factor(weekday, levels = german_weekdays) -->
+<!--   ) |> -->
+<!--   group_by(weekday, `Time Range`)|> -->
+<!--   reframe(d_gewinn = sum(`Gewinn aus Fimvorführung [CHF]`) / n(), -->
+<!--           d_gewinn = round5Rappen(d_gewinn) -->
+<!--           )|> -->
+<!--   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1]) -->
+<!--          ) -->
+<!-- df_temp -->
+<!-- ``` -->
+
+<!-- ```{r fig.width=10} -->
+<!-- df_temp|> -->
+<!--   mutate(`Time Range` = factor(`Time Range`, levels(`Time Range`)))|> -->
+<!--   ggplot(aes(weekday, `Time Range`))+ -->
+<!--   geom_point(size = 20, color = "grey30" )+ -->
+<!--   geom_text(aes(label = d_gewinn), color = "darkorange2")+ -->
+<!--   labs(title = "Durchschnittlicher Gewinn / Verlust", -->
+<!--        subtitle = "[CHF]", -->
+<!--        x = "Wochentag", y = "Zeit-Interval" -->
+<!--        )+ -->
+<!--   my_template -->
+<!-- ``` -->
+
+<!-- ### Jahreübersicht -->
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- df_temp <- df_Abrechnung|> -->
+<!--   arrange(desc(Datum)) |> -->
+<!--   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|> -->
+<!--   select( -->
+<!--     Abrechnungsjahr,  -->
+<!--     `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit,  -->
+<!--     `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`,  -->
+<!--     `Ticketumsatz [CHF]`, `Ticketgewinn [CHF]`,  -->
+<!--     `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`, -->
+<!--     `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`,  -->
+<!--     `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`, -->
+<!--     `Gewinn aus Fimvorführung [CHF]` -->
+<!--     ) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- s_abrechnung <- df_temp|> -->
+<!--   group_by(Abrechnungsjahr)|> -->
+<!--   reframe(Events = n(), -->
+<!--           `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2), -->
+<!--           `Besucherzahl total` = sum(`Besucherzahl total`, na.rm = TRUE)|> -->
+<!--            round(2), -->
+<!--           `Besucherzahl zahlend` = sum(`Besucherzahl zahlend`, na.rm = TRUE), -->
+<!--           `Besucherzahl gratis` = sum(`Besucherzahl gratis`, na.rm = TRUE)|> -->
+<!--            round(2), -->
+<!--           `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2),  -->
+<!--           `Kioskumsatz [CHF]` = sum(`Kioskumsatz [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2),  -->
+<!--          `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2),  -->
+<!--          `Kioskgewinn-Spezialpreise [CHF]` = sum(`Kioskgewinn-Spezialpreise [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2), -->
+<!--          `Median Gewinn / Verlust pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`)|> -->
+<!--            round(2), -->
+<!--          `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)|> -->
+<!--            round(2) -->
+<!--          ) -->
+
+<!-- ``` -->
+
+<!-- #### Duchschnittlicher Gewinn/Verlust pro Filmvorführung -->
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # Create the datatable with a hidden Datum column and sort by it -->
+<!-- DT::datatable( -->
+<!--   s_abrechnung,  -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
 <!--     scrollX = TRUE,  # Enable horizontal scrolling -->
 <!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
 <!--     language = DT_language -->
 <!--     ) -->
 <!-- ) -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- s_abrechnung|> -->
+<!--   mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|> -->
+<!--   ggplot(aes(Abrechnungsjahr, `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`, fill = `Besucherzahl total`))+ -->
+<!--   geom_col()+ -->
+<!--   my_template -->
+<!-- ``` -->
+
+<!-- ## Kiosk -->
+
+<!-- ### Übersicht -->
+<!-- ```{r} -->
+<!-- df_temp <- df_Kiosk|> -->
+<!--   group_by(`Artikel-Kassensystem`)|> -->
+<!--   reframe(Anzahl = sum(Anzahl), -->
+<!--           `Umsatz [CHF]` = sum(`Umsatz [CHF]`), -->
+<!--           `Gewinn [CHF]` = sum(`Gewinn [CHF]`) -->
+<!--           )|> -->
+<!--   mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2)) -->
+<!-- ``` -->
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # Create the datatable with a hidden Datum column and sort by it -->
+<!-- DT::datatable( -->
+<!--   df_temp,  -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     # scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     # autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
+<!-- ``` -->
+
+
+<!-- ### Jahresübersicht -->
+
+<!-- #### Übersicht -->
+<!-- ```{r} -->
+<!-- s_df_Kiosk <- df_Kiosk|> -->
+<!--   group_by(Abrechnungsjahr)|> -->
+<!--   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`,na.rm = TRUE)|>round(2), -->
+<!--           `Gewinn [CHF]` = sum(`Gewinn [CHF]`,na.rm = TRUE)|>round(2) -->
+<!--           )|> -->
+<!--   mutate(`Marge [%]` = round(`Gewinn [CHF]` /  `Umsatz [CHF]` * 100, 2)) -->
+<!-- ``` -->
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # Create the datatable with a hidden Datum column and sort by it -->
+<!-- DT::datatable( -->
+<!--   s_df_Kiosk,  -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     # scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     # autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- #### Durchschnittlicher Kioskumsatz pro Gast -->
+
+<!-- ```{r} -->
+<!-- s_abrechnung <- s_abrechnung|> -->
+<!--   mutate( -->
+<!--     `Kioskumsatz pro Gast [CHF]` = `Kioskumsatz [CHF]` /  `Besucherzahl total`,  -->
+<!--     `Kioskumsatz pro zahlender Gast [CHF]` =  `Kioskumsatz [CHF]` /  `Besucherzahl zahlend` -->
+<!--     ) -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- s_abrechnung|> -->
+<!--   mutate(`Besucherzahl total` =  factor(`Besucherzahl total`))|> -->
+<!--   pivot_longer(cols = c(`Kioskumsatz pro zahlender Gast [CHF]`, `Kioskumsatz pro Gast [CHF]`),  -->
+<!--                names_to = "Durchschnitt", values_to =  "Kioskumsatz pro Gast [CHF]")|> -->
+<!--   ggplot(aes(Abrechnungsjahr, `Kioskumsatz pro Gast [CHF]`, fill = `Besucherzahl total`))+ -->
+<!--   geom_col()+ -->
+<!--   facet_grid(. ~ Durchschnitt)+ -->
+<!--   my_template -->
 
 <!-- ``` -->
 
 
-```{r message=FALSE, warning=FALSE}
-df_temp|>
-  select(Abrechnungsjahr, Events, `Einnahmen pro Event [CHF]`, `Ausgaben pro Event [CHF]`, 
-         `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`)|>
-  mutate(`Gewinn / Verlust pro Event [CHF]` = 
-           round(`Einnahmen pro Event [CHF]` -  
-                   `Ausgaben pro Event [CHF]` + 
-                   `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`, 
-                 2) 
-         )|>
-  DT::datatable(
-  rownames = FALSE,
-  options = list(
-    # scrollX = TRUE,  # Enable horizontal scrolling
-    # autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
 
+<!-- ```{r} -->
+<!-- s_df_Einnahmen |> -->
+<!--   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|> -->
+<!--   knitr::kable() -->
+<!-- ``` -->
+
+<!-- <!-- ### Jahresübersicht --> -->
+
+<!-- ```{r} -->
+<!-- s_Einnahmen <- left_join( -->
+<!--   s_abrechnung, -->
+<!--   df_Einnahmen|> -->
+<!--     filter(is.na(`Event ID`))|> -->
+<!--     group_by(Abrechnungsjahr)|> -->
+<!--     reframe(`Einnahmen [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)), -->
+<!--   by = join_by(Abrechnungsjahr) -->
+<!--   )|> -->
+<!--   mutate(`Einnahmen pro Event [CHF]` = round(`Einnahmen [CHF]` / Events, 2)) -->
+
+<!-- ``` -->
+
+
+<!-- <!-- ```{r message=FALSE, warning=FALSE} --> -->
+<!-- <!-- DT::datatable(  --> -->
+<!-- <!--   s_Einnahmen, --> -->
+<!-- <!--   rownames = FALSE, --> -->
+<!-- <!--   options = list( --> -->
+<!-- <!--     scrollX = TRUE,  # Enable horizontal scrolling --> -->
+<!-- <!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth, --> -->
+<!-- <!--     language = DT_language --> -->
+<!-- <!--     ) --> -->
+<!-- <!-- ) --> -->
+
+<!-- <!-- ``` --> -->
+
+
+<!-- ## Ausgaben -->
+
+<!-- Alle Ausgaben die nicht über einen "Event ID" abgerechnet werden können.  -->
+<!-- ```{r} -->
+<!-- s_df_Ausgaben <- df_Ausgaben|> -->
+<!--     filter(is.na(`Event ID`)) -->
+<!-- ``` -->
+
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # Create the datatable with a hidden Datum column and sort by it -->
+<!-- DT::datatable( -->
+<!--   s_df_Ausgaben,  -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- s_df_Ausgaben|> -->
+<!--   reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE))|> -->
+<!--   knitr::kable() -->
+<!-- ``` -->
+
+
+<!-- <!-- ### Jahresübersicht --> -->
+
+<!-- ```{r} -->
+<!-- s_Ausgaben <- left_join( -->
+<!--   s_abrechnung, -->
+<!--   df_Ausgaben|> -->
+<!--     filter(is.na(`Event ID`))|> -->
+<!--     group_by(Abrechnungsjahr)|> -->
+<!--     reframe(`Ausgaben [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)), -->
+<!--   by = join_by(Abrechnungsjahr) -->
+<!-- )|> -->
+<!--   mutate(`Ausgaben pro Event [CHF]` = round(`Ausgaben [CHF]` / Events, 2)) -->
+
+<!-- ``` -->
+
+
+<!-- <!-- ```{r message=FALSE, warning=FALSE} --> -->
+<!-- <!-- DT::datatable( --> -->
+<!-- <!--   s_Ausgaben, --> -->
+<!-- <!--   rownames = FALSE, --> -->
+<!-- <!--   options = list( --> -->
+<!-- <!--     scrollX = TRUE,  # Enable horizontal scrolling --> -->
+<!-- <!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth --> -->
+<!-- <!--     language = DT_language --> -->
+<!-- <!--     ) --> -->
+<!-- <!-- ) --> -->
+
+<!-- <!-- ``` --> -->
+
+<!-- ## Einnahmen und Ausgaben pro Event -->
+<!-- ```{r} -->
+<!-- df_temp <- left_join( -->
+<!--   s_Einnahmen, s_Ausgaben, -->
+<!--   by = join_by(Abrechnungsjahr, Events, `Ticketumsatz [CHF]`, `Besucherzahl total`,  -->
+<!--                `Besucherzahl zahlend`, `Besucherzahl gratis`,  -->
+<!--                `Ticketgewinn [CHF]`, `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`, -->
+<!--                `Kioskgewinn-Spezialpreise [CHF]`, `Median Gewinn / Verlust pro Vorführung [CHF]`,  -->
+<!--                `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`,  -->
+<!--                `Kioskumsatz pro Gast [CHF]`, `Kioskumsatz pro zahlender Gast [CHF]`) -->
+<!--   ) -->
+<!-- ``` -->
+
+<!-- <!-- ```{r message=FALSE, warning=FALSE} --> -->
+<!-- <!-- DT::datatable( --> -->
+<!-- <!--   df_temp, --> -->
+<!-- <!--   rownames = FALSE, --> -->
+<!-- <!--   options = list( --> -->
+<!-- <!--     scrollX = TRUE,  # Enable horizontal scrolling --> -->
+<!-- <!--     autoWidth = TRUE,  # auto-width enable to controll columnwidth --> -->
+<!-- <!--     language = DT_language --> -->
+<!-- <!--     ) --> -->
+<!-- <!-- ) --> -->
+
+<!-- <!-- ``` --> -->
+
+
+<!-- ```{r} -->
+<!-- df_temp <- df_temp|> -->
+<!--   select(Abrechnungsjahr, Events, `Einnahmen pro Event [CHF]`, `Ausgaben pro Event [CHF]`,  -->
+<!--          `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`)|> -->
+<!--   mutate(`Gewinn / Verlust pro Event [CHF]` =  -->
+<!--            round(`Einnahmen pro Event [CHF]` -   -->
+<!--                    `Ausgaben pro Event [CHF]` +  -->
+<!--                    `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]`,  -->
+<!--                  2)  -->
+<!--          )|> -->
+<!--   rename(`Druchschnittliche Einnahmen pro Event [CHF]` = `Einnahmen pro Event [CHF]`, -->
+<!--          `Durchschnittliche Ausgaben pro Event [CHF]`  = `Ausgaben pro Event [CHF]`, -->
+<!--           `Durchschnittlicher Gewinn / Verlust pro Event [CHF]` = `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` -->
+<!--          ) -->
+<!-- ``` -->
+
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- df_temp|> -->
+<!--   DT::datatable( -->
+<!--   rownames = FALSE, -->
+<!--   options = list( -->
+<!--     # scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--     # autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--     language = DT_language -->
+<!--     ) -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ## Wie viele Events müssen durchgeführt werden um Rentable zu sein -->
+<!-- ```{r} -->
+<!-- df_temp |> -->
+<!--   mutate( -->
+<!--     `Events pro Abrechnungsjahr` =  -->
+<!--       (Events * `Durchschnittlicher Gewinn / Verlust pro Event [CHF]`) / `Gewinn / Verlust pro Event [CHF]`, -->
+<!--     `Events pro Abrechnungsjahr` = round(`Events pro Abrechnungsjahr`,2)|>abs() -->
+
+<!--     ) |> -->
+<!--   select(Abrechnungsjahr,`Events pro Abrechnungsjahr`)|> -->
+<!--   DT::datatable(rownames = FALSE, -->
+<!--                 options = list( -->
+<!--                   # scrollX = TRUE,  # Enable horizontal scrolling -->
+<!--                   # autoWidth = TRUE,  # auto-width enable to controll columnwidth -->
+<!--                   language = DT_language -->
+<!--                 )) -->
+
+
+<!-- ``` -->
 
 
 
