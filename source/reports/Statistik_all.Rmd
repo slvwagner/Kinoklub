@@ -215,12 +215,12 @@ s_df_Ausgaben|>
 df_temp <-
   bind_rows(
     df_Einnahmen |>
-      select(Abrechnungsjahr, Semester, Datum, Bezeichnung,`Betrag [CHF]`) |>
+      select(Abrechnungsjahr, Semester, Kategorie,Datum, Bezeichnung,`Betrag [CHF]`) |>
       mutate(type = "Einnahmen"
              ),
     df_Ausgaben |>
       filter(!is.na(`Betrag [CHF]`))|>
-      select(Abrechnungsjahr, Semester, Datum, Bezeichnung,`Betrag [CHF]`) |>
+      select(Abrechnungsjahr, Semester, Kategorie,Datum, Bezeichnung,`Betrag [CHF]`) |>
       mutate(type = "Ausgaben", 
              `Betrag [CHF]` = -`Betrag [CHF]`
              )
@@ -228,7 +228,8 @@ df_temp <-
   arrange((Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Saldo = cumsum(`Betrag [CHF]`))|>
-  select("Datum_display","Datum","Bezeichnung","Betrag [CHF]","Saldo","type",Abrechnungsjahr, Semester)
+  select("Datum_display",
+         "Datum","Bezeichnung","Betrag [CHF]","Saldo","type",Abrechnungsjahr, Semester, Kategorie)
 
 # r_get_colnames(df_temp)
 
@@ -303,15 +304,14 @@ df_temp|>
 
 
 ### Geldfluss
-```{r}
+```{r fig.width=9.5}
 p <- df_temp|>
-  ggplot(aes(Datum, `Betrag [CHF]`, fill = type))+
+  ggplot(aes(Datum, `Betrag [CHF]`, fill = Kategorie))+
   geom_col()+
   labs(title = "Geldfluss")+
   my_template
 
-p 
-  
+plotly::ggplotly(p)  
 ```
 
 
