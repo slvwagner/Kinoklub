@@ -3,6 +3,20 @@ library(rvest)
 library(tidyverse)
 library(purrr)
 
+# find semester from date ####
+get_semester <- function(date) {
+  # Ensure input is of Date class
+  date <- as.Date(date)
+  
+  # Extract month
+  month <- as.integer(format(date, "%m"))
+  
+  # Semester 1 = Jan–Jun, Semester 2 = Jul–Dec
+  semester <- ifelse(month <= 6, 1, 2)
+  
+  return(semester)
+}
+
 # spez. Round for Swiss currency "CHF" ####
 round5Rappen <- function(x) {
   round(x * 20) / 20

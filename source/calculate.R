@@ -1066,19 +1066,6 @@ df_Abrechnung <- l_abrechnung|>
   })|>
   bind_rows()
 
-get_semester <- function(date) {
-  # Ensure input is of Date class
-  date <- as.Date(date)
-  
-  # Extract month
-  month <- as.integer(format(date, "%m"))
-  
-  # Semester 1 = Jan–Jun, Semester 2 = Jul–Dec
-  semester <- ifelse(month <= 6, 1, 2)
-  
-  return(semester)
-}
-
 # # Daten für Berichet ####
 ## Besucherzahlen  ####
 df_Besucherzahlen <- df_Eintritt|>
