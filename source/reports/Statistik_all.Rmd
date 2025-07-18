@@ -215,21 +215,20 @@ s_df_Ausgaben|>
 df_temp <-
   bind_rows(
     df_Einnahmen |>
-      select(Datum, Bezeichnung,`Betrag [CHF]`) |>
+      select(Abrechnungsjahr, Semester, Datum, Bezeichnung,`Betrag [CHF]`) |>
       mutate(type = "Einnahmen"
              ),
     df_Ausgaben |>
       filter(!is.na(`Betrag [CHF]`))|>
-      select(Datum, Bezeichnung,`Betrag [CHF]`) |>
-      mutate(Type = "Ausgaben", 
+      select(Abrechnungsjahr, Semester, Datum, Bezeichnung,`Betrag [CHF]`) |>
+      mutate(type = "Ausgaben", 
              `Betrag [CHF]` = -`Betrag [CHF]`
              )
   )|>
   arrange((Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
-         type = factor(type),
          Saldo = cumsum(`Betrag [CHF]`))|>
-  select("Datum_display","Datum","Bezeichnung","Betrag [CHF]","Saldo","type")
+  select("Datum_display","Datum","Bezeichnung","Betrag [CHF]","Saldo","type",Abrechnungsjahr, Semester)
 
 # r_get_colnames(df_temp)
 
@@ -257,6 +256,32 @@ DT::datatable(
 )
 ```
 
+
+### Abrechnungsjahr / Semester
+```{r}
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr, Semester)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE)|>round(2)
+          )
+```
+
+
+```{r message=FALSE, warning=FALSE}
+s_df_temp|>
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE,
+    options = list(
+      # scrollX = TRUE,  # Enable horizontal scrolling
+      # autoWidth = TRUE,  # auto-width enable to controll columnwidth
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
+      language = DT_language
+      )
+    )
+```
+
+
 ### Total
 ```{r}
 df_temp|>
@@ -266,6 +291,7 @@ df_temp|>
 
 
 
+## Cash flow
 ### Cash flow
 ```{r}
 df_temp|>
@@ -278,11 +304,13 @@ df_temp|>
 
 ### Geldfluss
 ```{r}
-df_temp|>
+p <- df_temp|>
   ggplot(aes(Datum, `Betrag [CHF]`, fill = type))+
   geom_col()+
   labs(title = "Geldfluss")+
   my_template
+
+p 
   
 ```
 
