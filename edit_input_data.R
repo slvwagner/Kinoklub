@@ -3233,7 +3233,23 @@ server <- function(input, output, session) {
                   df_temp
         )|>
         convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-    } 
+    } else if(new_entry() == "ausgaben_generic"){
+      df_temp <- current_data()|>
+        mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+               Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer(),
+               Kategorie  = as.character(Kategorie)
+        )
+      df_temp
+      
+      # add row on top
+      updated_data <-
+        bind_rows(new_row|>
+                    mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+                           Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer()), 
+                  df_temp
+        )|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    }
     
     # updata SQL DB and current data 
     DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
