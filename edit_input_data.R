@@ -3060,6 +3060,19 @@ server <- function(input, output, session) {
     
     ##### use case Ausgaben Kategorie Verleiher #### 
     if(new_entry() == "ausgaben_verleiher"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
       if(is.na(new_row$`Event ID`)){
         # User interaction to save
         showModal(
@@ -3102,6 +3115,18 @@ server <- function(input, output, session) {
     }
     ##### use case Ausgaben Kategorie Event ####
     else if (new_entry() == "ausgaben_event"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
       if(is.na(new_row$`Event ID`)){
         # User interaction to save
         showModal(
@@ -3130,6 +3155,19 @@ server <- function(input, output, session) {
     } 
     ##### use case Ausgaben Kategorie Kiosk ####
     else if (new_entry() == "ausgaben_kiosk"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
       c_Lieferant <- new_row$Lieferant
       if(is.na(c_Lieferant)){
         # User interaction to save
@@ -3170,6 +3208,18 @@ server <- function(input, output, session) {
     } 
     ##### use case Ausgaben Kategorie Personalaufwand ####
     else if (new_entry() == "ausgaben_personalaufwand"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
       c_temp <- new_row$Personal
       if(is.na(c_temp)){
         # User interaction to save
@@ -3205,6 +3255,7 @@ server <- function(input, output, session) {
     } 
     ##### use case Einnahmen Kategorie Event ####
     else if (new_entry() == "einnahmen"){
+      
       if(is.na(new_row$`Event ID`)){
         # User interaction to save
         showModal(
@@ -3233,7 +3284,21 @@ server <- function(input, output, session) {
                   df_temp
         )|>
         convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-    } else if(new_entry() == "ausgaben_generic"){
+    } ##### use case generic Ausgaben ####
+    else if(new_entry() == "ausgaben_generic"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
       df_temp <- current_data()|>
         mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
                Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer(),
