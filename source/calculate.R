@@ -1111,7 +1111,7 @@ s_Kioskausgaben
 # write Excel
 list(
      Kioskausgaben = Kioskausgaben,
-     Semesterausgaben = s_Kioskausgaben
+     `Semesterausgaben Schüwo` = s_Kioskausgaben
 )|>
   openxlsx::write.xlsx(file=paste0("output/data/Kioskausgaben ",c_Abrechnungsjahr,".xlsx"), asTable = TRUE, overwrite = TRUE)
 
