@@ -516,17 +516,14 @@ df_temp <- left_join(
   )|>
   mutate(`Umsatz [CHF]` = `Kioskumsatz [CHF]` +  `Ticketumsatz [CHF]`)|>
   rename(`Gästezahl` = Anzahl)
-df_temp
-
-
 ```
 
 
 ```{r}
-df_temp|>
+df_temp <- df_temp|>
     group_by(Abrechnungsjahr, Semester)|>
-    reframe(`Durchschnittlicher Umsatz [CHF]` = sum(`Umsatz [CHF]`) / sum(Gästezahl),
-            `Durchschnittlicher Kioskumsatz [CHF]` = sum(`Kioskumsatz [CHF]`) / sum(Gästezahl)
+    reframe(`Durchschnittlicher Umsatz [CHF]` = round(sum(`Umsatz [CHF]`) / sum(Gästezahl),2),
+            `Durchschnittlicher Kioskumsatz [CHF]` = round(sum(`Kioskumsatz [CHF]`) / sum(Gästezahl),2)
             )
 ```
 
