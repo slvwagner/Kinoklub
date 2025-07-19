@@ -211,9 +211,8 @@ s_df_Ausgaben|>
 ```
 
 ## Cash flow
-
 ```{r}
-df_temp <-
+df_cash_flow <-
   bind_rows(
     df_Einnahmen |>
       select(Abrechnungsjahr, Semester, Kategorie,Datum, Bezeichnung,`Betrag [CHF]`) |>
@@ -235,8 +234,31 @@ df_temp <-
 ```
 
 ### Cash flow
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_cash_flow,
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    scrollX = TRUE,    # Enable horizontal scrolling
+    autoWidth = TRUE,  # auto-width enable to controll columnwidth
+    language = DT_language,
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      list(targets = 4, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 3, orderData = 4)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
+  colnames = c(Datum = "Datum_display")
+)
+```
+
+
 ```{r width=9.5}
-p <- df_temp|>
+p <- df_cash_flow|>
   ggplot(aes(Datum, Saldo))+
   geom_line(color = "magenta", linewidth = 1.1)+
   labs(title = "Cashflow")+
@@ -246,15 +268,13 @@ plotly::ggplotly(p)
 ```
 
 
-### Geldfluss
-```{r fig.width=9.5}
-p <- df_temp|>
-  ggplot(aes(Datum, `Betrag [CHF]`, fill = Kategorie))+
-  geom_col()+
-  labs(title = "Geldfluss")+
-  my_template
+## Gewinn / Verlust
+```{r}
+df_cash_flow |>
+  group_by(Abrechnungsjahr) |>
+  reframe(`Gewinn / Verlust [CHF]` = sum(`Betrag [CHF]`)) |>
+  knitr::kable()
 
-plotly::ggplotly(p)  
 ```
 
 
