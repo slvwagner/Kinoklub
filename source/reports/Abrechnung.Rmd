@@ -322,7 +322,7 @@ Eventeinnahmen|>
 ### Ausgaben
 
 Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ... werden mit den Kioskausgaben verrechnet.\ 
-
+Bitte unter Kiosk Eventausgaben nachsehen! \
 \
 
 ## Kiosk
