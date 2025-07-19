@@ -96,8 +96,8 @@ DT::datatable(
     lengthMenu = c_pageLengthMenu,
     language = DT_language,
     columnDefs = list(
-      list(targets = 5, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 6, orderData = 5)    # Use the 'Datum' column for sorting 'Datum_display'
+      list(targets = 6, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 5, orderData = 6)    # Use the 'Datum' column for sorting 'Datum_display'
     )
   ),
   colnames = c(Datum = "Datum_display")
