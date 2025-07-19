@@ -14,6 +14,10 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
 english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+# Datatable page length 
+c_pageLength = 5 # Initial page length
+c_pageLengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
+
 # Wiel lange dauer die Sommerpause
 sommerpause = 65 # Tage
 
@@ -91,25 +95,34 @@ df_temp <- l_abrechnung|>
 ```{r}
 df_temp <- df_temp|>
   arrange(desc(Datum)) |>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  mutate(`Event ID` = factor(`Event ID`),
+         Datum_display = format(Datum, "%d.%m.%Y"),
+         `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
+         )|>
   select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
-DT::datatable(df_temp|>
-                mutate(`Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`,2)), 
-          options = list(
-            language = DT_language,
-            columnDefs = list(
-              # list(targets = 3,visible = F),
-              list(targets = 2, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 3, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
+DT::datatable(
+  df_temp,
+  filter = "top",
+  options = list(
+    language = DT_language, 
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 2, visible = FALSE),    # Hide the 'Datum' column
+      list(targets = 3, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+      )
+    ),
+  colnames = c(Datum = "Datum_display")
 )
+
+
+
 ```
 
 
@@ -299,16 +312,20 @@ df_temp <- df_temp|>
 
 ```{r}
 # Create the datatable with a hidden Datum column and sort by it
-DT::datatable(df_temp, 
-          options = list(
-            language = DT_language,
-            columnDefs = list(
-              # list(targets = 3,visible = F),
-              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
+DT::datatable(
+  df_temp,
+  filter = "top",
+  options = list(
+    language = DT_language, 
+    pageLength = c_pageLength,
+    lengthMenu = c_pageLengthMenu,
+    columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+      )
+    ),
+  colnames = c(Datum = "Datum_display")
 )
 ```
 
@@ -448,18 +465,15 @@ df_temp <-
     rename(Eintritt = Zahlend)|>
     arrange(desc(Anzahl))
 
-df_temp|>
+df_temp |>
   DT::datatable(
     df_temp,
     options = list(
       language = DT_language,
-      columnDefs = list(
-        # list(targets = 3,visible = F),
-        list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-        list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-        )
-      ),
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu
     )
+  )
 
 ```
 
@@ -479,7 +493,11 @@ df_temp <-
 df_temp|>
   select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
   DT::datatable(
-    options = list(language = DT_language)
+    options = list(
+      language = DT_language,
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu
+      )
     )
 
 ```
@@ -676,6 +694,8 @@ df_temp|>
     rownames = FALSE,
     options = list(
       language = DT_language,
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
       columnDefs = list(
         # list(targets = 3,visible = F),
         list(targets = 1, visible = FALSE), # Hide the 'Datum' column
