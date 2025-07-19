@@ -418,15 +418,14 @@ if((nrow(Eventausgaben) == 0) & (Spezialpreise$`Summe [CHF]` > 0)) {
              \nBitte die Einkäufe mit der `Event ID` = ",ii," in der Tabelle `Ausgaben` nachtragen!
              ")|>
     writeLines()
+} else {
+  Eventausgaben|>
+  select(Bezeichnung, `Betrag [CHF]`)|>
+  knitr::kable(digits = 2)
 }
 
 ```
 
-```{r echo=FALSE}
-Eventausgaben|>
-  select(Bezeichnung, `Betrag [CHF]`)|>
-  knitr::kable(digits = 2)
-```
 
 ```{r}
 Eventausgaben <- Eventausgaben|>
