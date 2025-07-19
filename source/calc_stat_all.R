@@ -13,6 +13,7 @@ l_ausgaben <- list()
 l_eintritte <- list()
 l_kiosk <- list()
 
+
 ii <- 1
 for (ii in 1:length(c_years)) {
   data_env_all <- new.env()
@@ -85,6 +86,29 @@ s_df_Kiosk <- df_Kiosk|>
   arrange(desc(Datum))
 s_df_Kiosk
 
+# Kasse ####
+df_temp <- left_join(
+  data_env_all$Programm,
+  data_env_all$df_manko_uerberschuss,
+  by = join_by(`Event ID`)
+)|>
+  mutate(Abrechnungsjahr = as.integer(lubridate::year(Datum)),
+         Semester = as.integer(get_semester(Datum)))
+
+df_temp <- df_temp|>
+  select(Abrechnungsjahr, Semester, Datum,`Event ID`, Suisanummer, Filmtitel,`Überschuss / Manko [CHF]`)
+
+## Manko ####
+df_manko <- df_temp|>
+  filter(`Überschuss / Manko [CHF]`< 0)|>
+  mutate(`Überschuss / Manko [CHF]` = -`Überschuss / Manko [CHF]`)
+df_manko
+
+## Überschuss ####
+df_ueberschuss <- df_temp|>
+  filter(`Überschuss / Manko [CHF]`>= 0)
+df_ueberschuss
+
 # Einnahmen ####
 df_Einnahmen <- l_einnahmen|>
   bind_rows()
@@ -128,16 +152,6 @@ add_tickets <- df_temp|>
 add_tickets
 
 ## Add Kiosk to Einnahmen ####
-### Create an empty row ####
-template_row <- df_Einnahmen[1,]|> 
-  mutate(across(everything(), ~ NA),
-         across(everything(), as.character),
-         across(contains("ID"), as.integer),
-         across(contains("datum"), as.Date),
-         across(contains(c("[CHF]", "Abrechnungsjahr")), as.double)
-  )
-template_row
-
 ### Replicate the template row n times ####
 df_temp <- template_row[rep(1, nrow(s_df_Kiosk)), ]
 df_temp
@@ -156,8 +170,27 @@ add_kiosk <- df_temp|>
   )
 add_kiosk
 
+## Add Kasse Überschuss ####
+### Replicate the template row n times ####
+df_temp <- template_row[rep(1, nrow(df_ueberschuss)), ]
+df_temp
+
+### populate  ####
+add_ueberschnuss <- df_temp|>
+  mutate(ID = row_number() + nrow(df_ueberschuss),
+         Kategorie = "Kinoklubkasse Überschuss",
+         `Event ID` = df_ueberschuss$`Event ID`,
+         Bezeichnung = paste("Tickets: ", df_ueberschuss$Filmtitel),
+         Datum = df_ueberschuss$Datum,
+         Abrechnungsjahr = df_ueberschuss$Abrechnungsjahr,
+         `Betrag [CHF]` = df_ueberschuss$`Überschuss / Manko [CHF]`,
+         Firmennamen = "Theater am Bahnhof",
+         Adresse = "Tunaustrasse 5, 5734 Reinach"
+  )
+add_ueberschnuss
+
 ## combine Einnahmen ####
-df_Einnahmen <- bind_rows(df_Einnahmen, add_tickets, add_kiosk)|>
+df_Einnahmen <- bind_rows(df_Einnahmen, add_tickets, add_kiosk, add_ueberschnuss)|>
   arrange(desc(Datum))|>
   mutate(Kategorie = factor(Kategorie), 
          `Event ID` = factor(`Event ID`),
@@ -215,8 +248,28 @@ add_kiosk <- df_temp|>
   )
 add_kiosk
 
-## combine Ausgaben ####
-df_Ausgaben <- bind_rows(df_Ausgaben, add_kiosk)|>
+## Add Kassa Manko to Ausgaben ####
+
+### Replicate the template row n times ####
+df_temp <- template_row[rep(1, nrow(df_manko)), ]
+df_temp
+
+### populate  ####
+add_manko <- df_temp|>
+  mutate(ID = row_number() + nrow(df_manko),
+         Kategorie = "Kinoklubkasse Manko",
+         `Event ID` = df_manko$`Event ID`,
+         Bezeichnung = paste("Kiosk: ", df_manko$Filmtitel),
+         Datum = df_manko$Datum,
+         Abrechnungsjahr = df_manko$Abrechnungsjahr,
+         `Betrag [CHF]` = df_manko$`Überschuss / Manko [CHF]`, # Einkaufspreis 
+         Firmennamen = "Theater am Bahnhof",
+         Adresse = "Tunaustrasse 5, 5734 Reinach"
+  )
+add_manko
+
+### combine Ausgaben ####
+df_Ausgaben <- bind_rows(df_Ausgaben, add_kiosk, add_manko)|>
   arrange(desc(Datum))
 
 r_get_colnames(df_Ausgaben)
@@ -406,12 +459,10 @@ df_Abrechnung <- df_Abrechnung|>
 df_Abrechnung
 
 remove(df_s_Abrechnung, df_temp, df_Eintritte, s_df_Eintritte, c_years,
-       data_env_all,
        ii)
 
 # r_get_colnames(df_Abrechnung)
 
-# Abrechnung ####
 df_Abrechnung <- df_Abrechnung|>
   select(
     "Abrechnungsjahr","Event ID","Link to Event ID","Suisanummer","Filmtitel","Datum","Zeit",
