@@ -634,20 +634,38 @@ df_temp|>
   knitr::kable()
 ```
 
-#### Durchschnitt / Median
+### Events
 ```{r}
-n <- df_temp|>
+n <- df_tickets|>
+  distinct(`Event ID`)|>
   reframe(`Anzahl Vorführungen` = n())
 
 n|>
     knitr::kable()
 ```
 
-
+### Durchschnitt / Median
+#### Abrechnungsjaht / Semester
 ```{r}
 mean_median <- df_temp|>
-  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
-          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
+  group_by(Abrechnungsjahr, Semester)|>
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = 
+            mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = 
+            median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
+          )
+
+mean_median|>
+  knitr::kable()
+```
+
+#### Druchschnitt
+```{r}
+mean_median <- df_temp|>
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = 
+            mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = 
+            median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
           )
 
 mean_median|>
@@ -672,7 +690,7 @@ shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 if(n > shows_per_year) shows_per_year <- n
 ```
 
-#### Wochentaganalyse
+### Wochentaganalyse
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
@@ -730,66 +748,4 @@ df_temp|>
        )+
   my_template
 ```
-
-### Abrechnungsjahr / Semester
-
-```{r message=FALSE, warning=FALSE}
-df_temp <- df_Abrechnung|>
-  mutate(Semester = factor(get_semester(Datum)))|>
-  arrange(desc(Datum)) |>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(
-    Abrechnungsjahr,Semester,
-    `Event ID`, Suisanummer, Filmtitel, Datum_display, Datum, Zeit,
-    `Besucherzahl total`, `Besucherzahl zahlend`, `Besucherzahl gratis`,
-    `Ticketumsatz [CHF]`, `Ticketgewinn [CHF]`,
-    `Eventeinnahmen [CHF]`, `Eventausgaben [CHF]`,
-    `Kioskumsatz [CHF]`, `Kioskgewinn [CHF]`,
-    `Kioskumsatz-Spezialpreise [CHF]`, `Kioskgewinn-Spezialpreise [CHF]`,
-    `Gewinn aus Fimvorführung [CHF]`
-    )
-```
-
-```{r}
-s_abrechnung <- df_temp|>
-  group_by(Abrechnungsjahr, Semester)|>
-  reframe(Events = n(),
-          `Ticketumsatz [CHF]` = sum(`Ticketumsatz [CHF]`, na.rm = TRUE)|>
-           round(2),
-          `Besucherzahl total` = sum(`Besucherzahl total`, na.rm = TRUE)|>
-           round(2),
-          `Besucherzahl zahlend` = sum(`Besucherzahl zahlend`, na.rm = TRUE),
-          `Besucherzahl gratis` = sum(`Besucherzahl gratis`, na.rm = TRUE)|>
-           round(2),
-          `Ticketgewinn [CHF]` = sum(`Ticketgewinn [CHF]`, na.rm = TRUE)|>
-           round(2),
-          `Kioskumsatz [CHF]` = sum(`Kioskumsatz [CHF]`, na.rm = TRUE)|>
-           round(2),
-         `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`, na.rm = TRUE)|>
-           round(2),
-         `Kioskgewinn-Spezialpreise [CHF]` = sum(`Kioskgewinn-Spezialpreise [CHF]`, na.rm = TRUE)|>
-           round(2),
-         `Median Gewinn / Verlust pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`)|>
-           round(2),
-         `Durchschnittlicher Gewinn / Verlust pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = TRUE)|>
-           round(2)
-         )
-
-```
-
-#### Duchschnittlicher Gewinn/Verlust pro Filmvorführung
-
-```{r message=FALSE, warning=FALSE}
-# Create the datatable with a hidden Datum column and sort by it
-DT::datatable(
-  s_abrechnung,
-  rownames = FALSE,
-  options = list(
-    scrollX = TRUE,  # Enable horizontal scrolling
-    autoWidth = TRUE,  # auto-width enable to controll columnwidth
-    language = DT_language
-    )
-)
-```
-
 
