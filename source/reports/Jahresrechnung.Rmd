@@ -9,6 +9,45 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".", lubridate::year(act_date))
+
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
+# Data table in german ####
+DT_language <- list(
+  lengthMenu = "Zeige _MENU_ Zeilen pro Seite", # Text für das Dropdown-Menü
+  search = "Suchen:", # Text für das Suchfeld
+  searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+  zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+  info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+  infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+  infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+  paginate = list(
+    first = "Erste Seite", # Text für die erste Seite
+    last = "Letzte Seite", # Text für die letzte Seite
+    `next` = "Nächste Seite", # Text für die nächste Seite
+    previous = "Vorherige Seite" # Text für die vorherige Seite
+  )
+)
 ```
 
 Bericht wurde am `r act_date` erstellt.
@@ -309,12 +348,7 @@ Event|>
 ### Einahmen
 
 ```{r}
-df_temp <- left_join(
-  df_Kiosk,
-  Programm|>
-    select(`Event ID`, Datum),
-  by = join_by(`Event ID`)
-  )|>
+df_temp <- df_Kiosk|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr )
 ```
 
@@ -344,12 +378,7 @@ KioskEinnahmen|>
 #### Einkauf Getränke
 Die Getränke werden gemeinsam mit der Theaterbar eingekauft und der Lieferant ist Schüwo. 
 ```{r}
-df_temp <- left_join(
-  df_Kiosk,
-  Programm|>
-    select(`Event ID`, Datum),
-  by = join_by(`Event ID`)
-  )|>
+df_temp <- df_Kiosk|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr )
 ```
 
@@ -794,6 +823,30 @@ Personalaufwand|>
 
 ```
 
+## Miete und Nebenkosten
+```{r}
+Miete <- Ausgaben|>
+  filter(Kategorie == "Miete und Nebenkosten")|>
+  select(-`Event ID`, -Referenz, -Adresse, -Rechnungsnummer, -Buchungskonto)|>
+  mutate(Datum = format(Datum, "%d.%m.%Y"))
+```
+
+```{r}
+Miete|>
+  knitr::kable()
+```
+
+```{r}
+Miete <- Miete|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))
+```
+
+```{r}
+Miete|>
+  knitr::kable()
+```
+
+
 ## Sonstiges
 
 ### Einnahmen
@@ -881,16 +934,27 @@ if(nrow(df_keine_Rechnung)>0) {
 
 ```{r}
 GewinnVerlust <- tibble(
-  Kategorie = c("Filmvorführungen", "Event","Kiosk","Kurzfristiges zinsloses Fremdkapital","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  Kategorie = c(
+    "Filmvorführungen",
+    "Event",
+    "Kiosk",
+    "Kurzfristiges zinsloses Fremdkapital",
+    "Werbung",
+    "Vermietung",
+    "Personalaufwand",
+    "Miete und Nebenkosten",
+    "Sonstiges"
+  ),
   `Betrag [CHF]` = c(
-    Filmvorführungen |>pull(),
-    Event|>pull(),
-    Kiosk|>pull(),
-    -`Kurzfristiges zinsloses Fremdkapital`|>pull(),
-    Werbung|>pull(),
-    Vermietung|>pull(),
-    - Personalaufwand|>pull(),
-    Sonstiges|>pull()
+    Filmvorführungen |> pull(),
+    Event |> pull(),
+    Kiosk |> pull(),
+    -`Kurzfristiges zinsloses Fremdkapital` |> pull(),
+    Werbung |> pull(),
+    Vermietung |> pull(),
+    -Personalaufwand |> pull(),
+    -Miete|>pull(),
+    Sonstiges |> pull()
   )
 ) 
 
