@@ -14,6 +14,48 @@ act_date <- paste0(lubridate::day(act_date),".", lubridate::month(act_date),".",
 german_weekdays <- c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag","Sonntag")
 english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+# Wiel lange dauer die Sommerpause
+sommerpause = 65 # Tage
+
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
+# Data table in german ####
+DT_language <- list(
+  lengthMenu = "Zeige _MENU_ Zeilen pro Seite", # Text für das Dropdown-Menü
+  search = "Suchen:", # Text für das Suchfeld
+  searchPlaceholder = "Suchbegriff eingeben...", # Platzhaltertext für das Suchfeld
+  zeroRecords = "Keine passenden Einträge gefunden", # Text, wenn keine Einträge gefunden wurden
+  info = "Zeige _START_ bis _END_ von _TOTAL_ Einträgen", # Info-Text
+  infoEmpty = "Zeige 0 bis 0 von 0 Einträgen", # Info-Text, wenn keine Einträge vorhanden sind
+  infoFiltered = "(gefiltert aus _MAX_ Einträgen)", # Info-Text bei Filterung
+  paginate = list(
+    first = "Erste Seite", # Text für die erste Seite
+    last = "Letzte Seite", # Text für die letzte Seite
+    `next` = "Nächste Seite", # Text für die nächste Seite
+    previous = "Vorherige Seite" # Text für die vorherige Seite
+  )
+)
+
 # Function to convert English weekday names to German, if necessary
 convert_to_german_weekdays <- function(date) {
   weekday_name <- weekdays(date, abbreviate = FALSE)
@@ -827,12 +869,7 @@ df_temp|>
 ### Verkaufsartikel 
 
 ```{r }
-df_temp <- left_join(
-  df_Kiosk,
-  Programm|>
-    select(`Event ID`, Datum),
-  by = join_by(`Event ID`)
-  )|>
+df_temp <- df_Kiosk|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr )
 ```
 
@@ -934,7 +971,7 @@ df_temp|>
 df_temp <- left_join(
   df_Kiosk,
   Programm|>
-    select(`Event ID`, Datum, Zeit),
+    select(`Event ID`,Zeit),
   by = join_by(`Event ID`)
   )|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr )
