@@ -278,7 +278,7 @@ df_cash_flow |>
 ```
 
 
-## Tickets
+## Tickets 
 
 ### Übersicht
 ```{r}
@@ -393,6 +393,46 @@ s_df_tickets|>
   knitr::kable()
 ```
 
+## Besucherzahlen
+
+### Platzkategorien per Abrechnungsjahr / Semester
+```{r}
+df_temp <- df_tickets|>
+  mutate(Anzahl = as.integer(Anzahl),
+         Platzkategorie = factor(Platzkategorie))|>
+  group_by(Abrechnungsjahr, Semester, Platzkategorie)|>
+  reframe(
+    Besucherzahl = sum(Anzahl)
+    )
+  
+```
+
+```{r message=FALSE, warning=FALSE}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(
+  df_temp,
+  filter = "top",
+  rownames = FALSE,
+    options = list(
+      # scrollX = TRUE,  # Enable horizontal scrolling
+      # autoWidth = TRUE,  # auto-width enable to controll columnwidth
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
+      language = DT_language
+      )
+)
+```
+
+```{r fig.width=9.5}
+df_temp|>
+  ggplot(aes(Platzkategorie, Besucherzahl, fill = Semester))+
+  geom_col()+
+  facet_grid(. ~ Abrechnungsjahr )+
+  coord_flip()+
+  my_template
+  
+
+```
 
 
 ## Kiosk
