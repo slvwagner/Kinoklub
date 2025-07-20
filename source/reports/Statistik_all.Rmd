@@ -833,7 +833,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -856,7 +856,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -879,7 +879,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -902,7 +902,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -925,7 +925,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -948,7 +948,7 @@ df_temp <- df_Einnahmen|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -974,7 +974,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -997,7 +997,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1020,7 +1020,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1044,7 +1044,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1067,7 +1067,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1090,7 +1090,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1113,7 +1113,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
@@ -1140,7 +1140,7 @@ df_temp <- df_Ausgaben|>
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
-  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+  reframe(mean = sum(`Betrag [CHF]`, na.rm = T) / 12)
 
 df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
