@@ -940,7 +940,7 @@ df_Einnahmen|>
   my_template
 ```
 
-### Sonstiges
+#### Sonstiges
 ```{r}
 df_Einnahmen|>
   filter(Kategorie == "Sonstiges")|>
