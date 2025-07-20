@@ -18,6 +18,9 @@ english_weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "S
 c_pageLength = 5 # Initial page length
 c_pageLengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
+# sacle
+c_scale <- seq(as.Date("2023-01-01"),as.Date(Sys.Date()), by = "month")
+
 # Data table in german ####
 DT_language <- list(
   lengthMenu = "Zeige _MENU_ Zeile(n) pro Seite", # Text für das Dropdown-Menü
@@ -821,35 +824,228 @@ df_temp|>
 
 ## Zeitverlauf
 
-### Kosten
-#### Personal
+### Einnahmen
+
+#### Tickets
 ```{r}
-df_Ausgaben|>
-  filter(Kategorie == "Personalaufwand")|>
+df_temp <- df_Einnahmen|>
+  filter(Kategorie %in% c("Ticketumsatz"))
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
   group_by(Abrechnungsjahr, Monat)|>
   reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
   ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
   geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Einnahmen Ticketumsatz")+
+  my_template
+```
+
+#### Kiosk
+```{r}
+df_temp <- df_Einnahmen|>
+  filter(Kategorie %in% c("Kiosk", "Kioskumsatz","Kinoklubkasse Überschuss"))
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+    labs(title = "Einnahmen Kiosk")+
+  my_template
+```
+
+#### Event
+```{r}
+df_temp <- df_Einnahmen|>
+  filter(Kategorie %in% c("Event"))
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Einnahmen Event")+
+  my_template
+```
+
+#### Werbung
+```{r}
+df_temp <- df_Einnahmen|>
+  filter(Kategorie == "Werbung")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+    labs(title = "Einnahmen Werbung")+
+  my_template
+```
+
+#### Vermietung
+```{r}
+df_temp <- df_Einnahmen|>
+  filter(Kategorie == "Vermietung")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Einnahmen Vermietung")+
+  my_template
+```
+
+#### Sonstiges
+```{r}
+df_temp <- df_Einnahmen|>
+  filter(Kategorie == "Sonstiges")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Einnahmen Sonstiges")+
+  my_template
+```
+
+
+### Ausgaben
+
+#### Kiosk
+```{r}
+df_temp <- df_Ausgaben|>
+  filter(Kategorie %in% c("Getränkeeinkauf","Kinoklubkasse Manko"))
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Kiosk")+
+  my_template
+```
+
+#### Verleiher
+```{r}
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Verleiher")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Verleiher")+
+  my_template
+```
+
+#### Personal
+```{r}
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Personalaufwand")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Personal")+
   my_template
 ```
 
 #### Miete und Nebenkosten
 ```{r}
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Miete und Nebenkosten")
 
-c_scale <- seq(as.Date("2023-01-01"),as.Date(Sys.Date()), by = "month")
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
 
-df_Ausgaben|>
-  filter(Kategorie == "Miete und Nebenkosten")|>
+df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
   group_by(Abrechnungsjahr, Monat)|>
   reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
   ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
   geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Miete und Nebenkosten")+
   my_template
 
 
@@ -857,101 +1053,68 @@ df_Ausgaben|>
 
 #### Werbung
 ```{r}
-df_Einnahmen|>
-  filter(Kategorie == "Werbung")|>
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Werbung")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
   group_by(Abrechnungsjahr, Monat)|>
   reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
   ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
   geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Werbung")+
   my_template
 ```
 
 #### Vermietung
 ```{r}
-df_Ausgaben|>
-  filter(Kategorie == "Vermietung")|>
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Vermietung")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
   group_by(Abrechnungsjahr, Monat)|>
   reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
   ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
   geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Vermietung")+
   my_template
 ```
 
 #### Sonstiges
 ```{r}
-df_Ausgaben|>
-  filter(Kategorie == "Sonstiges")|>
+df_temp <- df_Ausgaben|>
+  filter(Kategorie == "Sonstiges")
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
   mutate(Monat = lubridate::month(Datum))|>
   group_by(Abrechnungsjahr, Monat)|>
   reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
   ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
   geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Sonstiges")+
   my_template
 ```
 
-### Einnahmen
-
-#### Kiosk
-```{r}
-df_Einnahmen|>
-  filter(Kategorie == "Kiosk")|>
-  mutate(Monat = lubridate::month(Datum))|>
-  group_by(Abrechnungsjahr, Monat)|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
-  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
-  geom_col()+
-  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
-  facet_grid(.~Abrechnungsjahr)+
-  my_template
-```
-
-#### Werbung
-```{r}
-df_Einnahmen|>
-  filter(Kategorie == "Werbung")|>
-  mutate(Monat = lubridate::month(Datum))|>
-  group_by(Abrechnungsjahr, Monat)|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
-  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
-  geom_col()+
-  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
-  facet_grid(.~Abrechnungsjahr)+
-  my_template
-```
-
-#### Vermietung
-```{r}
-df_Einnahmen|>
-  filter(Kategorie == "Vermietung")|>
-  mutate(Monat = lubridate::month(Datum))|>
-  group_by(Abrechnungsjahr, Monat)|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
-  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
-  geom_col()+
-  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
-  facet_grid(.~Abrechnungsjahr)+
-  my_template
-```
-
-#### Sonstiges
-```{r}
-df_Einnahmen|>
-  filter(Kategorie == "Sonstiges")|>
-  mutate(Monat = lubridate::month(Datum))|>
-  group_by(Abrechnungsjahr, Monat)|>
-  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
-  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
-  geom_col()+
-  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
-  facet_grid(.~Abrechnungsjahr)+
-  my_template
-```
 

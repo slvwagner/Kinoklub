@@ -237,7 +237,7 @@ df_temp
 ### populate  ####
 add_kiosk <- df_temp|>
   mutate(ID = row_number() + nrow(s_df_Kiosk),
-         Kategorie = "Kioskumsatz",
+         Kategorie = "Getränkeeinkauf",
          `Event ID` = s_df_Kiosk$`Event ID`,
          Bezeichnung = paste("Kiosk: ", s_df_Kiosk$Filmtitel),
          Datum = s_df_Kiosk$Datum,
