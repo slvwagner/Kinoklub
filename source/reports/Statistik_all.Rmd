@@ -818,10 +818,10 @@ df_temp|>
 ```
 
 
+## Zeitverlauf
 
-
-## Kosten
-### Personal
+### Kosten
+#### Personal
 ```{r}
 df_Ausgaben|>
   filter(Kategorie == "Personalaufwand")|>
@@ -835,7 +835,7 @@ df_Ausgaben|>
   my_template
 ```
 
-### Miete und Nebenkosten
+#### Miete und Nebenkosten
 ```{r}
 
 c_scale <- seq(as.Date("2023-01-01"),as.Date(Sys.Date()), by = "month")
@@ -854,7 +854,7 @@ df_Ausgaben|>
 
 ```
 
-### Werbung
+#### Werbung
 ```{r}
 df_Einnahmen|>
   filter(Kategorie == "Werbung")|>
@@ -868,7 +868,7 @@ df_Einnahmen|>
   my_template
 ```
 
-### Vermietung
+#### Vermietung
 ```{r}
 df_Ausgaben|>
   filter(Kategorie == "Vermietung")|>
@@ -882,7 +882,7 @@ df_Ausgaben|>
   my_template
 ```
 
-### Sonstiges
+#### Sonstiges
 ```{r}
 df_Ausgaben|>
   filter(Kategorie == "Sonstiges")|>
@@ -896,9 +896,9 @@ df_Ausgaben|>
   my_template
 ```
 
-## Einnahmen
+### Einnahmen
 
-### Kiosk
+#### Kiosk
 ```{r}
 df_Einnahmen|>
   filter(Kategorie == "Kiosk")|>
@@ -912,7 +912,7 @@ df_Einnahmen|>
   my_template
 ```
 
-### Werbung
+#### Werbung
 ```{r}
 df_Einnahmen|>
   filter(Kategorie == "Werbung")|>
@@ -926,7 +926,7 @@ df_Einnahmen|>
   my_template
 ```
 
-### Vermietung
+#### Vermietung
 ```{r}
 df_Einnahmen|>
   filter(Kategorie == "Vermietung")|>
