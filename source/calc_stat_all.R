@@ -219,7 +219,7 @@ df_Ausgaben
 df_Ausgaben|>filter(is.na(`Betrag [CHF]`))
 
 
-## Add Kiosk to Einnahmen ####
+## Add Kiosk to Ausgaben ####
 ### Create an empty row ####
 template_row <- df_Ausgaben[1,]|> 
   mutate(across(everything(), ~ NA),

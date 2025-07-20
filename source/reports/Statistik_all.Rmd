@@ -964,7 +964,7 @@ df_temp|>
 #### Kiosk
 ```{r}
 df_temp <- df_Ausgaben|>
-  filter(Kategorie %in% c("Getränkeeinkauf","Kinoklubkasse Manko"))
+  filter(Kategorie %in% c("Getränkeeinkauf","Kinoklubkasse Manko","Kiosk"))
 
 s_df_temp <- df_temp|>
   group_by(Abrechnungsjahr)|>
@@ -980,6 +980,28 @@ df_temp|>
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
   labs(title = "Ausgaben Kiosk")+
+  my_template
+```
+
+#### Event
+```{r}
+df_temp <- df_Ausgaben|>
+  filter(Kategorie %in% c("Event"))
+
+s_df_temp <- df_temp|>
+  group_by(Abrechnungsjahr)|>
+  reframe(mean = mean(`Betrag [CHF]`, na.rm = T))
+
+df_temp|>
+  mutate(Monat = lubridate::month(Datum))|>
+  group_by(Abrechnungsjahr, Monat)|>
+  reframe(`Betrag [CHF]` = sum(`Betrag [CHF]`,na.rm = TRUE))|>
+  ggplot(aes(Monat, `Betrag [CHF]`, fill = Abrechnungsjahr))+
+  geom_col()+
+  geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
+  scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
+  facet_grid(.~Abrechnungsjahr)+
+  labs(title = "Ausgaben Event")+
   my_template
 ```
 
