@@ -827,7 +827,7 @@ df_temp|>
 ### Einnahmen
 
 #### Tickets
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie %in% c("Ticketumsatz"))
 
@@ -844,12 +844,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Einnahmen Ticketumsatz")+
+  labs(title = "Einnahmen Ticketumsatz",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Kiosk
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie %in% c("Kiosk", "Kioskumsatz","Kinoklubkasse Überschuss"))
 
@@ -866,12 +867,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-    labs(title = "Einnahmen Kiosk")+
+    labs(title = "Einnahmen Kiosk",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Event
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie %in% c("Event"))
 
@@ -888,12 +890,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Einnahmen Event")+
+  labs(title = "Einnahmen Event",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Werbung
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie == "Werbung")
 
@@ -910,12 +913,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-    labs(title = "Einnahmen Werbung")+
+    labs(title = "Einnahmen Werbung",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Vermietung
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie == "Vermietung")
 
@@ -932,12 +936,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Einnahmen Vermietung")+
+  labs(title = "Einnahmen Vermietung",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Sonstiges
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Einnahmen|>
   filter(Kategorie == "Sonstiges")
 
@@ -954,7 +959,8 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Einnahmen Sonstiges")+
+  labs(title = "Einnahmen Sonstiges",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
@@ -962,7 +968,7 @@ df_temp|>
 ### Ausgaben
 
 #### Kiosk
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie %in% c("Getränkeeinkauf","Kinoklubkasse Manko","Kiosk"))
 
@@ -979,12 +985,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Kiosk")+
+  labs(title = "Ausgaben Kiosk",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Event
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie %in% c("Event"))
 
@@ -1001,12 +1008,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Event")+
+  labs(title = "Ausgaben Event",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Werbung
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Werbung")
 
@@ -1023,13 +1031,14 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Werbung")+
+  labs(title = "Ausgaben Werbung",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 
 #### Vermietung
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Vermietung")
 
@@ -1046,12 +1055,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Vermietung")+
+  labs(title = "Ausgaben Vermietung",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Verleiher
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Verleiher")
 
@@ -1068,12 +1078,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Verleiher")+
+  labs(title = "Ausgaben Verleiher",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Personal
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Personalaufwand")
 
@@ -1090,12 +1101,13 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Personal")+
+  labs(title = "Ausgaben Personal",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
 #### Miete und Nebenkosten
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Miete und Nebenkosten")
 
@@ -1112,7 +1124,8 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Miete und Nebenkosten")+
+  labs(title = "Ausgaben Miete und Nebenkosten",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 
 
@@ -1121,7 +1134,7 @@ df_temp|>
 
 
 #### Sonstiges
-```{r}
+```{r fig.width=11.5}
 df_temp <- df_Ausgaben|>
   filter(Kategorie == "Sonstiges")
 
@@ -1138,7 +1151,8 @@ df_temp|>
   geom_hline(data = s_df_temp,aes(yintercept = mean), color = "magenta", linewidth =1.1)+
   scale_x_continuous(breaks = 1:12, minor_breaks = 1:12)+
   facet_grid(.~Abrechnungsjahr)+
-  labs(title = "Ausgaben Sonstiges")+
+  labs(title = "Ausgaben Sonstiges",
+       subtitle = "Montatsdurchschnitt `horizonale linie`")+
   my_template
 ```
 
