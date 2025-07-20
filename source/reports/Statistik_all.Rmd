@@ -70,8 +70,9 @@ convert_to_german_weekdays <- function(date) {
 
 Bericht wurde am `r act_date` erstellt.
 
-## Einnahmen
-### Übersicht
+## Buchhaltung
+### Einnahmen
+#### Übersicht
 
 ```{r}
 df_Einnahmen <- df_Einnahmen|>
@@ -104,7 +105,7 @@ DT::datatable(
 )
 ```
 
-### Abrechnungsjahr / Semester
+#### Abrechnungsjahr / Semester
 ```{r}
 s_df_Einnahmen <- df_Einnahmen|>
   group_by(Abrechnungsjahr, Semester, Kategorie)|>
@@ -127,7 +128,7 @@ s_df_Einnahmen|>
     )
 ```
 
-### Durchschnitt 
+#### Durchschnitt 
 ```{r}
 s_df_Einnahmen|>
   group_by(Kategorie)|>
@@ -136,9 +137,9 @@ s_df_Einnahmen|>
 ```
 
 
-## Ausgaben
+### Ausgaben
 Den Au
-### Übersicht
+#### Übersicht
 ```{r}
 df_Ausgaben <- df_Ausgaben|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))
@@ -178,7 +179,7 @@ DT::datatable(
 ```
 
 
-### Abrechnungsjahr / Semester
+#### Abrechnungsjahr / Semester
 ```{r}
 s_df_Ausgaben <- df_Ausgaben|>
   group_by(Abrechnungsjahr, Semester, Kategorie)|>
@@ -202,7 +203,7 @@ s_df_Ausgaben|>
     )
 ```
 
-### Durchschnitt 
+#### Durchschnitt 
 ```{r}
 s_df_Ausgaben|>
   group_by(Kategorie)|>
@@ -210,7 +211,7 @@ s_df_Ausgaben|>
   knitr::kable()
 ```
 
-## Cash flow
+### Cash flow
 ```{r}
 df_cash_flow <-
   bind_rows(
@@ -233,7 +234,6 @@ df_cash_flow <-
 
 ```
 
-### Cash flow
 
 ```{r message=FALSE, warning=FALSE}
 # Create the datatable with a hidden Datum column and sort by it
@@ -268,7 +268,7 @@ plotly::ggplotly(p)
 ```
 
 
-## Gewinn / Verlust
+### Gewinn / Verlust
 ```{r}
 df_cash_flow |>
   group_by(Abrechnungsjahr) |>
@@ -278,7 +278,8 @@ df_cash_flow |>
 ```
 
 
-## Tickets 
+
+### Tickets 
 
 ### Einnahmen
 #### Übersicht
