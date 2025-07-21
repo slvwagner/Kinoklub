@@ -4872,7 +4872,6 @@ server <- function(input, output, session) {
     shiny::tagList(
       if(c_connected_to_db()) {
         div(
-          shiny::uiOutput("db_status"),
           style = "width: 100%; overflow-x: auto;",
           DTOutput("table", width = "100%"),
           # Make panel draggable
@@ -4917,10 +4916,17 @@ server <- function(input, output, session) {
       },
       if(c_connected_to_db()){
         shiny::uiOutput("help_info")
+      },
+      shiny::tags$a(
+        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Hilfe",
+        target = "_blank",
+        style = "font-size: 18px;"
+      ),
+      if(c_connected_to_db()){
+        shiny::uiOutput("db_status")
       }
     )
   })
-  
 }
 
 # shinyApp(ui = ui, server = server)
