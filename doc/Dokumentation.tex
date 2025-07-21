@@ -1,0 +1,1268 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Dokumentation Kinoklub},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Dokumentation Kinoklub}
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+\maketitle
+
+Author: Florian Wagner\\
+Script Version:\\
+V3.00
+
+Dokumentation wurde am 21.7.2025 erstellt.
+
+\section{Kinoklub}\label{kinoklub}
+
+Shiny app zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den
+Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser
+Script erstellt.\\
+\strut \\
+Bei Fehlern kann ein ``Issue'' in Github erfasst werden.\\
+\url{https://github.com/slvwagner/Kinoklub/issues}\strut \\
+
+\section{Installation}\label{installation}
+
+\subsection{Anleitung}\label{anleitung}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Download und instalieren von R\\
+  \url{https://cran.r-project.org/bin/windows/base/}
+\item
+  Download und instalieren Rstudio\\
+  \url{https://posit.co/download/rstudio-desktop/}
+\item
+  Download und instalieren Git\\
+  \url{https://git-scm.com/downloads}
+\item
+  Projekt herunterladen:\\
+  Erstelle ein Ordner wo die Dateien abgespeicher werden sollen.\\
+  Ein Terminal öffnen (in Windows: rechte Maustaste und dann Terminal
+  öffnen) und dann folgenden code ausführen.
+
+\begin{verbatim}
+    git clone https://github.com/slvwagner/Kinoklub
+\end{verbatim}
+\item
+  Start Rstudio vom Kinoklub Ordner und dann das Projekt
+  ``Kinoklub.Rproj'' öffnen.
+\item
+  Installieren der benötigten ``Packages'' im ``R Terminal''
+
+\begin{verbatim}
+## install.packages("rsconnect","rmarkdown","tidyverse","knitr","lubridate","renv","base","colorspace","dplyr","DT","openxlsx","readr","shiny","shinyjs","shinyTime","stringr","tibble","viridis","furrr","future","parallel","processx","tools","utils","DBI","rebus","curl","httr","purrr","rvest","RPostgres","ggplot2","plotly","hms","RMySQL")
+\end{verbatim}
+\item
+  Benutzer and Passwörter auf dem lokalen Computer Einrichten:\\
+
+  \begin{itemize}
+  \item
+    Windows\\
+    Terminal Kommandos nacheinander mit den korrekten Daten ausführen:
+
+\begin{verbatim}
+setx DB_host "your host name here"
+\end{verbatim}
+
+\begin{verbatim}
+setx DB_name "your database name here"
+\end{verbatim}
+
+\begin{verbatim}
+setx DB_user "your database user name here"
+\end{verbatim}
+
+\begin{verbatim}
+setx DB_PASSWORD_KINOKLUB "your database password here"
+\end{verbatim}
+
+\begin{verbatim}
+setx ftp_user "your ftp user here"
+\end{verbatim}
+
+\begin{verbatim}
+setx ftp_pw "your ftp password here"
+\end{verbatim}
+  \item
+    MAC / Linux\\
+    Erstellen ein neue Datei \textbf{``.Renviron''} im Kinoklub
+    Benutzerverzeichniss.\\
+    Die Datei wie folgt abfüllen:\\
+
+\begin{verbatim}
+DB_host=""\
+DB_name=""\
+DB_user=""\
+DB_PASSWORD_KINOKLUB=""\
+ftp_user=""\
+ftp_pw=""\
+\end{verbatim}
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Git Passwort / Personal Access Token
+(PAT)}\label{git-passwort-personal-access-token-pat}
+
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden,
+muss man auf der GitHub Webseite unter dem eigenen Profil in den
+Einstellungen auf \textbf{Developer Settings} navigieren. Dann unter
+\textbf{Personal access tokens} \textbf{Tokens (classic)} anwählen. Oben
+rechts auf \textbf{Generate new token} klicken und \textbf{classic}
+auswählen. Dem Token einen Namen geben und \textbf{Expiration} auf
+\textbf{No Expiration} setzen. Danach alle \textbf{repo} anwählen. Nach
+unten scrollen und Token generieren. Token kopieren und Anleitung unten
+im Bild folgen.\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/PAT.png}}
+
+\section{Applikation ausführen}\label{applikation-ausfuxfchren}
+
+Die Applikation wird mit dem standard Browser des Systems geöffnet.\\
+Die Adresse ist: \url{http://127.0.0.1:5003/}
+
+\begin{verbatim}
+    source("GUI.R")
+\end{verbatim}
+
+\section{Dateien}\label{dateien}
+
+\subsection{Upload von neuen Dateien}\label{upload-von-neuen-dateien}
+
+Neue Dateien können mittels ``Drag \& Drop'' oder Auswahl einer Datei
+hochgeladen werden.\\
+Dateien werden automatisch im korrekten Verzeichniss anhand des
+Dateinamens und der Dateierweiterung abgespeichert.
+
+\begin{itemize}
+\tightlist
+\item
+  ``Eintritt ID???.txt'' Dateien werden im Verzeichniss
+  ``\ldots/Kinoklub/Input/advance tickets/'' gespeichert.
+\item
+  ``Kiosk ID???.txt'' Dateien werden im Verzeichniss
+  ``\ldots/Kinoklub/Input/advance tickets/'' gespeichert.
+\item
+  ``procinema.txt'' Dateien werden im Verzeichniss
+  ``\ldots/Kinoklub/Input/Procinema/'' gespeichert.
+\item
+  ``csv'' Dateien werden im Verzeichniss
+  ``\ldots/Kinoklub/Input/Wordpress'' gespeichert.
+\end{itemize}
+
+\subsection{Input Advance-Tickets}\label{input-advance-tickets}
+
+Die Datensätze können von \url{https://www.advance-ticket.ch/admin}
+heruntergeladen werden und und können mittels drag\&drop abgespeichert
+werden. Die Dateien sind unter dem Verzeichnis
+\textbf{\ldots/Kinoklub/input/advance tickets/} zu finden.
+
+\subsubsection{Eintritte}\label{eintritte}
+
+\textbf{Eintritte ID??.txt}\\
+Copy paste von html für jede Vorführung, die \textbf{``Event ID''} ist
+dem Programm zu entnehmen: Bitte speichern unter ``input/advance
+tickets/Eintritt ID???.txt'' oder über GUI hochladen. Es muss die
+Kalenderwoche sowie der Film ausgewählt werden.\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/eintritt.png}}\\
+Alles mit ``ctrl a'' markieren und kopieren ``crtl c'' und entsprechend
+abspeichern(``input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt'')
+oder über GUI hochladen.
+
+\subsubsection{Kiosk}\label{kiosk}
+
+\textbf{Kiosk ID??.txt}\\
+Copy paste von html für jede Vorführung, die \textbf{``Event ID''} ist
+dem Programm zu entnehmen: Bitte speichern unter ``input/advance
+tickets/Kiosk ID???.txt''. oder über GUI hochladen.\\
+Im Menu auf ``DecompteCaisse''
+\url{https://www.advance-ticket.ch/decomptecaisse?lang=de} navigieren.\\
+Spalte 1: Das Datum muss gewählt werden, Spalte 2 ``reinach'', Splate 3
+``Atelierkino Kasse'' und Spalte 4 ``\ldots{}'' eingestellt werden.\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/Kiosk.png}}\\
+Alles mit ``ctrl a'' markieren und kopieren ``crtl c'' und entsprechend
+abspeichern(``input/advance tickets/Kiosk ID???.txt'') oder über GUI
+hochladen.
+
+\subsubsection{Gutscheine und Abos}\label{gutscheine-und-abos}
+
+\paragraph{Abos}\label{abos}
+
+Im Menu auf ``Abos'' \url{https://www.advance-ticket.ch/abos?lang=de}
+navigieren.\\
+Abo typ wählen: \textbf{atelierkino/abo} und den Button suchen wählen.\\
+Nun können die Daten exportiert werden.\\
+Bitte speichern unter \ldots/Kinoklub/Input/advance
+tickets/\textbf{atelierkino\_abo.txt}\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/atelierkino_abo.png}}
+
+\paragraph{Förderer}\label{fuxf6rderer}
+
+Im Menu auf ``Abos'' \url{https://www.advance-ticket.ch/abos?lang=de}
+navigieren.\\
+Abo typ wählen: \textbf{atelierkino/abo} und den Button suchen wählen.\\
+Nun können die Daten exportiert werden.\\
+Bitte speichern unter \ldots/Kinoklub/Input/advance
+tickets/\textbf{atelierkino\_foerderer.txt}\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/atelierkino_foerderer.png}}
+
+\paragraph{Gutschein}\label{gutschein}
+
+Im Menu auf ``Abos'' \url{https://www.advance-ticket.ch/abos?lang=de}
+navigieren.\\
+Abo typ wählen: \textbf{atelierkino/abo} und den Button suchen wählen.\\
+Nun können die Daten exportiert werden.\\
+Bitte speichern unter \ldots/Kinoklub/Input/advance
+tickets/\textbf{atelierkino\_gutschein.txt}\\
+\pandocbounded{\includegraphics[keepaspectratio]{doc/picts/atelierkino_gutschein.png}}
+
+\subsection{Filmvorschläge aus Wordpress
+Export}\label{filmvorschluxe4ge-aus-wordpress-export}
+
+Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool
+exportiert werden.\\
+Die Datei muss mit der Dateierweiterung ``.csv'' im Verzeichniss
+\ldots/Kinoklub/Input/WordPress/ abgespeichert werden.
+
+\subsection{Procinema Archive}\label{procinema-archive}
+
+Auf der Homepage: \url{https://procinema.ch/de/personal/performances/}
+können die Besucherzahlen heruntergeladen werden.\\
+Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum
+auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\\
+Dann muss der ``Export mit Details'' gewählt werden.\\
+Bitte speichern unter
+\ldots/Kinoklub/Input/Procinema/\textbf{procinema.txt}\\
+
+\section{Input Tabellen}\label{input-tabellen}
+
+Alle Input Tabellen können im Kinoklub GUI ``Input Daten editieren''
+bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated
+werden: ``Daten updaten''\\
+
+Die Applikation wird mit dem standard Browser des Systems geöffnet.\\
+Die lokale Adresse ist: \url{http://127.0.0.1:5001/}\\
+
+\begin{verbatim}
+    source("Edit_input_data.R")
+\end{verbatim}
+
+Die Applikation ist jedoch auch mit
+\url{https://slvwagner.shinyapps.io/Kinoklub_Input/} erreichbar.
+
+\subsection{Inputdaten}\label{inputdaten}
+
+\subsubsection{Filmvorschlag}\label{filmvorschlag}
+
+Ein Filmvorschlag kann am einfachsten mit dem Feature
+``Procinema-Suche'' erfasst werden falls die Suisanummer bekannt ist.
+Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann
+direkt übernommen werden.
+
+\subsubsection{Programm}\label{programm}
+
+\begin{itemize}
+\tightlist
+\item
+  Für jeden gezeigten Film muss ein Datum und einen Zeit definiert
+  werde.
+\item
+  Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+\item
+  Ist kein Suisanummer vorhanden z.B. weil es nur einen Ausländischen
+  verleiher gibt kann die Suisanummer die von Advanced-Tickets erzeugt
+  wird verwendet werden.
+\item
+  Mit der Spalte \textbf{``Link to Event ID''} ist es möglich gemeinsam
+  mit weitere(n) ``Event ID(s)'' abzurechnen.\\
+  Es wird nur noch für die erste \textbf{``Event ID''} ein Bericht
+  erstellt. Es werden alle Einahmen und Ausgaben zusammengefasst für
+  diesen Bericht.
+\item
+  Es muss der \textbf{``minimal Abzug {[}CHF{]}''} sowie \textbf{``Abzug
+  \%''} oder nur der \textbf{``Abzug fix {[}CHF{]}''} definiert werden.
+  Beide Einträge sind nicht erlaubt.
+\item
+  In der Tabelle Dropdowns Verleiher Spalte \textbf{Kinoförderer gratis}
+  muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien
+  (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\\
+  Wenn \textbf{nein} gewählt wird, dann wird die Platzkategorie
+  \textbf{Kinoförderer} als Platzkategorie ``Ermässigt'' verrechnet.\\
+  Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach
+  grösser.
+\end{itemize}
+
+\subsubsection{Einsatzplan}\label{einsatzplan}
+
+Im Einsatzplan wird die Ressourcenplanung vorgenommen.
+Kinoklubmitglieder können sich selbständig eintragen. Welche Funktion
+die Kinoklubmitglieder belegen dürfen ist in der Tabelle Dropdowns
+Kinoklubmitglieder definiert.
+
+\subsubsection{Einnahmen}\label{einnahmen}
+
+Alle Einnahmen müssen in der Tabelle \textbf{Einnahmen} definiert
+werden. Ja nach \textbf{Einnahmentyp} muss die richtige
+\textbf{Kategorie sowie Buchungskonto} verwendet werden. Das ist nötig
+um die Einnahmen korrekt in den \textbf{Berichten} auszuwerten.\\
+In der Tabelle \textbf{Einnahmen} werden alle Einnahmen erfasst, die
+nicht automatisch aus den Advaced Tickets Daten extrahiert werden
+können.
+
+\begin{itemize}
+\tightlist
+\item
+  Erklärung der \textbf{Spaltennamen}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{ID}\\
+    Fortlaufendenummer (automatisch erzeugt)
+  \item
+    \textbf{Kategorie}\\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze
+    Erklärung aller Optionen:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Event\\
+      Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film)
+      aufgeführt. Als \textbf{Ausgaben} können dies Spezielle
+      Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass,
+      Event-Deko oder andere Ausgaben sein.\\
+      WICHTIG: Hier muss die korrekte \textbf{Event ID} angegeben
+      werden.
+    \item
+      Kiosk\\
+      Ausgaben für den Einkauf des Kino-Kiosks
+    \item
+      Personalaufwand\\
+      Ausgaben für Gehaltszahlung and Mitarbeiter
+    \item
+      Verleiher\\
+      Rechnungen vom Filmverleiher\\
+      WICHTIG: Hier muss die korrekte \textbf{Event ID} angegeben
+      werden.
+    \item
+      Vermietung\\
+      Einnahmen durch die Vermietung
+    \item
+      Werbung\\
+      Werbeeinnahmen z.B. Kinoweischer
+    \item
+      Sonstiges\\
+      Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen
+      werden können.\\
+    \end{itemize}
+  \item
+    \textbf{Bezeichnung}\\
+    Umschreibung der Buchung
+  \item
+    \textbf{Event ID}\\
+    Zu welcher Filmvorführung gehört diese Buchung?\\
+    Das ist wichtig für die Kategorie Event und Verleiher, siehe oben.
+  \item
+    \textbf{Datum}\\
+    Buchungsdatum
+  \item
+    \textbf{Abrechnungsjahr}\\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+  \item
+    \textbf{Betrag}\\
+    Betrag in {[}CHF{]}
+  \item
+    \textbf{Firmenname}\\
+    Name der rechnugsstellenden Firma oder oder Person and die der
+    Betrag ausbezahlt werden muss.
+  \item
+    \textbf{Adresse}\\
+    Rechnungsteller
+  \item
+    \textbf{Rechnungsnummer}\\
+    Rechnungsnummer des Rechnungsstellers
+  \item
+    \textbf{Buchungskonto}\\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung
+    weitergegeben werden um Buchung
+  \end{itemize}
+\item
+  In der Tabelle \textbf{Kategorien} sind die möglichen Kategorien
+  definiert. Notwendige Änderungen müssen zuerst besprochen werden,
+  ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+\end{itemize}
+
+\subsubsection{Ausgaben}\label{ausgaben}
+
+Alle Ausgaben müssen in der Tabelle \textbf{Ausgaben} definiert
+werden.\\
+Ja nach \textbf{Ausgabentyp} muss eine \textbf{Kategorie,
+(Buchhaltungskonto)} verwendet werden. Das ist nötig um die Einnahmen
+und Ausgaben korrekt in den \textbf{Berichten} auszuwerten.\\
+In der Tabelle \textbf{Ausgaben} werden alle Ausgaben verbucht die nicht
+automatisch aus den Advanced Tickets Daten extrahiert werden können.
+
+\begin{itemize}
+\tightlist
+\item
+  Erklärung der \textbf{Spaltennamen}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{ID}\\
+    Fortlaufendenummer (automatisch erzeugt)
+  \item
+    \textbf{Kategorie}\\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze
+    Erklärung aller Optionen:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \textbf{Event}\\
+      Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film)
+      aufgeführt. Als \textbf{Einnahmen} können Kollekten, Beiträge von
+      Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen
+      sich auf eine spezifische Filmvorführung beziehen somit muss
+      Spieldatum und Suisanummer korrekt angegeben werden.
+    \item
+      \textbf{Kiosk}\\
+      Ausgaben für den Einkauf des Kino-Kiosks
+    \item
+      \textbf{Personalaufwand}\\
+      Ausgaben für Gehaltszahlung and Mitarbeiter
+    \item
+      \textbf{Sonstiges}\\
+      Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen
+      werden können.
+    \item
+      \textbf{Verleiher}\\
+      Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das
+      Spieldatum des Filmes eingetragen werden, damit die Abrechnung
+      korrekt abläuft
+    \item
+      \textbf{Vermietung}\\
+      Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
+    \item
+      \textbf{Werbung}\\
+      Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt
+      werden können
+    \end{itemize}
+  \item
+    \textbf{Event ID}\\
+    Wird die Kategorie Event oder Verleiher ausgewählt muss hier die
+    \textbf{``Event ID''} des Films dazugehörigen Films eingetragen
+    werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen
+    werden. Bei Ausgaben die sich nicht auf ein spezifische
+    \textbf{``Event ID''} beziehen, muss dieses Feld leer gelassen
+    werden. Diese Ausgaben werden nur in der Jahresabrechnung
+    berücksichtigt.\\
+  \item
+    \textbf{Bezeichnung}\\
+    Umschreibung der Buchung
+  \item
+    \textbf{Datum}\\
+    Datum der Rechnung/Buchung.
+  \item
+    \textbf{Abrechnungsjahr}\\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+  \item
+    \textbf{Betrag}\\
+    Betrag {[}CHF{]}
+  \item
+    \textbf{Firmenname}\\
+    Firmenname oder Person des Rechnungstellers an welchen der
+    \textbf{Betrag} ausbezahlt werden muss.
+  \item
+    \textbf{Adresse}\\
+    Rechnungsteller
+  \item
+    \textbf{Referenz}\\
+    Referenznummer der Rechnung
+  \item
+    \textbf{Rechnungsnummer}\\
+    Rechnungsnummer des Rechnungsstellers
+  \item
+    \textbf{Buchungskonto}\\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung
+    weitergegeben werden um Buchung korrekt durchzuführen.
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Spezialpreise Kiosk}\label{spezialpreise-kiosk}
+
+In der Tabelle \textbf{Spezialpreisekiosk} müssen die Sonderangebote
+(Spez-Verkaufsartikel) definiert werden.\\
+\strut \\
+Die Zuweisung erfolgt über die \texttt{Event\ ID}.
+
+\begin{itemize}
+\tightlist
+\item
+  Spez 1
+\item
+  Spez 2
+\item
+  Spez 3
+\item
+  Spez 4
+\item
+  Spez 4
+\item
+  Keine Kioskverkäufe
+\end{itemize}
+
+\subsubsection{Einkauf Kiosk}\label{einkauf-kiosk}
+
+In der Tabelle \textbf{Einkauf Kiosk} werden die aktuellen
+Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu
+ermittel.\\
+Der Einkaufspreise ist gültig ab dem Datum in der Spalte ``Gültig ab
+Datum'' .\\
+Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern
+sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel
+gemacht werden. Der alte soll nicht gelöscht werden da sich die
+Einkaufpreise über die Zeit ändern können wird immer der korrekte
+Einkaufspreis gesucht und für die Gewinn berechnung verwendet.\\
+
+\begin{itemize}
+\tightlist
+\item
+  Achtung\\
+  Die alten datensätze dürfen nicht gelöscht werden!
+\end{itemize}
+
+\subsection{Advanced-Tickets}\label{advanced-tickets}
+
+\subsubsection{Eintritt files}\label{eintritt-files}
+
+Rohdaten Eintritt
+
+\subsubsection{df\_Eintritt}\label{df_eintritt}
+
+Konvertierte Eintritt files
+
+\subsubsection{Kiosk files}\label{kiosk-files}
+
+Rohdaten Kiosk
+
+\subsubsection{df\_Kiosk}\label{df_kiosk}
+
+Konvertierer Kioskfiles
+
+\subsection{Dropdowns}\label{dropdowns}
+
+\subsubsection{Kinoklubmitglieder}\label{kinoklubmitglieder}
+
+Erfassung aller Kinklubmitglieder mit Skill-Matrix
+
+\subsubsection{Verleiher}\label{verleiher}
+
+Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden
+müssen.
+
+\subsubsection{Verleihermapping}\label{verleihermapping}
+
+Zuweisung Procinema Verleihername an Verleiher
+
+\subsubsection{Lieferanten}\label{lieferanten}
+
+Lieferanten definition
+
+\subsubsection{Platzkategorien zum
+Verrechnen}\label{platzkategorien-zum-verrechnen}
+
+Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
+
+\subsubsection{Buchhaltungskonten}\label{buchhaltungskonten}
+
+Buchhaltungskonten werden in den Ausgaben verwendet.
+
+\subsubsection{Spezialpreis}\label{spezialpreis}
+
+Spezialpeise die Ausgewählt werden können.
+
+\subsubsection{MWST}\label{mwst}
+
+In der Tabelle Dropdowns \textbf{MWST} muss der MWST-Satz für jedes Jahr
+festgelegt werden.
+
+\section{Berichte erstellen}\label{berichte-erstellen}
+
+Alle Dateien die erzeugt wurden finden sich im
+\textbf{\ldots/Kinoklub/output/} Verzeichniss.
+
+\begin{itemize}
+\tightlist
+\item
+  Für jede Filmvorführung respektive Datum und Suisanummer wird ein
+  Abrechnung erstellt.
+\item
+  Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung
+  erstellt.
+\item
+  Es wird eine Statistik mit Porgnosen erstellt.
+\item
+  Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
+\end{itemize}
+
+\subsection{Abrechnung
+Filmvorführung}\label{abrechnung-filmvorfuxfchrung}
+
+Es wird eine Filmabrechnung pro Event ID erstellt.
+
+\begin{itemize}
+\tightlist
+\item
+  Übericht
+\item
+  Filmvorführung
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Kino Besucherzahlen und Umsatz
+
+    \begin{itemize}
+    \item
+      Filmabgaben
+    \item
+      Verleiherrechnung\\
+      In der Tabelle Inputdaten \textbf{Ausgaben} wird die Kategorie
+      \textbf{Verleiher} berücksichtigt.
+    \item
+      Prozentualle Abgaben\\
+      Der Suisaabzug wird vom Umsatz berechnet.\\
+      In der Tabelle Inputdaten \textbf{Programm} sind \textbf{Abzug
+      {[}\%{]}}, \textbf{Minimal Abzug {[}CHF{]}} oder \textbf{Abzug fix
+      {[}CHF{]}} definiert.\\
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Fall 1:\\
+        \((N_{etto3} \cdot \frac {A_{bzug}}{100}) > M_{inimalAbzug}\)\\
+        Verleiherabzug: \(N_{etto3}\cdot \frac{A_{bzug}}{100}\)
+      \item
+        Fall 2:\\
+        \((N_{etto3} \cdot \frac {A_{bzug}}{100}) < M_{inimalAbzug}\)\\
+        Verleiherabzug: \(M_{inimalAbzug}\)
+      \item
+        Fall 3:\\
+        ``Abzug fix {[}CHF{]}''\\
+        Verleiherabzug: \(A_{bzugFix}\)
+      \end{itemize}
+    \item
+      MWST auf Verleiherrechnung\\
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Fall 1:\\
+        Vereiherrechnung vorhanden: MWST wird mit der Verleiherrechnung
+        berechnet.
+      \item
+        Fall 2:\\
+        Vereiherrechnung nicht vorhanden: MWST wird aus dem Umsatz
+        berechnet.
+      \end{itemize}
+    \end{itemize}
+  \item
+    Gewinn / Verlust aus Tickerverkauf\\
+    Der Gewinn/Verlust wird aus \textbf{Umsatz} -
+    (\textbf{Suisavorabzug}+\textbf{Verleiherabzug}+\textbf{MWST})
+  \end{itemize}
+\item
+  Event
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen
+
+    \begin{itemize}
+    \tightlist
+    \item
+      In der Tabelle Inputdaten \textbf{Einnahmen} Kategorie
+      \textbf{Event} werden alle Einnahmen für einen Spezifischen Event
+      erfasst. Bitte Event ID korrekt auswählen.
+    \end{itemize}
+  \item
+    Ausgaben
+
+    \begin{itemize}
+    \tightlist
+    \item
+      In der Tabelle \textbf{Ausgaben}\\
+      wird die \textbf{Eventausgaben} wird pro Filmabrechnung
+      (Spieldatum) berücksichtigt.
+    \end{itemize}
+  \end{itemize}
+\item
+  Kiosk
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Gewinn pro Artikel\\
+    In der Tabelle **** ist der Gewinn pro Artikel definiert.
+  \item
+    Einnahmen\\
+    Die Einnahmen werden aus Gewinn pro Artikel und dem Umsatz für
+    Spezialpreise berechnet.
+  \item
+    Ausgaben\\
+    Achtung!\\
+    Für Verkaufsartikel ohne Lieferant müssen Eventausgaben definiert
+    werden.
+  \end{itemize}
+\item
+  Kioskumsatz pro Gast
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Kioskumsatz aller Gäste
+  \item
+    Kioskumsatz pro zahlender Gast
+  \end{itemize}
+\item
+  Kasse\\
+  Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets
+  genutzt.
+\item
+  Gewinn / Verlust\\
+  Summe aus Einnahmen und Ausgaben
+\end{itemize}
+
+\subsubsection{Berechnung der prozentuallen
+Abgaben}\label{berechnung-der-prozentuallen-abgaben}
+
+\begin{itemize}
+\tightlist
+\item
+  Verleiherrechnung noch nicht vorhanden
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Umsatz:\\
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei
+    gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen
+    werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die
+    Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben
+    und wurden demnach Verkauft.)
+  \item
+    Suisa-Vorabzug:\\
+    \(U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}\)
+  \item
+    Netto3:\\
+    \(U_{msatz}-S_{uisa-Vorabzug}\)
+  \item
+    Verleiherabgaben:\\
+    \(N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}\)\\
+    \(N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}\)
+  \item
+    Mehrwertsteuer:\\
+    \(V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}\)
+  \item
+    Gewinn / Verlust:\\
+    \(U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})\)
+  \end{itemize}
+\item
+  Verleiherrechnung vorhanden
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Umsatz:\\
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei
+    gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen
+    werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die
+    Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben
+    und wurden demnach Verkauft.)
+  \item
+    Suisa-Vorabzug:\\
+    \(U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}\)
+  \item
+    Verleiherrechnung:\\
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer\\
+    \(\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}\)
+  \item
+    Gewinn / Verlust:\\
+    \(U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})\)
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Berechnung der Fixen
+Abgaben}\label{berechnung-der-fixen-abgaben}
+
+\begin{itemize}
+\tightlist
+\item
+  Verleiherrechnung noch nicht vorhanden
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Umsatz:\\
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei
+    gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen
+    werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die
+    Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben
+    und wurden demnach Verkauft.)
+  \item
+    Suisa-Vorabzug:\\
+    \(U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}\)
+  \item
+    Verleiherabgaben\\
+  \item
+    Mehrwertsteuer:\\
+    \(V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}\)
+  \item
+    Gewinn / Verlust:\\
+    \(U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})\)
+  \end{itemize}
+\item
+  Verleiherrechnung vorhanden
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Umsatz:\\
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei
+    gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen
+    werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die
+    Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben
+    und wurden demnach Verkauft.)
+  \item
+    Suisa-Vorabzug:\\
+    \(U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}\)
+  \item
+    Verleiherrechnung:\\
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer\\
+    \(\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}\)
+  \item
+    Gewinn / Verlust:\\
+    \(U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})\)
+  \end{itemize}
+\end{itemize}
+
+\subsection{Jahresabrechnungen}\label{jahresabrechnungen}
+
+Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und
+je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien
+werden in den Jahresrechnungen separat behandelt.
+
+\begin{itemize}
+\tightlist
+\item
+  Filmvorführungen
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Eintritt
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Einnahmen Ticketverkauf
+    \item
+      Abgaben Ticketverkauf
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Suisaabgaben
+      \item
+        Verleiherabgaben
+      \item
+        Nebenkosten
+      \item
+        MWST auf Verleiherleistungen
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\item
+  Event
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Eventeinnahmen\\
+    Einnahmen für den Event, z.B. Beiträgemitveranstalter,
+    Eventsponsoring, \ldots{}
+  \item
+    Eventausgaben\\
+    Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen,
+    \ldots{}
+  \end{itemize}
+\item
+  Kiosk
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen\\
+    Die Einnahmen werden mit
+    \(A_{nzahl} \cdot V_{erkaufspeis für Verkaufsartikel}\) berechnet.
+  \item
+    Ausgaben
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Einkauf Getränke\\
+      Die Getränke werden von Theater am Bahnhof eingekauft.\\
+      Falls in der Tabelle ``\ldots/Kinoklub/input/\textbf{Einkauf Kiosk
+      xx.xx.xx.xlsx}'' der Lieferant \textbf{``Schüwo''} definiert wurde
+      wird der Verkaufsartikel als Getränk ausgegeben.\\
+      Der Getränkeeinkauf wird mit \(A_{nzahl} \cdot E_{inkaufspreis}\)
+      berechnet.
+    \item
+      Einkauf Kino\\
+      Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der
+      Tabelle ``\ldots/Kinoklub/input/\textbf{Einnahmen und
+      Ausgaben.xlsx}'' mit Kategorie \textbf{Kiosk} definiert.
+    \end{itemize}
+  \end{itemize}
+\item
+  Abos / Kinogutscheine
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Abos
+    \item
+      Kinogutscheine
+    \item
+      Summe
+    \end{itemize}
+  \item
+    Eingelöst
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Abos
+    \item
+      Kinogutscheine
+    \end{itemize}
+  \item
+    Kurzfristiges zinsloses Fremd-Kapital
+  \end{itemize}
+\item
+  Vermietung
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen\\
+    Vermietung Kinosaal, Beiträge von mit Veranstallter, \ldots{}
+  \item
+    Ausgaben\\
+    Mietkosten für Filme und Material, \ldots{}
+  \end{itemize}
+\item
+  Werbung
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen\\
+    Die Werbeeinnahme aus Kinowerbung druch Trailers, Dias für
+    Sponsoren, \ldots{}
+  \item
+    Ausgaben\\
+    Inserate, Drucksachen, Homepage, \ldots{}
+  \end{itemize}
+\item
+  Personalaufwand\\
+  Löhne
+\item
+  Sonstiges
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen\\
+    Sponsoen, Gönner, Kulturbeiträge, \ldots{}
+  \item
+    Ausgaben\\
+    Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné
+    Bulletin, \ldots{}
+  \end{itemize}
+\end{itemize}
+
+\subsection{Statistik}\label{statistik}
+
+\begin{itemize}
+\tightlist
+\item
+  Gewinn/Verlust
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Prognose\\
+    Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+    Model erstellt.
+  \end{itemize}
+\item
+  Ticketverkauf
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Prognose\\
+    Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+    Model erstellt.
+  \item
+    Eintritte
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Anzahl\\
+      Diagramm
+    \item
+      Umsatz
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Prognose\\
+        Die Prognose wird mit der Kumuliertensumme pro Datum als
+        lineares Model erstellt.
+      \end{itemize}
+    \end{itemize}
+  \item
+    Filmabgaben
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Prognose\\
+      Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+      Model erstellt.
+    \end{itemize}
+  \end{itemize}
+\item
+  Abos
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Einnahmen
+  \item
+    Eingelöst
+  \item
+    Kredit
+  \end{itemize}
+\item
+  Kiosk-Gewinn pro Vorführung
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Prognose\\
+    Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+    Model erstellt.
+  \end{itemize}
+\item
+  Kiosk
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Verkaufsartikel
+  \item
+    Ladenhüter (keine Verkäufe)
+  \item
+    Kiosk Umsatz pro Gast
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Prognose\\
+      Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+      Model erstellt.
+    \end{itemize}
+  \item
+    Umsatz pro zahlender Gast
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Prognose\\
+      Die Prognose wird mit der Kumuliertensumme pro Datum als lineares
+      Model erstellt.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\subsection{WordPress Filmvorschläge
+auswerten}\label{wordpress-filmvorschluxe4ge-auswerten}
+
+Mit dem Backend von ``Wordpress'' können die Erfassten Filvorschläge von
+der Kinoklub-Hompage \url{https://kinoklub.ch/kkTeam/} exportiert
+werden. Die ``csv'' Datei kann nun über das GUI hochgeladen werden und
+wird automatisch im Verzeichniss ``\ldots/Kinoklub/Input/WordPress''
+abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
+
+\begin{verbatim}
+.../Kinoklub/output/data/Filmvorschläge.xlsx
+\end{verbatim}
+
+\subsection{Archiv}\label{archiv}
+
+Das Archiv wird aus den statistischen Daten von
+\url{https://procinema.ch} erstellt.\\
+Die Datei kann mit drag\&Drop hochgeladen werden oder so abgespeichert
+werden: ~\ldots/Kinoklub/Input/Procinema/Procinema.txt
+
+\section{Benutzereinstellungen}\label{benutzereinstellungen}
+
+\subsection{Platzkategorien ohne Umsatz die für gewisse Verleiher
+dennoch abgerechnet werden
+müssen.}\label{platzkategorien-ohne-umsatz-die-fuxfcr-gewisse-verleiher-dennoch-abgerechnet-werden-muxfcssen.}
+
+Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet
+werden. Die Definition ist in der Tabelle \textbf{Verleiher} Spalte
+``Kinoförderer gratis'' zu finden.\\
+Die \textbf{Platzkategorien zum Verrechnen} wird in der
+Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen
+auf den Gewinn und die Verleiherabrechnung.
+
+\section{Daten als Excel-Datei}\label{daten-als-excel-datei}
+
+Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei
+gespeichert.\\
+Die Dateinen sind im Verzeichniss \textbf{\ldots/Kinoklub/output/data/}
+zu finden.
+
+\section{Dokumentation}\label{dokumentation}
+
+Die Datei ``README.md'' und die Dokumentation wird automatisch erstellt.
+
+\begin{verbatim}
+source("doc/create Readme and Docu.R")
+\end{verbatim}
+
+Eine Änderung muss deshalb in der Datei \textbf{``doc/README.Rmd''}
+vorgenommen werden.
+
+\section{Versionshistorie}\label{versionshistorie}
+
+2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\\
+2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung
+berücksichtigt\\
+2024 V1.2 Abrechnung für Kinowerbung
+hinzugefügt:\ldots./output/Auswertung.xlsx und Prognosen in der
+Statistik überarbeitet\\
+2024 V1.3 Neuer Bericht Statistik\_DT hinzugefügt. Interaktives
+durchsuchen aller Tabellen\\
+2024 V1.4 Jahresbarechnung detailed entfernt\\
+2024 V1.5 Merge Verkaufsartikel ``Popcorn frisch'', ``Popcorn Salz'' zu
+``Popcorn frisch''\\
+2024 V1.6 Statistik: Wochentaganalyse\\
+2024 V1.7 Statistik ohne Datatable gelöscht\\
+2024 V1.8 Dokumentations update\\
+2024 V1.9 Filmvorschläge from Wordpress\\
+2024 V1.10 PowerBi script\\
+2024 V1.11 WordPress Filmvorschläge auswerten\\
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder
+Gratis =\textgreater{} nein, in Verleiherabgaben.xlsx)\\
+2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file
+``Verleiherabgaben.xlsx''\\
+2024 V1.14 GUI Graphical user interface\\
+2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch
+verarbeitet werden\\
+2024 V1.16 Introduction of envirnonments to run GUI\\
+2025 V1.17 Data type for excel files are definded by column type
+database\\
+2025 V2.00 Fist fully tested Version\\
+2025 V2.01 New Feature: More than one Film per day can be handled\\
+2025 V2.02 New Feature: Files can be uploade via GUI\\
+2025 V2.03 Code clean up\\
+2025 V2.04 Procinema und Filmvorschläge auswerten\\
+2025 V2.05 Bereits gezeigte Filme im Archiv\\
+2025 V2.06 Script running status bar\\
+2025 V2.07 Speed up\\
+2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr
+benötigt
+
+\end{document}

@@ -187,7 +187,7 @@ Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst 
 -   Für jeden gezeigten Film muss ein Datum und einen Zeit definiert werde.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Ist kein Suisanummer vorhanden z.B. weil es nur einen Ausländischen verleiher gibt kann die Suisanummer die von Advanced-Tickets erzeugt wird verwendet werden.
--   Mit der Spalte **"Link to Event ID"** ist es möglich gemeinsam mit weitere(n) `Event ID(s)` abzurechnen.\
+-   Mit der Spalte **"Link to Event ID"** ist es möglich gemeinsam mit weitere(n) "Event ID(s)" abzurechnen.\
     Es wird nur noch für die erste **"Event ID"** ein Bericht erstellt. Es werden alle Einahmen und Ausgaben zusammengefasst für diesen Bericht.
 -   Es muss der **"minimal Abzug [CHF]"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   In der Tabelle Dropdowns Verleiher Spalte **Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
