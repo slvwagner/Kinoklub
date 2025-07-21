@@ -21,13 +21,7 @@ Shiny app zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinok
 \
 Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 <https://github.com/slvwagner/Kinoklub/issues>\
-Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
 
-```         
-source("doc/create Readme and Docu.R")
-```
-
-Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
 # Installation
 
@@ -61,7 +55,7 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
         git clone https://github.com/slvwagner/Kinoklub
     ```
 
-5.  Start Rstudio from the Kinoklub folder, or open the project with Rstudio "Kinoklub.Rproj".
+5.  Start Rstudio vom Kinoklub Ordner und dann das Projekt "Kinoklub.Rproj" öffnen.
 
 6.  Installieren der benötigten "Packages" im "R Terminal"
 
@@ -69,45 +63,48 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
     paste0("install.packages(",paste0("\"",c_dependencies,"\"", collapse = ","),")")|>writeLines()
     ```
 
-7.  User and password setup\
-    Windows
-
-    ```         
-    setx DB_host "your host name here"
-    ```
-
-    ```        
-    setx DB_name "your database name here"
-    ```
-
-    ```        
-    setx DB_user "your database user name here"
-    ```
-
-    ```      
-    setx DB_PASSWORD_KINOKLUB "your database password here"
-    ```
-
-    ```       
-    setx ftp_user "your ftp user here"
-    ```
-
-    ```        
-    setx ftp_pw "your ftp password here"
-    ```
+7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten:\
     
-    User and password setup\
-    MAC / Linux\
-    Create a file where your you Rstudio installation can be found (User): \
-    .Renviron \
-    and setup the following system variables:\
-    DB_host=""\
-    DB_name=""\
-    DB_user=""\
-    DB_PASSWORD_KINOKLUB=""\
-    ftp_user=""\
-    ftp_pw=""\
+    -   Windows \
+        Terminal Kommandos nacheinander mit den korrekten Daten ausführen:
 
+        ```         
+        setx DB_host "your host name here"
+        ```
+    
+        ```        
+        setx DB_name "your database name here"
+        ```
+    
+        ```        
+        setx DB_user "your database user name here"
+        ```
+    
+        ```      
+        setx DB_PASSWORD_KINOKLUB "your database password here"
+        ```
+    
+        ```       
+        setx ftp_user "your ftp user here"
+        ```
+    
+        ```        
+        setx ftp_pw "your ftp password here"
+        ```
+    
+
+    -   MAC / Linux\
+        Erstellen ein neue Datei **".Renviron"** im Kinoklub Benutzerverzeichniss.\
+        Die Datei wie folgt abfüllen: \
+        
+        ```
+        DB_host=""\
+        DB_name=""\
+        DB_user=""\
+        DB_PASSWORD_KINOKLUB=""\
+        ftp_user=""\
+        ftp_pw=""\
+        ```
 
 ## Git Passwort / Personal Access Token (PAT)
 
@@ -586,6 +583,15 @@ Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berec
 
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
+
+# Dokumentation
+Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
+
+```         
+source("doc/create Readme and Docu.R")
+```
+
+Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
 # Versionshistorie
 

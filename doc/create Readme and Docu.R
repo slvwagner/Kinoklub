@@ -41,6 +41,17 @@ rmarkdown::render(input = paste0("README.Rmd"),
                   output_dir  = "doc/",
                   output_file = "Dokumentation.html")
 
+# ftp server connection ####
+ftp_server   <- "ftp://lx51.hoststar.hosting/"
+ftp_user     <- Sys.getenv("ftp_user")
+ftp_password <- Sys.getenv("ftp_password")
+
+# Base path where to put the files (Must be a public html folder)
+ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
+
+# FTP file upload to reports server ####
+ftp_upload("doc/Dokumentation.html", ftp_server, ftp_user, ftp_password, ftp_basepath)
+
 # word
 # rmarkdown::render(input = paste0("README.Rmd"),
 #                   output_format = "word_document",

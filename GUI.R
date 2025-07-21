@@ -2909,7 +2909,12 @@ server <- function(input, output, session) {
               target = "_blank",
               style = "font-size: 24px;"
             )
-          }
+          },
+          shiny::tags$a(
+            href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Hilfe",
+            target = "_blank",
+            style = "font-size: 24px;"
+          )
         ),
         # shiny::uiOutput("db_status"),
         shiny::hr(),
