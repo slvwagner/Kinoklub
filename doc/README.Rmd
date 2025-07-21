@@ -1,5 +1,6 @@
 ---
-    css: source/www/Kinoklub_dark.css
+  title: "Hilfe Kinoklub"
+  css: source/www/Kinoklub_dark.css
 ---
 
 Author: Florian Wagner\
@@ -41,12 +42,6 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
   pull()
 ```
 
-```{r}
-paste0("\"",c_dependencies,"\"", collapse = ",")|>writeLines()
-```
-
-
-## Anleitung
 
 1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
@@ -87,15 +82,15 @@ paste0("\"",c_dependencies,"\"", collapse = ",")|>writeLines()
     ```
 
     ```      
-    setx DB_PASSWORD_KINOKLUB "your password here"
+    setx DB_PASSWORD_KINOKLUB "your database password here"
     ```
 
     ```       
-    setx ftp_user "your password here"
+    setx ftp_user "your ftp user here"
     ```
 
     ```        
-    setx ftp_pw "your password here"
+    setx ftp_pw "your ftp password here"
     ```
     
     User and password setup\
@@ -118,7 +113,8 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man 
 
 ## Run the Appliction
 
-Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:5003/>
+Die Application wird mit dem standard Browser des Systems geöffnet. \
+Die Adresse ist: <http://127.0.0.1:5003/>
 
 ```         
     source("GUI.R")
@@ -129,9 +125,11 @@ Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse
 ## Upload von neuen Dateien
 
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
-Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert.
+Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und der Dateierweiterung abgespeichert.
 
--   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
+-   "Eintritt ID???.txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
+-   "Kiosk ID???.txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
+-   "procinema.txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/Procinema/" gespeichert.
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
 ## Input Advance-Tickets
@@ -154,41 +152,49 @@ Spalte 1: Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierk
 ![Kiosk](doc/picts/Kiosk.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk ID???.txt") oder über GUI hochladen.
 
+
 ### Gutscheine und Abos
 
 #### Abos
-
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt**\
+Nun können die Daten exportiert werden.\
+Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt**\
 ![Shows](doc/picts/atelierkino_abo.png)
 
 #### Förderer
-
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt**\
+Nun können die Daten exportiert werden.\
+Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt**\
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
 #### Gutschein
-
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
+Nun können die Daten exportiert werden. \
+Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
-# Datenbanktabellen
+#### Filmvorschläge aus Wordpress Export
+Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden. \
+Die Datei muss mit der Dateierweiterung ".csv" im Verzeichniss .../Kinoklub/Input/WordPress/ abgespeichert werden.
 
+#### Procinema Archive 
+Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden. \
+Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\
+Dann muss der "Export mit Details" gewählt werden. \
+Bitte speichern unter .../Kinoklub/Input/Procinema/**procinema.txt**\
+
+# Datenbanktabellen
 Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten"
 
 ## Inputdaten
 
 ### Filmvorschlag
-
 Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden.
 
 ### Programm
-
 -   Für jeden gezeigten Film muss ein Datum und einen Zeit definiert werde.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Ist kein Suisanummer vorhanden z.B. weil es nur einen Ausländischen verleiher gibt kann die Suisanummer die von Advanced-Tickets erzeugt wird verwendet werden.
@@ -200,11 +206,9 @@ Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst 
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
 ### Einsatzplan
-
 Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder können sich selbständig eintragen. Welche Funktion die Kinoklubmitglieder belegen dürfen ist in der Tabelle Dropdowns Kinoklubmitglieder definiert.
 
 ### Einnahmen
-
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten.\
 In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
 
@@ -251,7 +255,6 @@ In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisc
 -   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
 
 ### Ausgaben
-
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.\
 In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.
@@ -297,7 +300,6 @@ In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch 
         Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
 
 ### Spezialpreise Kiosk
-
 In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
 \
 Die Zuweisung erfolgt über die `Event ID`.
@@ -310,7 +312,6 @@ Die Zuweisung erfolgt über die `Event ID`.
 -   Keine Kioskverkäufe
 
 ### Einkauf Kiosk
-
 In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
 Der Einkaufspreise ist gültig ab dem Datum in der Spalte "Gültig ab Datum" .\
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über die Zeit ändern können wird immer der korrekte Einkaufspreis gesucht und für die Gewinn berechnung verwendet.\
@@ -321,57 +322,44 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 ## Advanced-Tickets
 
 ### Eintritt files
-
 Rohdaten Eintritt
 
 ### df_Eintritt
-
 Konvertierte Eintritt files
 
 ### Kiosk files
-
 Rohdaten Kiosk
 
 ### df_Kiosk
-
 Konvertierer Kioskfiles
 
 ## Dropdowns
 
 ### Kinoklubmitglieder
-
 Erfassung aller Kinklubmitglieder mit Skill-Matrix
 
 ### Verleiher
-
 Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden müssen.
 
 ### Verleihermapping
-
 Zuweisung Procinema Verleihername an Verleiher
 
 ### Lieferanten
-
 Lieferanten definition
 
 ### Platzkategorien zum Verrechnen
-
 Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
 
 ### Buchhaltungskonten
-
 Buchhaltungskonten werden in den Ausgaben verwendet.
 
 ### Spezialpreis
-
 Spezialpeise die Ausgewählt werden können.
 
 ### MWST
-
 In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt werden.
 
-# Berichete erstellen
-
+# Berichte erstellen
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
 -   Für jede Filmvorführung respektive Datum und Suisanummer wird ein Abrechnung erstellt.
@@ -380,7 +368,6 @@ Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeich
 -   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ## Abrechnung Filmvorführung
-
 Es wird eine Filmabrechnung pro Event ID erstellt.
 
 -   Übericht
@@ -462,6 +449,7 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
     -   Gewinn / Verlust:\
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
+
 ### Berechnung der Fixen Abgaben
 
 -   Verleiherrechnung noch nicht vorhanden
@@ -486,7 +474,6 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
 ## Jahresabrechnungen
-
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
 -   Filmvorführungen
