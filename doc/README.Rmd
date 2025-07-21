@@ -1,5 +1,5 @@
 ---
-    css: source/Kinoklub_dark.css
+    css: source/www/Kinoklub_dark.css
 ---
 
 Author: Florian Wagner\
