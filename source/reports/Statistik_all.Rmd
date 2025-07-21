@@ -79,7 +79,8 @@ Bericht wurde am `r act_date` erstellt.
 
 ```{r}
 df_Einnahmen <- df_Einnahmen|>
-  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         ID = factor(ID))|>
   select("ID","Abrechnungsjahr","Semester","Kategorie","Event ID",
          "Datum_display", "Datum",
          "Bezeichnung","Betrag [CHF]","Firmennamen","Adresse","Rechnungsnummer")
