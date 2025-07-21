@@ -560,32 +560,14 @@ Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden:  
 
 # Benutzereinstellungen
 
-Die Datei **"user_settings.R"** enthält die Benutzereinstellungen.
-
-### Sommerpause
-
-Wiel lange dauer die Sommerpause?\
-Im file user_settings.R kann die sommerpause definiert werden:\
-`Sommerpause <- 65 #Tage`
-
 ## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
-
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
-Falls die "Kinoförderer gratis" == FALSE werden die Tabelle Dropdowns **Platzkategorien zum Verrechnen** verwendet um die Verleiherabrechnung zu erstellen.
+Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen auf den Gewinn und die Verleiherabrechnung.
 
 # Daten als Excel-Datei
 
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
-
-```         
-.../Kinoklub/output/data/Auswertung.xlsx
-```
-
-zusätzlich werden alle Fimvorschläge als Excel ausgegeben
-
-```         
-.../Kinoklub/output/data/Filmvorschläge.xlsx
-```
+Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
 
 # Versionshistorie
 
