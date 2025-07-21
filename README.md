@@ -96,19 +96,18 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
-## Run the Appliction
+# Applikation ausführen
 
-Die Application wird mit dem standard Browser des Systems geöffnet. \
+Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die Adresse ist: <http://127.0.0.1:5003/>
 
 ```         
     source("GUI.R")
 ```
 
-# Datensätze
+# Dateien
 
 ## Upload von neuen Dateien
-
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und der Dateierweiterung abgespeichert.
 
@@ -118,18 +117,15 @@ Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und 
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
 ## Input Advance-Tickets
-
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und und können mittels drag&drop abgespeichert werden. Die Dateien sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** zu finden.
 
 ### Eintritte
-
 **Eintritte ID??.txt**\
 Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
 ### Kiosk
-
 **Kiosk ID??.txt**\
 Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen.\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
@@ -139,7 +135,6 @@ Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern(
 
 
 ### Gutscheine und Abos
-
 #### Abos
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
@@ -161,18 +156,27 @@ Nun können die Daten exportiert werden. \
 Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
-#### Filmvorschläge aus Wordpress Export
+## Filmvorschläge aus Wordpress Export
 Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden. \
 Die Datei muss mit der Dateierweiterung ".csv" im Verzeichniss .../Kinoklub/Input/WordPress/ abgespeichert werden.
 
-#### Procinema Archive 
+## Procinema Archive 
 Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden. \
 Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\
 Dann muss der "Export mit Details" gewählt werden. \
 Bitte speichern unter .../Kinoklub/Input/Procinema/**procinema.txt**\
 
-# Datenbanktabellen
-Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten"
+# Input Tabellen 
+Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten"\
+
+Die Applikation wird mit dem standard Browser des Systems geöffnet. \
+Die lokale Adresse ist: <http://127.0.0.1:5001/>\
+
+```         
+    source("Edit_input_data.R")
+```
+Die Applikation ist jedoch auch mit <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar.
+
 
 ## Inputdaten
 
