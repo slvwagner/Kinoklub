@@ -56,40 +56,36 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
 7.  User and password setup\
     Windows
 
-    ````         
-          setx DB_host "your host name here"
-        ```
-    ````
-
-    ````         
-      setx DB_name "your database name here"
+    ```         
+    setx DB_host "your host name here"
     ```
-    ````
 
-    ````         
-          setx DB_user "your database user name here"
-        ```
-    ````
+    ```        
+    setx DB_name "your database name here"
+    ```
 
-    ````         
+    ```        
+    setx DB_user "your database user name here"
+    ```
+
+    ```      
       setx DB_PASSWORD_KINOKLUB "your password here"
     ```
-    ````
 
-    ````         
-          setx ftp_user "your password here"
-        ```
-    ````
+    ```       
+    setx ftp_user "your password here"
+    ```
 
-    ````         
+    ```        
     setx ftp_pw "your password here"
     ```
-    ````
-
+    
     User and password setup\
     MAC / Linux\
-    Create a file where your you Rstudio installation can be found (User): .Renviron and setup the following system variables:\
-    `DB_host=""       DB_name=""       DB_user=""       DB_PASSWORD_KINOKLUB="       ftp_user=""       ftp_pw=""`
+    Create a file where your you Rstudio installation can be found (User): 
+    .Renviron and setup the following system variables:\
+    `DB_host=""       DB_name=""       DB_user=""       DB_PASSWORD_KINOKLUB="       ftp_user=""       ftp_pw=""
+
 
 ## Git Passwort / Personal Access Token (PAT)
 
