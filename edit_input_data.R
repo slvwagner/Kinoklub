@@ -605,7 +605,7 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }      
-      #### files ####
+      #### Download files ####
       else if(lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
         tags$div(
           id = "floating-panel",
@@ -623,6 +623,14 @@ server <- function(input, output, session) {
           ),
           shiny::tags$hr(),
           shiny::downloadButton("file_download", "Datei herunterladen"),
+          tags$script('
+            $(document).ready(function() {
+              $("#file_download").attr("disabled", true);
+              Shiny.addCustomMessageHandler("toggleDownload", function(message) {
+                $("#file_download").attr("disabled", !message);
+              });
+            });
+          '),
           shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
@@ -1816,30 +1824,23 @@ server <- function(input, output, session) {
       easyClose = TRUE,
     ))
   })
+  
+  # Check if row is selected ####
+  observe({
+    # Enable/disable download button based on row selection
+    is_row_selected <- !is.null(input$table_rows_selected)
+    session$sendCustomMessage("toggleDownload", is_row_selected)
+  })
 
   ## Button: Download Handler file #####
   output$file_download <- downloadHandler(
     filename = function() {
-      if(is.null(input$table_rows_selected)) {
-        # User interaction 
-        showModal(
-          modalDialog(title = "Bitte eine Zeile markieren",
-                      easyClose = TRUE, footer = modalButton("Abbrechen")
-          )
-        )
-        return(NULL) # early exit if 
-      } else {
-        df_temp <- current_data()[input$table_rows_selected,]
-        return(paste0(df_temp$filename))
-      } 
+      df_temp <- current_data()[input$table_rows_selected,]
+      paste0(df_temp$filename)
     },
     content = function(file) {
-      if(is.null(file)) {
-        return(NULL)
-      } else {
-        df_temp <- current_data()[input$table_rows_selected,]
-        return(writeLines(df_temp$`file content`,file))
-      }
+      df_temp <- current_data()[input$table_rows_selected,]
+      writeLines(df_temp$`file content`, file)
     }
   )
     
