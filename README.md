@@ -27,6 +27,10 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
   pull()
 ```
 
+```{r}
+paste0("\"",c_dependencies,"\"", collapse = ",")|>writeLines()
+```
+
 
 ## Anleitung
 
@@ -49,8 +53,8 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
 
 6.  Install the needed packages in the R Terminal
 
-    ```         
-    c_dependencies
+    ```{R} 
+    paste0("install.packages(",paste0("\"",c_dependencies,"\"", collapse = ","),")")|>writeLines()
     ```
 
 7.  User and password setup\
@@ -82,8 +86,8 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
     
     User and password setup\
     MAC / Linux\
-    Create a file where your you Rstudio installation can be found (User): 
-    .Renviron 
+    Create a file where your you Rstudio installation can be found (User): \
+    .Renviron \
     and setup the following system variables:\
     DB_host=""\
     DB_name=""\
