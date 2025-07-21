@@ -42,17 +42,20 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
   pull()
 ```
 
+## Anleitung
 
-1.  Download and install R\
+1.  Download und instalieren von R\
     <https://cran.r-project.org/bin/windows/base/>
 
-2.  Download and install Rstudio\
+2.  Download und instalieren Rstudio\
     <https://posit.co/download/rstudio-desktop/>
 
-3.  Download\
+3.  Download und instalieren Git\
     <https://git-scm.com/downloads>
 
-4.  Kionklub Scripts download: Navigate to folder you would like to install the Scripts
+4.  Projekt herunterladen:\
+    Erstelle ein Ordner wo die Dateien abgespeicher werden sollen. \
+    Ein Terminal öffnen (in Windows: rechte Maustaste und dann Terminal öffnen) und dann folgenden code ausführen. 
 
     ```         
         git clone https://github.com/slvwagner/Kinoklub
@@ -60,7 +63,7 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
 
 5.  Start Rstudio from the Kinoklub folder, or open the project with Rstudio "Kinoklub.Rproj".
 
-6.  Install the needed packages in the R Terminal
+6.  Installieren der benötigten "Packages" im "R Terminal"
 
     ```{R} 
     paste0("install.packages(",paste0("\"",c_dependencies,"\"", collapse = ","),")")|>writeLines()
