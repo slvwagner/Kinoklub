@@ -30,6 +30,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 # Installation
 
+## Anleitung
 1.  Download and install R\
     <https://cran.r-project.org/bin/windows/base/>
 2.  Download and install Rstudio\

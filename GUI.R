@@ -663,7 +663,7 @@ server <- function(input, output, session) {
   ### User filter in data table ####
   last_user_filter <- shiny::reactiveVal(NULL)
   
-  ## Button: Datenbank backup ####
+  ## Button: Database backup ####
   shiny::observeEvent(input$DB_backup,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -718,6 +718,97 @@ server <- function(input, output, session) {
         calculate_warnings()
         )|>
         ausgabe_text()
+    })
+  })
+  
+  ## Button: Database recovery ####
+  shiny::observeEvent(input$DB_recovery,{
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    # find backups
+    df_temp <- tibble(files = list.files(path = "Backup", full.names = FALSE))|>
+      arrange(desc(files))
+    
+    # render file list
+    df_temp_1(df_temp)
+    
+    showModal(
+      modalDialog(
+        title = paste0("Datenbank Recovery: `Input Kinoklub`"),
+        tagList(
+          renderText("Alle Datensätze werden mit dem gewählten Backup überschrieben!"),
+          renderText("Achtung dieser Vorgang kann zum Datenverlust führen"),
+          shiny::hr(),
+          DT::DTOutput("modal_database_recovery")
+        ),
+        easyClose = FALSE, 
+        footer = tagList(
+          actionButton("DB_recovery_exe", "Recovery, selektiertes Backup", class = "btn-danger"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+  })
+  
+  
+  ## Button: Database recovery exe ####
+  shiny::observeEvent(input$DB_recovery_exe,{
+    removeModal()
+    
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    # Execution time 
+    c_time <- Sys.time()
+    
+    if(is.null(input$modal_database_recovery_rows_selected)){
+      # User interaction
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile in der Tabelle markieren!",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(NULL) # exit early from the function
+    }
+    
+    
+    shiny::withProgress(message = "DB Recovery...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+    
+      # selected recovery file
+      df_temp <- df_temp_1()[input$modal_database_recovery_rows_selected,]|>
+        mutate(files = paste0("backup/",files))
+      
+      # read file
+      l_data <- readRDS(df_temp$files)
+  
+      # update database
+      DB_update_all(l_data ,con)
+      
+      
+      # calculate execution time
+      c_time <- c(c_time,end = Sys.time())|>
+        diff()
+      
+      # System feedback 
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+             "\nDie Datenbank wurde mit dem Backup: .../", df_temp$files, " überschrieben.")|>
+        ausgabe_text()
+      
+      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
     })
   })
   
@@ -2394,8 +2485,27 @@ server <- function(input, output, session) {
       ausgabe_text()
     
   })
-  
-  ## Render modla delete file ####
+
+  ## Render modal database recovery ####
+  output$modal_database_recovery <- DT::renderDT({
+    req(df_temp_1())  
+    
+    df_temp <- df_temp_1()
+    
+    datatable(df_temp, 
+              rownames = FALSE,
+              selection = "single",
+              filter = "none",
+              options = list(
+                # searching = FALSE,     # removes search box
+                language = DT_language,
+                pageLength = nrow(df_temp_1()),
+                paging = FALSE        # disables pagination
+              )
+    )
+  })
+    
+  ## Render modal delete file ####
   output$modal_delete_file <- DT::renderDT({
     req(df_temp_1())  
     
@@ -2746,7 +2856,8 @@ server <- function(input, output, session) {
         shiny::tags$hr(),
         
         # Database backup
-        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),        
+        shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),
+        shiny::actionButton("DB_recovery", "Datenbank recovery",class = "btn-danger"),
         shiny::uiOutput("db_status")
       )
     }
