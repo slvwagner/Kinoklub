@@ -784,32 +784,31 @@ server <- function(input, output, session) {
       req(NULL) # exit early from the function
     }
     
+    # selected recovery file
+    df_temp <- df_temp_1()[input$modal_database_recovery_rows_selected,]|>
+      mutate(files = paste0("backup/",files))
+    
+    # read file
+    l_data <- readRDS(df_temp$files)
+    
+    n <- length(l_data)
+    table_name <- names(l_data)
     
     shiny::withProgress(message = "DB Recovery...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-    
-      # selected recovery file
-      df_temp <- df_temp_1()[input$modal_database_recovery_rows_selected,]|>
-        mutate(files = paste0("backup/",files))
-      
-      # read file
-      l_data <- readRDS(df_temp$files)
-  
-      # update database
-      DB_update_all(l_data ,con)
-      
-      
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      
-      # System feedback 
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",
-             "\nDie Datenbank wurde mit dem Backup: .../", df_temp$files, " überschrieben.")|>
-        ausgabe_text()
-      
-      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+      for (ii in 1:n) {
+        shiny::incProgress(1 / n, detail = paste("Step", 1, "of", n))
+        DB_copy_table(l_data[[table_name[ii]]], DB_con(), table_name[ii])
+      }
     })
+    
+    # calculate execution time
+    c_time <- c(c_time,end = Sys.time())|>
+      diff()
+    
+    # System feedback 
+    paste0("Ausführungszeit: ",r_signif(c_time),"\n",
+           "Die Datenbank wurde mit dem Backup: .../", df_temp$files, " überschrieben.")|>
+      ausgabe_text()
   })
   
   ##  Button: Abrechnungsjahr #####
