@@ -293,7 +293,8 @@ df_tickets <- df_tickets|>
            # Platzkategorie = factor(Platzkategorie),
            Zahlend = factor(Zahlend),
            Semester = factor(get_semester(Datum)),
-           Abrechnungsjahr = factor(Abrechnungsjahr)
+           Abrechnungsjahr = factor(Abrechnungsjahr),
+           Platzkategorie = factor(Platzkategorie)
            )
 
 df_tickets <- df_tickets|>
