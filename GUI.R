@@ -792,6 +792,11 @@ server <- function(input, output, session) {
         )
       })
 
+      # Git pull
+      l_result <- git_pull(repo = repo_path)
+      l_result$message|>
+        ausgabe_text()
+      
       # Git status
       df_git_status <- gert::git_status()
       
@@ -2561,44 +2566,6 @@ server <- function(input, output, session) {
   observeEvent(input$git_pull, {
     l_result <- git_pull(repo = repo_path)
     l_result$message|>
-      ausgabe_text()
-  })
-  
-  ## Button: git commit and push ####
-  observeEvent(input$git_commit, {
-    # Git status
-    df_git_status <- gert::git_status()
-    
-    # Stage all changes
-    l_result <- 
-      capture_messages_warnings(
-        gert::git_add(df_git_status$file , repo = repo_path)
-        )
-    
-    c_commit_msg <- paste(Sys.Date(), "Database backup")
-    
-    # Commit
-    l_result <- 
-      capture_messages_warnings(
-        gert::git_commit(message = c_commit_msg, repo = repo_path)
-        )
-    
-    # Push to origin
-    l_result <- 
-      capture_messages_warnings(
-        git_push(repo = repo_path)
-      )
-    
-    l_result <- 
-      capture_messages_warnings(
-        git_push(repo = repo_path)
-      )
-    
-    # system message
-    paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
-           "Commit message:\n", 
-           c_commit_msg,"\n"
-           )|>
       ausgabe_text()
   })
 
