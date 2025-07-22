@@ -792,6 +792,40 @@ server <- function(input, output, session) {
         )
       })
 
+      # Git status
+      df_git_status <- gert::git_status()
+      
+      # Stage all changes
+      l_result <- 
+        capture_messages_warnings(
+          gert::git_add(df_git_status$file , repo = repo_path)
+        )
+      
+      c_commit_msg <- paste(Sys.Date(), "Database backup")
+      
+      # Commit
+      l_result <- 
+        capture_messages_warnings(
+          gert::git_commit(message = c_commit_msg, repo = repo_path)
+        )
+      
+      # Push to origin
+      l_result <- 
+        capture_messages_warnings(
+          git_push(repo = repo_path)
+        )
+      
+      l_result <- 
+        capture_messages_warnings(
+          git_push(repo = repo_path)
+        )
+      
+      # system message
+      c_git_msg <- paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
+             "Commit message:\n", 
+             c_commit_msg,"\n"
+      )
+      
       shiny::incProgress(1 / 2, detail = paste("Datenbank backup", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -801,7 +835,7 @@ server <- function(input, output, session) {
         "Ausführungszeit: ",r_signif(c_time),"\n",
         paste0(ausgabe_text(), collapse = ", "),"\n",
         "Datenbank-Backup durchgeführt!\n",
-        "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!\n",
+        c_git_msg, "\n",
         calculate_warnings()
         )|>
         ausgabe_text()
@@ -2541,7 +2575,7 @@ server <- function(input, output, session) {
         gert::git_add(df_git_status$file , repo = repo_path)
         )
     
-    c_commit_msg <- paste(Sys.Date(), "Database backup:", input$commit_msg)
+    c_commit_msg <- paste(Sys.Date(), "Database backup")
     
     # Commit
     l_result <- 
@@ -2999,7 +3033,7 @@ server <- function(input, output, session) {
         
         # Git 
         shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
-        shiny::actionButton("git_commit", "Git commit and push",class = "btn-danger")
+        shiny::actionButton("git_commit", "Git commit and push",class = "btn-info")
       )
     }
     
