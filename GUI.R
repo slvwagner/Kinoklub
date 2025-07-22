@@ -2546,7 +2546,7 @@ server <- function(input, output, session) {
     # Commit
     l_result <- 
       capture_messages_warnings(
-        gert::git_commit(message = input$commit_msg, repo = repo_path)
+        gert::git_commit(message = c_commit_msg, repo = repo_path)
         )
     
     # Push to origin
@@ -2960,14 +2960,13 @@ server <- function(input, output, session) {
         # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
         shiny::actionButton("Abrechnung", "Filmabrechnung(en) erstellen"),
         shiny::actionButton("Verleiherrechnung", "Verleiherrechnung(en) erstellen"),
-        
         shiny::tags$hr(),
+        
         # Button zum Ausführen von Code Statistik erstellen
         shiny::actionButton("Statistik", "Jahresstatistik erstellen"),
         
         # Button zum Ausführen von Code Jahresrechnung erstellen
         shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
-
         shiny::tags$hr(),
 
         # Button zum Ausführen von Code Statistik erstellen
@@ -2984,14 +2983,12 @@ server <- function(input, output, session) {
         if(file_exists_filmvorschlag()) {
           shiny::downloadButton("downloadWordPress", "Download Filmvorschläge")
         },
-        
         shiny::tags$hr(),
         
         # Database backup
         shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),
         shiny::actionButton("DB_recovery", "Datenbank recovery",class = "btn-danger"),
         shiny::uiOutput("db_status"),
-        
         shiny::tags$hr(),
         
         # Git 
