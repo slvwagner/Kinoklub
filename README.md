@@ -193,7 +193,8 @@ Dann muss der "Export mit Details" gewählt werden. \
 Bitte speichern unter .../Kinoklub/Input/Procinema/**procinema.txt**\
 
 # Input Tabellen 
-Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten"\
+Alle Input Tabellen können mit der Applikation "Input Daten Kinoklub" bearbeitet werden. \
+Um die Änderungen in der Applikation "Kinoklub GUI" zu reflektieren müssen die Daten neu eingelesen und berechnet werden. Das erfollgt im "Kinoklub GUI": `Daten updaten`\
 
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die lokale Adresse ist: <http://127.0.0.1:5001/>\
@@ -203,9 +204,7 @@ Die lokale Adresse ist: <http://127.0.0.1:5001/>\
 ```
 Die Applikation ist jedoch auch mit <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar.
 
-
-## Inputdaten
-
+## Inputtabellen
 ### Filmvorschlag
 Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden.
 
@@ -334,22 +333,22 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
 
-## Advanced-Tickets
 
+## Advanced-Tickets
 ### Eintritt files
-Rohdaten Eintritt
+Rohdaten Eintritt die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Eintritt
 Konvertierte Eintritt files
 
 ### Kiosk files
-Rohdaten Kiosk
+Rohdaten Kiosk die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Kiosk
 Konvertierer Kioskfiles
 
-## Dropdowns
 
+## Dropdowns
 ### Kinoklubmitglieder
 Erfassung aller Kinklubmitglieder mit Skill-Matrix
 
@@ -373,6 +372,8 @@ Spezialpeise die Ausgewählt werden können.
 
 ### MWST
 In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt werden.
+
+
 
 # Berichte erstellen
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
@@ -589,14 +590,20 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt.\
 Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
 
+
+
 # Benutzereinstellungen
 ## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
 Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen auf den Gewinn und die Verleiherabrechnung.
 
+
+
 # Datenexport als Excel-Datei
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
+
+
 
 # Dokumentation
 Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
@@ -607,8 +614,9 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-# Versionshistorie
 
+
+# Versionshistorie
 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
