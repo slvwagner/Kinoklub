@@ -1,3 +1,4 @@
+# Script to create Executable link to start up application on windows systems
 create_shortcut <- function(
     target_bat,
     shortcut_path,
@@ -56,7 +57,36 @@ create_shortcut <- function(
 }
 
 
+create_linux_shortcut <- function(exec_path, shortcut_path, icon_path = NULL, name = "Kinoklub GUI") {
+  shortcut_content <- c(
+    "[Desktop Entry]",
+    "Type=Application",
+    paste0("Name=", name),
+    paste0("Exec=", normalizePath(exec_path, winslash = "/")),
+    paste0("Icon=", normalizePath(icon_path, winslash = "/")),
+    "Terminal=true"
+  )
+  
+  writeLines(shortcut_content, shortcut_path)
+  Sys.chmod(shortcut_path, mode = "0755")  # Make executable
+}
 
+# create_linux_shortcut(
+#   exec_path = "~/Kinoklub/Kinoklub_GUI.sh",
+#   shortcut_path = "~/Desktop/Kinoklub_GUI.desktop",
+#   icon_path = "~/Kinoklub/icon.png"
+# )
+
+create_mac_command <- function(r_script_path, command_path) {
+  cmd <- paste("#!/bin/bash", sprintf('Rscript "%s"', normalizePath(r_script_path)), sep = "\n")
+  writeLines(cmd, command_path)
+  Sys.chmod(command_path, mode = "0755")
+}
+
+# create_mac_command(
+#   r_script_path = "~/Kinoklub/Kinoklub_GUI.R",
+#   command_path = "~/Desktop/Kinoklub_GUI.command"
+# )
 
 
 
@@ -117,7 +147,7 @@ create_shortcut(
   working_dir = getwd(),
   description = "Kinoklub Input Tabellen"
 )
-message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub_input.bat` wurde erstellt.")
+message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub input` wurde erstellt.")
 
 
 r_file <- paste0(r_wd, "/Start_GUI.R")|>
@@ -142,7 +172,7 @@ create_shortcut(
   description = "Kinoklub GUI"
 )
 
-message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub_GUI.bat` wurde erstellt.")
+message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub GUI` wurde erstellt.")
 
 
 
