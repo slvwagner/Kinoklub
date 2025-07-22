@@ -2976,8 +2976,7 @@ server <- function(input, output, session) {
         shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
         shiny::actionButton("git_commit", "Git commit",class = "btn-danger"),
         shiny::actionButton("git_push", "Git push",class = "btn-success"),
-        shiny::textInput("commit_msg","Commit message"),
-        shiny::uiOutput("git_log")
+        shiny::textInput("commit_msg","Commit message")
       )
     }
     
