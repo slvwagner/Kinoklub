@@ -395,6 +395,7 @@ In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt 
 
 # Berichte erstellen
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
+Die Dateien werden automatisch auf den Kinoklub FTP server hochgeladen und sind im "Kinoklub GUI" zu finden und können deshalb einfach geteilt werden. 
 
 ## Abrechnung Filmvorführung
 Es wird eine Filmabrechnung pro Event ID erstellt.
