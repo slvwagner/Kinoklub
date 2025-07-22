@@ -110,7 +110,11 @@ if (!dir.exists("output")) {
 shiny::addResourcePath("reports", "output")
 
 # Constants ####
+## Data-table page length ####
 c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
+
+## git repository ####
+repo_path <- "https://github.com/slvwagner/Kinoklub"
 
 # UI-Definition fluid page ####
 ui <- 
@@ -2430,7 +2434,8 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent(input$commit_btn, {
+  # git commit ####
+  observeEvent(input$git_commit, {
     tryCatch({
       # Stage all changes
       git_add(repo = repo_path)
@@ -2444,7 +2449,8 @@ server <- function(input, output, session) {
     })
   })
   
-  observeEvent(input$push_btn, {
+  # git push ####
+  observeEvent(input$git_push, {
     tryCatch({
       # Push to origin
       git_push(repo = repo_path)
@@ -2455,7 +2461,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Show latest git log
+  # Show latest git log ####
   output$git_log <- renderText({
     tryCatch({
       log <- git_log(repo = repo_path, max = 5)
