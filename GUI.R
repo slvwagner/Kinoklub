@@ -590,6 +590,10 @@ server <- function(input, output, session) {
   }
   
   ## Shiny reactive variables ####
+  
+  ### Git commit message ####
+  commit_msg <- shiny::reactiveVal(NULL)
+  
   ### DB connection ####
   DB_con <- shiny::reactiveVal(con)
   
@@ -738,7 +742,38 @@ server <- function(input, output, session) {
         ausgabe_text(capture.output({
           withCallingHandlers(
             {
-              source("source/SQL/SQL_backup_data.R")
+              # source("source/SQL/SQL_backup_data.R")
+              
+              # read template
+              l_template <- readRDS("source/SQL/template.RDS")
+
+              # Backup
+              l_data <- DB_backup_DB(con)
+              
+              # Convert to R data type
+              l_data <- convert_DB_to_R(l_data, l_template)
+              
+              # file name 
+              c_fileName <- paste(unlist(str_split(as.character(c_time), "\\."))[1], "Backup")|>
+                str_replace_all(":","_")
+              c_fileName
+            
+              # create new file name
+              df_temp <- tibble(file = list.files(path = "Backup"))
+              df_temp
+              
+      
+              # regex to extract filename
+              p <- "([\\d]+)\\.Rds$"
+              
+              df_temp <- df_temp|>
+                mutate(ID = str_match(file, p)[,2]|>as.integer())|>
+                arrange(ID)
+              df_temp
+              
+              # save backup
+              saveRDS(l_data, paste0("Backup/",c_fileName, max(df_temp$ID) + 1L,".Rds"))
+
             },
             warning = function(w) {
               # Capture warnings and store them in calculate_warnings
@@ -761,11 +796,12 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
+      
       paste0(
         "Ausführungszeit: ",r_signif(c_time),"\n",
         paste0(ausgabe_text(), collapse = ", "),"\n",
         "Datenbank-Backup durchgeführt!\n",
-        "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!",
+        "Um die Daten auf git zu Speichern bitte mit Git commiten und pushen!\n",
         calculate_warnings()
         )|>
         ausgabe_text()
@@ -781,10 +817,15 @@ server <- function(input, output, session) {
         DB_con()
       showNotification(paste("Database connection recovered"), type = "message")
     }
-    
+
+    # regex to extract suffix number 
+    p <- "([\\d]+)\\.Rds$"
+
     # find backups
     df_temp <- tibble(files = list.files(path = "Backup", full.names = FALSE))|>
-      arrange(desc(files))
+      mutate(ID = as.integer(str_match(files,p)[,2]))|>
+      arrange(desc(ID))
+    df_temp
     
     # render file list
     df_temp_1(df_temp)
@@ -1965,7 +2006,7 @@ server <- function(input, output, session) {
         } 
       }
     } 
-    ### csv Wordpress #####
+    ### csv Wordpress ####
     else if (file_ext == "csv") {
       # save csv files (WordPress input)
       # Define save path
@@ -2045,7 +2086,7 @@ server <- function(input, output, session) {
       overwrite = TRUE
     )
     
-    # check wich file type 
+    # check file type 
     c_test <- last_uploaded_file()|>
       str_detect("Kiosk")
     
@@ -2481,14 +2522,15 @@ server <- function(input, output, session) {
     }
   })
   
-  # Button: Git Pull ####
+  
+  ## Button: Git Pull ####
   observeEvent(input$git_pull, {
     l_result <- git_pull(repo = repo_path)
     l_result$message|>
       ausgabe_text()
   })
   
-  # Button: git commit ####
+  ## Button: git commit and push ####
   observeEvent(input$git_commit, {
     # Git status
     df_git_status <- gert::git_status()
@@ -2520,16 +2562,6 @@ server <- function(input, output, session) {
       ausgabe_text()
   })
 
-  
-  # Button: Show latest git log ####
-  output$git_log <- renderText({
-    tryCatch({
-      log <- git_log(repo = repo_path, max = 5)
-      paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
-    }, error = function(e) {
-      "⚠️ No git log found or not a git repository."
-    })
-  })
   
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
@@ -2964,8 +2996,7 @@ server <- function(input, output, session) {
         
         # Git 
         shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
-        shiny::actionButton("git_commit", "Git commit and push",class = "btn-danger"),
-        shiny::textInput("commit_msg","Commit message")
+        shiny::actionButton("git_commit", "Git commit and push",class = "btn-danger")
       )
     }
     
