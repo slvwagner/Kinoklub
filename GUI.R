@@ -2563,8 +2563,7 @@ server <- function(input, output, session) {
     # system message
     paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
            "Commit message:\n", 
-           c_commit_msg,"\n",
-           l_result$message
+           c_commit_msg,"\n"
            )|>
       ausgabe_text()
   })
