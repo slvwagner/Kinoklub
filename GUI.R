@@ -792,6 +792,7 @@ server <- function(input, output, session) {
         )
       })
 
+      shiny::incProgress(1 / 3, detail = paste("Git pull", 2, "of 3"))
       # Git pull
       l_result <- git_pull(repo = repo_path)
       l_result$message|>
@@ -814,6 +815,7 @@ server <- function(input, output, session) {
           gert::git_commit(message = c_commit_msg, repo = repo_path)
         )
       
+      shiny::incProgress(1 / 3, detail = paste("Git commit and push", 3, "of 3"))
       # Push to origin
       l_result <- 
         capture_messages_warnings(
