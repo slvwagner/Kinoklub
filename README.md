@@ -9,24 +9,6 @@ Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 
 
 # Installation
-
-```{r include=FALSE}
-c_Path <- getwd()
-c_Path <- sub("^(.*?Kinoklub/).*", "\\1", c_Path)
-c_Path
-# find package dependencies for this project
-df_dependencies <- renv::dependencies(path = c_Path)|>
-  as_tibble()|>
-  filter(Package != "base" & Package != "utils") # exclued base packages
-```
-
-
-```{r include=FALSE}
-c_dependencies <- df_dependencies|>
-  distinct(Package)|>
-  pull()
-```
-
 ## Anleitung
 
 1.  Download und instalieren von R\

@@ -18,10 +18,13 @@ c_raw <- readLines("doc/README.Rmd")
 
 # Scrip Version einfügen 
 index <- (1:length(c_raw))[c_raw|>str_detect("# Kinoklub")]
+index
+
 # Ändern des Templates
 c(paste0("Script Version: ",c_script_version, collapse = ""),
   " ",
-  c_raw[index:length(c_raw)])|>
+  c_raw[index[1]:length(c_raw)]
+  )|>
   writeLines("README.md")
 
 
