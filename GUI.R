@@ -2430,6 +2430,41 @@ server <- function(input, output, session) {
     }
   })
   
+  observeEvent(input$commit_btn, {
+    tryCatch({
+      # Stage all changes
+      git_add(repo = repo_path)
+      
+      # Commit
+      git_commit(message = input$commit_message, repo = repo_path)
+      
+      output$status <- renderText("✅ Commit successful!")
+    }, error = function(e) {
+      output$status <- renderText(paste("❌ Commit failed:", e$message))
+    })
+  })
+  
+  observeEvent(input$push_btn, {
+    tryCatch({
+      # Push to origin
+      git_push(repo = repo_path)
+      
+      output$status <- renderText("✅ Push successful!")
+    }, error = function(e) {
+      output$status <- renderText(paste("❌ Push failed:", e$message))
+    })
+  })
+  
+  # Show latest git log
+  output$git_log <- renderText({
+    tryCatch({
+      log <- git_log(repo = repo_path, max = 5)
+      paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
+    }, error = function(e) {
+      "No git log found or not a git repository."
+    })
+  })
+  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
