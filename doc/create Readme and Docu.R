@@ -36,7 +36,7 @@ r_toc_for_Rmd(readLines("doc/README.Rmd"),
               create_nb = T)|>
   writeLines("README.Rmd")
 
-rmarkdown::render(input = paste0("README.Rmd"),
+rmarkdown::render(input = "README.Rmd",
                   output_format = "html_document",
                   output_dir  = "doc/",
                   output_file = "Dokumentation.html")
@@ -59,13 +59,13 @@ ftp_upload("doc/Dokumentation.html", ftp_server, ftp_user, ftp_password, ftp_bas
 #                   output_file = "Dokumentation.docx")
 
 
-# PDF
-readLines("doc/README.Rmd")|>
-  writeLines("README.Rmd")
-
-rmarkdown::render(input = paste0("README.Rmd"),
-                  output_format = "pdf_document",
-                  output_dir  = "doc/",
-                  output_file = "Dokumentation.pdf")
+# # PDF
+# readLines("doc/README.Rmd")|>
+#   writeLines("README.Rmd")
+# 
+# rmarkdown::render(input = "README.Rmd",
+#                   output_format = "pdf_document",
+#                   output_dir  = "doc/",
+#                   output_file = "Dokumentation.pdf")
 
 file.remove("README.Rmd")
