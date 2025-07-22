@@ -2555,10 +2555,17 @@ server <- function(input, output, session) {
         git_push(repo = repo_path)
       )
     
+    l_result <- 
+      capture_messages_warnings(
+        git_push(repo = repo_path)
+      )
+    
     # system message
     paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
            "Commit message:\n", 
-           c_commit_msg)|>
+           c_commit_msg,"\n",
+           l_result$message
+           )|>
       ausgabe_text()
   })
 
