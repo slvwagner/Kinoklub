@@ -92,7 +92,6 @@ ausgabe_text <- ""
 # Error handling
 if(str_detect(ausgabe_text, pattern = error_calculate)) stop(ausgabe_text)
 
-
 # include some function into data_env
 data_env$r_is.defined <- r_is.defined
 data_env$round5Rappen <- round5Rappen
@@ -113,8 +112,12 @@ shiny::addResourcePath("reports", "output")
 ## Data-table page length ####
 c_lengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 
-## git repository ####
-repo_path <- "https://github.com/slvwagner/Kinoklub"
+## remote git repository ####
+remote_repo_path <- "https://github.com/slvwagner/Kinoklub/SQL"
+
+## local git repository ####
+repo_path <- getwd()
+
 
 # UI-Definition fluid page ####
 ui <- 
@@ -540,6 +543,50 @@ server <- function(input, output, session) {
       ausgabe_text("")
     }
     return(df_temp)
+  }
+  
+  ### Git ####
+  git_commit <- function(message, repo = ".") {
+    git_add(repo = repo)
+    capture_messages_warnings(gert::git_commit(message = message, repo = repo))
+  }
+  
+  git_push <- function(repo = ".") {
+    capture_messages_warnings(gert::git_push(repo = repo))
+  }
+  
+  git_pull <- function(repo = ".") {
+    capture_messages_warnings(gert::git_pull(repo = repo))
+  }
+  
+  git_log <- function(repo = ".") {
+    log <- gert::git_log(repo = repo, max = 5)
+    paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
+  }
+  
+  ### capture message and warnings ####
+  capture_messages_warnings <- function(expr) {
+    messages <- character()
+    warnings <- character()
+    
+    result <- withCallingHandlers(
+      tryCatch(
+        expr,
+        warning = function(w) {
+          # suppress default warning printing
+          invokeRestart("muffleWarning")
+        }
+      ),
+      message = function(m) {
+        messages <<- c(messages, conditionMessage(m))
+        invokeRestart("muffleMessage")
+      },
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+      }
+    )
+    
+    list(result = result, messages = messages, warnings = warnings)
   }
   
   ## Shiny reactive variables ####
@@ -2434,16 +2481,37 @@ server <- function(input, output, session) {
     }
   })
   
+  # Button: Git Pull ####
+  observeEvent(input$git_pull, {
+    l_result <- git_pull(repo = repo_path)
+    l_result$message|>
+      ausgabe_text()
+  })
+  
   # Button: git commit ####
   observeEvent(input$git_commit, {
     tryCatch({
+      # Git status
+      df_git_status <- gert::git_status()
+      
       # Stage all changes
-      git_add(repo = repo_path)
+      l_result <- 
+        capture_messages_warnings(
+          gert::git_add(df_git_status$file , repo = repo_path)
+          )
+      
+      c_commit_msg <- paste(Sys.Date(), "Database backup:", input$commit_msg)
       
       # Commit
-      git_commit(message = input$commit_message, repo = repo_path)
+      l_result <- 
+        capture_messages_warnings(
+          gert::git_commit(message = input$commit_msg, repo = repo_path)
+          )
       
-      output$status <- renderText("✅ Commit successful!")
+      # system message
+      l_result$message|>
+        ausgabe_text()
+      
     }, error = function(e) {
       output$status <- renderText(paste("❌ Commit failed:", e$message))
     })
@@ -2467,7 +2535,7 @@ server <- function(input, output, session) {
       log <- git_log(repo = repo_path, max = 5)
       paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
     }, error = function(e) {
-      "No git log found or not a git repository."
+      "⚠️ No git log found or not a git repository."
     })
   })
   
@@ -2832,7 +2900,7 @@ server <- function(input, output, session) {
   output$dynamicContent_input_panel <- shiny::renderUI({
     if(DB_FTP_credentials_not_compleat){
       shiny::tagList(
-        renderText("Es sind nicht alle Systemvariablen korrect definiert!"),
+        renderText("Es sind nicht alle Systemvariablen korrekt definiert!"),
         renderText("Bitte korrigieren!")
       )
     } else {
@@ -2898,7 +2966,16 @@ server <- function(input, output, session) {
         # Database backup
         shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),
         shiny::actionButton("DB_recovery", "Datenbank recovery",class = "btn-danger"),
-        shiny::uiOutput("db_status")
+        shiny::uiOutput("db_status"),
+        
+        shiny::tags$hr(),
+        
+        # Git 
+        shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
+        shiny::actionButton("git_commit", "Git commit",class = "btn-danger"),
+        shiny::actionButton("git_push", "Git push",class = "btn-success"),
+        shiny::textInput("commit_msg","Commit message"),
+        shiny::uiOutput("git_log")
       )
     }
     
