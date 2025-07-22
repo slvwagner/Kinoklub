@@ -3,6 +3,46 @@ library(rvest)
 library(tidyverse)
 library(purrr)
 
+# Git ####
+git_commit <- function(message, repo = ".") {
+  git_add(repo = repo)
+  capture_messages_warnings(gert::git_commit(message = message, repo = repo))
+}
+
+git_push <- function(repo = ".") {
+  capture_messages_warnings(gert::git_push(repo = repo))
+}
+
+git_pull <- function(repo = ".") {
+  capture_messages_warnings(gert::git_pull(repo = repo))
+}
+
+
+### capture message and warnings ####
+capture_messages_warnings <- function(expr) {
+  messages <- character()
+  warnings <- character()
+  
+  result <- withCallingHandlers(
+    tryCatch(
+      expr,
+      warning = function(w) {
+        # suppress default warning printing
+        invokeRestart("muffleWarning")
+      }
+    ),
+    message = function(m) {
+      messages <<- c(messages, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    },
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+    }
+  )
+  
+  list(result = result, messages = messages, warnings = warnings)
+}
+
 # find semester from date ####
 get_semester <- function(date) {
   # Ensure input is of Date class

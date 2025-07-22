@@ -32,6 +32,14 @@ ftp_password <- Sys.getenv("ftp_password")
 # Base path where to put the files (Must be a public html folder)
 ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
 
+# auto update application
+git_pull(getwd())
+
+git_log <- function(repo = ".") {
+  log <- gert::git_log(repo = repo, max = 5)
+  paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
+}
+
 # check if all credentials are defined on the machine the code is executed
 c_credentials <- c(DB_host = DB_host, DB_name = DB_name, DB_user = DB_user, DB_pw = DB_pw, 
                    ftp_server = ftp_server, ftp_user = ftp_user, ftp_password = ftp_password)
@@ -522,50 +530,6 @@ server <- function(input, output, session) {
       ausgabe_text("")
     }
     return(df_temp)
-  }
-  
-  ### Git ####
-  git_commit <- function(message, repo = ".") {
-    git_add(repo = repo)
-    capture_messages_warnings(gert::git_commit(message = message, repo = repo))
-  }
-  
-  git_push <- function(repo = ".") {
-    capture_messages_warnings(gert::git_push(repo = repo))
-  }
-  
-  git_pull <- function(repo = ".") {
-    capture_messages_warnings(gert::git_pull(repo = repo))
-  }
-  
-  git_log <- function(repo = ".") {
-    log <- gert::git_log(repo = repo, max = 5)
-    paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
-  }
-  
-  ### capture message and warnings ####
-  capture_messages_warnings <- function(expr) {
-    messages <- character()
-    warnings <- character()
-    
-    result <- withCallingHandlers(
-      tryCatch(
-        expr,
-        warning = function(w) {
-          # suppress default warning printing
-          invokeRestart("muffleWarning")
-        }
-      ),
-      message = function(m) {
-        messages <<- c(messages, conditionMessage(m))
-        invokeRestart("muffleMessage")
-      },
-      warning = function(w) {
-        warnings <<- c(warnings, conditionMessage(w))
-      }
-    )
-    
-    list(result = result, messages = messages, warnings = warnings)
   }
   
   ## Shiny reactive variables ####
