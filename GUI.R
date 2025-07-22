@@ -2998,11 +2998,7 @@ server <- function(input, output, session) {
         shiny::actionButton("DB_backup", "Datenbank backup",class = "btn-success"),
         shiny::actionButton("DB_recovery", "Datenbank recovery",class = "btn-danger"),
         shiny::uiOutput("db_status"),
-        shiny::tags$hr(),
-        
-        # Git 
-        shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
-        shiny::actionButton("git_commit", "Git commit and push",class = "btn-info")
+        shiny::tags$hr()
       )
     }
     
