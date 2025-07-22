@@ -69,3 +69,5 @@ ftp_upload("doc/Dokumentation.html", ftp_server, ftp_user, ftp_password, ftp_bas
 #                   output_file = "Dokumentation.pdf")
 
 file.remove("README.Rmd")
+
+message("Dokumentation erstellt und Hochgeladen")

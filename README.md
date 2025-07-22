@@ -15,8 +15,14 @@ c_Path <- getwd()
 c_Path <- sub("^(.*?Kinoklub/).*", "\\1", c_Path)
 c_Path
 # find package dependencies for this project
-c_dependencies <- renv::dependencies(path = c_Path)|>
+df_dependencies <- renv::dependencies(path = c_Path)|>
   as_tibble()|>
+  filter(Package != "base" & Package != "utils") # exclued base packages
+```
+
+
+```{r include=FALSE}
+c_dependencies <- df_dependencies|>
   distinct(Package)|>
   pull()
 ```
@@ -40,18 +46,19 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
         git clone https://github.com/slvwagner/Kinoklub
     ```
 
-5.  Start Rstudio vom Kinoklub Ordner und dann das Projekt "Kinoklub.Rproj" öffnen.
+5.  Starte Rstudio das Projekt "Kinoklub.Rproj" öffnen.
 
 6.  Installieren der benötigten "Packages" im "R Terminal"
 
     ```{R} 
-    paste0("install.packages(",paste0("\"",c_dependencies,"\"", collapse = ","),")")|>writeLines()
+    paste0("install.packages(c(",paste0("\"",c_dependencies,"\"", collapse = ","),"))")|>writeLines()
     ```
 
-7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten:\
+7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten.\
+    Die Information sind dem Kinoklub bekannt und können da nachgefragt werden.
     
     -   Windows \
-        Terminal Kommandos nacheinander mit den korrekten Daten ausführen:
+        Windows Terminal oder Powershell öffnen und die folgenden Kommandos nacheinander mit den korrekten Daten ausführen:
 
         ```         
         setx DB_host "your host name here"
@@ -76,28 +83,47 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
         ```        
         setx ftp_pw "your ftp password here"
         ```
-    
+        
+        ```
+        setx RSTUDIO_PANDOC "find the directory on your computer where pandoc.exe is intalle, e.g. C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
+        ```
 
     -   MAC / Linux\
         Erstellen ein neue Datei **".Renviron"** im Kinoklub Benutzerverzeichniss.\
+        Beim speicher muss darauf geachtet werden dass die Datei korrekt abgespeicher wird. Die Datei hat keinen Dateinamen sondern nur die Dateierweiterung "**.Renviron **". \
         Die Datei wie folgt abfüllen: \
         
         ```
-        DB_host=""\
-        DB_name=""\
-        DB_user=""\
-        DB_PASSWORD_KINOKLUB=""\
-        ftp_user=""\
-        ftp_pw=""\
+        DB_host="your host name here"
+        DB_name="your database name here"
+        DB_user="your database user name here"
+        DB_PASSWORD_KINOKLUB="your database password here"
+        ftp_user="your ftp user here"
+        ftp_pw="your ftp password here"
+        RSTUDIO_PANDOC="find the directory on your computer where pandoc.exe is intalled"
         ```
+8.  Erstellen der Applikations links \
+    Im R Terminal das folgende ausführen:
+    
+    ```
+    source(paste0(getwd(),"/source/OS_support/create bat to startup app.R"))
+    ```
 
-## Git Passwort / Personal Access Token (PAT)
 
-Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
+## Git 
+
+### Github user
+Um ein Datenbank backup auszuführen ist es nötig sich bei GitHub anzumelden. Der Github user muss dem Kinoklub projekt als Contributors hinzugefügt sein um schreibberechting zu haben.  \
+<https://github.com/slvwagner/Kinoklub>
+
+
+### Git Passwort / Personal Access Token (PAT)
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Github anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
-# Applikation ausführen
-
+# Kinoklub GUI-Applikation ausführen
+Die Applikation kann mit den Application links oder mit RStudio "Run" gestartet werden. \
+\
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die Adresse ist: <http://127.0.0.1:5003/>
 
@@ -515,7 +541,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben\
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
-## Statistik
+## Jahresstatistik
 
 -   Gewinn/Verlust
     -   Prognose\
@@ -549,8 +575,10 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
-## WordPress Filmvorschläge auswerten
+## Statistik
+Statistische auswertung über alle Abrechnungsperioden.
 
+## WordPress Filmvorschläge auswerten
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
 
 ```         
@@ -558,18 +586,15 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 ```
 
 ## Archiv
-
 Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt.\
-Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden:  .../Kinoklub/Input/Procinema/Procinema.txt
+Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
 
 # Benutzereinstellungen
-
 ## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
 Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen auf den Gewinn und die Verleiherabrechnung.
 
-# Daten als Excel-Datei
-
+# Datenexport als Excel-Datei
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
 
