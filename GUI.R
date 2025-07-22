@@ -2490,46 +2490,36 @@ server <- function(input, output, session) {
   
   # Button: git commit ####
   observeEvent(input$git_commit, {
-    tryCatch({
-      # Git status
-      df_git_status <- gert::git_status()
-      
-      # Stage all changes
-      l_result <- 
-        capture_messages_warnings(
-          gert::git_add(df_git_status$file , repo = repo_path)
-          )
-      
-      c_commit_msg <- paste(Sys.Date(), "Database backup:", input$commit_msg)
-      
-      # Commit
-      l_result <- 
-        capture_messages_warnings(
-          gert::git_commit(message = input$commit_msg, repo = repo_path)
-          )
-      
-      # system message
-      paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
-             "Commit message:\n", 
-             c_commit_msg)|>
-        ausgabe_text()
-      
-    }, error = function(e) {
-      output$status <- renderText(paste("❌ Commit failed:", e$message))
-    })
+    # Git status
+    df_git_status <- gert::git_status()
+    
+    # Stage all changes
+    l_result <- 
+      capture_messages_warnings(
+        gert::git_add(df_git_status$file , repo = repo_path)
+        )
+    
+    c_commit_msg <- paste(Sys.Date(), "Database backup:", input$commit_msg)
+    
+    # Commit
+    l_result <- 
+      capture_messages_warnings(
+        gert::git_commit(message = input$commit_msg, repo = repo_path)
+        )
+    
+    # Push to origin
+    l_result <- 
+      capture_messages_warnings(
+        git_push(repo = repo_path)
+      )
+    
+    # system message
+    paste0("Datenbank backup wurde erfolgreich auf Github gespeichert\n",
+           "Commit message:\n", 
+           c_commit_msg)|>
+      ausgabe_text()
   })
-  
-  # Button: git push ####
-  observeEvent(input$git_push, {
-    tryCatch({
-      # Push to origin
-      git_push(repo = repo_path)
-      
-      output$status <- renderText("✅ Push successful!")
-    }, error = function(e) {
-      output$status <- renderText(paste("❌ Push failed:", e$message))
-    })
-  })
+
   
   # Button: Show latest git log ####
   output$git_log <- renderText({
@@ -2974,8 +2964,7 @@ server <- function(input, output, session) {
         
         # Git 
         shiny::actionButton("git_pull", "Git pull",class = "btn-success"),
-        shiny::actionButton("git_commit", "Git commit",class = "btn-danger"),
-        shiny::actionButton("git_push", "Git push",class = "btn-success"),
+        shiny::actionButton("git_commit", "Git commit and push",class = "btn-danger"),
         shiny::textInput("commit_msg","Commit message")
       )
     }
