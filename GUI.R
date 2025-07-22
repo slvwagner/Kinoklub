@@ -4,32 +4,11 @@
 # Vorbereiten / Installieren
 rm(list = ls())
 
-# Define libraries to be installed
-packages <- c(
-  "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "furrr", "future", "processx","RMySQL",
-  "shiny",  "shinyjs", "viridis", "colorspace"
-)
-
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-
-# Packages loading
-packages <- c(
-  "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
-  "DT",  "tidyverse",
-  "furrr", "future"
-)
-invisible(lapply(packages, library, character.only = TRUE))
-remove(packages, installed_packages)
-
 # load user settings
 if(!file.exists("user_settings.R")) {
   stop("Missing required file: user_settings.R")
 }
+
 # user settings / documentation
 source("user_settings.R")
 # Functions
@@ -210,7 +189,7 @@ server <- function(input, output, session) {
       library(furrr)
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if(num_cores >= 8) num_cores <- 8
+      if(num_cores >= 5) num_cores <- 5
       print(num_cores)
       if(nrow(df_mapping) < num_cores) {
         num_cores <- nrow(df_mapping)
@@ -265,7 +244,7 @@ server <- function(input, output, session) {
     } else {
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if (num_cores >= 8) num_cores <- 8
+      if (num_cores >= 5) num_cores <- 5
       print(num_cores)
       # Adjust cores based on workload
       if (nrow(df_mapping) < num_cores) {
