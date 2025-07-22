@@ -342,12 +342,14 @@ Die Zuweisung erfolgt über die `Event ID`.
 -   Keine Kioskverkäufe
 
 ### Einkauf Kiosk
-In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
+In der Tabelle **Einkauf Kiosk** werden die Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
 Der Einkaufspreise ist gültig ab dem Datum in der Spalte "Gültig ab Datum" .\
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über die Zeit ändern können wird immer der korrekte Einkaufspreis gesucht und für die Gewinn berechnung verwendet.\
 
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
+-   Wenn nachträgliche Änderungen an den Einkaufspreisen vorgenommen werden, die ein bereits eingelesenes Kiosk file betreffen dann ist es nötig für das betreffende Abrechnungsjahr im "Kinoklub GUI" die Dateien neu einzulesen: `Advance Ticket neu einlesen`. \
+    Die Tabelle Advanced-Ticketes, "df_Kiosk" wird nicht automatisch auf den neuesten Stand gebracht. Die Konvertierung nimmt relativ viel Zeit in Anspruch und wird deshalb nicht jedesmals ausgeführt.\
 
 
 ## Advanced-Tickets
@@ -361,8 +363,8 @@ Konvertierte Eintritt files
 Rohdaten Kiosk die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Kiosk
-Konvertierer Kioskfiles
-
+Konvertierer Kioskfiles\
+Einkaufspreise per gültigkeits Datum abgeglichen
 
 ## Dropdowns
 ### Kinoklubmitglieder
@@ -372,10 +374,10 @@ Erfassung aller Kinklubmitglieder mit Skill-Matrix
 Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden müssen.
 
 ### Verleihermapping
-Zuweisung Procinema Verleihername an Verleiher
+Zuweisung Procinema Verleihername mit dem Verleihernamen definiert in der Tabelle Verleiher.
 
 ### Lieferanten
-Lieferanten definition
+Lieferanten Definition
 
 ### Platzkategorien zum Verrechnen
 Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
@@ -393,11 +395,6 @@ In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt 
 
 # Berichte erstellen
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
-
--   Für jede Filmvorführung respektive Datum und Suisanummer wird ein Abrechnung erstellt.
--   Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung erstellt.
--   Es wird eine Statistik mit Porgnosen erstellt.
--   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ## Abrechnung Filmvorführung
 Es wird eine Filmabrechnung pro Event ID erstellt.
@@ -593,7 +590,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ## Statistik
-Statistische auswertung über alle Abrechnungsperioden.
+Statistische Auswertung über alle Abrechnungsperioden.
 
 ## WordPress Filmvorschläge auswerten
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
