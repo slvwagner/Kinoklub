@@ -1,5 +1,6 @@
-# Script to create Executable link to start up application on windows systems
-create_shortcut <- function(
+# Script to create Executable to startup the application
+
+create_windows_shortcut <- function(
     target_bat,
     shortcut_path,
     icon_path = NULL,
@@ -132,7 +133,7 @@ r_file
 c_raw <- readLines("source/OS_support/Kinoklub.template")
 c_raw
 
-
+c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", Sys.getenv("RSTUDIO_PANDOC")|>normalizePath(),"\"")
 c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
 c_raw
 
@@ -140,7 +141,7 @@ c_raw
 writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
 
 # create shortcut
-create_shortcut(
+create_windows_shortcut(
   target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_input.bat"),
   shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub input"),
   icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
@@ -155,8 +156,8 @@ r_file <- paste0(r_wd, "/Start_GUI.R")|>
 r_wd
 
 c_raw <- readLines("source/OS_support/Kinoklub.template")
-c_raw
 
+c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", Sys.getenv("RSTUDIO_PANDOC")|>normalizePath(),"\"")
 c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
 c_raw
 
@@ -164,7 +165,7 @@ c_raw
 writeLines(c_raw, "source/OS_support/Kinoklub_GUI.bat")
 
 # create shortcut
-create_shortcut(
+create_windows_shortcut(
   target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_GUI.bat"),
   shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub GUI"),
   icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
