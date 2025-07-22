@@ -2434,7 +2434,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # git commit ####
+  # Button: git commit ####
   observeEvent(input$git_commit, {
     tryCatch({
       # Stage all changes
@@ -2449,7 +2449,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # git push ####
+  # Button: git push ####
   observeEvent(input$git_push, {
     tryCatch({
       # Push to origin
@@ -2461,7 +2461,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Show latest git log ####
+  # Button: Show latest git log ####
   output$git_log <- renderText({
     tryCatch({
       log <- git_log(repo = repo_path, max = 5)
