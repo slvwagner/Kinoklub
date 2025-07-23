@@ -1,6 +1,9 @@
 # Graphical user interface für den Kinoklub ####
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
+# auto update application
+git_pull(getwd())
+
 # Vorbereiten / Installieren
 rm(list = ls())
 
@@ -31,10 +34,6 @@ ftp_password <- Sys.getenv("ftp_password")
 
 # Base path where to put the files (Must be a public html folder)
 ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
-
-# auto update application
-git_pull(getwd())
-
 
 # check if all credentials are defined on the machine the code is executed
 c_credentials <- c(DB_host = DB_host, DB_name = DB_name, DB_user = DB_user, DB_pw = DB_pw, 
