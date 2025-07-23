@@ -1290,9 +1290,15 @@ server <- function(input, output, session) {
     # links to render in html
     if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag","Einsatzplan")){
       df_temp <- df_temp|>
-        mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
-               Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
-               )
+        mutate(
+          Procinema = if_else(
+            is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")
+            ),
+          Trailer = if_else(
+            is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>")
+            ),
+          Zeit = as.character(Zeit)
+          )
 
       if("Eintritte eingespielt" %in% names(df_temp)){
         df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
