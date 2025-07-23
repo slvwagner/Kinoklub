@@ -44,6 +44,107 @@ rmarkdown::render(input = "README.Rmd",
                   output_dir  = "doc/",
                   output_file = "Dokumentation.html")
 
+# Edit html
+library("xml2")
+# install.packages("rvest")
+
+# Read docu
+c_filePath <- "doc/Dokumentation.html"
+html <- read_html(c_filePath)
+
+# Find all text nodes
+all_text_nodes <- xml_find_all(html, "//*[contains(text(), '## install.packages(c(')]")
+
+# Content 
+c_string <- xml_text(all_text_nodes)
+
+# edit content
+c_string <- substring(c_sting,4, nchar(c_string))
+
+# Change the first match
+xml_text(all_text_nodes[[1]]) <- c_string
+
+# Save modified HTML
+write_html(html, c_filePath)
+
+add_copy_buttons_to_html <- function(html_file, output_file = html_file) {
+  library(xml2)
+  library(rvest)
+  
+  # Read HTML
+  doc <- read_html(html_file)
+  
+  # Get all <pre><code>...</code></pre>
+  code_blocks <- xml_find_all(doc, ".//pre[code]")
+  
+  # Add copy button inside each <pre>
+  for (pre in code_blocks) {
+    button <- read_html('<button class="copy-button">Copy</button>') %>% xml_find_first(".//button")
+    xml_add_child(pre, button)
+  }
+  
+  # Inject CSS and JS into <head>, if not already present
+  head_node <- xml_find_first(doc, "//head")
+  if (length(xml_find_all(doc, "//style[contains(.,'copy-button')]")) == 0) {
+    style_node <- read_html('
+      <style>
+        .copy-button {
+          position: absolute;
+          top: 0.5em;
+          right: 0.5em;
+          background: #322f3b;
+          border: none;
+          padding: 4px 8px;
+          cursor: pointer;
+          font-size: 0.8em;
+          border-radius: 4px;
+          opacity: 0.6;
+        }
+        .copy-button:hover {
+          opacity: 1;
+        }
+        pre {
+          position: relative;
+        }
+      </style>') %>% xml_find_first("//style")
+    xml_add_child(head_node, style_node)
+  }
+  
+  if (length(xml_find_all(doc, "//script[contains(.,'navigator.clipboard')]")) == 0) {
+    script_node <- read_html('
+      <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("pre code").forEach(function(codeBlock) {
+          var button = document.createElement("button");
+          button.className = "copy-button";
+          button.type = "button";
+          button.innerText = "Copy";
+
+          button.addEventListener("click", function() {
+            var text = codeBlock.innerText;
+            navigator.clipboard.writeText(text).then(function() {
+              button.innerText = "Copied!";
+              setTimeout(function() {
+                button.innerText = "Copy";
+              }, 2000);
+            });
+          });
+
+          var pre = codeBlock.parentNode;
+          pre.appendChild(button);
+        });
+      });
+      </script>') %>% xml_find_first("//script")
+    xml_add_child(head_node, script_node)
+  }
+  
+  # Save to file
+  write_html(doc, file = output_file)
+  message("✅ Copy buttons added to: ", output_file)
+}
+
+add_copy_buttons_to_html(c_filePath)
+
 # ftp server connection ####
 ftp_server   <- "ftp://lx51.hoststar.hosting/"
 ftp_user     <- Sys.getenv("ftp_user")

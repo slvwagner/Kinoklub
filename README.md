@@ -28,7 +28,7 @@ Bei Fehlern kann ein "Issue" in Github erfasst werden.\
         git clone https://github.com/slvwagner/Kinoklub
     ```
 
-5.  Starte Rstudio das Projekt "Kinoklub.Rproj" öffnen.
+5.  Starte Rstudio und öffne das Projekt "Kinoklub.Rproj".
 
 6.  Installieren der benötigten "Packages" im "R Terminal"
 
@@ -104,14 +104,16 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Github anzumelden, muss m
 ![](doc/picts/PAT.png)
 
 # Kinoklub GUI-Applikation ausführen
-Die Applikation kann mit den Application links oder mit RStudio "Run" gestartet werden. \
+Die App kann mit dem Link (.../Kinoklub/source/OS_support/) oder mit RStudio "Run" gestartet werden oder im RTerminal mit:.\
+
+```    
+source("GUI.R")
+```
+
 \
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die Adresse ist: <http://127.0.0.1:5003/>
 
-```         
-    source("GUI.R")
-```
 
 # Dateien
 
