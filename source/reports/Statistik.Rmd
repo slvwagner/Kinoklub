@@ -1193,7 +1193,10 @@ df_temp|>
           )|>
   arrange(desc(Anzahl))|>
   filter(Artikelname != "Keine Kioskverkäufe")|>
-  DT::datatable()
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE
+  )
 ```
 
 
@@ -1215,7 +1218,7 @@ df_temp1|>
 #### Druchschnittliche Marge
 ```{r}
 df_temp1|>
-  mutate(`Durchschnittsmarge [%]` =(`Umsatz [CHF]` / `Gewinn [CHF]`) - 1)|>
+  mutate(`Durchschnittsmarge [%]` = ((`Umsatz [CHF]` / `Gewinn [CHF]`) - 1) * 100)|>
   select(`Durchschnittsmarge [%]`)|>
   knitr::kable(digits = 2)
 
@@ -1224,19 +1227,22 @@ df_temp1|>
 
 #### Rang
 ```{r fig.height=8, fig.width=10}
-df_plot <-df_temp|>
-  group_by(Artikelname)|>
+df_plot <- df_temp|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl))|>
-  filter(!is.na(Artikelname))|>
+  distinct(`Artikel-Kassensystem`, .keep_all = TRUE )|>
   arrange(Anzahl)
+```
 
+
+```{r fig.height=8, fig.width=10}
 df_plot|>
-  mutate(Artikelname = factor(Artikelname, levels = df_plot$Artikelname)
+  mutate(`Artikel-Kassensystem` = factor(`Artikel-Kassensystem`, levels = df_plot$`Artikel-Kassensystem`)
          )|>
-  group_by(Artikelname)|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl))|>
   arrange(desc(Anzahl))|>
-  ggplot(aes(Artikelname,Anzahl))+
+  ggplot(aes(`Artikel-Kassensystem`, Anzahl))+
   geom_col(show.legend = F, fill = "cyan4")+
   coord_flip()+
   theme_bw()+
@@ -1254,19 +1260,18 @@ df_plot|>
 ### Ladenhüter (keine Verkäufe)
 ```{r }
 df_temp <- `Einkauf Kiosk`
-
 ```
 
 
-```{r }
-df_temp|>
-  distinct(`Artikelname-Kassensystem`)|>
-  left_join(df_Kiosk|>
-              group_by(Artikelname)|>
-              reframe(Anzahl = sum(Anzahl)),
-            by = c("Artikelname-Kassensystem"="Artikelname")
-            )
-```
+<!-- ```{r } -->
+<!-- df_temp|> -->
+<!--   distinct(`Artikelname-Kassensystem`)|> -->
+<!--   left_join(df_Kiosk|> -->
+<!--               group_by(Artikelname)|> -->
+<!--               reframe(Anzahl = sum(Anzahl)), -->
+<!--             by = c("Artikelname-Kassensystem"="Artikelname") -->
+<!--             ) -->
+<!-- ``` -->
 
 
 ```{r }
@@ -1359,14 +1364,20 @@ df_temp <- df_temp|>
 
 ```{r}
 df_temp|>  
-  select(Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`)|>  DT::datatable(
+  select(
+    Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, 
+    `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`
+    )|>
+  mutate(Zeit = as.character(Zeit))|>
+  DT::datatable(
   df_temp, 
+  filter = "top",
+  rownames = F, 
   options = list(columnDefs = list( # list(targets = 3,visible = F), 
     list(targets = 0, visible = FALSE), # Hide the 'Datum' column -->
     list(targets = 1, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' 
     )), 
-  colnames = c(Datum = "Display_datum") ,
-  rownames = FALSE
+  colnames = c(Datum = "Display_datum")
 )
 
 ```
