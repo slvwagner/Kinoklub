@@ -2021,7 +2021,7 @@ server <- function(input, output, session) {
           # isolate to prevent infinite loop
           isolate({
             paste0("Ausführungszeit: ",r_signif(c_time),"\n",
-                   "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/ abgespeichert.",
+                   "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/output/Data/ abgespeichert.",
                    "\nDie Filmvorschläge können nun heruntergeladen werden."
                    )|>
               ausgabe_text()
