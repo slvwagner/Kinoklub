@@ -17,6 +17,10 @@ git_pull <- function(repo = ".") {
   capture_messages_warnings(gert::git_pull(repo = repo))
 }
 
+git_log <- function(repo = ".") {
+  log <- gert::git_log(repo = repo, max = 5)
+  paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
+}
 
 ### capture message and warnings ####
 capture_messages_warnings <- function(expr) {

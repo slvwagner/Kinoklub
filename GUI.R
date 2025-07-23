@@ -35,10 +35,6 @@ ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
 # auto update application
 git_pull(getwd())
 
-git_log <- function(repo = ".") {
-  log <- gert::git_log(repo = repo, max = 5)
-  paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
-}
 
 # check if all credentials are defined on the machine the code is executed
 c_credentials <- c(DB_host = DB_host, DB_name = DB_name, DB_user = DB_user, DB_pw = DB_pw, 
