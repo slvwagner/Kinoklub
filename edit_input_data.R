@@ -14,9 +14,6 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# auto update application
-git_pull(getwd())
-
 # Mapping Verleiher-Procinema zu Verleiher
 dict_env <- new.env()
 
