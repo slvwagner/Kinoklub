@@ -5,7 +5,7 @@
 # README.md wird automatisch erstellt
 library(tidyverse)
 
-# fuction to add copy buttons into html file ###
+# function to add copy buttons into html file ###
 add_copy_buttons_to_html <- function(html_file, output_file = html_file) {
   library(xml2)
   library(rvest)
