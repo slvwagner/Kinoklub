@@ -896,7 +896,7 @@ df_temp <- df_Kiosk|>
 
 ```{r }
 df_temp|>
-  filter(is.na(ID_Spezialpreisekiosk))|>
+  # filter(is.na(ID_Spezialpreisekiosk))|>
   group_by(Artikelname)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
