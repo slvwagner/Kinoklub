@@ -2995,7 +2995,7 @@ server <- function(input, output, session) {
             )
           },
           shiny::tags$a(
-            href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Hilfe",
+            href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Tool Dokumentation",
             target = "_blank",
             style = "font-size: 24px;"
           )
