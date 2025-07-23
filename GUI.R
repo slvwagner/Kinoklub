@@ -1,9 +1,6 @@
 # Graphical user interface für den Kinoklub ####
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
-# auto update application
-git_pull(getwd())
-
 # Vorbereiten / Installieren
 rm(list = ls())
 
@@ -17,6 +14,9 @@ source("user_settings.R")
 # Functions
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
+
+# auto update application
+git_pull(getwd())
 
 # connect to data base ####
 ## Data base credentials from system variables ####
