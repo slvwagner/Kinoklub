@@ -43,46 +43,46 @@ Bei Fehlern kann ein "Issue" in Github erfasst werden.\
         Windows Terminal oder Powershell öffnen und die folgenden Kommandos nacheinander mit den korrekten Daten ausführen:
 
         ```         
-        setx DB_host "your host name here"
+        setx DB_host "Ihr Hostname hier"
         ```
     
         ```        
-        setx DB_name "your database name here"
+        setx DB_name "Ihr Datenbankname hier"
         ```
     
         ```        
-        setx DB_user "your database user name here"
+        setx DB_user "Ihr Datenbank-Benutzername hier"
         ```
     
         ```      
-        setx DB_PASSWORD_KINOKLUB "your database password here"
+        setx DB_PASSWORD_KINOKLUB "Ihr Datenbank-Passwort hier"
         ```
     
         ```       
-        setx ftp_user "your ftp user here"
+        setx ftp_user "Ihr FTP-Benutzer hier"
         ```
     
         ```        
-        setx ftp_pw "your ftp password here"
+        setx ftp_pw "Ihr FTP-Passwort hier"
         ```
         
         ```
-        setx RSTUDIO_PANDOC "find the directory on your computer where pandoc.exe is intalle, e.g. C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
+        setx RSTUDIO_PANDOC "Verzeichnis finden, wo pandoc.exe installiert ist, z.B.im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
         ```
 
     -   MAC / Linux\
         Erstellen ein neue Datei **".Renviron"** im Kinoklub Benutzerverzeichniss.\
-        Beim speicher muss darauf geachtet werden dass die Datei korrekt abgespeicher wird. Die Datei hat keinen Dateinamen sondern nur die Dateierweiterung "**.Renviron **". \
+        Beim speicher muss darauf geachtet werden dass die Datei korrekt abgespeicher wird. Die Datei hat keinen Dateinamen, sondern nur die Dateierweiterung "**.Renviron **". \
         Die Datei wie folgt abfüllen: \
         
         ```
-        DB_host="your host name here"
-        DB_name="your database name here"
-        DB_user="your database user name here"
-        DB_PASSWORD_KINOKLUB="your database password here"
-        ftp_user="your ftp user here"
-        ftp_pw="your ftp password here"
-        RSTUDIO_PANDOC="find the directory on your computer where pandoc.exe is intalled"
+        DB_host="Ihr Hostname hier"
+        DB_name="Ihr Datenbankname hier"
+        DB_user="Ihr Datenbank-Benutzername hier"
+        DB_PASSWORD_KINOKLUB="Ihr Datenbank-Passwort hier"
+        ftp_user="Ihr FTP-Benutzer hier"
+        ftp_pw="Ihr FTP-Passwort hier"
+        RSTUDIO_PANDOC="Verzeichnis finden, wo pandoc.exe installiert ist, z.B. im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
         ```
 8.  Erstellen der Applikations links \
     Im R Terminal das folgende ausführen:
@@ -93,13 +93,11 @@ Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 
 
 ## Git 
-
 ### Github user
 Um ein Datenbank backup auszuführen ist es nötig sich bei GitHub anzumelden. Der Github user muss dem Kinoklub projekt als Contributors hinzugefügt sein um schreibberechting zu haben.  \
 <https://github.com/slvwagner/Kinoklub>
 
-
-### Git Passwort / Personal Access Token (PAT)
+### Github Passwort / Personal Access Token (PAT)
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Github anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
@@ -116,7 +114,6 @@ Die Adresse ist: <http://127.0.0.1:5003/>
 
 
 # Dateien
-
 ## Upload von neuen Dateien
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und der Dateierweiterung abgespeichert.
@@ -131,9 +128,10 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 ### Eintritte
 **Eintritte ID??.txt**\
-Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. \
+Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern ("input/advance tickets/**Eintritt IDxxx.txt"**) oder über "Kinoklub GUI" hochladen.
 
 ### Kiosk
 **Kiosk ID??.txt**\
@@ -183,10 +181,12 @@ Um die Änderungen in der Applikation "Kinoklub GUI" zu reflektieren müssen die
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die lokale Adresse ist: <http://127.0.0.1:5001/>\
 
+
 ```         
     source("Edit_input_data.R")
 ```
-Die Applikation ist jedoch auch mit <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar.
+
+Die Applikation ist unter <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar. Gewisse Funktionen sind aber Online nicht verfügbar. 
 
 ## Inputtabellen
 ### Filmvorschlag
@@ -208,94 +208,96 @@ Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder könne
 
 ### Einnahmen
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten.\
-In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können. \
+\
+Erklärung der **Spaltennamen**\
 
--   Erklärung der **Spaltennamen**
-    -   **ID**\
-        Fortlaufendenummer (automatisch erzeugt)
-    -   **Kategorie**\
-        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   Event\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein.\
-            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
-        -   Kiosk\
-            Ausgaben für den Einkauf des Kino-Kiosks
-        -   Personalaufwand\
-            Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Verleiher\
-            Rechnungen vom Filmverleiher\
-            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
-        -   Vermietung\
-            Einnahmen durch die Vermietung
-        -   Werbung\
-            Werbeeinnahmen z.B. Kinoweischer
-        -   Sonstiges\
-            Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen werden können.\
-    -   **Bezeichnung**\
-        Umschreibung der Buchung
-    -   **Event ID**\
-        Zu welcher Filmvorführung gehört diese Buchung?\
-        Das ist wichtig für die Kategorie Event und Verleiher, siehe oben.
-    -   **Datum**\
-        Buchungsdatum
-    -   **Abrechnungsjahr**\
-        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
-    -   **Betrag**\
-        Betrag in [CHF]
-    -   **Firmenname**\
-        Name der rechnugsstellenden Firma oder oder Person and die der Betrag ausbezahlt werden muss.
-    -   **Adresse**\
-        Rechnungsteller
-    -   **Rechnungsnummer**\
-        Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto**\
-        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung
--   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+-   **ID**\
+    Fortlaufendenummer (automatisch erzeugt)
+-   **Kategorie**\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+    -   Event\
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein.\
+        WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
+    -   Kiosk\
+        Ausgaben für den Einkauf des Kino-Kiosks
+    -   Personalaufwand\
+        Ausgaben für Gehaltszahlung and Mitarbeiter
+    -   Verleiher\
+        Rechnungen vom Filmverleiher\
+        WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
+    -   Vermietung\
+        Einnahmen durch die Vermietung
+    -   Werbung\
+        Werbeeinnahmen z.B. Kinoweischer
+    -   Sonstiges\
+        Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen werden können.\
+-   **Bezeichnung**\
+    Umschreibung der Buchung
+-   **Event ID**\
+    Zu welcher Filmvorführung gehört diese Buchung?\
+    Das ist wichtig für die Kategorie Event und Verleiher, siehe oben.
+-   **Datum**\
+    Buchungsdatum
+-   **Abrechnungsjahr**\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+-   **Betrag**\
+    Betrag in [CHF]
+-   **Firmenname**\
+    Name der rechnugsstellenden Firma oder oder Person and die der Betrag ausbezahlt werden muss.
+-   **Adresse**\
+    Rechnungsteller
+-   **Rechnungsnummer**\
+    Rechnungsnummer des Rechnungsstellers
+-   **Buchungskonto**\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung
+
 
 ### Ausgaben
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.\
-In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.
+In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.\
+\
+Erklärung der **Spaltennamen**\
 
--   Erklärung der **Spaltennamen**
-    -   **ID**\
-        Fortlaufendenummer (automatisch erzeugt)
-    -   **Kategorie**\
-        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   **Event**\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden.
-        -   **Kiosk**\
-            Ausgaben für den Einkauf des Kino-Kiosks
-        -   **Personalaufwand**\
-            Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   **Sonstiges**\
-            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
-        -   **Verleiher**\
-            Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
-        -   **Vermietung**\
-            Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
-        -   **Werbung**\
-            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
-    -   **Event ID**\
-        Wird die Kategorie Event oder Verleiher ausgewählt muss hier die **"Event ID"** des Films dazugehörigen Films eingetragen werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen werden. Bei Ausgaben die sich nicht auf ein spezifische **"Event ID"** beziehen, muss dieses Feld leer gelassen werden. Diese Ausgaben werden nur in der Jahresabrechnung berücksichtigt.\
-    -   **Bezeichnung**\
-        Umschreibung der Buchung
-    -   **Datum**\
-        Datum der Rechnung/Buchung.
-    -   **Abrechnungsjahr**\
-        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
-    -   **Betrag**\
-        Betrag [CHF]
-    -   **Firmenname**\
-        Firmenname oder Person des Rechnungstellers an welchen der **Betrag** ausbezahlt werden muss.
-    -   **Adresse**\
-        Rechnungsteller
-    -   **Referenz**\
-        Referenznummer der Rechnung
-    -   **Rechnungsnummer**\
-        Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto**\
-        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
+-   **ID**\
+    Fortlaufendenummer (automatisch erzeugt)
+-   **Kategorie**\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+    -   **Event**\
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden.
+    -   **Kiosk**\
+        Ausgaben für den Einkauf des Kino-Kiosks
+    -   **Personalaufwand**\
+        Ausgaben für Gehaltszahlung and Mitarbeiter
+    -   **Sonstiges**\
+        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
+    -   **Verleiher**\
+        Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
+    -   **Vermietung**\
+        Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
+    -   **Werbung**\
+        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
+-   **Event ID**\
+    Wird die Kategorie Event oder Verleiher ausgewählt muss hier die **"Event ID"** des Films dazugehörigen Films eingetragen werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen werden. Bei Ausgaben die sich nicht auf ein spezifische **"Event ID"** beziehen, muss dieses Feld leer gelassen werden. Diese Ausgaben werden nur in der Jahresabrechnung berücksichtigt.\
+-   **Bezeichnung**\
+    Umschreibung der Buchung
+-   **Datum**\
+    Datum der Rechnung/Buchung.
+-   **Abrechnungsjahr**\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+-   **Betrag**\
+    Betrag [CHF]
+-   **Firmenname**\
+    Firmenname oder Person des Rechnungstellers an welchen der **Betrag** ausbezahlt werden muss.
+-   **Adresse**\
+    Rechnungsteller
+-   **Referenz**\
+    Referenznummer der Rechnung
+-   **Rechnungsnummer**\
+    Rechnungsnummer des Rechnungsstellers
+-   **Buchungskonto**\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
 
 ### Spezialpreise Kiosk
 In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
