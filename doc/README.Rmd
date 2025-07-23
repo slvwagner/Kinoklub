@@ -196,7 +196,7 @@ Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein
 Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden. \
 Die Datei muss mit der Dateierweiterung ".csv" im Verzeichniss .../Kinoklub/Input/WordPress/ abgespeichert werden.
 
-## Procinema Archive 
+## Procinema Archiv
 Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden. \
 Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\
 Dann muss der "Export mit Details" gewählt werden. \
