@@ -5,68 +5,6 @@
 # README.md wird automatisch erstellt
 library(tidyverse)
 
-######################################################################################
-# Import c_script_version 
-c_raw <- readLines("user_settings.R")
-c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
-  str_split(pattern = "\"") |>
-  unlist()
-c_script_version <- c_script_version[2]
-
-######################################################################################
-c_raw <- readLines("doc/README.Rmd")
-
-# Scrip Version einfügen 
-index <- (1:length(c_raw))[c_raw|>str_detect("# Kinoklub")]
-index
-
-# Ändern des Templates
-c(paste0("Script Version: ",c_script_version, collapse = ""),
-  " ",
-  c_raw[index[1]:length(c_raw)]
-  )|>
-  writeLines("README.md")
-
-
-######################################################################################
-# Create TOC for Dokumentation
-source("source/functions.R")
-
-# Html
-r_toc_for_Rmd(readLines("doc/README.Rmd"),
-              toc_heading_string = "Inhaltsverzeichnis",
-              pagebreak_level = "1",
-              create_nb = T)|>
-  writeLines("README.Rmd")
-
-rmarkdown::render(input = "README.Rmd",
-                  output_format = "html_document",
-                  output_dir  = "doc/",
-                  output_file = "Dokumentation.html")
-
-# Edit html
-library("xml2")
-# install.packages("rvest")
-
-# Read docu
-c_filePath <- "doc/Dokumentation.html"
-html <- read_html(c_filePath)
-
-# Find all text nodes
-all_text_nodes <- xml_find_all(html, "//*[contains(text(), '## install.packages(c(')]")
-
-# Content 
-c_string <- xml_text(all_text_nodes)
-
-# edit content
-c_string <- substring(c_sting,4, nchar(c_string))
-
-# Change the first match
-xml_text(all_text_nodes[[1]]) <- c_string
-
-# Save modified HTML
-write_html(html, c_filePath)
-
 add_copy_buttons_to_html <- function(html_file, output_file = html_file) {
   library(xml2)
   library(rvest)
@@ -143,9 +81,72 @@ add_copy_buttons_to_html <- function(html_file, output_file = html_file) {
   message("✅ Copy buttons added to: ", output_file)
 }
 
+
+# Github readme.md ####
+# Import c_script_version 
+c_raw <- readLines("user_settings.R")
+c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
+  str_split(pattern = "\"") |>
+  unlist()
+c_script_version <- c_script_version[2]
+
+
+# Tool Dokumentaion ####
+c_raw <- readLines("doc/README.Rmd")
+
+# Scrip Version einfügen 
+index <- (1:length(c_raw))[c_raw|>str_detect("# Kinoklub")]
+index
+
+# Ändern des Templates
+c(paste0("Script Version: ",c_script_version, collapse = ""),
+  " ",
+  c_raw[index[1]:length(c_raw)]
+  )|>
+  writeLines("README.md")
+
+# Create TOC for Dokumentation
+source("source/functions.R")
+
+# Html Dokumentation ####
+r_toc_for_Rmd(readLines("doc/README.Rmd"),
+              toc_heading_string = "Inhaltsverzeichnis",
+              pagebreak_level = "1",
+              create_nb = T)|>
+  writeLines("README.Rmd")
+
+rmarkdown::render(input = "README.Rmd",
+                  output_format = "html_document",
+                  output_dir  = "doc/",
+                  output_file = "Dokumentation.html")
+
+# Edit html Dokumentation ####
+library("xml2")
+
+# Read docu
+c_filePath <- "doc/Dokumentation.html"
+html <- read_html(c_filePath)
+
+# Find all text nodes
+all_text_nodes <- xml_find_all(html, "//*[contains(text(), '## install.packages(c(')]")
+
+# Content 
+c_string <- xml_text(all_text_nodes)
+
+# edit content
+c_string <- substring(c_string,4, nchar(c_string))
+
+# Change the first match
+xml_text(all_text_nodes[[1]]) <- c_string
+
+# Save modified HTML ####
+write_html(html, c_filePath)
+
+# add copy buttons to html ####
 add_copy_buttons_to_html(c_filePath)
 
-# ftp server connection ####
+
+# Ftp server connection ####
 ftp_server   <- "ftp://lx51.hoststar.hosting/"
 ftp_user     <- Sys.getenv("ftp_user")
 ftp_password <- Sys.getenv("ftp_password")
