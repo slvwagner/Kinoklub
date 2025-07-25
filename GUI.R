@@ -4,37 +4,19 @@
 # Vorbereiten / Installieren
 rm(list = ls())
 
-# Define libraries to be installed
-packages <- c(
-  "rmarkdown",  "rebus",  "openxlsx",  "tidyverse",
-  "lubridate",  "DT", "furrr", "future", "processx","RMySQL",
-  "shiny",  "shinyjs", "viridis", "colorspace"
-)
-
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-
-# Packages loading
-packages <- c(
-  "rmarkdown",  "rebus",  "openxlsx",  "lubridate",
-  "DT",  "tidyverse",
-  "furrr", "future"
-)
-invisible(lapply(packages, library, character.only = TRUE))
-remove(packages, installed_packages)
-
 # load user settings
 if(!file.exists("user_settings.R")) {
   stop("Missing required file: user_settings.R")
 }
+
 # user settings / documentation
 source("user_settings.R")
 # Functions
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
+
+# auto update application
+git_pull(getwd())
 
 # connect to data base ####
 ## Data base credentials from system variables ####
@@ -210,7 +192,7 @@ server <- function(input, output, session) {
       library(furrr)
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if(num_cores >= 8) num_cores <- 8
+      if(num_cores >= 5) num_cores <- 5
       print(num_cores)
       if(nrow(df_mapping) < num_cores) {
         num_cores <- nrow(df_mapping)
@@ -265,7 +247,7 @@ server <- function(input, output, session) {
     } else {
       # Determine the number of cores to use
       num_cores <- parallel::detectCores() - 1  # Use all but one core to avoid overloading the system
-      if (num_cores >= 8) num_cores <- 8
+      if (num_cores >= 5) num_cores <- 5
       print(num_cores)
       # Adjust cores based on workload
       if (nrow(df_mapping) < num_cores) {
@@ -543,50 +525,6 @@ server <- function(input, output, session) {
       ausgabe_text("")
     }
     return(df_temp)
-  }
-  
-  ### Git ####
-  git_commit <- function(message, repo = ".") {
-    git_add(repo = repo)
-    capture_messages_warnings(gert::git_commit(message = message, repo = repo))
-  }
-  
-  git_push <- function(repo = ".") {
-    capture_messages_warnings(gert::git_push(repo = repo))
-  }
-  
-  git_pull <- function(repo = ".") {
-    capture_messages_warnings(gert::git_pull(repo = repo))
-  }
-  
-  git_log <- function(repo = ".") {
-    log <- gert::git_log(repo = repo, max = 5)
-    paste(sapply(log$message, function(msg) paste0("- ", msg)), collapse = "\n")
-  }
-  
-  ### capture message and warnings ####
-  capture_messages_warnings <- function(expr) {
-    messages <- character()
-    warnings <- character()
-    
-    result <- withCallingHandlers(
-      tryCatch(
-        expr,
-        warning = function(w) {
-          # suppress default warning printing
-          invokeRestart("muffleWarning")
-        }
-      ),
-      message = function(m) {
-        messages <<- c(messages, conditionMessage(m))
-        invokeRestart("muffleMessage")
-      },
-      warning = function(w) {
-        warnings <<- c(warnings, conditionMessage(w))
-      }
-    )
-    
-    list(result = result, messages = messages, warnings = warnings)
   }
   
   ## Shiny reactive variables ####
@@ -2082,7 +2020,7 @@ server <- function(input, output, session) {
           # isolate to prevent infinite loop
           isolate({
             paste0("Ausführungszeit: ",r_signif(c_time),"\n",
-                   "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/ abgespeichert.",
+                   "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/output/Data/ abgespeichert.",
                    "\nDie Filmvorschläge können nun heruntergeladen werden."
                    )|>
               ausgabe_text()
@@ -3052,7 +2990,7 @@ server <- function(input, output, session) {
             )
           },
           shiny::tags$a(
-            href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Hilfe",
+            href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Tool Dokumentation",
             target = "_blank",
             style = "font-size: 24px;"
           )

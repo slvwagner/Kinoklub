@@ -21,6 +21,8 @@ c_pageLengthMenu = c(5,10,15,20, 50, 100) # page length drop down options
 # Wiel lange dauer die Sommerpause
 sommerpause = 65 # Tage
 
+Sys.setlocale("LC_TIME", "de_CH.UTF-8") 
+
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
   theme_bw() +
@@ -97,9 +99,11 @@ df_temp <- df_temp|>
   arrange(desc(Datum)) |>
   mutate(`Event ID` = factor(`Event ID`),
          Datum_display = format(Datum, "%d.%m.%Y"),
+         Semester = factor(get_semester(Datum)),
+         Zeit = as.character(Zeit),
          `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
          )|>
-  select(`Event ID`, Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
+  select(`Event ID`, Semester,Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
 ```
 
 
@@ -108,6 +112,7 @@ df_temp <- df_temp|>
 DT::datatable(
   df_temp,
   filter = "top",
+  rownames = FALSE,
   options = list(
     language = DT_language, 
     pageLength = c_pageLength,
@@ -115,7 +120,7 @@ DT::datatable(
     columnDefs = list(
       # list(targets = 3,visible = F),
       list(targets = 2, visible = FALSE),    # Hide the 'Datum' column
-      list(targets = 3, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+      list(targets = 2, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
       )
     ),
   colnames = c(Datum = "Datum_display")
@@ -125,7 +130,15 @@ DT::datatable(
 
 ```
 
+#### Pro Semester
+```{r}
+df_temp|>
+  group_by(Semester)|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`,na.rm = TRUE))|>
+  knitr::kable()
+```
 
+#### Pro Jahr
 ```{r}
 df_temp|>
   reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`,na.rm = TRUE))|>
@@ -135,6 +148,7 @@ df_temp|>
 ### Durchschnitt / Median
 ```{r}
 n <- df_temp|>
+  group_by(Semester)|>
   reframe(`Anzahl Vorführungen` = n())
 
 n|>
@@ -142,6 +156,19 @@ n|>
 ```
 
 
+#### Per Semester
+```{r}
+mean_median <- df_temp|>
+  group_by(Semester)|>
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
+          )
+
+mean_median|>
+  knitr::kable()
+```
+
+#### Pro Jahr
 ```{r}
 mean_median <- df_temp|>
   reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn aus Fimvorführung [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
@@ -170,11 +197,13 @@ shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 if(n > shows_per_year) shows_per_year <- n
 ```
 
-### Wochentaganalyse
-```{r }
+##### Wochentaganalyse
+```{r include=FALSE}
+library(hms)
+  df_temp <- df_temp|>
+    mutate(Zeit = hms::as_hms(Zeit))
+
 if(nrow(df_temp)>1){
-  df_temp
-  
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
   
   m <- str_split(timeRange, "-")|>
@@ -234,7 +263,7 @@ df_temp|>
 
 
 
-### Prognose
+### Prognose: Gewinn / Verlust 
 
 ```{r include=FALSE}
 
@@ -273,24 +302,47 @@ s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 ```
 
 
-```{r fig.width=10, message=FALSE, warning=FALSE}
-df_temp|>
-  ggplot(aes(Datum, cumsum))+
-  geom_col(fill ="darkorange2")+
-  geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
-  scale_x_date(limits = c(start_of_year, end_of_year))+
-  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
-       y = "Kumulierter Gewinn/Verlust [CHF]")+
-  my_template
+```{r echo=FALSE, fig.width=10, message=FALSE, warning=FALSE}
 
+
+df_temp$cumulative <- cumsum(df_temp$`Gewinn aus Fimvorführung [CHF]` )  
+
+df_temp |>
+  ggplot(aes(x = Datum, y = cumulative)) +
+  geom_col(fill = "darkorange2") +
+  geom_abline(slope = s, intercept = as.integer(time_diff * s), linewidth = 2, color = "lightblue") +
+  geom_smooth(formula = y ~ x, method = "lm", fullrange = TRUE, se = FALSE) +
+  scale_x_date(
+    limits = c(start_of_year, end_of_year),
+    breaks = "month",
+    minor_breaks = "month",
+    date_labels = "%b"  # show abbreviated month names (e.g., Jan, Feb)
+  ) +
+  labs(
+    title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+    y = "Kumulierter Gewinn/Verlust [CHF]"
+  ) +
+  my_template
 
 ```
 
 
+<!-- ```{r fig.width=10, message=FALSE, warning=FALSE} -->
+<!-- df_temp|> -->
+<!--   ggplot(aes(Datum, cumsum))+ -->
+<!--   geom_col(fill ="darkorange2")+ -->
+<!--   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+ -->
+<!--   geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+ -->
+<!--   scale_x_date(limits = c(start_of_year, end_of_year), breaks = "month")+ -->
+<!--   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"), -->
+<!--        y = "Kumulierter Gewinn/Verlust [CHF]")+ -->
+<!--   my_template -->
+<!-- ``` -->
+
+
 ## Ticketverkauf
 
-### Gewinn pro Vorführung
+### Ticketgewinn
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
@@ -298,14 +350,15 @@ df_temp <- df_temp|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Semester = get_semester(Datum),
          Zeit = paste0(lubridate::hour(Zeit), ":",
                          lubridate::minute(Zeit)|>
-                         as.character() |> 
+                         as.character() |>
                          formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                          ),
          `Ticketgewinn [CHF]` = round(`Ticketgewinn [CHF]`, 2)
   )|>
-  select(Datum, Datum_display,Zeit, Suisanummer, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)
+  select(Semester,Datum, Datum_display,Zeit, Suisanummer, Filmtitel, `Umsatz [CHF]`, `Ticketgewinn [CHF]`)
 
 ```
 
@@ -313,7 +366,8 @@ df_temp <- df_temp|>
 ```{r}
 # Create the datatable with a hidden Datum column and sort by it
 DT::datatable(
-  df_temp,
+  df_temp|>
+    mutate(Zeit = as.character(Zeit)),
   filter = "top",
   options = list(
     language = DT_language, 
@@ -321,15 +375,23 @@ DT::datatable(
     lengthMenu = c_pageLengthMenu,
     columnDefs = list(
       # list(targets = 3,visible = F),
-      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
-      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+      list(targets = 2, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 3, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
       )
     ),
   colnames = c(Datum = "Datum_display")
 )
 ```
 
+#### Per Semester
+```{r}
+df_temp|>
+  group_by(Semester)|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Ticketgewinn [CHF]`))|>
+  knitr::kable()
+```
 
+#### Pro Jahr
 ```{r}
 df_temp|>
   reframe(`Gewinn/Verlust [CHF]` = sum(`Ticketgewinn [CHF]`))|>
@@ -337,7 +399,7 @@ df_temp|>
 ```
 
 
-### Wochentaganalyse
+##### Wochentaganalyse
 
 ```{r }
 if(nrow(df_temp)>1){
@@ -398,7 +460,7 @@ df_temp|>
   my_template
 ```
 
-### Prognose
+##### Prognose
 ```{r }
 df_temp <- l_abrechnung|>
   lapply(function(x){
@@ -449,25 +511,30 @@ df_temp|>
 
 
 ### Eintritte
-#### Anzahl
+
+#### Anzahl (Zahlend, Gratis)
+##### Per Semester
 
 ```{r echo=FALSE}
 
 df_temp <- 
-  df_Eintritt|>  
-    filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-    arrange(Datum)|> 
-    select(Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
-    group_by(Zahlend)|>
-    reframe(Anzahl = sum(Anzahl))|>
-    mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
-           `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
-    rename(Eintritt = Zahlend)|>
-    arrange(desc(Anzahl))
+  df_Eintritt|> 
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(Datum)|> 
+  mutate(Semester = get_semester(get_semester(Datum)))|>
+  select(Semester, Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
+  group_by(Semester, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
+         `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  rename(Eintritt = Zahlend)|>
+  arrange(desc(Anzahl))
 
 df_temp |>
   DT::datatable(
     df_temp,
+    filter = "top",
+    rownames = FALSE,
     options = list(
       language = DT_language,
       pageLength = c_pageLength,
@@ -477,13 +544,84 @@ df_temp |>
 
 ```
 
+##### Pro Jahr
+```{r echo=FALSE}
+
+df_temp <- 
+  df_Eintritt|> 
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(Datum)|> 
+  mutate(Semester = get_semester(get_semester(Datum)))|>
+  select(Semester, Platzkategorie, Verkaufspreis, Anzahl, Zahlend)|>
+  group_by(Semester, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"),
+         `Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  rename(Eintritt = Zahlend)|>
+  arrange(desc(Anzahl))
+
+df_temp |>
+  DT::datatable(
+    df_temp,
+    filter = "top",
+    rownames = FALSE,
+    options = list(
+      language = DT_language,
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu
+    )
+  )
+
+```
+
+
+#### Anzahl per Platzkategorie
+
+##### Per Semester
+```{r echo=FALSE}
+df_temp <- 
+  df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(Datum)|> 
+  mutate(Semester = factor(get_semester(Datum)))|>
+  group_by(Semester, Platzkategorie,Verkaufspreis, Zahlend)|>
+  reframe(Anzahl = sum(Anzahl))|>
+  mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
+  arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  select(Semester,Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
+  DT::datatable(
+    filter = "top",
+    rownames = TRUE,
+    options = list(
+      language = DT_language,
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu
+      )
+    )
+
+```
+
+```{r}
+df_temp|>
+  reframe(Summe = sum(Anzahl, na.rm = T))|>
+  knitr::kable()
+```
+
+##### Pro Jahr
 ```{r echo=FALSE}
 df_temp <- 
   df_Eintritt|>
     filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
     arrange(Datum)|> 
     group_by(Platzkategorie,Verkaufspreis, Zahlend)|>
-    reframe(Anzahl = sum(Anzahl))|>
+    reframe(Anzahl = sum(Anzahl),
+            Platzkategorie = factor(Platzkategorie)
+            )|>
     mutate(`Anteil [%]` = round(Anzahl / (sum(Anzahl)/100),1))|>
     arrange(desc(Anzahl),desc(Verkaufspreis), Platzkategorie)
 ```
@@ -493,6 +631,8 @@ df_temp <-
 df_temp|>
   select(Platzkategorie, Verkaufspreis, `Anteil [%]`, Anzahl)|>
   DT::datatable(
+    filter = "top",
+    rownames = TRUE,
     options = list(
       language = DT_language,
       pageLength = c_pageLength,
@@ -547,9 +687,12 @@ df_temp|> # arrange the plot
 
 ```{r}
 df_temp <- df_Eintritt|>
-  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
-  group_by(Platzkategorie, Verkaufspreis)|>
-  filter(Zahlend)|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr,
+         Zahlend
+         )|>
+  mutate(Semester  = factor(get_semester(Datum)),
+         Platzkategorie = factor(Platzkategorie))|>
+  group_by(Semester,Platzkategorie, Verkaufspreis)|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
   reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
   arrange(desc(`Umsatz [CHF]`))
@@ -557,15 +700,51 @@ df_temp <- df_Eintritt|>
 ```
 
 
+##### Pro Semester
+
 ```{r}
 df_temp <- df_temp|>
   mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
          `Anteil [%]` = round(`Umsatz [CHF]`/(sum(`Umsatz [CHF]`)/100),1)
          )|>
+  select(Semester, Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, `Umsatz [CHF]`)
+
+df_temp|>
+  DT::datatable(
+    df_temp,
+    filter = "top",
+    rownames = FALSE,
+    options = list(language = DT_language)
+    )
+
+```
+
+##### Pro Jahr
+
+```{r}
+df_temp <- df_Eintritt|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr,
+         Zahlend
+         )|>
+  group_by(Platzkategorie, Verkaufspreis)|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`))|>
+  arrange(desc(`Umsatz [CHF]`))
+
+```
+
+```{r}
+df_temp <- df_temp|>
+  mutate(`Verkaufspreis [CHF]` = factor(paste(`Verkaufspreis [CHF]`,".-")),
+         `Anteil [%]` = round(`Umsatz [CHF]`/(sum(`Umsatz [CHF]`)/100),1),
+         Platzkategorie = factor(Platzkategorie),
+         )|>
   select(Platzkategorie, `Verkaufspreis [CHF]`, `Anteil [%]`, `Umsatz [CHF]`)
 
 df_temp|>
   DT::datatable(
+    rownames = FALSE,
+    filter = "top",
     df_temp,
     options = list(language = DT_language)
     )
@@ -620,7 +799,7 @@ df_temp <- df_Eintritt|>
 ```
 
 
-##### Prognose
+###### Prognose
 ```{r fig.width=10}
 df_temp <- df_Eintritt|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
@@ -660,6 +839,67 @@ df_temp|>
 
 ### Filmabgaben
 
+#### Per Semester
+```{r echo=FALSE}
+df_temp <-  l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  filter(lubridate::year(Datum) == c_Abrechnungsjahr)|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Semester = get_semester(Datum))|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         Zeit = paste0(lubridate::hour(Zeit),":", 
+                         lubridate::minute(Zeit)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         # `SUISA-Abzug [CHF]` = round(`Suisavorabzug [CHF]`,2),
+         # `Verleiher-Abzug [CHF]` = round(`Verleiherrechnungsbetrag [CHF]`,2)
+         )|>
+  select(Semester,`Event ID`, Datum, Datum_display, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`MWST [CHF]`,`Verleiherrechnungsbetrag [CHF]`)|>
+  arrange(desc(Datum))
+```
+
+```{r echo=FALSE}
+df_temp <- df_temp|>
+  mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2), 
+         `MWST [CHF]` = round(`MWST [CHF]`,2))
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE,
+    options = list(
+      language = DT_language,
+      pageLength = c_pageLength,
+      lengthMenu = c_pageLengthMenu,
+      columnDefs = list(
+        # list(targets = 3,visible = F),
+        list(targets = 2, visible = F), # Hide the 'Datum' column
+        list(targets = 3, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
+        )
+      ),
+      colnames = c(Datum = "Datum_display")
+  )
+```
+
+
+```{r echo=FALSE}
+df_temp|>
+  reframe(`Abgabe and die SUISA [CHF]` = sum(`Suisavorabzug [CHF]`, na.rm = T),
+          `Abgaben and den Verleiher [CHF]` = sum(`MWST [CHF]`, na.rm = T),
+          `MWST [CHF]` = sum(`MWST [CHF]`,na.rm = T)
+          )|>
+  knitr::kable()
+
+```
+
+#### Pro Jahr
+
 ```{r echo=FALSE}
 df_temp <-  l_abrechnung|>
   lapply(function(x){
@@ -679,8 +919,6 @@ df_temp <-  l_abrechnung|>
   select(`Event ID`, Datum, Datum_display, Zeit, Filmtitel, `Umsatz [CHF]`, `Suisavorabzug [CHF]`,`MWST [CHF]`,`Verleiherrechnungsbetrag [CHF]`)|>
   arrange(desc(Datum))
 ```
-
-
 ```{r echo=FALSE}
 df_temp <- df_temp|>
   mutate(`Suisavorabzug [CHF]` = round(`Suisavorabzug [CHF]`,2), 
@@ -691,6 +929,7 @@ df_temp <- df_temp|>
 ```{r echo=FALSE}
 df_temp|>
   DT::datatable(
+    filter = "top",
     rownames = FALSE,
     options = list(
       language = DT_language,
@@ -717,7 +956,7 @@ df_temp|>
 
 ```
 
-#### Prognose
+##### Prognose
 ```{r}
 df_temp <- df_temp|>
   arrange(Datum)|>
@@ -751,6 +990,8 @@ df_temp|>
 ## Kiosk
 
 ### Gewinn pro Vorführung 
+
+#### Per Semester
 ```{r echo=FALSE}
 df_temp <- l_abrechnung|>
   lapply(function(x){
@@ -759,21 +1000,62 @@ df_temp <- l_abrechnung|>
   bind_rows()|>
   arrange(desc(Datum))|>
   mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
-  select(`Event ID`, Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
-```
-
-
-```{r echo=FALSE}
-df_temp <- df_temp|>
-  mutate(`Kioskgewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`))
-
+  mutate(`Kioskgewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`),
+         Semester = factor(get_semester(Datum)),
+         `Event ID` = factor(`Event ID`),
+         Zeit = as.character(Zeit)
+         )|>
+  select(Semester,`Event ID`, Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
 ```
 
 
 ```{r echo=FALSE}
 df_temp|>
     DT::datatable(
-    df_temp,
+    filter = "top",
+    rownames = FALSE,
+    options = list(columnDefs = list(
+      # list(targets = 3,visible = F),
+      list(targets =2, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 4, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
+    )),
+    colnames = c(Datum = "Datum_display")
+  )
+```
+
+```{r echo=FALSE}
+df_temp|>
+  group_by(Semester)|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+          `Kioskgewinn [CHF]` = sum(`Kioskgewinn [CHF]`)
+          )|>
+  knitr::kable()
+
+```
+
+#### Pro Jahr
+
+```{r echo=FALSE}
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
+         `Kioskgewinn [CHF]` = round5Rappen(`Kioskgewinn [CHF]`),
+         `Event ID` = factor(`Event ID`),
+         Zeit = as.character(Zeit)
+         )|>
+  select(`Event ID`, Datum, Datum_display, Zeit,`Suisanummer`, Filmtitel, `Umsatz [CHF]`, `Kioskgewinn [CHF]`)
+```
+
+
+
+```{r echo=FALSE}
+df_temp|>
+    DT::datatable(
+    filter = "top",
     rownames = FALSE,
     options = list(columnDefs = list(
       # list(targets = 3,visible = F),
@@ -794,7 +1076,14 @@ df_temp|>
 ```
 
 
-### Wochentaganalyse
+#### Wochentaganalyse
+```{r }
+df_temp <- df_temp|>
+  mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+         Zeit = hms::as_hms(Zeit))
+```
+
+
 ```{r }
 if(nrow(df_temp)>1){
   timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
@@ -852,7 +1141,7 @@ m|>
 ```
 
 
-### Prognose
+#### Prognose
 ```{r }
 df_temp <- df_temp|>
   arrange(`Event ID`)|>
@@ -896,7 +1185,7 @@ df_temp <- df_Kiosk|>
 
 ```{r }
 df_temp|>
-  filter(is.na(ID_Spezialpreisekiosk))|>
+  # filter(is.na(ID_Spezialpreisekiosk))|>
   group_by(Artikelname)|>
   reframe(Anzahl = sum(Anzahl), 
           `Umsatz [CHF]` = sum(`Betrag [CHF]`, na.rm = TRUE),
@@ -904,7 +1193,10 @@ df_temp|>
           )|>
   arrange(desc(Anzahl))|>
   filter(Artikelname != "Keine Kioskverkäufe")|>
-  DT::datatable()
+  DT::datatable(
+    filter = "top",
+    rownames = FALSE
+  )
 ```
 
 
@@ -926,7 +1218,7 @@ df_temp1|>
 #### Druchschnittliche Marge
 ```{r}
 df_temp1|>
-  mutate(`Durchschnittsmarge [%]` =(`Umsatz [CHF]` / `Gewinn [CHF]`) - 1)|>
+  mutate(`Durchschnittsmarge [%]` = ((`Umsatz [CHF]` / `Gewinn [CHF]`) - 1) * 100)|>
   select(`Durchschnittsmarge [%]`)|>
   knitr::kable(digits = 2)
 
@@ -935,19 +1227,22 @@ df_temp1|>
 
 #### Rang
 ```{r fig.height=8, fig.width=10}
-df_plot <-df_temp|>
-  group_by(Artikelname)|>
+df_plot <- df_temp|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl))|>
-  filter(!is.na(Artikelname))|>
+  distinct(`Artikel-Kassensystem`, .keep_all = TRUE )|>
   arrange(Anzahl)
+```
 
+
+```{r fig.height=8, fig.width=10}
 df_plot|>
-  mutate(Artikelname = factor(Artikelname, levels = df_plot$Artikelname)
+  mutate(`Artikel-Kassensystem` = factor(`Artikel-Kassensystem`, levels = df_plot$`Artikel-Kassensystem`)
          )|>
-  group_by(Artikelname)|>
+  group_by(`Artikel-Kassensystem`, Artikelname)|>
   reframe(Anzahl = sum(Anzahl))|>
   arrange(desc(Anzahl))|>
-  ggplot(aes(Artikelname,Anzahl))+
+  ggplot(aes(`Artikel-Kassensystem`, Anzahl))+
   geom_col(show.legend = F, fill = "cyan4")+
   coord_flip()+
   theme_bw()+
@@ -964,24 +1259,40 @@ df_plot|>
 
 ### Ladenhüter (keine Verkäufe)
 ```{r }
-df_temp <- `Einkauf Kiosk`|>
-  distinct(`Artikelname-Kassensystem`)|>
-  left_join(df_Kiosk|>
-            group_by(Artikelname)|>
-              reframe(Anzahl = sum(Anzahl)),
-            by = c("Artikelname-Kassensystem"="Artikelname")
-            )
+df_temp <- `Einkauf Kiosk`
 ```
+
+
+<!-- ```{r } -->
+<!-- df_temp|> -->
+<!--   distinct(`Artikelname-Kassensystem`)|> -->
+<!--   left_join(df_Kiosk|> -->
+<!--               group_by(Artikelname)|> -->
+<!--               reframe(Anzahl = sum(Anzahl)), -->
+<!--             by = c("Artikelname-Kassensystem"="Artikelname") -->
+<!--             ) -->
+<!-- ``` -->
 
 
 ```{r }
 df_temp <- df_Kiosk|>
-  filter(Anzahl == 0, is.na(ID_Spezialpreisekiosk))|>
+  # filter(Anzahl == 0, is.na(ID_Spezialpreisekiosk))|>
   select(`Artikel-Kassensystem`, Artikelname, `Einzelpreis [CHF]`, `Einkaufspreis [CHF]`)
-  
-  
-df_temp|>
-  DT::datatable()
+```
+
+
+```{r }
+DT::datatable(
+  df_temp,
+  filter = "top",
+  rownames = FALSE,
+  # options = list(columnDefs = list(
+  #   # list(targets = 3,visible = F),
+  #   list(targets =2, visible = FALSE), # Hide the 'Datum' column
+  #   list(targets = 4, orderData = 2)    # Use the 'Datum' column for sorting 'Datum_display'
+  # )),
+  # colnames = c(Datum = "Datum_display")
+)
 
 ```
 
@@ -1053,14 +1364,20 @@ df_temp <- df_temp|>
 
 ```{r}
 df_temp|>  
-  select(Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`)|>  DT::datatable(
+  select(
+    Datum, Display_datum, Zeit,`Suisanummer`, Filmtitel, Besucherzahl, 
+    `Umsatz [CHF]`, `Kioskumsatz pro Gast [CHF]`
+    )|>
+  mutate(Zeit = as.character(Zeit))|>
+  DT::datatable(
   df_temp, 
+  filter = "top",
+  rownames = F, 
   options = list(columnDefs = list( # list(targets = 3,visible = F), 
     list(targets = 0, visible = FALSE), # Hide the 'Datum' column -->
     list(targets = 1, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' 
     )), 
-  colnames = c(Datum = "Display_datum") ,
-  rownames = FALSE
+  colnames = c(Datum = "Display_datum")
 )
 
 ```

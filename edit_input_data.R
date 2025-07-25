@@ -14,6 +14,11 @@ library(tidyverse)
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
+# auto update application
+if(!is_shiny_server()){
+  git_pull(getwd())
+}
+
 # Mapping Verleiher-Procinema zu Verleiher
 dict_env <- new.env()
 
@@ -1284,10 +1289,29 @@ server <- function(input, output, session) {
 
     # links to render in html
     if(lastEdited_data_set_name() %in% c("Programm","Filmvorschlag","Einsatzplan")){
-      df_temp <- df_temp|>
-        mutate(Procinema = if_else(is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")),
-               Trailer   = if_else(is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>"))
-               )
+      if(lastEdited_data_set_name() %in% c("Programm","Einsatzplan")){
+        df_temp <- df_temp|>
+          mutate(
+            Procinema = if_else(
+              is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")
+            ),
+            Trailer = if_else(
+              is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>")
+            ),
+            Zeit = as.character(Zeit)
+          )
+      } else {
+        df_temp <- df_temp|>
+          mutate(
+            Procinema = if_else(
+              is.na(Procinema) | Procinema == "", NA, paste0("<a href='", Procinema, "' target='_blank'>Link</a>")
+            ),
+            Trailer = if_else(
+              is.na(Trailer) | Trailer == "", NA, paste0("<a href='", Trailer, "' target='_blank'>Link</a>")
+            )
+          )
+      }
+
 
       if("Eintritte eingespielt" %in% names(df_temp)){
         df_temp$`Eintritte eingespielt` <- df_temp$`Eintritte eingespielt`|>
@@ -4918,7 +4942,7 @@ server <- function(input, output, session) {
         shiny::uiOutput("help_info")
       },
       shiny::tags$a(
-        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Hilfe",
+        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Tool Dokumentation",
         target = "_blank",
         style = "font-size: 18px;"
       ),

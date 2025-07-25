@@ -1,6 +1,7 @@
 library(rebus)
 library(readr)
 library(tidyverse)
+library(openxlsx)
 
 # Exctract date from yearweek
 YearWeektoDate <- function(yearweek) {
@@ -116,6 +117,14 @@ s_df_Procinema <- df_Procinema|>
             by = join_by(Suisanummer)
             )
 s_df_Procinema
+
+# export to excel
+write.xlsx(
+  list(df_Procinema, s_df_Procinema),
+  file = "output/data/Procinema.xlsx",
+  asTable = TRUE,
+  overwrite = TRUE
+)
  
 remove(c_file)
  

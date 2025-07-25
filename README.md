@@ -9,18 +9,6 @@ Bei Fehlern kann ein "Issue" in Github erfasst werden.\
 
 
 # Installation
-
-```{r include=FALSE}
-c_Path <- getwd()
-c_Path <- sub("^(.*?Kinoklub/).*", "\\1", c_Path)
-c_Path
-# find package dependencies for this project
-c_dependencies <- renv::dependencies(path = c_Path)|>
-  as_tibble()|>
-  distinct(Package)|>
-  pull()
-```
-
 ## Anleitung
 
 1.  Download und instalieren von R\
@@ -40,73 +28,92 @@ c_dependencies <- renv::dependencies(path = c_Path)|>
         git clone https://github.com/slvwagner/Kinoklub
     ```
 
-5.  Start Rstudio vom Kinoklub Ordner und dann das Projekt "Kinoklub.Rproj" öffnen.
+5.  Starte Rstudio und öffne das Projekt "Kinoklub.Rproj".
 
 6.  Installieren der benötigten "Packages" im "R Terminal"
 
     ```{R} 
-    paste0("install.packages(",paste0("\"",c_dependencies,"\"", collapse = ","),")")|>writeLines()
+    paste0("install.packages(c(",paste0("\"",c_dependencies,"\"", collapse = ","),"))")|>writeLines()
     ```
 
-7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten:\
+7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten.\
+    Die Information sind dem Kinoklub bekannt und können da nachgefragt werden.
     
     -   Windows \
-        Terminal Kommandos nacheinander mit den korrekten Daten ausführen:
+        Windows Terminal oder Powershell öffnen und die folgenden Kommandos nacheinander mit den korrekten Daten ausführen:
 
         ```         
-        setx DB_host "your host name here"
+        setx DB_host "Ihr Hostname hier"
         ```
     
         ```        
-        setx DB_name "your database name here"
+        setx DB_name "Ihr Datenbankname hier"
         ```
     
         ```        
-        setx DB_user "your database user name here"
+        setx DB_user "Ihr Datenbank-Benutzername hier"
         ```
     
         ```      
-        setx DB_PASSWORD_KINOKLUB "your database password here"
+        setx DB_PASSWORD_KINOKLUB "Ihr Datenbank-Passwort hier"
         ```
     
         ```       
-        setx ftp_user "your ftp user here"
+        setx ftp_user "Ihr FTP-Benutzer hier"
         ```
     
         ```        
-        setx ftp_pw "your ftp password here"
+        setx ftp_pw "Ihr FTP-Passwort hier"
         ```
-    
+        
+        ```
+        setx RSTUDIO_PANDOC "Verzeichnis finden, wo pandoc.exe installiert ist, z.B.im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
+        ```
 
     -   MAC / Linux\
         Erstellen ein neue Datei **".Renviron"** im Kinoklub Benutzerverzeichniss.\
+        Beim speicher muss darauf geachtet werden dass die Datei korrekt abgespeicher wird. Die Datei hat keinen Dateinamen, sondern nur die Dateierweiterung "**.Renviron **". \
         Die Datei wie folgt abfüllen: \
         
         ```
-        DB_host=""\
-        DB_name=""\
-        DB_user=""\
-        DB_PASSWORD_KINOKLUB=""\
-        ftp_user=""\
-        ftp_pw=""\
+        DB_host="Ihr Hostname hier"
+        DB_name="Ihr Datenbankname hier"
+        DB_user="Ihr Datenbank-Benutzername hier"
+        DB_PASSWORD_KINOKLUB="Ihr Datenbank-Passwort hier"
+        ftp_user="Ihr FTP-Benutzer hier"
+        ftp_pw="Ihr FTP-Passwort hier"
+        RSTUDIO_PANDOC="Verzeichnis finden, wo pandoc.exe installiert ist, z.B. im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
         ```
+8.  Erstellen der Applikations links \
+    Im R Terminal das folgende ausführen:
+    
+    ```
+    source(paste0(getwd(),"/source/OS_support/create bat to startup app.R"))
+    ```
 
-## Git Passwort / Personal Access Token (PAT)
 
-Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
+## Git 
+### Github user
+Um ein Datenbank backup auszuführen ist es nötig sich bei GitHub anzumelden. Der Github user muss dem Kinoklub projekt als Contributors hinzugefügt sein um schreibberechting zu haben.  \
+<https://github.com/slvwagner/Kinoklub>
+
+### Github Passwort / Personal Access Token (PAT)
+Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Github anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
 ![](doc/picts/PAT.png)
 
-# Applikation ausführen
+# Kinoklub GUI-Applikation ausführen
+Die App kann mit dem Link (.../Kinoklub/source/OS_support/) oder mit RStudio "Run" gestartet werden oder im RTerminal mit:.\
 
+```    
+source("GUI.R")
+```
+
+\
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die Adresse ist: <http://127.0.0.1:5003/>
 
-```         
-    source("GUI.R")
-```
 
 # Dateien
-
 ## Upload von neuen Dateien
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und der Dateierweiterung abgespeichert.
@@ -121,9 +128,10 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 ### Eintritte
 **Eintritte ID??.txt**\
-Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. \
+Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern ("input/advance tickets/**Eintritt IDxxx.txt"**) oder über "Kinoklub GUI" hochladen.
 
 ### Kiosk
 **Kiosk ID??.txt**\
@@ -160,26 +168,27 @@ Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein
 Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden. \
 Die Datei muss mit der Dateierweiterung ".csv" im Verzeichniss .../Kinoklub/Input/WordPress/ abgespeichert werden.
 
-## Procinema Archive 
+## Procinema Archiv
 Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden. \
 Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\
 Dann muss der "Export mit Details" gewählt werden. \
 Bitte speichern unter .../Kinoklub/Input/Procinema/**procinema.txt**\
 
 # Input Tabellen 
-Alle Input Tabellen können im Kinoklub GUI "Input Daten editieren" bearbeitet werden. Nach der bearbeitung müssen die Daten upgedated werden: "Daten updaten"\
+Alle Input Tabellen können mit der Applikation "Input Daten Kinoklub" bearbeitet werden. \
+Um die Änderungen in der Applikation "Kinoklub GUI" zu reflektieren müssen die Daten neu eingelesen und berechnet werden. Das erfollgt im "Kinoklub GUI": `Daten updaten`\
 
 Die Applikation wird mit dem standard Browser des Systems geöffnet. \
 Die lokale Adresse ist: <http://127.0.0.1:5001/>\
 
+
 ```         
     source("Edit_input_data.R")
 ```
-Die Applikation ist jedoch auch mit <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar.
 
+Die Applikation ist unter <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar. Gewisse Funktionen sind aber Online nicht verfügbar. 
 
-## Inputdaten
-
+## Inputtabellen
 ### Filmvorschlag
 Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden.
 
@@ -199,94 +208,96 @@ Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder könne
 
 ### Einnahmen
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten.\
-In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.
+In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können. \
+\
+Erklärung der **Spaltennamen**\
 
--   Erklärung der **Spaltennamen**
-    -   **ID**\
-        Fortlaufendenummer (automatisch erzeugt)
-    -   **Kategorie**\
-        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   Event\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein.\
-            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
-        -   Kiosk\
-            Ausgaben für den Einkauf des Kino-Kiosks
-        -   Personalaufwand\
-            Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   Verleiher\
-            Rechnungen vom Filmverleiher\
-            WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
-        -   Vermietung\
-            Einnahmen durch die Vermietung
-        -   Werbung\
-            Werbeeinnahmen z.B. Kinoweischer
-        -   Sonstiges\
-            Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen werden können.\
-    -   **Bezeichnung**\
-        Umschreibung der Buchung
-    -   **Event ID**\
-        Zu welcher Filmvorführung gehört diese Buchung?\
-        Das ist wichtig für die Kategorie Event und Verleiher, siehe oben.
-    -   **Datum**\
-        Buchungsdatum
-    -   **Abrechnungsjahr**\
-        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
-    -   **Betrag**\
-        Betrag in [CHF]
-    -   **Firmenname**\
-        Name der rechnugsstellenden Firma oder oder Person and die der Betrag ausbezahlt werden muss.
-    -   **Adresse**\
-        Rechnungsteller
-    -   **Rechnungsnummer**\
-        Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto**\
-        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung
--   In der Tabelle **Kategorien** sind die möglichen Kategorien definiert. Notwendige Änderungen müssen zuerst besprochen werden, ansonsten kann es sein, dass das R-Tool nicht mehr funktioniert.
+-   **ID**\
+    Fortlaufendenummer (automatisch erzeugt)
+-   **Kategorie**\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+    -   Event\
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Ausgaben** können dies Spezielle Verkaufsartikel (Gipfeli), Materialmiete für diesen Anlass, Event-Deko oder andere Ausgaben sein.\
+        WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
+    -   Kiosk\
+        Ausgaben für den Einkauf des Kino-Kiosks
+    -   Personalaufwand\
+        Ausgaben für Gehaltszahlung and Mitarbeiter
+    -   Verleiher\
+        Rechnungen vom Filmverleiher\
+        WICHTIG: Hier muss die korrekte **Event ID** angegeben werden.
+    -   Vermietung\
+        Einnahmen durch die Vermietung
+    -   Werbung\
+        Werbeeinnahmen z.B. Kinoweischer
+    -   Sonstiges\
+        Alle Einnahmen die nicht auf eine spezifische Kategorie zugewiesen werden können.\
+-   **Bezeichnung**\
+    Umschreibung der Buchung
+-   **Event ID**\
+    Zu welcher Filmvorführung gehört diese Buchung?\
+    Das ist wichtig für die Kategorie Event und Verleiher, siehe oben.
+-   **Datum**\
+    Buchungsdatum
+-   **Abrechnungsjahr**\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+-   **Betrag**\
+    Betrag in [CHF]
+-   **Firmenname**\
+    Name der rechnugsstellenden Firma oder oder Person and die der Betrag ausbezahlt werden muss.
+-   **Adresse**\
+    Rechnungsteller
+-   **Rechnungsnummer**\
+    Rechnungsnummer des Rechnungsstellers
+-   **Buchungskonto**\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung
+
 
 ### Ausgaben
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.\
-In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.
+In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.\
+\
+Erklärung der **Spaltennamen**\
 
--   Erklärung der **Spaltennamen**
-    -   **ID**\
-        Fortlaufendenummer (automatisch erzeugt)
-    -   **Kategorie**\
-        Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
-        -   **Event**\
-            Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden.
-        -   **Kiosk**\
-            Ausgaben für den Einkauf des Kino-Kiosks
-        -   **Personalaufwand**\
-            Ausgaben für Gehaltszahlung and Mitarbeiter
-        -   **Sonstiges**\
-            Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
-        -   **Verleiher**\
-            Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
-        -   **Vermietung**\
-            Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
-        -   **Werbung**\
-            Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
-    -   **Event ID**\
-        Wird die Kategorie Event oder Verleiher ausgewählt muss hier die **"Event ID"** des Films dazugehörigen Films eingetragen werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen werden. Bei Ausgaben die sich nicht auf ein spezifische **"Event ID"** beziehen, muss dieses Feld leer gelassen werden. Diese Ausgaben werden nur in der Jahresabrechnung berücksichtigt.\
-    -   **Bezeichnung**\
-        Umschreibung der Buchung
-    -   **Datum**\
-        Datum der Rechnung/Buchung.
-    -   **Abrechnungsjahr**\
-        In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
-    -   **Betrag**\
-        Betrag [CHF]
-    -   **Firmenname**\
-        Firmenname oder Person des Rechnungstellers an welchen der **Betrag** ausbezahlt werden muss.
-    -   **Adresse**\
-        Rechnungsteller
-    -   **Referenz**\
-        Referenznummer der Rechnung
-    -   **Rechnungsnummer**\
-        Rechnungsnummer des Rechnungsstellers
-    -   **Buchungskonto**\
-        Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
+-   **ID**\
+    Fortlaufendenummer (automatisch erzeugt)
+-   **Kategorie**\
+    Die Kategorie muss korrekt ausgewählt werden. Hier eine kurze Erklärung aller Optionen:
+    -   **Event**\
+        Die Kategorie Event wird in der Abrechnung (Abrechnung pro Film) aufgeführt. Als **Einnahmen** können Kollekten, Beiträge von Veranstallter oder sonstige Einnahmen sein. Diese Einnahmen müssen sich auf eine spezifische Filmvorführung beziehen somit muss Spieldatum und Suisanummer korrekt angegeben werden.
+    -   **Kiosk**\
+        Ausgaben für den Einkauf des Kino-Kiosks
+    -   **Personalaufwand**\
+        Ausgaben für Gehaltszahlung and Mitarbeiter
+    -   **Sonstiges**\
+        Alle Kosten die nicht auf eine spezifische Kategorie zugewiesen werden können.
+    -   **Verleiher**\
+        Ausgaben: Rechnungen vom Filmverleiher WICHTIG: hier muss das Spieldatum des Filmes eingetragen werden, damit die Abrechnung korrekt abläuft
+    -   **Vermietung**\
+        Ausgaben oder Einnahhmen die für einen Vermietung getätigt werden.
+    -   **Werbung**\
+        Allgemeine Werbekosten die nicht auf eine Filmvorführung abgewälzt werden können
+-   **Event ID**\
+    Wird die Kategorie Event oder Verleiher ausgewählt muss hier die **"Event ID"** des Films dazugehörigen Films eingetragen werden, damit die Ausgaben auf der Filmabrechnung ausgewiesen werden. Bei Ausgaben die sich nicht auf ein spezifische **"Event ID"** beziehen, muss dieses Feld leer gelassen werden. Diese Ausgaben werden nur in der Jahresabrechnung berücksichtigt.\
+-   **Bezeichnung**\
+    Umschreibung der Buchung
+-   **Datum**\
+    Datum der Rechnung/Buchung.
+-   **Abrechnungsjahr**\
+    In welche Abrechnungsperiode (Jahr) wird die Buchung zugewiesen?
+-   **Betrag**\
+    Betrag [CHF]
+-   **Firmenname**\
+    Firmenname oder Person des Rechnungstellers an welchen der **Betrag** ausbezahlt werden muss.
+-   **Adresse**\
+    Rechnungsteller
+-   **Referenz**\
+    Referenznummer der Rechnung
+-   **Rechnungsnummer**\
+    Rechnungsnummer des Rechnungsstellers
+-   **Buchungskonto**\
+    Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
 
 ### Spezialpreise Kiosk
 In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
@@ -301,29 +312,31 @@ Die Zuweisung erfolgt über die `Event ID`.
 -   Keine Kioskverkäufe
 
 ### Einkauf Kiosk
-In der Tabelle **Einkauf Kiosk** werden die aktuellen Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
+In der Tabelle **Einkauf Kiosk** werden die Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
 Der Einkaufspreise ist gültig ab dem Datum in der Spalte "Gültig ab Datum" .\
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über die Zeit ändern können wird immer der korrekte Einkaufspreis gesucht und für die Gewinn berechnung verwendet.\
 
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
+-   Wenn nachträgliche Änderungen an den Einkaufspreisen vorgenommen werden, die ein bereits eingelesenes Kiosk file betreffen dann ist es nötig für das betreffende Abrechnungsjahr im "Kinoklub GUI" die Dateien neu einzulesen: `Advance Ticket neu einlesen`. \
+    Die Tabelle Advanced-Ticketes, "df_Kiosk" wird nicht automatisch auf den neuesten Stand gebracht. Die Konvertierung nimmt relativ viel Zeit in Anspruch und wird deshalb nicht jedesmals ausgeführt.\
+
 
 ## Advanced-Tickets
-
 ### Eintritt files
-Rohdaten Eintritt
+Rohdaten Eintritt die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Eintritt
 Konvertierte Eintritt files
 
 ### Kiosk files
-Rohdaten Kiosk
+Rohdaten Kiosk die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Kiosk
-Konvertierer Kioskfiles
+Konvertierer Kioskfiles\
+Einkaufspreise per gültigkeits Datum abgeglichen
 
 ## Dropdowns
-
 ### Kinoklubmitglieder
 Erfassung aller Kinklubmitglieder mit Skill-Matrix
 
@@ -331,10 +344,10 @@ Erfassung aller Kinklubmitglieder mit Skill-Matrix
 Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden müssen.
 
 ### Verleihermapping
-Zuweisung Procinema Verleihername an Verleiher
+Zuweisung Procinema Verleihername mit dem Verleihernamen definiert in der Tabelle Verleiher.
 
 ### Lieferanten
-Lieferanten definition
+Lieferanten Definition
 
 ### Platzkategorien zum Verrechnen
 Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
@@ -348,13 +361,11 @@ Spezialpeise die Ausgewählt werden können.
 ### MWST
 In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt werden.
 
+
+
 # Berichte erstellen
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
-
--   Für jede Filmvorführung respektive Datum und Suisanummer wird ein Abrechnung erstellt.
--   Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung erstellt.
--   Es wird eine Statistik mit Porgnosen erstellt.
--   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
+Die Dateien werden automatisch auf den Kinoklub FTP server hochgeladen und sind im "Kinoklub GUI" zu finden und können deshalb einfach geteilt werden. 
 
 ## Abrechnung Filmvorführung
 Es wird eine Filmabrechnung pro Event ID erstellt.
@@ -515,7 +526,7 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
     -   Ausgaben\
         Kinomiete an Theater am Bahnhof AG, Mitgliederbeiträge, Ciné Bulletin, ...
 
-## Statistik
+## Jahresstatistik
 
 -   Gewinn/Verlust
     -   Prognose\
@@ -549,8 +560,10 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         -   Prognose\
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
-## WordPress Filmvorschläge auswerten
+## Statistik
+Statistische Auswertung über alle Abrechnungsperioden.
 
+## WordPress Filmvorschläge auswerten
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
 
 ```         
@@ -558,20 +571,23 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 ```
 
 ## Archiv
-
 Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt.\
-Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden:  .../Kinoklub/Input/Procinema/Procinema.txt
+Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
+
+
 
 # Benutzereinstellungen
-
 ## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
 Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen auf den Gewinn und die Verleiherabrechnung.
 
-# Daten als Excel-Datei
 
+
+# Datenexport als Excel-Datei
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
+
+
 
 # Dokumentation
 Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
@@ -582,8 +598,9 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-# Versionshistorie
 
+
+# Versionshistorie
 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
