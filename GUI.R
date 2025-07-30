@@ -109,7 +109,7 @@ ui <-
                        href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time()))
                        )
     ),
-    paste("Kinoklub GUI", c_script_version) |>
+    paste("Kinoklub Berichte", c_script_version) |>
       shiny::titlePanel(),
     shiny::sidebarLayout(
       # Render the side panel
