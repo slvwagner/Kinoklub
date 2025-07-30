@@ -13,10 +13,17 @@ con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 # read template
 l_template <- readRDS("source/SQL/template.RDS")
 
-# l_template$Programm <- l_template$Programm|>
-#   mutate(`Verleiher Angefragt?` = factor(`Verleiher Angefragt?`))
-# 
-# saveRDS(l_template, "source/SQL/template.Rds")
+l_data$Verleiher
+
+
+df_temp <- l_data$Verleiher|>
+  left_join(l_data$`Verleiher mapping`|>
+              select(-ID),
+            by = join_by(Verleihername)
+            )
+
+l_template$Verleiher <- df_temp[2,]
+saveRDS(l_template, "source/SQL/template.Rds")
 
 
 ################################
