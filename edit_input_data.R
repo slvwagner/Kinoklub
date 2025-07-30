@@ -687,28 +687,17 @@ server <- function(input, output, session) {
                 "dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
-          # # Function selection
-          # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-          #                     choices = choices, selected = choices[choices_select]
-          # ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-          # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
           shiny::tags$hr(),
           actionButton("procinema_search", "Procinema-Suche", class = "btn-info"),
-          # actionButton("add_to_programm", "ins Programm übernehmen", class = "btn-success"),
-          # shiny::tags$hr(),
-          # actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-          # shiny::tags$hr(),
-          # actionButton("check_unique", "Prüfen", class = "btn-success"),
           shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         ) 
       } 
-      #### Programm ####
+      #### Einsatzplan ####
       else if (data_set_select == "Einsatzplan"){
         tags$div(
           id = "floating-panel",
@@ -719,44 +708,6 @@ server <- function(input, output, session) {
           div(class = "custom-select",
               selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
-          ),
-          # # Function selection
-          # shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-          #                     choices = choices, selected = choices[choices_select]
-          # ),
-          shiny::tags$hr(),
-          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
-          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
-          shiny::tags$hr(),
-          # actionButton("add_row_top", "Zeile oben hinzufügen", class = "btn-info"),
-          # actionButton("add_row_bottom", "Zeile unten hinzufügen", class = "btn-info"),
-          actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
-          shiny::tags$hr(),
-          actionButton("archive_row", "Filmtitel ändern", class = "btn-success"),
-          shiny::tags$hr(),
-          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
-          shiny::tags$hr(),
-          actionButton("check_unique", "Prüfen", class = "btn-success"),
-          shiny::tags$hr(),
-          if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
-          shiny::downloadButton("table_export", "Tabelle herunterladen")
-        )
-      } 
-      #### Einsatzplan ####
-      else if(data_set_select == "Einsatzplan"){
-        tags$div(
-          id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
-                   "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
-          ),
-          div(class = "custom-select",
-              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
-              )
-          ),
-          # Function selection
-          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
           ),
           shiny::tags$hr(),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -1092,7 +1043,7 @@ server <- function(input, output, session) {
       l_template[c_select_input_advanced_tickets()]
       
       ## Drop down data and calculation definitions ####
-      c("Kinoklubmitglieder", "Verleiher", "Verleiher mapping", "Lieferanten", 
+      c("Kinoklubmitglieder", "Verleiher", "Lieferanten", 
         "Platzkategorien zum Verrechnen", "Buchhaltungskonten", "Spezialpreis", "MWST")|>
         c_select_dropdown_data()
       l_template[c_select_dropdown_data()]
@@ -1109,8 +1060,8 @@ server <- function(input, output, session) {
       shiny::incProgress(1/3, detail = "Fetching from database")
       
       # initialize dictionary Verleiher to Procinema-Verleiher
-      df_mapping <- DB_get_table("Verleiher mapping", DB_con()) |>
-        select(-ID)
+      df_mapping <- DB_get_table("Verleiher", DB_con())|>
+        select(Verleiher_procinema, Verleihername)
       dict_env <<- dict_from_data.frame(df_mapping)
       
       # Get all data from DB using your template
@@ -1670,8 +1621,9 @@ server <- function(input, output, session) {
       }
       
       # initialize dictionary Verleiher to Procinema-Verleiher
-      df_mapping <- DB_get_table("Verleiher mapping", DB_con()) |>
-        select(-ID)
+      df_mapping <- DB_get_table("Verleiher", DB_con())|>
+        select(Verleiher_procinema, Verleihername)
+      
       dict_env <<- dict_from_data.frame(df_mapping)
       
       # User Information 
@@ -4550,10 +4502,6 @@ server <- function(input, output, session) {
       shiny::inputPanel(
         shiny::textInput("suisa", "Suisanummer", placeholder = "xxxx.xxx" )
       ),
-      tagList(
-        div(dataTableOutput("modal_table")
-            )
-      ),
       easyClose = FALSE, 
       footer = tagList(
         actionButton("procinema","Suchen", class = "btn-success"),
@@ -4580,7 +4528,8 @@ server <- function(input, output, session) {
             df_temp <- search_procinema_by_suisa(input$suisa)
             
           }, error = function(e){
-            showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), type = "error")
+            showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), 
+                             type = "error")
             removeModal()
           }
         )
@@ -4656,7 +4605,8 @@ server <- function(input, output, session) {
     } else {
       removeModal()
       showModal(modalDialog(
-        title = "Die Suisanummer ist nicht korrekt",
+        title = "Die angegebenen Suisanummer ist nicht korrekt",
+        renderText(paste("Suisanummer:", input$suisa)),
         footer = tagList(
           actionButton("abort","Abbrechen")
         )
@@ -4706,7 +4656,8 @@ server <- function(input, output, session) {
       new_row
       
       # check if Verleiher mapping is available 
-      df_Verleiher_mapping <- DB_get_table("Verleiher mapping", DB_con())
+      df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())|>
+        select(Verleiher_procinema, Verleihername)
       tail(df_Verleiher_mapping)
       
       
@@ -4817,7 +4768,8 @@ server <- function(input, output, session) {
       new_row
 
       # check if Verleiher mapping is available 
-      df_Verleiher_mapping <- DB_get_table("Verleiher mapping", DB_con())
+      df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())|>
+        select(Verleiher_procinema, Verleihername)
       tail(df_Verleiher_mapping)
 
       
