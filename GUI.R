@@ -2668,7 +2668,7 @@ server <- function(input, output, session) {
     df_temp[,2] <- pull(df_temp[,2])|>
       factor()
     
-    datatable(
+    DT::datatable(
       df_temp,
       filter = "top",
       rownames = FALSE,
