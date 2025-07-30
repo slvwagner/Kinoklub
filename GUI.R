@@ -694,9 +694,10 @@ server <- function(input, output, session) {
               # file name 
               c_fileName <- paste(unlist(str_split(as.character(c_time), "\\."))[1], "Backup")|>
                 str_replace_all(":","_")
+              c_fileName <- paste0( c_script_version, " ", c_fileName)
               c_fileName
-            
-              # create new file name
+              
+              # get file name
               df_temp <- tibble(file = list.files(path = "Backup"))
               df_temp
               
