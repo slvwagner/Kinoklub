@@ -6,16 +6,16 @@
 
 # Version history
 #############################################################################################################################################
-# 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
-# 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
-# 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet
-# 2024 V1.3 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen 
-# 2024 V1.4 Jahresbarechnung detailed entfernt
-# 2024 V1.5 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
-# 2024 V1.6 Statistik: Wochentaganalyse
-# 2024 V1.7 Statistik ohne Datatable gelöscht
-# 2024 V1.8 Dokumentations update 
-# 2024 V1.9 Filmvorschläge from Wordpress 
+# 2024 V1.00 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
+# 2024 V1.01 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
+# 2024 V1.02 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet
+# 2024 V1.03 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen 
+# 2024 V1.04 Jahresbarechnung detailed entfernt
+# 2024 V1.05 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"
+# 2024 V1.06 Statistik: Wochentaganalyse
+# 2024 V1.07 Statistik ohne Datatable gelöscht
+# 2024 V1.08 Dokumentations update 
+# 2024 V1.09 Filmvorschläge from Wordpress 
 # 2024 V1.10 PowerBi script
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
@@ -63,13 +63,17 @@ p1 <- "\\d\\d\\d\\d\\sV\\d\\.\\d\\d"
 # p <- DGT%R%DGT%R%DGT%R%DGT
 p2 <- "\\d\\d\\d\\d"
 
-
 df_version <- tibble(Version = str_extract(c_raw, p1))|>
   mutate(index = row_number(),
-         String = c_raw)|>
+         String = c_raw|>
+           str_remove("#")|>
+           str_trim()
+         )|>
   filter(!is.na(Version))|>
   mutate(Version = str_remove(Version, p2)|>
-           str_trim())
+           str_trim(),
+         String = paste0(String, "\\")
+         )
 df_version
 
 c_script_version <- df_version|>

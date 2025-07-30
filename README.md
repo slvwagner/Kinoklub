@@ -601,23 +601,33 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 
 
 # Versionshistorie
-# 2024 V1.10 PowerBi script
-# 2024 V1.11 WordPress Filmvorschläge auswerten
-# 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
-# 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
-# 2024 V1.14 GUI Graphical user interface 
-# 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
-# 2024 V1.16 Introduction of environments to run GUI
-# 2025 V1.17 Data type for excel files are defined by column type database 
-# 2025 V2.00 Fist fully tested Version
-# 2025 V2.01 New Feature: More than one Film per day can be handled
-# 2025 V2.02 New Feature: Files can be uploade via GUI
-# 2025 V2.03 Code clean up
-# 2025 V2.04 Procinema und Filmvorschläge auswerten
-# 2025 V2.05 Bereits gezeigte Filme im Archiv
-# 2025 V2.06 Script running status bar
-# 2025 V2.07 Speed up
-# 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt
-# 2025 V3.01 Kinoklub GUI überarbeitet
+2024 V1.00 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
+2024 V1.01 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
+2024 V1.02 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
+2024 V1.03 Neuer Bericht Statistik_DT hinzugefügt. Interaktives durchsuchen aller Tabellen\
+2024 V1.04 Jahresbarechnung detailed entfernt\
+2024 V1.05 Merge Verkaufsartikel "Popcorn frisch", "Popcorn Salz" zu "Popcorn frisch"\
+2024 V1.06 Statistik: Wochentaganalyse\
+2024 V1.07 Statistik ohne Datatable gelöscht\
+2024 V1.08 Dokumentations update\
+2024 V1.09 Filmvorschläge from Wordpress\
+2024 V1.10 PowerBi script\
+2024 V1.11 WordPress Filmvorschläge auswerten\
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)\
+2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"\
+2024 V1.14 GUI Graphical user interface\
+2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden\
+2024 V1.16 Introduction of environments to run GUI\
+2025 V1.17 Data type for excel files are defined by column type database\
+2025 V2.00 Fist fully tested Version\
+2025 V2.01 New Feature: More than one Film per day can be handled\
+2025 V2.02 New Feature: Files can be uploade via GUI\
+2025 V2.03 Code clean up\
+2025 V2.04 Procinema und Filmvorschläge auswerten\
+2025 V2.05 Bereits gezeigte Filme im Archiv\
+2025 V2.06 Script running status bar\
+2025 V2.07 Speed up\
+2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt\
+2025 V3.01 Kinoklub GUI überarbeitet\
 
 
