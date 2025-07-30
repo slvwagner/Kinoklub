@@ -692,9 +692,9 @@ server <- function(input, output, session) {
               l_data <- convert_DB_to_R(l_data, l_template)
               
               # file name 
-              c_fileName <- paste(unlist(str_split(as.character(c_time), "\\."))[1], "Backup")|>
+              c_fileName <- paste(unlist(str_split(as.character(c_time), "\\."))[1])|>
                 str_replace_all(":","_")
-              c_fileName <- paste0(c_fileName, " ", c_script_version)
+              c_fileName <- paste0(c_fileName, " ", c_script_version, " Backup")
               c_fileName
               
               # get file name
