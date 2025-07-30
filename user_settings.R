@@ -1,10 +1,11 @@
 #############################################################################################################################################
-# Bitte beachte das README.md und die Dokumentation im Verzeichniss ".../doc"
-# 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
 # slvwagner@gmail.com
+#############################################################################################################################################
 
+# Version history
+#############################################################################################################################################
 # 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
 # 2024 V1.2 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet
@@ -32,22 +33,36 @@
 # 2025 V2.06 Script running status bar
 # 2025 V2.07 Speed up
 # 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt
+# 2025 V3.01 Kinoklub GUI überarbeitet
 
 
 #############################################################################################################################################
-# Vorbereiten / Installieren
+# find script version in comments above
 #############################################################################################################################################
 rm(list = ls())
 source("source/functions.R")
-c_script_version <- "V3.00"
 
-#############################################################################################################################################
-# Packages loading
-#############################################################################################################################################
+c_raw <- readLines("user_settings.R")
+# library(rebus)
+# p <- DGT%R%DGT%R%DGT%R%DGT%R%SPC%R%"V"%R%DGT%R%DOT%R%DGT%R%DGT
+p1 <- "\\d\\d\\d\\d\\sV\\d\\.\\d\\d"
+# p <- DGT%R%DGT%R%DGT%R%DGT
+p2 <- "\\d\\d\\d\\d"
 
-packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "tidyverse", "data.table")
-invisible(lapply(packages, library, character.only = TRUE))
-remove(packages)
+
+df_version <- tibble(Version = str_extract(c_raw, p1))|>
+  mutate(index = row_number(),
+         String = c_raw)|>
+  filter(!is.na(Version))|>
+  mutate(Version = str_remove(Version, p2)|>
+           str_trim())
+df_version
+
+c_script_version <- df_version|>
+  filter(index == max(index))|>
+  select(Version)|>
+  pull()
+c_script_version
 
 #############################################################################################################################################
 # Benutzereinstellungen 
@@ -107,16 +122,6 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
   c_files <- list.files(c_path, pattern = "html", full.names = T)
   c_files
   file.remove(c_files)|>suppressWarnings()
-  
-  c_path <- "output/pict"
-  c_files <- list.files(c_path, pattern = "html", full.names = T)
-  c_files
-  file.remove(c_files)|>suppressWarnings()
-  
-  c_path <- "output/webserver"
-  c_files <- list.files(c_path, pattern = "html", full.names = T)
-  c_files
-  file.remove(c_files)|>suppressWarnings()
 
 }else{
   x <- read_file("version control.ini")|>
@@ -130,73 +135,32 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
     c_files
     file.remove(c_files)|>suppressWarnings()
     
-    c_path <- "output/pict"
-    c_files <- list.files(c_path, pattern = "html", full.names = T)
-    c_files
-    file.remove(c_files)|>suppressWarnings()
-    
-    c_path <- "output/webserver"
-    c_files <- list.files(c_path, pattern = "html", full.names = T)
-    c_files
-    file.remove(c_files)|>suppressWarnings()
     #versions kontrolle schreiben
     write(c_script_version, "version control.ini")
     
-    # Löschen aller Daten die mit einer anderen Version erstellt wurden
-    file.remove("environment.RData")|>
-      suppressWarnings()
+    # Einlesen Dokumentation
+    c_raw <- readLines("doc/README.Rmd")
+    
+    # README Dokumentversion
+    c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
+    c_index <- c_index[length(c_index)] + 1
+    
+    # update Dokumentversion
+    c_raw[c_index] <- c_script_version
+    
+    # Titel suchen
+    index <- (1:length(c_raw))[c_raw|>str_detect("# Versionshistorie")]
+    index
+    
+    # Ändern des Templates
+    c(c_raw[1:index], df_version$String,"\n")|>
+      writeLines("doc/README.Rmd")
+    
+    source("doc/create Readme and Docu.R")
   }
 }
 
-#############################################################################################################################################
-# Versionierung
-#############################################################################################################################################
-# Einlesen template der Verleiherabrechnung
-c_raw <- readLines("doc/README.Rmd")
-
-# Index where to find
-c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
-c_index <- c_index[length(c_index)]
-c_raw[c_index+1]
-
-################################################
-# Dokumentation anpassen falls neue Version
-if(c_raw[c_index+1] != c_script_version){ 
-  ######################################
-  # Aktuelle Version ermitteln
-  c_raw[c_index+1] <- c_script_version
-  
-  # neues file schreiben
-  c_raw|>
-    writeLines("doc/README.Rmd")
-  
-  ######################################
-  # Scrip Versionshistorie ermitteln  
-  c_raw <- readLines("user_settings.R")
-  p <- "#"%R%SPC%R%one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-  c_Version_hist <- c_raw[str_detect(c_raw, p)]|>
-    str_remove("# ")|>
-    paste0("  \\")
-  c_Version_hist
-  
-  p <- one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-  
-  if(c_Version_hist[length(c_Version_hist)]|>str_extract(p) != c_script_version) stop("\nDer letzte Eintrag der Versionshistorie stimmt nicht mit der Variable c_script_version überein.\nBitte korrigieren")
-  
-  # Versionshistorie in Template einfügen
-  c_raw <- readLines("doc/README.Rmd")
-  c_raw[1:3]
-  # Titel suchen
-  index <- (1:length(c_raw))[c_raw|>str_detect("# Versionshistorie")]
-  index
-  # Ändern des Templates
-  c(c_raw[1:(index + 1)], c_Version_hist,"\n")|>
-    writeLines("doc/README.Rmd")
-  
-  source("doc/create Readme and Docu.R")
-}
-
-remove(c_raw, c_index)
+remove(df_version)
 
 writeLines("script run done: user_settings.R")
 

@@ -2880,9 +2880,9 @@ server <- function(input, output, session) {
       choices <- 2023:lubridate::year(Sys.Date())
       
       shiny::tagList(
-        shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
-        shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
-        shiny::tags$hr(),
+        # shiny::actionButton("launch_app", "Input Daten editieren", class = "btn-success"),
+        # shiny::actionButton("stop_app", "Input Daten editieren stoppen",class = "btn-danger"),
+        # shiny::tags$hr(),
         shiny::radioButtons(inputId =  "c_Abrechnungsjahr", label ="Abrechnungsjahr",
                             choices, choices_select
         ),
