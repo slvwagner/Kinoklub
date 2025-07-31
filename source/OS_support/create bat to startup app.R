@@ -89,8 +89,6 @@ create_mac_command <- function(r_script_path, command_path) {
 #   command_path = "~/Desktop/Kinoklub_GUI.command"
 # )
 
-
-
 # crate bat 
 
 r_path <- function(x) {
@@ -133,7 +131,7 @@ r_file
 c_raw <- readLines("source/OS_support/Kinoklub.template")
 c_raw
 
-c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", Sys.getenv("RSTUDIO_PANDOC")|>normalizePath(),"\"")
+c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
 c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
 c_raw
 
@@ -157,7 +155,7 @@ r_wd
 
 c_raw <- readLines("source/OS_support/Kinoklub.template")
 
-c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", Sys.getenv("RSTUDIO_PANDOC")|>normalizePath(),"\"")
+c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
 c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
 c_raw
 
