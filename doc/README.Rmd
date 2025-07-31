@@ -36,9 +36,9 @@ Die Datenbank (Kinoklub Input) enthält: Filmvorschläge, Programmplanung, Einsa
 
 Zusätzlich kann die App (Kinoklub GUI) Veranstaltungsdaten automatisiert einlesen und entsprechende Statistiken, Filmabrechnungen, und die Jahresrechnung erstellen.
 
-## Probleme & Tickets
+## Probleme
 
-Wenn Probleme auftreten oder Änderungen notwendig sind, können diese direkt auf GitHub als Ticket erfasst werden:
+Wenn Probleme auftreten oder Änderungen notwendig sind, können diese direkt auf GitHub als Issue erfasst werden:
 
 1.    Diesen Link öffnen: <https://github.com/slvwagner/Kinoklub/issues>\
 2.    Auf "New Issue" klicken
