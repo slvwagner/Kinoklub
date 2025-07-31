@@ -868,7 +868,7 @@ server <- function(input, output, session) {
     
     shiny::withProgress(message = "DB Recovery...", value = 0, {
       for (ii in 1:n) {
-        shiny::incProgress(1 / n, detail = paste("Step", 1, "of", n))
+        shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
         DB_copy_table(l_data[[table_name[ii]]], DB_con(), table_name[ii])
       }
     })
