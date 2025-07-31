@@ -2416,8 +2416,6 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     
-    print("here")
-    
     if(is.null(temp_01()) | is.null(clipr::read_clip())){
       new_row <- current_data()[1,]|>
         mutate(across(everything(), ~ NA))|>
