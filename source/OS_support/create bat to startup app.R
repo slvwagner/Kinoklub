@@ -146,7 +146,7 @@ create_windows_shortcut(
   working_dir = getwd(),
   description = "Kinoklub Input Tabellen"
 )
-message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub input` wurde erstellt.")
+message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub input.lnk wurde erstellt.")
 
 
 r_file <- paste0(r_wd, "/Start_GUI.R")|>
@@ -171,7 +171,7 @@ create_windows_shortcut(
   description = "Kinoklub GUI"
 )
 
-message("Die Datei: ",getwd(),"`source/OS_support/Kinoklub GUI` wurde erstellt.")
+message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub GUI.lnk wurde erstellt.")
 
 
 
