@@ -2,119 +2,223 @@ Script Version: NA
  
 # Kinoklub
 
-Shiny app zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub zu vereinfachen respektive zu automatisieren wurde dieser Script erstellt.\
-\
-Bei Fehlern kann ein "Issue" in Github erfasst werden.\
-<https://github.com/slvwagner/Kinoklub/issues>\
+Diese Apps wurden entwickelt, um eine zentrale Datenbank für den Kinoklub bereitzustellen.
 
+Die Datenbank (Kinoklub Input) enthält: Filmvorschläge, Programmplanung, Einsatzpläne, Einnahmen und Ausgaben, Helfer\*innen-Listen, Verleiher- und Lieferanteninformationen und vieles mehr.
+
+Zusätzlich kann die App (Kinoklub GUI) Veranstaltungsdaten automatisiert einlesen und entsprechende Statistiken, Filmabrechnungen, und die Jahresrechnung erstellen.
+
+## Probleme & Tickets
+
+Wenn Probleme auftreten oder Änderungen notwendig sind, können diese direkt auf GitHub als Ticket erfasst werden:
+
+1.    Diesen Link öffnen: <https://github.com/slvwagner/Kinoklub/issues>\
+2.    Auf "New Issue" klicken
+3.    Problem möglichst genau beschreiben
+4.    Ticket absenden
 
 # Installation
+
+Damit die App reibungslos funktioniert, müssen einige Tools installiert werden.
+
 ## Anleitung
 
-1.  Download und instalieren von R\
-    <https://cran.r-project.org/bin/windows/base/>
+### R installieren
 
-2.  Download und instalieren Rstudio\
-    <https://posit.co/download/rstudio-desktop/>
+**Info:** R ist eine Programmiersprache für statistische Analysen und Datenverarbeitung. Sie bildet die Basis für alle Berechnungen der App.
 
-3.  Download und instalieren Git\
-    <https://git-scm.com/downloads>
+1.    Lade R von der offiziellen Webseite herunter: <https://cran.r-project.org/bin/windows/base/>
+2.    Wähle die passende Version für dein Betriebssystem (Windows oder Mac).
+3.    Folge während der Installation dem Assistenten und übernimm die Standard-Einstellungen.
 
-4.  Projekt herunterladen:\
-    Erstelle ein Ordner wo die Dateien abgespeicher werden sollen. \
-    Ein Terminal öffnen (in Windows: rechte Maustaste und dann Terminal öffnen) und dann folgenden code ausführen. 
+### RStudio installieren
 
-    ```         
-        git clone https://github.com/slvwagner/Kinoklub
+**Info:** RStudio ist die Entwicklungsumgebung für R. Ohne R funktioniert RStudio nicht.
+
+1.    Lade RStudio von folgender Seite herunter: <https://posit.co/download/rstudio-desktop/>
+2.    Wähle die passende Version für dein Betriebssystem (Windows oder Mac).
+3.    Folge den Anweisungen des Installationsassistenten und übernimm die Standard-Einstellungen.
+
+### Git installieren und Projektordner erstellen
+
+1.    Lade Git von der offiziellen Seite herunter: <https://git-scm.com/downloads>
+
+2.    Installiere Git mit den Standard-Einstellungen.
+
+3.    Erstelle einen Projektordner:
+      -   Öffne den Explorer (Windows) oder Finder (Mac)
+      -   Navigiere zu dem gewünschten Speicherort
+      \
+
+4.    Öffne ein Terminal im gewählten Verzeichnis:
+      -   Rechtsklicken - „Im Terminal öffnen" im Kontextmenu anwählen\
+      \
+
+5.    Projekt herunterladen:
+      -   Füge folgenden Code ins Terminal ein und drücke Enter\
+      \
+      
+      ``` 
+      git clone https://github.com/slvwagner/Kinoklub 
+      ```
+      
+      Der neue erstellte Ordner heisst **"Kinoklub"**.
+    
+### Projekt in RStudio öffnen
+
+Im neu erstellten Projektordner findest du die Datei "Kinoklub.Rproj".\
+  -   Doppelklicke auf diese Datei, um das Projekt in RStudio zu starten, falls gefragt, wähle "Öffnen mit RStudio".
+  
+### Benötigte Packages installieren
+
+In RStudio befindet sich **unten links** das R Console-Fenster (Terminal in RStudio). Füge den unten kopierten Code in das R Console-Fenster ein und führe den Code aus indem du **Enter** drückst.
+
+```{R}
+paste0("install.packages(c(",paste0("\"",c_dependencies,"\"", collapse = ","),"))")|>writeLines()
+```
+
+Warte, bis alle Packages installiert sind. Die Installation ist abgeschlossen, wenn in der Konsole keine weiteren Code-Zeilen mehr geschrieben werden. Dies kann einige Minuten dauern. 
+
+### Zugangsdaten einrichten (Systemvariablen)
+#### Windows
+
+1.  Öffne das Terminal (falls es geschlossen wurde, über die Windows-Suche „Terminal“ öffnen).
+2.  Führe die folgenden Befehle einzeln aus (mit Enter bestätigen) und ersetze die "PLATZHALTER" mit den tatsächlichen Daten aus den Kinoklub Login-Daten:
+    
+      
+    ``` 
+    setx DB_host "HOSTNAME" 
     ```
-
-5.  Starte Rstudio und öffne das Projekt "Kinoklub.Rproj".
-
-6.  Installieren der benötigten "Packages" im "R Terminal"
-
-    ```{R} 
-    paste0("install.packages(c(",paste0("\"",c_dependencies,"\"", collapse = ","),"))")|>writeLines()
+    
+    ``` 
+    setx DB_name "DATENBANKNAME"
     ```
-
-7.  Benutzer and Passwörter auf dem lokalen Computer Einrichten.\
-    Die Information sind dem Kinoklub bekannt und können da nachgefragt werden.
     
-    -   Windows \
-        Windows Terminal oder Powershell öffnen und die folgenden Kommandos nacheinander mit den korrekten Daten ausführen:
-
-        ```         
-        setx DB_host "Ihr Hostname hier"
-        ```
+    ``` 
+    setx DB_user "DATENBANK-BENUTZERNAME
+    ```
     
-        ```        
-        setx DB_name "Ihr Datenbankname hier"
-        ```
+    ``` 
+    setx DB_PASSWORD_KINOKLUB "DATENBANK-PASSWORT" 
+    ```
     
-        ```        
-        setx DB_user "Ihr Datenbank-Benutzername hier"
-        ```
-    
-        ```      
-        setx DB_PASSWORD_KINOKLUB "Ihr Datenbank-Passwort hier"
-        ```
-    
-        ```       
-        setx ftp_user "Ihr FTP-Benutzer hier"
-        ```
-    
-        ```        
-        setx ftp_pw "Ihr FTP-Passwort hier"
-        ```
-        
-        ```
-        setx RSTUDIO_PANDOC "Verzeichnis finden, wo pandoc.exe installiert ist, z.B.im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
-        ```
-
-    -   MAC / Linux\
-        Erstellen ein neue Datei **".Renviron"** im Kinoklub Benutzerverzeichniss.\
-        Beim speicher muss darauf geachtet werden dass die Datei korrekt abgespeicher wird. Die Datei hat keinen Dateinamen, sondern nur die Dateierweiterung "**.Renviron **". \
-        Die Datei wie folgt abfüllen: \
-        
-        ```
-        DB_host="Ihr Hostname hier"
-        DB_name="Ihr Datenbankname hier"
-        DB_user="Ihr Datenbank-Benutzername hier"
-        DB_PASSWORD_KINOKLUB="Ihr Datenbank-Passwort hier"
-        ftp_user="Ihr FTP-Benutzer hier"
-        ftp_pw="Ihr FTP-Passwort hier"
-        RSTUDIO_PANDOC="Verzeichnis finden, wo pandoc.exe installiert ist, z.B. im Ordner C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools"
-        ```
-8.  Erstellen der Applikations links \
-    Im R Terminal das folgende ausführen:
+    ```     
+    setx ftp_user "FTP-BENUTZER" 
+    ```
     
     ```
-    source(paste0(getwd(),"/source/OS_support/create bat to startup app.R"))
+    setx ftp_pw "FTP-PASSWORT"
     ```
+\
+**Wichtig**: Starte RStudio neu, damit die Einstellungen übernommen werden.
 
 
-## Git 
-### Github user
-Um ein Datenbank backup auszuführen ist es nötig sich bei GitHub anzumelden. Der Github user muss dem Kinoklub projekt als Contributors hinzugefügt sein um schreibberechting zu haben.  \
-<https://github.com/slvwagner/Kinoklub>
+#### MacOS
 
-### Github Passwort / Personal Access Token (PAT)
-Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Github anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen.\
-![](doc/picts/PAT.png)
+Im Benutzerverzeichnis erstelle eine neue Datei mit dem Namen ".Renviron"
 
-# Kinoklub GUI-Applikation ausführen
-Die App kann mit dem Link (.../Kinoklub/source/OS_support/) oder mit RStudio "Run" gestartet werden oder im RTerminal mit:.\
+-   Öffne das Programm TextEdit, erstelle ein neues Dokument und wähle unter Format - In reinen Text umwandeln.
+-   Kopiere den folgenden Text und ersetze die "PLATZHALTER" mit den tatsächlichen Daten aus den Kinoklub Login-Daten:\
 
-```    
+    ```
+    DB_host="HOSTNAME"
+    DB_name="DATENBANKNAME"
+    DB_user="DATENBANK-BENUTZERNAME"
+    DB_PASSWORD_KINOKLUB="DATENBANK-PASSWORT"
+    ftp_user="FTP-BENUTZER"
+    ftp_pw="FTP-PASSWORT"
+    ```
+-   Wähle beim Speichern dein Benutzerverzeichnis als Speicherort
+    -   Das Benutzerverzeichnis ist dein persönlicher Hauptordner auf dem Computer (/Users/DeinName)
+    -   Du kannst es im Finder öffnen, indem du in der Menüleiste auf Benutzeroderner klickst
+    -   Drücke die Tastenkombination Cmd "+ Shift + ." (Punkt) Damit du die versteckte Dateien siehst und überprüfen kannst, ob deine neue Datei korrekt erstellt wurde.
+    -   Stelle sicher, dass keine Dateiendung wie .txt hinzugefügt wird. Falls nötig, entferne die Endung manuell
+    
+**Wichtig**: Die Datei hat keinen Dateinamen, sondern nur die Dateiendung ".Renviron". Speichere sie korrekt und starte anschliessend RStudio neu, damit die Einstellungen übernommen werden.
+
+
+## Git
+
+Damit die Kinoklub-App Datenbank-Backups erstellen und Änderungen im Projekt speichern kann, muss Git sich mit deinem GitHub-Konto authentifizieren. Dafür benötigst du ein Benutzerkonto und einen Token. 
+
+Link zu GitHub: <https://github.com/slvwagner/Kinoklub>
+
+### GitHub Benutzerkonto
+
+  -   Lege ein GitHub-Konto an, falls du noch keines hast: https://github.com/
+  -   Der GitHub-Benutzer muss dem Kinoklub-Projekt als Contributor hinzugefügt werden, damit du Schreibrechte hast.
+  -   Um die Backups automatisch erstellen zu lassen, muss Git sich mit deinem GitHub-Konto authentifizieren – hierfür wird der Personal Access Token benötigt, welcher direkt auf deinem PC hinterlegt wird. Ohne diesen, müsstest du dich bei jeder Handlung anmelden. 
+
+### GitHub Personal Access Token (PAT)
+
+Da GitHub seit 2021 keine Passwörter mehr für Git-Zugriffe unterstützt, brauchst du einen **Personal Access Token (PAT)**. Dieser Token ersetzt dein Passwort bei der Anmeldung.
+
+**Erstelle einen Token:**
+    
+1.  Gehe auf GitHub und melde dich an.
+2.  Öffne oben rechts dein Profil - Settings.
+3.  Navigiere zu Developer Settings - Personal access tokens - Tokens (classic).
+4.  Klicke auf Generate new token und wähle classic.
+5.  Gib dem Token einen Namen und setze die Expiration auf No Expiration.
+6.  Wähle alle Berechtigungen unter repo aus.
+7.  Klicke unten auf Generate token und kopiere den Token.
+
+### Personal Access Token im System hinterlegen
+#### Windows
+
+1. Credential Manager öffnen
+    - In der Windows-Suche suche nach „Anmeldeinformationsverwaltung“ oder „Credential Manager“ und öffne die App. \
+2. Eintrag suchen oder erstellen
+    -  Gehe zu Windows-Anmeldeinformationen
+    -  Suche nach git:https://github.com 
+    -  Falls vorhanden: Bearbeiten → Passwort durch deinen Personal Access Token ersetzen\
+    -  Falls nicht vorhanden - klicke auf Generische Anmeldeinformationen hinzufügen:
+         - Internetadresse: git:https://github.com
+         - Benutzername: Dein GitHub-Benutzername
+         - Passwort: Dein Personal Access Token
+         - mit OK bestätigen
+
+#### MacOS
+1. Spotlight öffnen (Lupensymbol oben rechts) und „Keychain Access“ (Schlüsselbundverwaltung) starten
+2. In der Schlüsselbundverwaltung nach github.com suchen
+3. Den Eintrag für das Internet-Passwort öffnen:
+    -  Passwort durch den Personal Access Token ersetzen
+    -  Oder Eintrag löschen und neu hinzufügen mit:
+    -  Benutzername: Dein GitHub-Benutzername
+    -  Passwort: Dein Personal Access Token
+4. Änderungen speichern
+
+
+## Kinoklub Applikationen ausführen
+Navigiere zu RStudio, R-Console unten links. Kopiere den folgenden Code und führe diesen aus indem du Enter drückst.
+
+```         
+source(paste0(getwd(),"/source/OS_support/create bat to startup app.R"))
+```
+Die Shortcuts zu den Apps findest du in deinem neu erstellten Unterordner OS_support (.../Kinoklub/source/OS_support/). \
+Die Dateien heissen: "Kinoklub GUI" und "Kinoklub Input". Kopiere diese Shortcuts auf deinen Desktop für einfachen Zugriff.
+
+Alternativ kann die Applikation mit RStudio "Run" gestartet werden oder im RTerminal mit:.\
+
+```         
 source("GUI.R")
 ```
 
-\
-Die Applikation wird mit dem standard Browser des Systems geöffnet. \
-Die Adresse ist: <http://127.0.0.1:5003/>
 
+```         
+source("edit_input_data.R")
+```
+
+
+\
+Die Applikation wird mit dem standard-Browser des Systems geöffnet.\
+Die Adresse für Kinoklub GUI ist: <http://127.0.0.1:5003/>\
+Die Adresse für Kinoklub Input ist: <http://127.0.0.1:5001/>
 
 # Dateien
+
 ## Upload von neuen Dateien
+
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden.\
 Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und der Dateierweiterung abgespeichert.
 
@@ -124,16 +228,19 @@ Dateien werden automatisch im korrekten Verzeichniss anhand des Dateinamens und 
 -   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
 ## Input Advance-Tickets
+
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und und können mittels drag&drop abgespeichert werden. Die Dateien sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** zu finden.
 
 ### Eintritte
+
 **Eintritte ID??.txt**\
-Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen. \
+Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Eintritt ID???.txt" oder über GUI hochladen.\
 Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern ("input/advance tickets/**Eintritt IDxxx.txt"**) oder über "Kinoklub GUI" hochladen.
 
 ### Kiosk
+
 **Kiosk ID??.txt**\
 Copy paste von html für jede Vorführung, die **"Event ID"** ist dem Programm zu entnehmen: Bitte speichern unter "input/advance tickets/Kiosk ID???.txt". oder über GUI hochladen.\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
@@ -141,9 +248,10 @@ Spalte 1: Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierk
 ![Kiosk](doc/picts/Kiosk.png)\
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk ID???.txt") oder über GUI hochladen.
 
-
 ### Gutscheine und Abos
+
 #### Abos
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
 Nun können die Daten exportiert werden.\
@@ -151,6 +259,7 @@ Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt**
 ![Shows](doc/picts/atelierkino_abo.png)
 
 #### Förderer
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
 Nun können die Daten exportiert werden.\
@@ -158,41 +267,47 @@ Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
 #### Gutschein
+
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** und den Button suchen wählen.\
-Nun können die Daten exportiert werden. \
+Nun können die Daten exportiert werden.\
 Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt**\
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
 ## Filmvorschläge aus Wordpress Export
-Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden. \
+
+Die Filmvorschläge müssen im korrekten csv Format mit Wordpess tool exportiert werden.\
 Die Datei muss mit der Dateierweiterung ".csv" im Verzeichniss .../Kinoklub/Input/WordPress/ abgespeichert werden.
 
 ## Procinema Archiv
-Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden. \
+
+Auf der Homepage: <https://procinema.ch/de/personal/performances/> können die Besucherzahlen heruntergeladen werden.\
 Bitte die Kinowochen entsprechend auswählen. Am besten das Startdatum auf Kinowoche 1 im Jahr 2012 stellen um alle Datensätze zu erhalten.\
-Dann muss der "Export mit Details" gewählt werden. \
+Dann muss der "Export mit Details" gewählt werden.\
 Bitte speichern unter .../Kinoklub/Input/Procinema/**procinema.txt**\
 
-# Input Tabellen 
-Alle Input Tabellen können mit der Applikation "Input Daten Kinoklub" bearbeitet werden. \
+# Input Tabellen
+
+Alle Input Tabellen können mit der Applikation "Input Daten Kinoklub" bearbeitet werden.\
 Um die Änderungen in der Applikation "Kinoklub GUI" zu reflektieren müssen die Daten neu eingelesen und berechnet werden. Das erfollgt im "Kinoklub GUI": `Daten updaten`\
 
-Die Applikation wird mit dem standard Browser des Systems geöffnet. \
+Die Applikation wird mit dem standard Browser des Systems geöffnet.\
 Die lokale Adresse ist: <http://127.0.0.1:5001/>\
-
 
 ```         
     source("Edit_input_data.R")
 ```
 
-Die Applikation ist unter <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar. Gewisse Funktionen sind aber Online nicht verfügbar. 
+Die Applikation ist unter <https://slvwagner.shinyapps.io/Kinoklub_Input/> erreichbar. Gewisse Funktionen sind aber Online nicht verfügbar.
 
 ## Inputtabellen
+
 ### Filmvorschlag
+
 Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst werden falls die Suisanummer bekannt ist. Die Suisanummer wird auf Procinemagesucht und das Suchresultat kann direkt übernommen werden.
 
 ### Programm
+
 -   Für jeden gezeigten Film muss ein Datum und einen Zeit definiert werde.
 -   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Ist kein Suisanummer vorhanden z.B. weil es nur einen Ausländischen verleiher gibt kann die Suisanummer die von Advanced-Tickets erzeugt wird verwendet werden.
@@ -204,11 +319,13 @@ Ein Filmvorschlag kann am einfachsten mit dem Feature "Procinema-Suche" erfasst 
     Der Rechnungsbetrag der Verleiherrechnung an den Kinoklub wird demnach grösser.
 
 ### Einsatzplan
+
 Im Einsatzplan wird die Ressourcenplanung vorgenommen. Kinoklubmitglieder können sich selbständig eintragen. Welche Funktion die Kinoklubmitglieder belegen dürfen ist in der Tabelle Dropdowns Kinoklubmitglieder definiert.
 
 ### Einnahmen
+
 Alle Einnahmen müssen in der Tabelle **Einnahmen** definiert werden. Ja nach **Einnahmentyp** muss die richtige **Kategorie sowie Buchungskonto** verwendet werden. Das ist nötig um die Einnahmen korrekt in den **Berichten** auszuwerten.\
-In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können. \
+In der Tabelle **Einnahmen** werden alle Einnahmen erfasst, die nicht automatisch aus den Advaced Tickets Daten extrahiert werden können.\
 \
 Erklärung der **Spaltennamen**\
 
@@ -252,8 +369,8 @@ Erklärung der **Spaltennamen**\
 -   **Buchungskonto**\
     Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung
 
-
 ### Ausgaben
+
 Alle Ausgaben müssen in der Tabelle **Ausgaben** definiert werden.\
 Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet werden. Das ist nötig um die Einnahmen und Ausgaben korrekt in den **Berichten** auszuwerten.\
 In der Tabelle **Ausgaben** werden alle Ausgaben verbucht die nicht automatisch aus den Advanced Tickets Daten extrahiert werden können.\
@@ -300,6 +417,7 @@ Erklärung der **Spaltennamen**\
     Buchungskonto in Bexio (Buchhaltungstool TaB), muss Geschäftsleitung weitergegeben werden um Buchung korrekt durchzuführen.
 
 ### Spezialpreise Kiosk
+
 In der Tabelle **Spezialpreisekiosk** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
 \
 Die Zuweisung erfolgt über die `Event ID`.
@@ -312,62 +430,75 @@ Die Zuweisung erfolgt über die `Event ID`.
 -   Keine Kioskverkäufe
 
 ### Einkauf Kiosk
+
 In der Tabelle **Einkauf Kiosk** werden die Einkaufspreise definiert um den Gewinn für einen Kioskverkaufsartikel zu ermittel.\
 Der Einkaufspreise ist gültig ab dem Datum in der Spalte "Gültig ab Datum" .\
 Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich die Einkaufspreise so muss ein ein neuer Eintrag für diesen Artikel gemacht werden. Der alte soll nicht gelöscht werden da sich die Einkaufpreise über die Zeit ändern können wird immer der korrekte Einkaufspreis gesucht und für die Gewinn berechnung verwendet.\
 
 -   Achtung\
     Die alten datensätze dürfen nicht gelöscht werden!
--   Wenn nachträgliche Änderungen an den Einkaufspreisen vorgenommen werden, die ein bereits eingelesenes Kiosk file betreffen dann ist es nötig für das betreffende Abrechnungsjahr im "Kinoklub GUI" die Dateien neu einzulesen: `Advance Ticket neu einlesen`. \
+-   Wenn nachträgliche Änderungen an den Einkaufspreisen vorgenommen werden, die ein bereits eingelesenes Kiosk file betreffen dann ist es nötig für das betreffende Abrechnungsjahr im "Kinoklub GUI" die Dateien neu einzulesen: `Advance Ticket neu einlesen`.\
     Die Tabelle Advanced-Ticketes, "df_Kiosk" wird nicht automatisch auf den neuesten Stand gebracht. Die Konvertierung nimmt relativ viel Zeit in Anspruch und wird deshalb nicht jedesmals ausgeführt.\
 
-
 ## Advanced-Tickets
+
 ### Eintritt files
+
 Rohdaten Eintritt die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Eintritt
+
 Konvertierte Eintritt files
 
 ### Kiosk files
+
 Rohdaten Kiosk die über das "Kinoklub GUI" hochgeladen wurden.
 
 ### df_Kiosk
+
 Konvertierer Kioskfiles\
 Einkaufspreise per gültigkeits Datum abgeglichen
 
 ## Dropdowns
+
 ### Kinoklubmitglieder
+
 Erfassung aller Kinklubmitglieder mit Skill-Matrix
 
 ### Verleiher
+
 Verleiher erfassen und festlegen ob die Kinoförderer abgerechnet werden müssen.
 
 ### Verleihermapping
+
 Zuweisung Procinema Verleihername mit dem Verleihernamen definiert in der Tabelle Verleiher.
 
 ### Lieferanten
+
 Lieferanten Definition
 
 ### Platzkategorien zum Verrechnen
+
 Welche Platzkategorien müssen verrechnet werden. (Kinofördere gratis?)
 
 ### Buchhaltungskonten
+
 Buchhaltungskonten werden in den Ausgaben verwendet.
 
 ### Spezialpreis
+
 Spezialpeise die Ausgewählt werden können.
 
 ### MWST
+
 In der Tabelle Dropdowns **MWST** muss der MWST-Satz für jedes Jahr festgelegt werden.
 
-
-
 # Berichte erstellen
-Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
-Die Dateien werden automatisch auf den Kinoklub FTP server hochgeladen und sind im "Kinoklub GUI" zu finden und können deshalb einfach geteilt werden. 
+
+Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss. Die Dateien werden automatisch auf den Kinoklub FTP server hochgeladen und sind im "Kinoklub GUI" zu finden und können deshalb einfach geteilt werden.
 
 ## Abrechnung Filmvorführung
+
 Es wird eine Filmabrechnung pro Event ID erstellt.
 
 -   Übericht
@@ -449,7 +580,6 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
     -   Gewinn / Verlust:\
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
-
 ### Berechnung der Fixen Abgaben
 
 -   Verleiherrechnung noch nicht vorhanden
@@ -474,6 +604,7 @@ Es wird eine Filmabrechnung pro Event ID erstellt.
         $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$
 
 ## Jahresabrechnungen
+
 Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nach Kategorie der Rechnung zugewiesen. Die folgenden Kategorien werden in den Jahresrechnungen separat behandelt.
 
 -   Filmvorführungen
@@ -561,9 +692,11 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
             Die Prognose wird mit der Kumuliertensumme pro Datum als lineares Model erstellt.
 
 ## Statistik
+
 Statistische Auswertung über alle Abrechnungsperioden.
 
 ## WordPress Filmvorschläge auswerten
+
 Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. Die Daten wird bereinigt und als Excel ausgegeben.
 
 ```         
@@ -571,25 +704,24 @@ Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kin
 ```
 
 ## Archiv
+
 Das Archiv wird aus den statistischen Daten von <https://procinema.ch> erstellt.\
-Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden: \ .../Kinoklub/Input/Procinema/Procinema.txt
-
-
+Die Datei kann mit drag&Drop hochgeladen werden oder so abgespeichert werden:  .../Kinoklub/Input/Procinema/Procinema.txt
 
 # Benutzereinstellungen
+
 ## Platzkategorien ohne Umsatz die für gewisse Verleiher dennoch abgerechnet werden müssen.
+
 Für gewisse Verleiher müssen zusätzliche Platzkategorieen abgerechnet werden. Die Definition ist in der Tabelle **Verleiher** Spalte "Kinoförderer gratis" zu finden.\
 Die **Platzkategorien zum Verrechnen** wird in der Verleiherabrechnung und Berechnung berücksichtigt und hat auswirkungen auf den Gewinn und die Verleiherabrechnung.
 
-
-
 # Datenexport als Excel-Datei
+
 Die Eingelesenen und verarbeiteten Datensätze werden in eine Excel-Datei gespeichert.\
 Die Dateinen sind im Verzeichniss **.../Kinoklub/output/data/** zu finden.
 
-
-
 # Dokumentation
+
 Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
 
 ```         
@@ -598,9 +730,8 @@ source("doc/create Readme and Docu.R")
 
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
-
-
 # Versionshistorie
+
 2024 V1.00 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
 2024 V1.01 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
 2024 V1.02 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
@@ -613,7 +744,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 2024 V1.09 Filmvorschläge from Wordpress\
 2024 V1.10 PowerBi script\
 2024 V1.11 WordPress Filmvorschläge auswerten\
-2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)\
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis =\> nein, in Verleiherabgaben.xlsx)\
 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"\
 2024 V1.14 GUI Graphical user interface\
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden\
@@ -629,5 +760,3 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 2025 V2.07 Speed up\
 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt\
 2025 V3.01 Kinoklub GUI überarbeitet\
-
-
