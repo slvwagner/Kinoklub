@@ -641,6 +641,34 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }
+      #### Verleiher ####
+      else if (lastEdited_data_set_name() %in% c("Verleiher")) {
+        tags$div(
+          id = "floating-panel",
+          tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          div(class = "custom-select",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
+          # Function selection 
+          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                              choices = choices, selected = choices[choices_select]
+          ),
+          shiny::tags$hr(),
+          actionButton("add_row_verleiher", "Eintrag hinzufügen", class = "btn-info"),
+          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+          shiny::tags$hr(),
+          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+          shiny::tags$hr(),
+          actionButton("check_unique", "Prüfen", class = "btn-success"),
+          shiny::tags$hr(),
+          if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
+          shiny::downloadButton("table_export", "Tabelle herunterladen")
+        )
+      }
       #### anything else ####
       else {
         tags$div(
@@ -2371,6 +2399,64 @@ server <- function(input, output, session) {
     
     # update to render 
     current_data(updated_data)
+    
+    # select last edited row and page
+    last_selected_row(1)
+    last_selected_page(1)
+    
+  })
+  
+  ####  add row / new entry Verleiher ####
+  observeEvent(input$add_row_verleiher, {
+    # check DB connection
+    if (!dbIsValid(DB_con())) {
+      showNotification(paste("Database connection got lost, try to reconnect."), type = "warning")
+      DB_connect(DB_host(), DB_name(), DB_user(), DB_pw())|>
+        DB_con()
+      showNotification(paste("Database connection recovered"), type = "message")
+    }
+    
+    print("here")
+    
+    if(is.null(temp_01()) | is.null(clipr::read_clip())){
+      new_row <- current_data()[1,]|>
+        mutate(across(everything(), ~ NA))|>
+        convert_to_template_types(l_template$Verleiher)|>
+        mutate(ID = max(current_data()$ID) + 1L,
+               `Kinoförderer gratis?` = "ja"
+        )
+    } else {
+      if(clipr::read_clip() == temp_01()){
+        
+        # Filmforschlag copy to clipboard has been executed
+        new_row <- current_data()[1,]|>
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template$Verleiher)|>
+          mutate(Verleiher_procinema = clipr::read_clip(),
+                 Verleihername = clipr::read_clip(),
+                 ID = max(current_data()$ID) + 1L,
+                 `Kinoförderer gratis?` = "ja"
+          )
+      }
+    }
+    
+    # updata SQL DB and current data 
+    DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
+
+    # Update the list
+    l_temp <- l_data()
+    l_temp[[lastEdited_data_set_name()]] <- DB_get_table(lastEdited_data_set_name(), DB_con())|>
+      convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    # update all data
+    l_data(l_temp)
+    # update choices
+    update_choices(l_data())|>
+      column_choices()
+    
+    # update to render
+    l_temp$Verleiher|>
+      arrange(desc(ID))|>
+      current_data()
     
     # select last edited row and page
     last_selected_row(1)
@@ -4725,7 +4811,7 @@ server <- function(input, output, session) {
           showNotification(paste("Error:", e$message), type = "error")
         }
       )
-      shiny::incProgress(1 / 2, detail = paste("search procinema website", 1, "of 2"))
+      shiny::incProgress(1 / 2, detail = paste("search procinema website", 2, "of 2"))
     })
 
     # update date if details have been found
@@ -4739,20 +4825,35 @@ server <- function(input, output, session) {
       new_row
 
       # check if Verleiher mapping is available 
-      df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)
+      df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())
+      
+      df_Verleiher_mapping <- df_Verleiher_mapping|>
+        select(Verleiher_procinema, Verleihername)|>
+        filter(Verleiher_procinema == new_row$Verleiher)
+      
       tail(df_Verleiher_mapping)
 
-      
-      if(is.null(names(new_row$Verleiher))){
+      if(nrow(df_Verleiher_mapping) == 0){
         showModal(modalDialog(
-          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher mapping`."),
-          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher mapping` erfassen und dann nochmals probieren!"),
+          title = paste0("Es gibt keinen `Verleiher_procinema` = ", new_row$Verleiher, " in der Tabelle `Verleiher`."),
+          tagList(
+            renderText(paste0(
+              "Bitte einen neuen Verleiher in der Tabelle `Dropdowns/Verleiher` erfassen und dann nochmals probieren!"
+              )),
+            renderText(paste0(
+              "Die Spalte `Verleiher_procinema` muss den folgenden Wert enthalten: \"", new_row$Verleiher , "\""
+              ))
+          ),
           easyClose = FALSE, 
           footer = tagList(
+            actionButton("copy_to_clipboard" ,"in Zwischenablage kopieren"), 
             actionButton("abort","Abbrechen")
           )
         ))
+        
+        # save for later use 
+        temp_01(new_row$Verleiher)
+        
         req(NULL) # early exit
       }
       
@@ -4785,6 +4886,13 @@ server <- function(input, output, session) {
       last_selected_row(1L)
     }
     df_temp_to_render(NULL)
+  })
+  
+  # copy something to the clipboard 
+  observeEvent(input$copy_to_clipboard,{
+    temp_01()|>
+      clipr::write_clip()
+    removeModal()
   })
   
   ## Timer to trigger every 5 seconds ####
