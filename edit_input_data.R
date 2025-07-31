@@ -2425,16 +2425,24 @@ server <- function(input, output, session) {
         )
     } else {
       if(clipr::read_clip() == temp_01()){
-        
-        # Filmforschlag copy to clipboard has been executed
-        new_row <- current_data()[1,]|>
-          mutate(across(everything(), ~ NA))|>
-          convert_to_template_types(l_template$Verleiher)|>
-          mutate(Verleiher_procinema = clipr::read_clip(),
-                 Verleihername = clipr::read_clip(),
-                 ID = max(current_data()$ID) + 1L,
-                 `Kinoförderer gratis?` = "ja"
-          )
+        if(!is_shiny_server()){
+          # Filmforschlag copy to clipboard has been executed
+          new_row <- current_data()[1,]|>
+            mutate(across(everything(), ~ NA))|>
+            convert_to_template_types(l_template$Verleiher)|>
+            mutate(Verleiher_procinema = clipr::read_clip(),
+                   Verleihername = clipr::read_clip(),
+                   ID = max(current_data()$ID) + 1L,
+                   `Kinoförderer gratis?` = "ja"
+            )
+        } else {
+          new_row <- current_data()[1,]|>
+            mutate(across(everything(), ~ NA))|>
+            convert_to_template_types(l_template$Verleiher)|>
+            mutate(ID = max(current_data()$ID) + 1L,
+                   `Kinoförderer gratis?` = "ja"
+            )
+        }
       }
     }
     
@@ -4844,7 +4852,7 @@ server <- function(input, output, session) {
           ),
           easyClose = FALSE, 
           footer = tagList(
-            actionButton("copy_to_clipboard" ,"in Zwischenablage kopieren"), 
+            if(!is_shiny_server()){actionButton("copy_to_clipboard" ,"in Zwischenablage kopieren")}, 
             actionButton("abort","Abbrechen")
           )
         ))
