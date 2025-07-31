@@ -1739,25 +1739,7 @@ server <- function(input, output, session) {
       }
     }
   )
-  
-  ## Button: Download handler Statistik #####
-  output$download_stat <- downloadHandler(
-    filename = function() {
-      "Statistik.xlsx"
-    },
-    content = function(file) {
-      source_file <- "output/data/Statistik.xlsx"
-      # Check if the file exists before attempting to copy
-      if (file.exists(source_file)) {
-        file.copy(from = source_file,
-                  to = file,
-                  overwrite = TRUE)
-      } else {
-        stop("The file does not exist.")
-      }
-    }
-  )
-    
+
   ## file Upload handler #####
   file_data <- shiny::reactive({
     # Execution time 
@@ -2912,19 +2894,14 @@ server <- function(input, output, session) {
         
         # Button zum Ausführen von Code Statistik erstellen
         shiny::actionButton("Statistik", "Jahresstatistik erstellen"),
-        
         # Button zum Ausführen von Code Jahresrechnung erstellen
         shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
         shiny::tags$hr(),
 
         # Button zum Ausführen von Code Statistik erstellen
         shiny::actionButton("Statistik_all", "Statistik"),
-        # Button zum herunterladen der Filmvorschläge
-        if(stat_to_download()) {
-          shiny::downloadButton("download_stat", "Download Statistik")
-        },
-        
         shiny::tags$hr(),
+        
         # Button zum Download der Werbung
         shiny::downloadButton("downloadExcel", "Download Werbung"),
         # Button zum herunterladen der Filmvorschläge
@@ -3033,60 +3010,6 @@ server <- function(input, output, session) {
       paste0("❌ Database connection is NOT valid! Time", poll_timer())
     }
   })
-
-  ## launch the Dateien editieren App #####
-  observeEvent(input$launch_app, {
-    # Execution time 
-    c_time <- Sys.time()
-    ausgabe_text("Input Dateien editieren gestartet.")
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      # Path to edit input data app
-      second_app_path <- "edit_input_data.R"
-      # If a process already exists, don't start a new one
-      if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
-        showNotification("Dateinen editiern ist bereis geöffnet\n", type = "message")
-        return()
-      }else{
-        print("Starting second app...")
-        proc <- processx::process$new("Rscript", 
-                                      args = c("-e", paste0("shiny::runApp('", second_app_path, "', port = 5001, launch.browser = TRUE)")), 
-                                      stdout = "|", stderr = "|"
-        )
-        shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-        second_app_process(proc)  # Store the process
-        # calculate execution time
-        c_time <- c(c_time,end = Sys.time())|>
-          diff()
-        shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
-        
-        paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-          ausgabe_text()
-      }
-    })
-  })
-  
-  ## Button stop input data edit app #####
-  observeEvent(input$stop_app, {
-    # Execution time 
-    c_time <- Sys.time()
-    ausgabe_text("Input Dateien editieren stoppen")
-    shiny::withProgress(message = "Running script...", value = 0, {
-      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
-      if (!is.null(second_app_process()) && second_app_process()$is_alive()) {
-        print("Stopping second app...")
-        second_app_process()$kill()
-        second_app_process(NULL)  # Clear the reference
-      }
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      shiny::incProgress(1 / 5, detail = paste("Step", 5, "of 5"))
-      
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text())|>
-        ausgabe_text()
-    })
-  }) 
 }
 
 # shiny::shinyApp(ui = ui, server = server)
