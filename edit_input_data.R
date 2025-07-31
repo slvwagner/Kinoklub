@@ -3947,11 +3947,6 @@ server <- function(input, output, session) {
           collect()
         df_Filmvorschlag
         
-        df_VerleiherMapping <- tbl(DB_con(), "Verleiher mapping")|>
-          filter(Verleihername == c_search)|>
-          collect()
-        df_VerleiherMapping
-        
         if(nrow(df_Programm) > 0){
           # to render for modal 
           df_temp_to_render(df_Programm)
@@ -3992,34 +3987,10 @@ server <- function(input, output, session) {
               title = paste0("Achtung der Verleiher \"",c_search,"\" wird im Filmvorschlag verwendet!"),
               size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
               tagList(
-                renderText("Verleihereinträge müssen zuerst im Filmvorschlag gelöscht werden!"),
-                hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
-                )
-              ),
-              easyClose = FALSE, 
-              footer = tagList(
-                actionButton("abort", "Abbrechen")
-              )
-            )
-          )
-          
-        } else if(nrow(df_VerleiherMapping) > 0){
-          # to render for modal 
-          df_temp_to_render(df_VerleiherMapping)
-          
-          # Calculate modal size based on number of columns
-          num_cols <- ncol(df_VerleiherMapping)
-          modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
-          modal_height <- ifelse(nrow(df_VerleiherMapping) <= 5, "auto", "600px")
-          
-          showModal(
-            modalDialog(
-              title = paste0("Achtung das Kinoklubmitglied \"",c_search,"\" wird im Einsatzplan verwendet!"),
-              size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
-              tagList(
-                renderText("Verleihereinträge muss zuerst im `Verleiher mapping` gelöscht werden!"),
+                renderText(
+                  paste0("Es darf keine Filmvorschläge mit dem Verleihernamen: \"", c_search, 
+                         "\" mehr geben um den folgenden Eintrag zu löschen.")
+                  ),
                 hr(),
                 div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
