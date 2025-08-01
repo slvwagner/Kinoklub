@@ -2416,7 +2416,7 @@ server <- function(input, output, session) {
       showNotification(paste("Database connection recovered"), type = "message")
     }
     
-    if(is.null(temp_01()) | is.null(clipr::read_clip())){
+    if(is.null(temp_01()) | is.null(temp_02())){
       new_row <- current_data()[1,]|>
         mutate(across(everything(), ~ NA))|>
         convert_to_template_types(l_template$Verleiher)|>
@@ -2424,17 +2424,21 @@ server <- function(input, output, session) {
                `Kinoförderer gratis?` = "ja"
         )
     } else {
-      if(clipr::read_clip() == temp_01()){
-        if(!is_shiny_server()){
+      if(!is.null(temp_01())){
+        if(temp_02() == "Verleiher_procinema"){
           # Filmforschlag copy to clipboard has been executed
           new_row <- current_data()[1,]|>
             mutate(across(everything(), ~ NA))|>
             convert_to_template_types(l_template$Verleiher)|>
-            mutate(Verleiher_procinema = clipr::read_clip(),
-                   Verleihername = clipr::read_clip(),
+            mutate(Verleiher_procinema = temp_01(),
+                   Verleihername = temp_01(),
                    ID = max(current_data()$ID) + 1L,
                    `Kinoförderer gratis?` = "ja"
             )
+          
+          temp_01(NULL)
+          temp_02(NULL)
+          
         } else {
           new_row <- current_data()[1,]|>
             mutate(across(everything(), ~ NA))|>
@@ -2443,6 +2447,13 @@ server <- function(input, output, session) {
                    `Kinoförderer gratis?` = "ja"
             )
         }
+      } else {
+        new_row <- current_data()[1,]|>
+          mutate(across(everything(), ~ NA))|>
+          convert_to_template_types(l_template$Verleiher)|>
+          mutate(ID = max(current_data()$ID) + 1L,
+                 `Kinoförderer gratis?` = "ja"
+          )
       }
     }
     
@@ -4844,21 +4855,19 @@ server <- function(input, output, session) {
           title = paste0("Es gibt keinen `Verleiher_procinema` = ", new_row$Verleiher, " in der Tabelle `Verleiher`."),
           tagList(
             renderText(paste0(
-              "Bitte einen neuen Verleiher in der Tabelle `Dropdowns/Verleiher` erfassen und dann nochmals probieren!"
-              )),
-            renderText(paste0(
-              "Die Spalte `Verleiher_procinema` muss den folgenden Wert enthalten: \"", new_row$Verleiher , "\""
+              "Bitte einen neuen Verleiher in der Tabelle `Dropdowns` / `Verleiher` erfassen und dann nochmals probieren!"
               ))
           ),
           easyClose = FALSE, 
           footer = tagList(
-            if(!is_shiny_server()){actionButton("copy_to_clipboard" ,"in Zwischenablage kopieren")}, 
+            actionButton("copy_verleiher" ,paste0("Verleiher merken: ", new_row$Verleiher)), 
             actionButton("abort","Abbrechen")
           )
         ))
         
-        # save for later use 
+        # save Verleiher to create new entry
         temp_01(new_row$Verleiher)
+        temp_02(NULL)
         
         req(NULL) # early exit
       }
@@ -4895,9 +4904,8 @@ server <- function(input, output, session) {
   })
   
   # copy something to the clipboard 
-  observeEvent(input$copy_to_clipboard,{
-    temp_01()|>
-      clipr::write_clip()
+  observeEvent(input$copy_verleiher,{
+    temp_02("Verleiher_procinema")
     removeModal()
   })
   
