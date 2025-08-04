@@ -4601,6 +4601,9 @@ server <- function(input, output, session) {
           {
             df_temp <- search_procinema_by_suisa(input$suisa)
             
+            # save for later use
+            temp_01(df_temp)
+            
           }, error = function(e){
             showNotification(paste("Es konnten kein Details für diesen Film geladen werden:\n", e$message), 
                              type = "error")
@@ -4618,6 +4621,7 @@ server <- function(input, output, session) {
                 # get correct Verleiher from dictionary
                 df_temp <- df_temp|>
                   mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_env))
+                
               }, error = function(e){
                 showNotification(paste("Für den Verleiher von Procinema",df_temp$Verleiher," Fehlermeldung: ", e$message), type = "error")
                 removeModal()
@@ -4812,6 +4816,7 @@ server <- function(input, output, session) {
     }
     req(input$takeover_suisa)
     removeModal()
+    
     shiny::withProgress(message = "Procinema", value = 0, {
       shiny::incProgress(1 / 2, detail = paste("step", 1, "of 2"))
       tryCatch(
@@ -4842,11 +4847,12 @@ server <- function(input, output, session) {
       new_row
 
       # check if Verleiher mapping is available 
+      temp_01()
       df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())
       
       df_Verleiher_mapping <- df_Verleiher_mapping|>
         select(Verleiher_procinema, Verleihername)|>
-        filter(Verleiher_procinema == new_row$Verleiher)
+        filter(Verleihername == new_row$Verleiher)
       
       tail(df_Verleiher_mapping)
 
