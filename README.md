@@ -107,7 +107,7 @@ Warte, bis alle Packages installiert sind. Die Installation ist abgeschlossen, w
     ```
     
     ```
-    setx ftp_pw "FTP-PASSWORT"
+    setx ftp_password "FTP-PASSWORT"
     ```
 \
 **Wichtig**: Starte RStudio neu, damit die Einstellungen übernommen werden.

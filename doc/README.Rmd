@@ -135,7 +135,7 @@ Warte, bis alle Packages installiert sind. Die Installation ist abgeschlossen, w
     ```
     
     ```
-    setx ftp_pw "FTP-PASSWORT"
+    setx ftp_password "FTP-PASSWORT"
     ```
 \
 **Wichtig**: Starte RStudio neu, damit die Einstellungen übernommen werden.
@@ -154,7 +154,7 @@ Im Benutzerverzeichnis erstelle eine neue Datei mit dem Namen ".Renviron"
     DB_user="DATENBANK-BENUTZERNAME"
     DB_PASSWORD_KINOKLUB="DATENBANK-PASSWORT"
     ftp_user="FTP-BENUTZER"
-    ftp_pw="FTP-PASSWORT"
+    ftp_password="FTP-PASSWORT"
     ```
 -   Wähle beim Speichern dein Benutzerverzeichnis als Speicherort
     -   Das Benutzerverzeichnis ist dein persönlicher Hauptordner auf dem Computer (/Users/DeinName)
