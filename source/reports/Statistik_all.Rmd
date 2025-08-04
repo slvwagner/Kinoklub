@@ -137,7 +137,7 @@ s_df_Einnahmen|>
 s_df_Einnahmen|>
   group_by(Kategorie)|>
   reframe(`Durchschnittliche Einnahmen [CHF]` = mean(`Betrag [CHF]`))|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 
