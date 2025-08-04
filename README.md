@@ -1,4 +1,4 @@
-Script Version: NA
+Script Version: V3.01
  
 # Kinoklub
 

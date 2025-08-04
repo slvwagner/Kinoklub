@@ -82,14 +82,33 @@ add_copy_buttons_to_html <- function(html_file, output_file = html_file) {
   message("✅ Copy buttons added to: ", output_file)
 }
 
-# Github readme.md ####
-# Import c_script_version 
-c_raw <- readLines("user_settings.R")
-c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
-  str_split(pattern = "\"") |>
-  unlist()
-c_script_version <- c_script_version[2]
 
+# script version
+c_raw <- readLines("user_settings.R")
+# library(rebus)
+# p <- DGT%R%DGT%R%DGT%R%DGT%R%SPC%R%"V"%R%DGT%R%DOT%R%DGT%R%DGT
+p1 <- "\\d\\d\\d\\d\\sV\\d\\.\\d\\d"
+# p <- DGT%R%DGT%R%DGT%R%DGT
+p2 <- "\\d\\d\\d\\d"
+
+df_version <- tibble(Version = str_extract(c_raw, p1))|>
+  mutate(index = row_number(),
+         String = c_raw|>
+           str_remove("#")|>
+           str_trim()
+  )|>
+  filter(!is.na(Version))|>
+  mutate(Version = str_remove(Version, p2)|>
+           str_trim(),
+         String = paste0(String, "\\")
+  )
+df_version
+
+c_script_version <- df_version|>
+  filter(index == max(index))|>
+  select(Version)|>
+  pull()
+c_script_version
 
 # Tool Dokumentaion ####
 c_raw <- readLines("doc/README.Rmd")
