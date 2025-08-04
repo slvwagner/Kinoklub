@@ -188,9 +188,10 @@ Da GitHub seit 2021 keine Passwörter mehr für Git-Zugriffe unterstützt, brauc
     -  Passwort: Dein Personal Access Token
 4. Änderungen speichern
 
-### Git Username and E-mail
+### Git Username and E-mail zum commiten
 
-Terminal öffnen und die folgenden Befehle nacheinander ausführen. Achtung die "Platzhalter" müssen  
+Terminal öffnen und die folgenden Befehle nacheinander ausführen. Achtung die "Platzhalter" müssen mit den Logindaten des Git-Benutzerkontos übereinstimmen.
+
 
 ```
 git config --global user.name "John Doe"
