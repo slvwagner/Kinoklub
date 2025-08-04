@@ -105,8 +105,7 @@ r_exe <- Sys.which("Rscript")|>
   normalizePath()
 r_exe
 
-var_name <- "Kinoklub_wd"
-r_wd <- Sys.getenv(var_name)|>
+r_wd <- getwd()|>
   normalizePath()
 
 if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
