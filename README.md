@@ -188,9 +188,13 @@ Da GitHub seit 2021 keine Passwörter mehr für Git-Zugriffe unterstützt, brauc
     -  Passwort: Dein Personal Access Token
 4. Änderungen speichern
 
-### Git Username and E-mail zum commiten
+### Git Identität
 
-Terminal öffnen und die folgenden Befehle nacheinander ausführen. Achtung die "Platzhalter" müssen mit den Logindaten des Git-Benutzerkontos übereinstimmen.
+Das Erste, was du nach der Installation von Git tun solltest, ist, deinen Benutzernamen und deine E-Mail-Adresse festzulegen. Das ist wichtig, weil jede Git-Commit diese Informationen verwendet – sie werden unveränderlich in die Commits eingebettet, die du erstellst. Das wird benötight wenn du Datenback backups ausführen möchtest die auf Git-Hub gespeichert werden.
+
+#### Vorgehen 
+Terminal öffnen und die folgenden Befehle nacheinander ausführen. \
+Achtung die "PLATZHALTER" müssen mit den Logindaten des Git-Benutzerkontos übereinstimmen.
 
 
 ```
