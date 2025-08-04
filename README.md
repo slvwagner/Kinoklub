@@ -126,7 +126,7 @@ Im Benutzerverzeichnis erstelle eine neue Datei mit dem Namen ".Renviron"
     DB_user="DATENBANK-BENUTZERNAME"
     DB_PASSWORD_KINOKLUB="DATENBANK-PASSWORT"
     ftp_user="FTP-BENUTZER"
-    ftp_pw="FTP-PASSWORT"
+    ftp_password="FTP-PASSWORT"
     ```
 -   Wähle beim Speichern dein Benutzerverzeichnis als Speicherort
     -   Das Benutzerverzeichnis ist dein persönlicher Hauptordner auf dem Computer (/Users/DeinName)
@@ -188,6 +188,17 @@ Da GitHub seit 2021 keine Passwörter mehr für Git-Zugriffe unterstützt, brauc
     -  Passwort: Dein Personal Access Token
 4. Änderungen speichern
 
+### Git Username and E-mail
+
+Terminal öffnen und die folgenden Befehle nacheinander ausführen. Achtung die "Platzhalter" müssen  
+
+```
+git config --global user.name "John Doe"
+```
+
+```
+git config --global user.email "johndoe@example.com"
+```
 
 ## Kinoklub Applikationen ausführen
 Navigiere zu RStudio, R-Console unten links. Kopiere den folgenden Code und führe diesen aus indem du Enter drückst.
