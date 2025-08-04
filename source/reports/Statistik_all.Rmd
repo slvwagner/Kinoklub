@@ -142,7 +142,7 @@ s_df_Einnahmen|>
 
 
 ### Ausgaben
-Den Au
+
 #### Übersicht
 ```{r}
 df_Ausgaben <- df_Ausgaben|>
@@ -216,7 +216,7 @@ s_df_Ausgaben|>
 ```
 
 ### Cash flow
-```{r}
+```{r fig.width=9.5}
 df_cash_flow <-
   bind_rows(
     df_Einnahmen |>
