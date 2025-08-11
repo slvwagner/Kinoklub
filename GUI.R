@@ -2883,7 +2883,7 @@ server <- function(input, output, session) {
         
         shiny::tags$hr(),
         # Button Daten Einlesen
-        shiny::actionButton("calculate", "Daten updaten"),
+        shiny::actionButton("calculate", "Daten aktualisieren"),
         shiny::actionButton("advance_tickets", "Advance Ticket neu einlesen"),
         shiny::tags$hr(),
         
