@@ -22,11 +22,11 @@ git_pull(getwd())
 mode <- Sys.getenv("APP_MODE", "default")
 
 if (mode == "local") {
-  warning("Starting app in LOCAL mode.\n")
-  DB_host <- "127.0.0.1"
-  DB_name <- "Kinoklub"
+  print("Starting app in LOCAL mode.")
+  DB_host <- Sys.getenv("DB_host")
+  DB_name <- "ch367079_GUI_testing_envir"
 } else {
-  warning("Starting app in DEFAULT mode.\n")
+  print("Starting app in DEFAULT mode.")
   DB_host <- Sys.getenv("DB_host")
   DB_name <- Sys.getenv("DB_name")
 }
