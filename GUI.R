@@ -1,7 +1,7 @@
 # Graphical user interface für den Kinoklub ####
 # Diese App kann mit Run App in Rstudio gestartet werden.
 
-# Vorbereiten / Installieren
+## Vorbereiten / Installieren ####
 rm(list = ls())
 
 # load user settings
@@ -9,19 +9,31 @@ if(!file.exists("user_settings.R")) {
   stop("Missing required file: user_settings.R")
 }
 
-# user settings / documentation
+## user settings / documentation ##
 source("user_settings.R")
 # Functions
 source("source/functions.R")
 source("source/SQL/SQL_Functions.R")
 
-# auto update application
+## auto update application ####
 git_pull(getwd())
 
-# connect to data base ####
-## Data base credentials from system variables ####
-DB_host <- Sys.getenv("DB_host")
-DB_name <- Sys.getenv("DB_name")
+## connect to data base ####
+mode <- Sys.getenv("APP_MODE", "default")
+
+if (mode == "local") {
+  warning("Starting app in LOCAL mode.\n")
+  DB_host <- "127.0.0.1"
+  DB_name <- "Kinoklub"
+} else {
+  warning("Starting app in DEFAULT mode.\n")
+  DB_host <- Sys.getenv("DB_host")
+  DB_name <- Sys.getenv("DB_name")
+}
+
+## Data base credentials from system variables for https://lx51.hoststar.hosting/ ####
+# DB_host <- Sys.getenv("DB_host")
+# DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
