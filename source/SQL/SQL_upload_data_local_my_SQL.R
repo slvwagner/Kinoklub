@@ -24,7 +24,7 @@ l_data <- readRDS(df_temp$files)
 DB_host <- "127.0.0.1"
 DB_name <- "Kinoklub"
 DB_user <- Sys.getenv("DB_user")
-DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+DB_pw   <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
