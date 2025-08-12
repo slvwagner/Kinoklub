@@ -161,11 +161,9 @@ if(length(c_eintritt) != length(c_Kiosk)) {
   }
 }
 
-
 # check Programm ####
 df_temp <- Programm|>
   convert_to_template_types(l_template$Programm)
-df_temp
 
 if(nrow(df_temp) != nrow(Programm)){
   df_temp <- anti_join(Programm,

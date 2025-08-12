@@ -32,6 +32,8 @@ if (mode == "local") {
 }
 
 ## Data base credentials from system variables for https://lx51.hoststar.hosting/ ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- "ch367079_GUI_testing_envir"
 # DB_host <- Sys.getenv("DB_host")
 # DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
@@ -839,7 +841,6 @@ server <- function(input, output, session) {
       )
     )
   })
-  
   
   ## Button: Database recovery exe ####
   shiny::observeEvent(input$DB_recovery_exe,{
@@ -2495,16 +2496,7 @@ server <- function(input, output, session) {
       stop("Operating system: ", os_name, " was not implemented for shell actions")
     }
   })
-  
-  
-  ## Button: Git Pull ####
-  observeEvent(input$git_pull, {
-    l_result <- git_pull(repo = repo_path)
-    l_result$message|>
-      ausgabe_text()
-  })
 
-  
   ## Button: Delete old entries and upload new entries to database ####
   shiny::observeEvent(input$update_entries, {
     removeModal()
