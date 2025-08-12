@@ -2111,8 +2111,6 @@ server <- function(input, output, session) {
     paste0(c_message, "\n",file_content$message)|>
       ausgabe_text()
     
-    
-    
   })
   
   ## Button: Upload Eintritt ####
