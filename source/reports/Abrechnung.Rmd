@@ -339,7 +339,7 @@ Gewinn_Kiosk|>
 
 ```{r}
 Gewinn_Kiosk <- Gewinn_Kiosk|>
-  reframe(`Summe [CHF]` = sum(`Gewinn [CHF]`))
+  reframe(`Summe [CHF]` = sum(`Gewinn [CHF]`, na.rm = TRUE))
 Gewinn_Kiosk|>
   knitr::kable(digits = 2)
 ```
