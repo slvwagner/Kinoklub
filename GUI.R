@@ -32,7 +32,7 @@ if (mode == "local") {
 }
 
 ## Data base credentials from system variables for https://lx51.hoststar.hosting/ ####
-DB_name <- "ch367079_GUI_testing_envir"
+# DB_name <- "ch367079_GUI_testing_envir"
 # DB_host <- Sys.getenv("DB_host")
 # DB_name <- Sys.getenv("DB_name")
 DB_user <- Sys.getenv("DB_user")
