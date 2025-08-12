@@ -190,6 +190,8 @@ n_days_till_now
 n_days_per_year <- (365 - sommerpause) 
 n_days_per_year
 
+n <- df_temp|>
+  reframe(`Anzahl Vorführungen` = n())
 if(is_tibble(n)) n <- n$`Anzahl Vorführungen`
 
 shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
