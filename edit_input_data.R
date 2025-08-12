@@ -4408,7 +4408,8 @@ server <- function(input, output, session) {
                           "Suisanummer" = row$Suisanummer,
                           "Filmtitel" = row$Filmtitel,
                           "Procinema" = row$Procinema,
-                          "Trailer" = row$Trailer
+                          "Trailer" = row$Trailer,
+                          "Kommentar" = row$Kommentar
       )
       df_newrow
       
@@ -4489,6 +4490,7 @@ server <- function(input, output, session) {
       "Besucherzahlen an Verleiher gesendet" = NA,
       "Rechnung bezahlt und abgelegt" = NA,
       "KDM ja oder nein" = NA,
+      "Kommentar" = row$Kommentar
     )
     
     # to render for modal dialog
