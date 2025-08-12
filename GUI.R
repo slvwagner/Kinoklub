@@ -32,7 +32,6 @@ if (mode == "local") {
 }
 
 ## Data base credentials from system variables for https://lx51.hoststar.hosting/ ####
-DB_host <- Sys.getenv("DB_host")
 DB_name <- "ch367079_GUI_testing_envir"
 # DB_host <- Sys.getenv("DB_host")
 # DB_name <- Sys.getenv("DB_name")
@@ -339,7 +338,7 @@ server <- function(input, output, session) {
       End_date_choose(paste0(max(df_temp$Datum),"-12-31")|>as.Date())
     }
     
-    # creat content to render 
+    # create content to render 
     df_temp <- data_env$l_abrechnung|>
       lapply(function(x){
         x$Abrechnung
@@ -1004,7 +1003,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ##  Button: Berechnen #####
+  ##  Button: Daten aktualisieren #####
   shiny::observeEvent(input$calculate, {
     # Execution time 
     c_time <- Sys.time()
@@ -1017,8 +1016,10 @@ server <- function(input, output, session) {
     }
     
     # Export Abrechnungsjahr 
-    Abrechungsjahr((input$c_Abrechnungsjahr)) # used to choose start and end date 
-    data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) # export to date_env used by Statistik and Jahresrechnung
+    # used to choose start and end date 
+    Abrechungsjahr((input$c_Abrechnungsjahr)) 
+    # export to date_env used by Statistik and Jahresrechnung
+    data_env$c_Abrechnungsjahr <- as.integer(input$c_Abrechnungsjahr) 
     
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1 / 3, detail = paste("Step", 1, "of 3"))
@@ -1056,7 +1057,7 @@ server <- function(input, output, session) {
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
         diff()
-      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text(),"\n",
+      paste0("Ausführungszeit: ",r_signif(c_time),"\n",ausgabe_text()[1],"\n",
              "Berechnung für das Jahr ", Abrechungsjahr()," durchgeführt\n",
              calculate_warnings())|>
         ausgabe_text()
