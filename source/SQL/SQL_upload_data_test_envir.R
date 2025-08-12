@@ -21,8 +21,8 @@ df_temp
 l_data <- readRDS(df_temp$files)
 
 ## Data base credentials from system variables ####
-DB_host <- "127.0.0.1"
-DB_name <- "Kinoklub"
+DB_host <- Sys.getenv("DB_host")
+DB_name <- "ch367079_GUI_testing_envir"
 DB_user <- Sys.getenv("DB_user")
 DB_pw   <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 

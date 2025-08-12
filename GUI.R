@@ -3017,7 +3017,7 @@ server <- function(input, output, session) {
   ## Render: Database connection status ####
   output$db_status <- renderText({
     if (db_connection_status()) {
-      paste0("✅ Database connection is valid. Time: ", poll_timer())
+      paste0("✅Database connection is valid. Time: ", poll_timer(), " / ", DB_name())
     } else {
       paste0("❌ Database connection is NOT valid! Time", poll_timer())
     }
