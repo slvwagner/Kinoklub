@@ -1465,10 +1465,23 @@ escape_regex <- function(pattern) {
 
 # Find datatable page ####
 find_page <- function(table_rows_selected, table_search_columns, table_data, lastEdited_data_set_name, page_length_var){
+  # Initialize default return values
+  result <- list(
+    ID_to_edit = NA_integer_,
+    last_user_filter = NULL,
+    last_selected_page = NA_integer_,
+    last_selected_row = NA_integer_
+  )
+  
+  # Early return if no row is selected
+  if(is.null(table_rows_selected)) {
+    return(result)
+  }
+  
   # map selected row to ID
   df_temp <- table_data
   ID_to_edit <- pull(df_temp[table_rows_selected,1])
-
+  
   # get user filters
   column_filters = table_search_columns
   column_filters <- column_filters|>
@@ -1482,8 +1495,10 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
     nchar(x) > 0
   })|>
     unlist()
+  
   # get column data type
   c_class <- get_data_type(df_temp)
+  
   ### extract data from column filters ####
   for (ii in 1:length(column_filters)) {
     col_filter <- column_filters[[ii]]
@@ -1495,9 +1510,6 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
         df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
       } 
       else if(c_class[ii] == "integer"){
-        # library(rebus)
-        # p1 <- START%R%one_or_more(DGT)
-        # p2 <- one_or_more(DGT)%R%END
         p1 <- "^[\\d]+"
         p2 <- "[\\d]+$"
         start <- str_extract(col_filter, p1)|>
@@ -1521,48 +1533,47 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
           tolower()|>
           escape_regex()
         
-        # filters for data table are not case sensitive so tolower() conversion is needed 
         df_temp <- df_temp[str_detect(pull(df_temp[,ii])|>tolower(), col_filter),] 
         df_temp <- df_temp[!is.na(pull(df_temp[,ii])),]
       }
     }
   }
+  
   # map ID to selected row
   df_temp <- df_temp |>
     mutate(index = row_number())
   row_filtered <- df_temp[df_temp[,1] == ID_to_edit,]$index
-
+  
   if(!is_empty(row_filtered)){
     # Calculate page 
-    c_page <-  ceiling(row_filtered / as.integer(page_length_var) )
-    
-    
+    c_page <- ceiling(row_filtered / as.integer(page_length_var))
     if(c_page == 0) c_page <- 1
-    last_selected_page <- c_page
-    last_selected_row <- table_rows_selected
     
-  } else {
-    last_selected_page <- NA
-  }
-  ### if column filters are present update column filters #####
-  if(sum(!c_test) != length(column_filters)) {
-    column_filters_temp <- table_search_columns|>
-      lapply(function(x){
-        if(nchar(x) > 0) {
-          list(search = x)
-        } 
-        else {
-          NULL
-        }
-      })
-    last_user_filter <- column_filters_temp
-  } else {
-    last_user_filter <- NULL
+    result$ID_to_edit <- ID_to_edit
+    result$last_selected_page <- c_page
+    result$last_selected_row <- table_rows_selected
+    
+    ### if column filters are present update column filters #####
+    if(sum(!c_test) != length(column_filters)) {
+      column_filters_temp <- table_search_columns|>
+        lapply(function(x){
+          if(nchar(x) > 0) {
+            list(search = x)
+          } 
+          else {
+            NULL
+          }
+        })
+      result$last_user_filter <- column_filters_temp
+    }
+    
+    writeLines(paste0("Selected row: ", table_rows_selected, 
+                      ", ID: ", ID_to_edit,
+                      ", table: `", lastEdited_data_set_name,
+                      "`, Selected page: ", c_page,"\n"))
   }
   
-  writeLines(paste0("Selected row: ", table_rows_selected, ", ID: ", ID_to_edit,", table: `", lastEdited_data_set_name,"`, Selected page: ", c_page,"\n"))
-  
-  return(list(ID_to_edit = ID_to_edit, last_user_filter = last_user_filter, last_selected_page = last_selected_page, last_selected_row = last_selected_row))
+  return(result)
 }
 
 # FTP file upload to reports server ####
