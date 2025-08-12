@@ -52,6 +52,7 @@ ftp_basepath <- "kinoklub.ch/public_html/kkTeam/reports/"
 # check if all credentials are defined on the machine the code is executed
 c_credentials <- c(DB_host = DB_host, DB_name = DB_name, DB_user = DB_user, DB_pw = DB_pw, 
                    ftp_server = ftp_server, ftp_user = ftp_user, ftp_password = ftp_password)
+
 n <- c_credentials|>
   lapply(function(x){
     nchar(x) > 0
@@ -1902,6 +1903,10 @@ server <- function(input, output, session) {
             return(df_file_upload$results)
             
           } else {
+            
+            last_uploaded_file_path(file_path)
+            last_uploaded_table_name("Eintritt files")
+            
             showModal(
               modalDialog(
                 title = paste0("Datei: `",file_name,"` wird auf die Datenbank gespeichert."),
