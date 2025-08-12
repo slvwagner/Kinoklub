@@ -18,6 +18,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 ## Data base user password from system variables ####
 DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
+DB_name <- "ch367079_GUI_testing_envir"
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
@@ -148,10 +149,11 @@ p <- "([\\d]+)\\.txt$"
 # find file that needs to be upload to database ####
 if(length(c_eintritt) != length(c_Kiosk)) {
   if(length(c_eintritt) > length(c_Kiosk)){
-    c_temp <- c_Kiosk[!(as.integer(str_match(c_eintritt, p)[,2]) %in% as.integer(c_Kiosk, str_match(, p)[,2]))]
-    c_temp <- paste0("Kiosk ID",str_match(c_temp, p)[,2], ".txt")
+    c_temp <- 
+      c_eintritt[!((as.integer(str_match(c_eintritt, p)[,2])|>sort()) %in% (as.integer(str_match(c_Kiosk, p)[,2])|>sort()))]
+    c_temp <- paste0("Kiosk ID",str_match(c_temp, p)[,2], ".txt ")
     warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber nur ", length(c_Kiosk), " Kioskdateien.",
-            "Bitte die fehlende Datei: `", c_temp, "` hochladen\n"
+            " Bitte die fehlende Datei: `", c_temp, "` hochladen\n"
             )
   }else {
     c_temp <- c_Kiosk[!(as.integer(str_match(c_Kiosk, p)[,2]) %in% as.integer(str_match(c_eintritt, p)[,2]))]
