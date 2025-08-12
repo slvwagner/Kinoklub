@@ -22,7 +22,7 @@ git_pull(getwd())
 mode <- Sys.getenv("APP_MODE", "default")
 
 if (mode == "local") {
-  print("Starting app in LOCAL mode.")
+  print("Starting app in Testing mode.")
   DB_host <- Sys.getenv("DB_host")
   DB_name <- "ch367079_GUI_testing_envir"
 } else {
