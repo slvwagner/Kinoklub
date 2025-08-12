@@ -2650,7 +2650,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ## Reder: Datatable #####
+  ## Reder: DateTable #####
   output$dateTable <-  DT::renderDT({
     writeLines("DT::renderDT")
     
