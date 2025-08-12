@@ -348,7 +348,7 @@ server <- function(input, output, session) {
     
     if(nrow(df_temp) == 0) {
       paste0("Es wurden keine Datensätze für das Abrechnungsjahr: ", Abrechungsjahr(), " gefunden.",
-             "\nBitte Dateinen hochladen!")|>
+             "\nBitte Daten aktualisieren!")|>
         ausgabe_text()
       req(NULL) # early stop if no data available
     }
@@ -565,8 +565,11 @@ server <- function(input, output, session) {
   ### last uploaded file path #### 
   last_uploaded_file_path <- shiny::reactiveVal(NULL)
   
-  ### last uploaded file path #### 
+  ### last uploaded table name #### 
   last_uploaded_table_name <- shiny::reactiveVal(NULL)
+  
+  ### temp_01 ####
+  temp_01 <- reactiveVal(NULL)
   
   ### last user filter ####
   last_filter <- reactiveVal(NULL)
@@ -644,9 +647,6 @@ server <- function(input, output, session) {
   ### Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum) ####
   START_date_choose <- shiny::reactiveVal(paste0(year(Sys.Date()),"-01-01")|>as.Date())
   End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
-  
-  ### Store process for secondary app in a reactive value ####
-  second_app_process <- reactiveVal(NULL)
   
   ### Datatable to render ####
   current_data <- reactiveVal(NULL)
@@ -1032,6 +1032,7 @@ server <- function(input, output, session) {
           withCallingHandlers(
             {
               source("source/calculate.R", local = data_env)
+              Update_Film_table()
               shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
             },
             warning = function(w) {
@@ -1050,10 +1051,7 @@ server <- function(input, output, session) {
           )
         )
       })
-      
-      Update_Film_table()
 
-      
       shiny::incProgress(1 / 3, detail = paste("step", 3, "of 3"))
       # calculate execution time
       c_time <- c(c_time,end = Sys.time())|>
@@ -1865,9 +1863,10 @@ server <- function(input, output, session) {
       #### Eintritte #####
       else{
         if(str_detect(file_name, pattern = "Eintritte")){
+          
           # upload file to database capturing message, warnings and errors
           df_file_upload <- Run_capture_error_warnings(
-            DB_upload_file, con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = FALSE
+            DB_upload_file, con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = TRUE
             )
           
           # Message 
@@ -1876,13 +1875,16 @@ server <- function(input, output, session) {
           # update last uploaded file name for later use
           last_uploaded_file(file_name)
           
+          # save for later use
+          temp_01(df_file_upload)
+          
           # check if the file already exists
           test <- str_detect(c_message,"already exists")
+          
+          last_uploaded_file_path(file_path)
+          last_uploaded_table_name("Eintritt files")
+          
           if(test){
-
-            last_uploaded_file_path(file_path)
-            last_uploaded_table_name("Eintritt files")
-            
             showModal(
               modalDialog(
                 title = paste0("Achtung die Datei: ",file_name," ist schon auf der Datenbank gespeichert."),
@@ -1903,19 +1905,12 @@ server <- function(input, output, session) {
             return(df_file_upload$results)
             
           } else {
-            
-            last_uploaded_file_path(file_path)
-            last_uploaded_table_name("Eintritt files")
-            
             showModal(
               modalDialog(
-                title = paste0("Datei: `",file_name,"` wird auf die Datenbank gespeichert."),
-                tagList(
-                  renderText("Soll die Datei gespeichert werden?")
-                ),
+                title = paste0("Datei: `",file_name,"` wurde in die Datenbank gespeichert."),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file", "Speichern"),
+                  actionButton("upload_file", "Datensätze aus Datei extrahieren"),
                   actionButton("abort", "Abbrechen")
                 )
               )
@@ -1923,6 +1918,7 @@ server <- function(input, output, session) {
             # system reply message
             paste0(c_message)|>
               ausgabe_text()
+            
             return(list(type = "txt", data = df_file_upload$results))
           } 
         } 
@@ -1935,6 +1931,9 @@ server <- function(input, output, session) {
             )
           # Message 
           c_message <- df_file_upload$messages
+          
+          # save for later use
+          temp_01(df_file_upload)
           
           # update last uploaded file name for later use
           last_uploaded_file(file_name)
@@ -2059,22 +2058,19 @@ server <- function(input, output, session) {
   ## Button: Upload file already exists ####
   shiny::observeEvent(input$upload_file, {
     removeModal()
-    c_message <- paste0("Datei `",last_uploaded_file(),"` wurde überschrieben.")
+    c_message <- paste0("Datei `",last_uploaded_file(),"` wurde geschrieben.")
     
-    file_content <- Run_capture_error_warnings(
-      DB_upload_file, con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
-      overwrite = TRUE
-    )
-    
-    # check file type 
+    file_content <- temp_01()
+
+    # check file type
     c_test <- last_uploaded_file()|>
       str_detect("Kiosk")
-    
+
     # Kiosk upload
     if(c_test){
       showModal(
         modalDialog(
-          title = paste0("Sollen aus der Datei: `", last_uploaded_file(), 
+          title = paste0("Sollen aus der Datei: `", last_uploaded_file(),
                          "` die Datensätze extrahiert werden?"),
           tagList(
             renderText(paste0(c_message, "\n",
@@ -2088,11 +2084,11 @@ server <- function(input, output, session) {
           )
         )
       )
-    } # Eintritt upload 
+    } # Eintritt upload
     else {
       showModal(
         modalDialog(
-          title = paste0("Sollen aus der Datei: `", last_uploaded_file(), 
+          title = paste0("Sollen aus der Datei: `", last_uploaded_file(),
                          "` die Datensätze extrahiert werden?"),
           tagList(
             renderText(paste0(c_message, "\n",
@@ -2108,7 +2104,7 @@ server <- function(input, output, session) {
       )
     }
 
-    paste0(c_message, "\n",file_content$message)|>
+    paste0(c_message, "\n",temp_01()$message)|>
       ausgabe_text()
     
   })
@@ -2125,12 +2121,9 @@ server <- function(input, output, session) {
     
     removeModal()
     
-    c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
+    c_message <- paste0("Datei ",last_uploaded_file()," wurde gespeichert. ")
     
-    file_content <- Run_capture_error_warnings(
-      DB_upload_file, con, last_uploaded_file_path(), last_uploaded_file(), last_uploaded_table_name(), 
-                     overwrite = TRUE
-    )
+    file_content <- temp_01()
     
     # convert file 
     results <- Run_capture_error_warnings(
@@ -2238,7 +2231,7 @@ server <- function(input, output, session) {
     }
     
     removeModal()
-    c_message <- paste0("Datei ",last_uploaded_file()," wurde überschrieben.")
+    c_message <- paste0("Datei ",last_uploaded_file()," wurde geschrieben.")
     
     results <- Convert_Kiosk_files(last_uploaded_file(), DB_con(), l_template)
 
@@ -2647,16 +2640,21 @@ server <- function(input, output, session) {
   
   ## Reder: DateTable #####
   output$dateTable <-  DT::renderDT({
-    writeLines("DT::renderDT")
+    writeLines("render Datatable")
     
-    # Primary key as factor
     df_temp <- current_data()
+    if (is.null(df_temp)){ 
+      req(NULL) # early exit
+    }
+    
     # Primary Key as factor
     df_temp[,1] <- pull(df_temp[,1])|>
       factor()
     # Link ID as factor
     df_temp[,2] <- pull(df_temp[,2])|>
       factor()
+    
+
     
     DT::datatable(
       df_temp,

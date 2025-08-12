@@ -125,7 +125,7 @@ if(nrow(MWST) == 1){
 
 ## Kiosk files ####
 c_eintritt <- tbl(con, "Eintritt files")|>
-  # filter(ID %in% Programm$`Event ID`)|>
+  filter(`Event ID` %in% Programm$`Event ID`)|>
   distinct(ID, .keep_all = TRUE)|>
   arrange(ID)|>
   select(filename)|>
@@ -134,7 +134,7 @@ c_eintritt
 
 ## Eintritt files ####
 c_Kiosk <- tbl(con, "Kiosk files")|>
-  # filter(ID %in% Programm$`Event ID`)|>
+  filter(`Event ID` %in% Programm$`Event ID`)|>
   distinct(ID, .keep_all = TRUE)|>
   arrange(ID)|>
   select(filename)|>
@@ -152,13 +152,13 @@ if(length(c_eintritt) != length(c_Kiosk)) {
     c_temp <- 
       c_eintritt[!((as.integer(str_match(c_eintritt, p)[,2])|>sort()) %in% (as.integer(str_match(c_Kiosk, p)[,2])|>sort()))]
     c_temp <- paste0("Kiosk ID",str_match(c_temp, p)[,2], ".txt ")
-    warning("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber nur ", length(c_Kiosk), " Kioskdateien.",
+    stop("\nEs gibt ", length(c_eintritt), " Eintrittsdateien aber nur ", length(c_Kiosk), " Kioskdateien.",
             " Bitte die fehlende Datei: `", c_temp, "` hochladen\n"
             )
   }else {
     c_temp <- c_Kiosk[!(as.integer(str_match(c_Kiosk, p)[,2]) %in% as.integer(str_match(c_eintritt, p)[,2]))]
     c_temp <- paste0("Eintritt ID",str_match(c_temp, p)[,2], ".txt")
-    warning("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber nur ", length(c_eintritt), " Eintrittsdateien. ",
+    stop("\nEs gibt ", length(c_Kiosk), "  Kioskdateien aber nur ", length(c_eintritt), " Eintrittsdateien. ",
             "Bitte die fehlende Datei: `", c_temp, "` hochladen\n")
   }
 }
