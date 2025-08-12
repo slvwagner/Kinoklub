@@ -1,6 +1,21 @@
 
 source("source/SQL/SQL_Functions.R")
 
+# read template
+l_template <- readRDS("source/SQL/template.RDS")
+
+l_template$Programm <- l_template$Programm|>
+  mutate(Kommentar = "")
+l_template$Programm
+
+l_template$Filmvorschlag <- l_template$Filmvorschlag|>
+  rename(Kommentar = "Kategorie")
+l_template$Filmvorschlag
+
+saveRDS(l_template, "source/SQL/template.Rds")
+
+
+################################
 ## Data base credentials from system variables ####
 DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
@@ -10,29 +25,13 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-# read template
-l_template <- readRDS("source/SQL/template.RDS")
-
-l_data$Verleiher
-
-
-df_temp <- l_data$Verleiher|>
-  left_join(l_data$`Verleiher mapping`|>
-              select(-ID),
-            by = join_by(Verleihername)
-            )
-
-l_template$Verleiher <- df_temp[2,]
-saveRDS(l_template, "source/SQL/template.Rds")
-
-
-################################
-# Convert to R data type
-
 # Backup
 l_data <- DB_backup_DB(con)
+# Convert to R data type
 l_data <- convert_DB_to_R(l_data, l_template)
 
+l_data$Filmvorschlag
+l_data$Programm
 
 ################################
 # create new file name

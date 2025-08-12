@@ -34,6 +34,7 @@
 # 2025 V2.07 Speed up
 # 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt
 # 2025 V3.01 Kinoklub GUI überarbeitet
+# 2025 V3.02 Programmvorschlag Spallte Kategorie in Kommentar umbenannt und Kommentarspalte dem Programm hinzugefügt
 
 #############################################################################################################################################
 # Vorbereiten / Installieren

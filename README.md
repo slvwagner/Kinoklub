@@ -1,4 +1,4 @@
-Script Version: V3.01
+Script Version: V3.02
  
 # Kinoklub
 
@@ -747,7 +747,6 @@ source("doc/create Readme and Docu.R")
 Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden.
 
 # Versionshistorie
-
 2024 V1.00 Go Live mit Stefan Jablonski, Nadia und Florian Wagner\
 2024 V1.01 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt\
 2024 V1.02 Abrechnung für Kinowerbung hinzugefügt:..../output/Auswertung.xlsx und Prognosen in der Statistik überarbeitet\
@@ -760,7 +759,7 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 2024 V1.09 Filmvorschläge from Wordpress\
 2024 V1.10 PowerBi script\
 2024 V1.11 WordPress Filmvorschläge auswerten\
-2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis =\> nein, in Verleiherabgaben.xlsx)\
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)\
 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"\
 2024 V1.14 GUI Graphical user interface\
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden\
@@ -776,3 +775,6 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 2025 V2.07 Speed up\
 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt\
 2025 V3.01 Kinoklub GUI überarbeitet\
+2025 V3.02 Programmvorschlag Spallte Kategorie in Kommentar umbenannt und Kommentarspalte dem Programm hinzugefügt\
+
+
