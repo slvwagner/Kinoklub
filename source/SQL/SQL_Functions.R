@@ -81,7 +81,7 @@ DB_get_Data <- function(l_template, con, download = TRUE) {
 DB_get_table <- function(table_name, con, download = TRUE){
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_get_table(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if(download){
@@ -96,7 +96,7 @@ DB_get_table <- function(table_name, con, download = TRUE){
 DB_copy_table <- function(df_data, con, table_name, delete_existing = TRUE) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_copy_table(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
@@ -321,7 +321,7 @@ DB_add_row <- function(con, table_name, new_row) {
 DB_describe_table <- function(con, table_name){
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_describe_table(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   dbGetQuery(con, paste0("DESCRIBE ","`", table_name ,"`"))
@@ -331,7 +331,7 @@ DB_describe_table <- function(con, table_name){
 DB_nrow <- function(con, my_table){
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_nrow(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
@@ -473,7 +473,7 @@ DB_delete_row <- function(con, table_name, primary_key_col, primary_key_value) {
 DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, target_col, new_value) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_update_cell(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if (!dbExistsTable(con, table_name)) {
@@ -524,7 +524,7 @@ DB_update_cell <- function(con, table_name, primary_key_col, primary_key_value, 
 DB_backup_DB <- function(con) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_backup_DB(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
@@ -599,7 +599,7 @@ convert_DB_to_R <- function(data,template) {
 DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_add_rows(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
@@ -695,7 +695,7 @@ DB_add_rows <- function(new_rows, table_name, con, batch_size = 1) {
 DB_create_files_table <- function(con, table_name) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_create_files_table(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   
@@ -723,7 +723,7 @@ DB_create_files_table <- function(con, table_name) {
 DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FALSE) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_upload_file(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Validate inputs
@@ -806,7 +806,7 @@ DB_upload_file <- function(con, file_path, filename , table_name, overwrite = FA
 DB_get_file <- function(con, filename, table_name ) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_get_file(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Query the database for the file
@@ -829,7 +829,7 @@ DB_get_file <- function(con, filename, table_name ) {
 DB_download_file <- function(con, filename, output_path, table_name ) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_download_file(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   file_data <- DB_get_file(con, filename, table_name)
@@ -853,7 +853,7 @@ DB_download_file <- function(con, filename, output_path, table_name ) {
 DB_table_exists <- function(con, table_name, schema = NULL) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_table_exists(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   if (is.null(schema)) {
@@ -876,7 +876,7 @@ DB_table_exists <- function(con, table_name, schema = NULL) {
 DB_get_max_pk <- function(con, table_name, primary_key_col = NULL) {
   # Add connection validation at start
   if(!dbIsValid(con)) {
-    warning("Connection lost in DB_edit_row_in_table(), attempting to reconnect...")
+    warning("Connection lost in DB_get_max_pk(), attempting to reconnect...")
     con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
   }
   # Validate inputs
