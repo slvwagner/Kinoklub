@@ -1670,6 +1670,12 @@ server <- function(input, output, session) {
           ) |> 
           arrange(desc(`Event ID`))
         
+        # Only render upcomming events
+        l_temp$Einsatzplan <- 
+          l_temp$Einsatzplan|>
+          filter(`Verleiher Angefragt?` %in% c("Bestätigt", "Anfrage läuft"))|>
+          filter(Datum > Sys.time())
+        
         # render 
         l_temp$Einsatzplan|>
           current_data()
