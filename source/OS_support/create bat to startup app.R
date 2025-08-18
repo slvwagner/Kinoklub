@@ -78,7 +78,7 @@ create_linux_shortcut <- function(exec_path, shortcut_path, icon_path = NULL, na
 #   icon_path = "~/Kinoklub/icon.png"
 # )
 
-create_mac_command <- function(r_script_path, command_path) {
+create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
   
   # find RStudio pandoc
   rstudio_pandoc <- rmarkdown::find_pandoc()$dir
@@ -98,8 +98,22 @@ create_mac_command <- function(r_script_path, command_path) {
   
   writeLines(cmd, command_path)
   Sys.chmod(command_path, mode = "0755")
+  
+  # If icon is provided, set it using AppleScript
+  if (!is.null(icon_path)) {
+    system(sprintf(
+      'osascript -e \'tell application "Finder" to set icon of file POSIX file "%s" to icon of file POSIX file "%s"\'',
+      normalizePath(command_path),
+      normalizePath(icon_path)
+    ))
+  }
+  
   message("Created command file: ", command_path)
+  if (!is.null(icon_path)) {
+    message("→ Custom icon applied: ", icon_path)
+  }
 }
+
 
 
 create_mac_command(
