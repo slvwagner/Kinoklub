@@ -204,6 +204,8 @@ if(get_os() == "Windows"){
     description = "Kinoklub GUI"
   )
   
+  message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub GUI.lnk wurde erstellt.")
+  
 } else if (get_os() == "Linux"){
   writeLines("running on Linux")
   create_linux_shortcut(
@@ -225,10 +227,13 @@ if(get_os() == "Windows"){
     command_path = "~/Desktop/Edit.command",
     icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
   )
+  
+  message("Die Applikationen wurden auf dem Desktop erstellt.")
+  
 }
   
 
-message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub GUI.lnk wurde erstellt.")
+
 
 
 
