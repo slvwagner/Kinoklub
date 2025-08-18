@@ -1674,7 +1674,9 @@ server <- function(input, output, session) {
         l_temp$Einsatzplan <- 
           l_temp$Einsatzplan|>
           filter(`Verleiher Angefragt?` %in% c("Bestätigt", "Anfrage läuft"))|>
-          filter(Datum > Sys.time())
+          filter(Datum > Sys.time())|>
+          arrange(Datum)
+          
         
         # render 
         l_temp$Einsatzplan|>
