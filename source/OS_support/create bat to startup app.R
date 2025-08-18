@@ -1,4 +1,13 @@
 # Script to create Executable to startup the application
+get_os <- function() {
+  sysname <- Sys.info()[["sysname"]]
+  switch(sysname,
+         "Windows" = "Windows",
+         "Darwin"  = "macOS",
+         "Linux"   = "Linux",
+         sysname)  # fallback if unknown
+}
+
 
 create_windows_shortcut <- function(
     target_bat,
@@ -72,11 +81,7 @@ create_linux_shortcut <- function(exec_path, shortcut_path, icon_path = NULL, na
   Sys.chmod(shortcut_path, mode = "0755")  # Make executable
 }
 
-# create_linux_shortcut(
-#   exec_path = "~/Kinoklub/Kinoklub_GUI.sh",
-#   shortcut_path = "~/Desktop/Kinoklub_GUI.desktop",
-#   icon_path = "~/Kinoklub/icon.png"
-# )
+
 
 create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
   
@@ -116,97 +121,112 @@ create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
 
 
 
-create_mac_command(
-  r_script_path = "~/Kinoklub/GUI.R",
-  command_path = "~/Desktop/GUI.command",
-  icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
 
-)
 
-create_mac_command(
-  r_script_path = "~/Kinoklub/edit_input_data.R",
-  command_path = "~/Desktop/Edit.command",
-  icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
-)
-
-r_path <- function(x) {
-  x <- chartr("\\", "/", x)
-  return(x)
-}
-
-r_win_path <- function(x){
-  x <- chartr("/","\\", x)
-  return(x)
-}
-
-r_exe <- Sys.which("Rscript")|>
-  normalizePath()
-r_exe
-
-r_wd <- getwd()|>
-  normalizePath()
-
-if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
-  # Define variable name and value
-
-  var_value <- getwd()|>
+if(get_os() == "Windows"){
+  writeLines("Running on Windows")
+  r_path <- function(x) {
+    x <- chartr("\\", "/", x)
+    return(x)
+  }
+  
+  r_win_path <- function(x){
+    x <- chartr("/","\\", x)
+    return(x)
+  }
+  
+  r_exe <- Sys.which("Rscript")|>
+    normalizePath()
+  r_exe
+  
+  r_wd <- getwd()|>
+    normalizePath()
+  
+  if((nchar(r_wd) == 0) | (r_wd != r_win_path(getwd()))) {
+    # Define variable name and value
+    
+    var_value <- getwd()|>
+      r_win_path()
+    
+    # Build the command
+    cmd <- sprintf('setx %s "%s"', var_name, var_value)
+    
+    # Execute (use shell() on Windows for better behavior)
+    shell(cmd)
+    
+    message("Systemvarible `Kinoklub_wd` wurde erstellt.")
+  }
+  
+  r_file <- paste0(r_wd, "/Start_Input_data_edit.R")|>
     r_win_path()
+  r_file
   
-  # Build the command
-  cmd <- sprintf('setx %s "%s"', var_name, var_value)
+  c_raw <- readLines("source/OS_support/Kinoklub.template")
+  c_raw
   
-  # Execute (use shell() on Windows for better behavior)
-  shell(cmd)
+  c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
+  c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
+  c_raw
   
-  message("Systemvarible `Kinoklub_wd` wurde erstellt.")
+  # Write bat file
+  writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
+  
+  # create shortcut
+  create_windows_shortcut(
+    target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_input.bat"),
+    shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub input"),
+    icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
+    working_dir = getwd(),
+    description = "Kinoklub Input Tabellen"
+  )
+  message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub input.lnk wurde erstellt.")
+  
+  
+  r_file <- paste0(r_wd, "/Start_GUI.R")|>
+    r_win_path()
+  r_wd
+  
+  c_raw <- readLines("source/OS_support/Kinoklub.template")
+  
+  c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
+  c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
+  c_raw
+  
+  # Write bat file
+  writeLines(c_raw, "source/OS_support/Kinoklub_GUI.bat")
+  
+  # create shortcut
+  create_windows_shortcut(
+    target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_GUI.bat"),
+    shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub GUI"),
+    icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
+    working_dir = getwd(),
+    description = "Kinoklub GUI"
+  )
+  
+} else if (get_os() == "Linux"){
+  writeLines("running on Linux")
+  create_linux_shortcut(
+    exec_path = "~/Kinoklub/Kinoklub_GUI.sh",
+    shortcut_path = "~/Desktop/Kinoklub_GUI.desktop",
+    icon_path = "~/Kinoklub/icon.png"
+  )
+} else if (get_os() == "macOS"){
+  writeLines("running on macOS")
+  create_mac_command(
+    r_script_path = "~/Kinoklub/GUI.R",
+    command_path = "~/Desktop/GUI.command",
+    icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
+    
+  )
+  
+  create_mac_command(
+    r_script_path = "~/Kinoklub/edit_input_data.R",
+    command_path = "~/Desktop/Edit.command",
+    icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
+  )
 }
-
-r_file <- paste0(r_wd, "/Start_Input_data_edit.R")|>
-  r_win_path()
-r_file
-
-c_raw <- readLines("source/OS_support/Kinoklub.template")
-c_raw
-
-c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
-c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
-c_raw
-
-# Write bat file
-writeLines(c_raw, "source/OS_support/Kinoklub_input.bat")
-
-# create shortcut
-create_windows_shortcut(
-  target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_input.bat"),
-  shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub input"),
-  icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
-  working_dir = getwd(),
-  description = "Kinoklub Input Tabellen"
-)
-message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub input.lnk wurde erstellt.")
-
-
-r_file <- paste0(r_wd, "/Start_GUI.R")|>
-  r_win_path()
-r_wd
-
-c_raw <- readLines("source/OS_support/Kinoklub.template")
-
-c_raw[4] <- paste0("set \"RSTUDIO_PANDOC=", rmarkdown::find_pandoc()[[2]]|>normalizePath(),"\"")
-c_raw[5] <- paste0("\"",r_exe,"\""," ","\"", r_file, "\"")
-c_raw
-
-# Write bat file
-writeLines(c_raw, "source/OS_support/Kinoklub_GUI.bat")
-
-# create shortcut
-create_windows_shortcut(
-  target_bat = paste0(getwd(),"/source/OS_support/Kinoklub_GUI.bat"),
-  shortcut_path = paste0(getwd(),"/source/OS_support/Kinoklub GUI"),
-  icon_path = paste0(getwd(),"/source/OS_support/wagnius.ico"),
-  working_dir = getwd(),
-  description = "Kinoklub GUI"
-)
+  
 
 message("Die Datei: ",getwd(),"/source/OS_support/Kinoklub GUI.lnk wurde erstellt.")
 
