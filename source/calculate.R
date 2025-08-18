@@ -18,7 +18,7 @@ l_template <- readRDS("source/SQL/template.Rds")
 ## Data base user password from system variables ####
 DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
-DB_name <- "ch367079_GUI_testing_envir"
+# DB_name <- "ch367079_GUI_testing_envir"
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 
