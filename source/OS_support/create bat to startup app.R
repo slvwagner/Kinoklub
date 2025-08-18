@@ -79,17 +79,47 @@ create_linux_shortcut <- function(exec_path, shortcut_path, icon_path = NULL, na
 # )
 
 create_mac_command <- function(r_script_path, command_path) {
-  cmd <- paste("#!/bin/bash", sprintf('Rscript "%s"', normalizePath(r_script_path)), sep = "\n")
+  # --- Check for Pandoc ---
+  if (!rmarkdown::pandoc_available()) {
+    message("Pandoc not found. Attempting to configure...")
+
+    # If RStudio's bundled pandoc exists, use it
+    rstudio_pandoc <- "/Applications/RStudio.app/Contents/MacOS/pandoc"
+    if (dir.exists(rstudio_pandoc)) {
+      Sys.setenv(RSTUDIO_PANDOC = rstudio_pandoc)
+      message("Using RStudio's bundled Pandoc at: ", rstudio_pandoc)
+    } else {
+      stop(
+        "Pandoc is not installed.\n",
+        "Install it with Homebrew: brew install pandoc\n",
+        "or download from: https://github.com/jgm/pandoc/releases"
+      )
+    }
+  }
+
+  # --- Build the .command file ---
+  app_dir <- dirname(normalizePath(r_script_path))
+  r_file <- basename(normalizePath(r_script_path))
+  
+  cmd <- paste(
+    "#!/bin/bash",
+    sprintf('cd "%s"', app_dir),
+    sprintf('Rscript "%s"', r_file),
+    'read -n 1 -s -r -p "Press any key to close..."', # keep Terminal open
+    sep = "\n"
+  )
+  
   writeLines(cmd, command_path)
   Sys.chmod(command_path, mode = "0755")
+  message("Created command file: ", command_path)
 }
 
-# create_mac_command(
-#   r_script_path = "~/Kinoklub/Kinoklub_GUI.R",
-#   command_path = "~/Desktop/Kinoklub_GUI.command"
-# )
 
-# crate bat 
+
+create_mac_command(
+  r_script_path = "~/Kinoklub/GUI.R",
+  command_path = "~/Desktop/GUI.command"
+)
 
 r_path <- function(x) {
   x <- chartr("\\", "/", x)
