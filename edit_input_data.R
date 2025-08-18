@@ -3546,7 +3546,7 @@ server <- function(input, output, session) {
                 renderText("Bitte Zeile selektieren und anpassen!"),
                 hr(),
                 div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                    dataTableOutput("modal_table")
+                    DT::DTOutput("modal_table")
                 )
               ),
               easyClose = FALSE, 
