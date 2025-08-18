@@ -1662,7 +1662,7 @@ server <- function(input, output, session) {
           left_join(
             DB_get_table("Programm", DB_con()) |>
               convert_to_template_types(l_template$Programm) |> 
-              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`, Kommentar),
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
             DB_get_table("Einsatzplan", DB_con()) |>
               convert_to_template_types(l_template[[input$dataset]]) |>
               select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer, -Kommentar),
