@@ -561,6 +561,37 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }
+      #### Einkauf Kiosk ####
+      else if (data_set_select == "Einkauf Kiosk") {
+        tags$div(
+          id = "floating-panel",
+          tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          div(class = "custom-select",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
+          # Function selection 
+          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                              choices = choices, selected = choices[choices_select]
+          ),
+          shiny::tags$hr(),
+          actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
+          actionButton("edit_row", "Zeile editieren", class = "btn-info"),
+          shiny::tags$hr(),
+          actionButton("duplicate_row", "Zeile duplizieren", class = "btn-info"),
+          shiny::tags$hr(),
+          actionButton("delete_row", "Zeile Löschen", class = "btn-danger"),
+          shiny::tags$hr(),
+          actionButton("check_unique", "Prüfen", class = "btn-success"),
+          shiny::tags$hr(),
+          if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
+          shiny::downloadButton("table_export", "Tabelle herunterladen"),
+          shiny::downloadButton("get_kiosk_preisliste", "Aktuellepreisliste herunterladen")
+        )
+      }
       #### Kinoklubmitglieder ####
       else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
         tags$div(
@@ -668,7 +699,7 @@ server <- function(input, output, session) {
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
-      }
+      } 
       #### anything else ####
       else {
         tags$div(
@@ -1829,7 +1860,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # Check if row is selected ####
+  ## Check if row is selected ####
   observe({
     # Enable/disable download button based on row selection
     is_row_selected <- !is.null(input$table_rows_selected)
@@ -1845,6 +1876,37 @@ server <- function(input, output, session) {
     content = function(file) {
       df_temp <- current_data()[input$table_rows_selected,]
       writeLines(df_temp$`file content`, file)
+    }
+  )
+  
+  ## Button: Download Handler file #####
+  output$get_kiosk_preisliste <- downloadHandler(
+    filename = function() {
+      "Aktuellepreisliste.xlsx"
+    },
+    content = function(file) {
+      df_temp <- current_data()
+      df_Artikel <- df_temp|>
+        distinct(`Artikelname-Kassensystem`)
+      
+      l_list <- list()
+      
+      for (ii in df_Artikel$`Artikelname-Kassensystem`) {
+        l_list[[ii]] <- df_temp|>
+          filter(`Artikelname-Kassensystem` == ii)|>
+          arrange(desc(`Gültig ab Datum`))|>
+          slice(1)
+      }
+      
+      df_temp <- l_list|>
+        bind_rows()
+      
+      openxlsx::write.xlsx(
+        df_temp,
+        file = file,
+        asTable = TRUE,
+        overwrite = TRUE
+      )
     }
   )
     
