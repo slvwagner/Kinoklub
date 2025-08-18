@@ -102,7 +102,6 @@ create_mac_command <- function(r_script_path, command_path) {
 }
 
 
-
 create_mac_command(
   r_script_path = "~/Kinoklub/GUI.R",
   command_path = "~/Desktop/GUI.command"
@@ -110,7 +109,7 @@ create_mac_command(
 
 create_mac_command(
   r_script_path = "~/Kinoklub/edit_input_data.R",
-  command_path = "~/Desktop/GUI.command"
+  command_path = "~/Desktop/Edit.command"
 )
 
 r_path <- function(x) {
