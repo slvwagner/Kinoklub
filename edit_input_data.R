@@ -1662,10 +1662,10 @@ server <- function(input, output, session) {
           left_join(
             DB_get_table("Programm", DB_con()) |>
               convert_to_template_types(l_template$Programm) |> 
-              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`),
+              select(`Event ID`, Suisanummer, Filmtitel, Datum, Zeit, Procinema, Trailer, `Verleiher Angefragt?`, Kommentar),
             DB_get_table("Einsatzplan", DB_con()) |>
               convert_to_template_types(l_template[[input$dataset]]) |>
-              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer),
+              select(-Suisanummer, -Filmtitel, -Datum, -Zeit, -`Verleiher Angefragt?`, -Procinema, -Trailer, -Kommentar),
             by = join_by(`Event ID`)
           ) |> 
           arrange(desc(`Event ID`))
@@ -1679,6 +1679,9 @@ server <- function(input, output, session) {
         # render 
         l_temp$Einsatzplan|>
           current_data()
+        
+        # show the user the rows
+        page_length_var(nrow(current_data()))
         
       } else {
         # render 
