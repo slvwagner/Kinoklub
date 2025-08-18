@@ -4886,7 +4886,7 @@ server <- function(input, output, session) {
                   director = df_temp$director,
                   Regie = df_temp$producer,
                   Schauspieler = df_temp$actors,
-                  Kategorie = "",
+                  Kommentar = "",
                   Trailer = "",
                   Produktionsland = df_temp$Produktionsland,
                   Genre = df_temp$Genre
@@ -4895,7 +4895,7 @@ server <- function(input, output, session) {
                            new_row
       )|>
         select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
-               "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", "Procinema", "Trailer", "Kategorie")
+               "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", "Procinema", "Trailer", "Kommentar")
       
       # updata SQL DB
       DB_add_row(DB_con(), lastEdited_data_set_name(), new_row)
