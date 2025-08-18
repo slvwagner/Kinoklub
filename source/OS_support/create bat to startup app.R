@@ -84,7 +84,7 @@ create_mac_command <- function(r_script_path, command_path) {
     message("Pandoc not found. Attempting to configure...")
 
     # If RStudio's bundled pandoc exists, use it
-    rstudio_pandoc <- "/Applications/RStudio.app/Contents/MacOS/pandoc"
+    rstudio_pandoc <- rmarkdown::find_pandoc()
     if (dir.exists(rstudio_pandoc)) {
       Sys.setenv(RSTUDIO_PANDOC = rstudio_pandoc)
       message("Using RStudio's bundled Pandoc at: ", rstudio_pandoc)
