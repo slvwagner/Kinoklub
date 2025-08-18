@@ -1867,7 +1867,7 @@ server <- function(input, output, session) {
     session$sendCustomMessage("toggleDownload", is_row_selected)
   })
 
-  ## Button: Download Handler file #####
+  ## Button: Download Handler table #####
   output$file_download <- downloadHandler(
     filename = function() {
       df_temp <- current_data()[input$table_rows_selected,]
@@ -1879,7 +1879,7 @@ server <- function(input, output, session) {
     }
   )
   
-  ## Button: Download Handler file #####
+  ## Button: Download Handler Aktuellepreisliste #####
   output$get_kiosk_preisliste <- downloadHandler(
     filename = function() {
       "Aktuellepreisliste.xlsx"
@@ -2742,8 +2742,6 @@ server <- function(input, output, session) {
     print("here")
   })
 
-  
-  
   ####  add row / new entry Einnahmen ####
   observeEvent(input$add_row_einnahmen, {
     # check DB connection
@@ -4755,7 +4753,6 @@ server <- function(input, output, session) {
       ))
     }
   })
-  
   
   ##### replace Film to Filmvorschlag by suisanummer ####
   observeEvent(input$replace_suisa,{
