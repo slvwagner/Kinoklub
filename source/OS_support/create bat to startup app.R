@@ -119,14 +119,14 @@ create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
 create_mac_command(
   r_script_path = "~/Kinoklub/GUI.R",
   command_path = "~/Desktop/GUI.command",
-  icon_path = "~/Kinoklub/source/OS_support/wagnius.icns"
+  icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
 
 )
 
 create_mac_command(
   r_script_path = "~/Kinoklub/edit_input_data.R",
   command_path = "~/Desktop/Edit.command",
-  icon_path = "~/Kinoklub/source/OS_support/wagnius.icns"
+  icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
 )
 
 r_path <- function(x) {
