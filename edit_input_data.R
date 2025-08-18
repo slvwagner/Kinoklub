@@ -2853,7 +2853,7 @@ server <- function(input, output, session) {
     ##### use case Einnahmen Kategorie anything else ####
     else if ((input$Kategorie %in% c("Kiosk", "Personalaufwand", "Sonstiges", "Verleiher", "Vermietung", "Werbung"))){
       # remember use case
-      new_entry("einnahmen")
+      new_entry("einnahmen_generic")
       
       # populate with Kategorie
       new_row <- new_row|>
@@ -2865,10 +2865,11 @@ server <- function(input, output, session) {
       # only display
       df_info <- new_row|> 
         select(1:3)
+      df_info[1,2] <- input$Kategorie # Kategorie
+      df_info[1,3] <- NA # Event ID
       # editable
       df_row <- new_row|> 
         select(4:ncol(new_row))
-      
       # Display the display columns (read-only)
       l_temp <- lapply(1:ncol(df_info), function(ii) {
         fluidRow(
@@ -2877,8 +2878,7 @@ server <- function(input, output, session) {
       })
       
       # create Modal input 
-      l_temp <- create_modal_input(df_row, l_temp)|>
-        suppressWarnings()
+      l_temp <- create_modal_input(df_row, l_temp)
       
       # save for later use
       temp_01(df_info)
@@ -2887,7 +2887,7 @@ server <- function(input, output, session) {
       # User interaction to save
       showModal(
         modalDialog(
-          title = "Kiosk Einkauf erfassen",
+          title = paste0("Ausgabe für die Kategorie: ",input$Kategorie," erfassen"),
           l_temp,
           actionButton("edit_row_modal", "Werte übernehmen", class = "btn-info"),
           actionButton("abort", "Abbrechen"),
@@ -3486,8 +3486,40 @@ server <- function(input, output, session) {
                   df_temp
         )|>
         convert_to_template_types(l_template[[lastEdited_data_set_name()]])
-    } ##### use case generic Ausgaben ####
+    } 
+    ##### use case generic Ausgaben ####
     else if(new_entry() == "ausgaben_generic"){
+      if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
+        # User interaction to save
+        showModal(
+          modalDialog(
+            title = "Es muss minimal die `Bezeichnung` und der `Betrag [CHF]` angegeben werden!",
+            actionButton("abort", "Abbrechen"),
+            easyClose = FALSE,
+            footer = NULL
+          )
+        )
+        req(NULL) # early exit
+      }
+      
+      df_temp <- current_data()|>
+        mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+               Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer(),
+               Kategorie  = as.character(Kategorie)
+        )
+      df_temp
+      
+      # add row on top
+      updated_data <-
+        bind_rows(new_row|>
+                    mutate(`Event ID` = as.character(`Event ID`)|>as.integer(),
+                           Abrechnungsjahr = as.character(Abrechnungsjahr)|>as.integer()), 
+                  df_temp
+        )|>
+        convert_to_template_types(l_template[[lastEdited_data_set_name()]])
+    }
+    ##### use case generic Einnahmen ####
+    else if(new_entry() == "einnahmen_generic"){
       if((nchar(new_row$Bezeichnung) == 0) | (is.na(new_row$`Betrag [CHF]`))){
         # User interaction to save
         showModal(
