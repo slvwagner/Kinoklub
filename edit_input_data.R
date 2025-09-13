@@ -1674,7 +1674,7 @@ server <- function(input, output, session) {
         l_temp$Einsatzplan <- 
           l_temp$Einsatzplan|>
           filter(`Verleiher Angefragt?` %in% c("Bestätigt", "Anfrage läuft"))|>
-          filter(Datum > Sys.time())|>
+          filter(Datum >= (Sys.time() - lubridate::days(1)))|>   # next 24h)|>
           arrange(Datum)
           
         
