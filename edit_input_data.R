@@ -1122,8 +1122,17 @@ server <- function(input, output, session) {
       
       # initialize dictionary Verleiher to Procinema-Verleiher
       df_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)
-      dict_env <<- dict_from_data.frame(df_mapping)
+        select(Verleiher_procinema, Verleihername)|>
+        mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema), "...", Verleihername))
+      df_mapping
+      
+      tryCatch({
+        dict_env <<- dict_from_data.frame(df_mapping)
+        
+      }, error = function(e) {
+        showNotification(paste("load data from data base failed:", e$message), type = "error")
+      })
+      
       
       # Get all data from DB using your template
       l_data_sql <- DB_get_Data(l_template, DB_con())
@@ -1694,9 +1703,16 @@ server <- function(input, output, session) {
       
       # initialize dictionary Verleiher to Procinema-Verleiher
       df_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)
+        select(Verleiher_procinema, Verleihername)|>
+        mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema), "...", Verleihername))
+      df_mapping
       
-      dict_env <<- dict_from_data.frame(df_mapping)
+      tryCatch({
+        dict_env <<- dict_from_data.frame(df_mapping)
+        
+      }, error = function(e) {
+        showNotification(paste("load data from data base failed:", e$message), type = "error")
+      })
       
       # User Information 
       if(input$dataset == "Kinoklubmitglieder"){
@@ -5110,12 +5126,12 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
  
-# Run the shiny app ####
-shiny::runApp(
-  host = "0.0.0.0",
-  shiny::shinyApp(ui = ui, server = server),
-  port = 5001,
-  launch.browser = TRUE
-)
+# # Run the shiny app ####
+# shiny::runApp(
+#   host = "0.0.0.0",
+#   shiny::shinyApp(ui = ui, server = server),
+#   port = 5001,
+#   launch.browser = TRUE
+# )
