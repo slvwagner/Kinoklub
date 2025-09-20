@@ -1124,7 +1124,7 @@ server <- function(input, output, session) {
       df_mapping <- DB_get_table("Verleiher", DB_con())|>
         select(Verleiher_procinema, Verleihername)|>
         mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema), "...", Verleihername))
-      df_mapping
+      df_mapping$Verleiher_procinema|>unique()
       
       tryCatch({
         dict_env <<- dict_from_data.frame(df_mapping)
@@ -2316,6 +2316,25 @@ server <- function(input, output, session) {
         filter(duplicate_flag)|>
         select(-duplicate_flag)
       
+    } else if (lastEdited_data_set_name() %in% c("Verleiher")){
+      # Find duplicates (keeping only duplicate rows)
+      df_temp <- current_data() |> 
+        select(ID, Verleihername, Verleiher_procinema)|>
+        group_by(across(-ID)) |>
+        mutate(duplicate_flag = n() > 1) |>
+        ungroup() |>
+        filter(duplicate_flag)|>
+        select(-duplicate_flag)
+        
+        if(nrow(df_temp) == 0){
+          # Find duplicates (keeping only duplicate rows)
+          df_temp <- current_data() |>
+            group_by(across(-ID)) |>
+            mutate(duplicate_flag = n() > 1) |>
+            ungroup() |>
+            filter(duplicate_flag)|>
+            select(-duplicate_flag)
+        }
     } else {
       # Find duplicates (keeping only duplicate rows)
       df_temp <- current_data() |>
@@ -2514,7 +2533,11 @@ server <- function(input, output, session) {
         mutate(ID = max(current_data()$ID) + 1L,
                `Kinoförderer gratis?` = "ja"
         )
-    } else {
+      
+      new_row <- new_row|>
+        mutate(Verleiher_procinema = paste("Procinema mapping Platzhalter", nrow(current_data())))
+      
+      } else {
       if(!is.null(temp_01())){
         if(temp_02() == "Verleiher_procinema"){
           # Filmforschlag copy to clipboard has been executed
@@ -4857,14 +4880,27 @@ server <- function(input, output, session) {
       
       # check if Verleiher mapping is available 
       df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)
+        select(Verleiher_procinema, Verleihername)|>
+        mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema),"...",Verleiher_procinema))
       tail(df_Verleiher_mapping)
       
+      df_Verleiher_mapping$Verleiher_procinema|>is.na()
+      
+      tryCatch({
+        dict_env <<- dict_from_data.frame(df_Verleiher_mapping)
+        
+      }, error = function(e) {
+        showNotification(paste("load data from data base failed:", e$message), type = "error")
+      })
+      
+      new_row <- new_row|>
+        mutate(Verleiher = dict_get_values(new_row$Verleiher,dict_env))
       
       if(is.null(names(new_row$Verleiher))){
         showModal(modalDialog(
-          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher mapping`."),
-          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher mapping` erfassen und dann nochmals probieren!"),
+          title = paste0("Es gibt keinen Procinema Verleihernamen `", new_row$Verleiher, "` in der Tabelle `Verleiher`."),
+          renderText("Bitte einen Eintrag erfassen in der Tabelle `Verleiher` erfassen. Die Spalte Verleiher_procinema muss wie folgt abgefüllt werden:", new_row$Verleiher,
+                     "Nach dem Erfassen bitte nochmals probieren!"),
           easyClose = FALSE, 
           footer = tagList(
             actionButton("abort","Abbrechen")
