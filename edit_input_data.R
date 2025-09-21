@@ -1122,13 +1122,10 @@ server <- function(input, output, session) {
       
       # initialize dictionary Verleiher to Procinema-Verleiher
       df_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)|>
-        mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema), "...", Verleihername))
-      df_mapping$Verleiher_procinema|>unique()
+        select(Verleiher_procinema, Verleihername)
       
       tryCatch({
         dict_env <<- dict_from_data.frame(df_mapping)
-        
       }, error = function(e) {
         showNotification(paste("load data from data base failed:", e$message), type = "error")
       })
@@ -1703,8 +1700,7 @@ server <- function(input, output, session) {
       
       # initialize dictionary Verleiher to Procinema-Verleiher
       df_mapping <- DB_get_table("Verleiher", DB_con())|>
-        select(Verleiher_procinema, Verleihername)|>
-        mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema), "...", Verleihername))
+        select(Verleiher_procinema, Verleihername)
       df_mapping
       
       tryCatch({
