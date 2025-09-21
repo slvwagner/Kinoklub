@@ -4769,7 +4769,7 @@ server <- function(input, output, session) {
                   mutate(Verleiher = dict_get_values(df_temp$Verleiher, dict_env))
                 
               }, error = function(e){
-                showNotification(paste("Für den Verleiher von Procinema",df_temp$Verleiher," Fehlermeldung: ", e$message), type = "error")
+                showNotification(paste("Es wurde noch kein Verleiher erfasst für ",df_temp$Verleiher), type = "error")
                 removeModal()
               })
             # render table 
