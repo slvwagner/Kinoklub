@@ -2235,6 +2235,12 @@ server <- function(input, output, session) {
     c_message <- paste0("Datei ",last_uploaded_file()," wurde geschrieben.")
     
     results <- Convert_Kiosk_files(last_uploaded_file(), DB_con(), l_template)
+    if(is.null(results$results)) {
+      ausgabe_text(paste0(
+        "Kiosdateine wurden nicht richtig konvertiert. Sind die Dateien im richtigen format?",
+        "\nWenn ja, dann ist das ein Programmfehler und muss gemeldet werden."))
+      req(NULL)
+    }
 
     # new rows
     new_rows <- results$result
