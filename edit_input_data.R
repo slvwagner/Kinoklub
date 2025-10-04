@@ -4218,6 +4218,30 @@ server <- function(input, output, session) {
       DB_delete_row(DB_con(), "df_Eintritt", "ID", ii)
     }
     removeModal()
+    
+    # get data from database
+    df_temp <- DB_get_table("Eintritt files", DB_con()) |>
+      convert_to_template_types(l_template[[input$dataset]])
+    
+    # Debug print
+    print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
+    
+    # get local coppy of data 
+    l_temp <- l_data()
+    
+    # update data
+    l_temp[[input$dataset]] <- df_temp
+    
+    # render 
+    l_temp$`Eintritt files`|>
+      arrange(desc(ID))|>
+      current_data()
+      
+    shiny::isolate({
+      # remove row and page selection 
+      last_selected_row(NA)
+    }) 
+    
   })
     
   #####  Delete Kiosk file ####
@@ -4227,6 +4251,29 @@ server <- function(input, output, session) {
       DB_delete_row(DB_con(), "df_Kiosk", "ID", ii)
     }
     removeModal()
+    
+    # get data from database
+    df_temp <- DB_get_table("Kiosk files", DB_con()) |>
+      convert_to_template_types(l_template[[input$dataset]])
+    
+    # Debug print
+    print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
+    
+    # get local coppy of data 
+    l_temp <- l_data()
+    
+    # update data
+    l_temp[[input$dataset]] <- df_temp
+    
+    # render 
+    l_temp$`Kiosk files`|>
+      arrange(desc(ID))|>
+      current_data()
+    
+    shiny::isolate({
+      # remove row and page selection 
+      last_selected_row(NA)
+    }) 
   })
   
   ##### Delete row ####
