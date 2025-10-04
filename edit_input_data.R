@@ -643,7 +643,7 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }      
-      #### Eintritt and Kiosk files ####
+      #### Eintritt files ####
       else if(lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
         tags$div(
           id = "floating-panel",
@@ -670,6 +670,39 @@ server <- function(input, output, session) {
             });
           '),
           shiny::tags$hr(),
+          shiny::actionButton("check_data_eintritt", "Datei Daten-Extraktion prüfen"),
+          if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
+          shiny::downloadButton("table_export", "Tabelle herunterladen")
+        )
+      }
+      #### Kiosk files ####
+      else if(lastEdited_data_set_name() %in% c("Kiosk files")){
+        tags$div(
+          id = "floating-panel",
+          tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          div(class = "custom-select",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
+          # Function selection 
+          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                              choices = choices, selected = choices[choices_select]
+          ),
+          shiny::tags$hr(),
+          shiny::downloadButton("file_download", "Datei herunterladen"),
+          tags$script('
+            $(document).ready(function() {
+              $("#file_download").attr("disabled", true);
+              Shiny.addCustomMessageHandler("toggleDownload", function(message) {
+                $("#file_download").attr("disabled", !message);
+              });
+            });
+          '),
+          shiny::tags$hr(),
+          shiny::actionButton("check_data_kiosk", "Datei Daten-Extraktion prüfen"),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
@@ -1956,7 +1989,7 @@ server <- function(input, output, session) {
   })
   
   ## Render modal table ####
-  output$modal_table <- DT::renderDT()({
+  output$modal_table <- DT::renderDT({
     req(df_temp_to_render())  
     datatable(df_temp_to_render(), 
               rownames = FALSE,
@@ -1971,7 +2004,7 @@ server <- function(input, output, session) {
   })
   
   ## Render modal table 2 ####
-  output$modal_table_2 <- DT::renderDT()({
+  output$modal_table_2 <- DT::renderDT({
     req(temp_01())  
     datatable(temp_01(), 
               rownames = FALSE,
