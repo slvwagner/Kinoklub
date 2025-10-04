@@ -67,6 +67,10 @@ shiny::addResourcePath("custom_styles", "source/www")
 
 # Define UI ####
 ui <- function(){
+  stopifnot(identical(class(shiny::tags), "list"))
+  if (exists("tags", inherits = FALSE) && !identical(class(get("tags")), "list")) {
+    warning("Global `tags` shadows shiny::tags; using explicit shiny:: namespace")
+  }
   shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
@@ -351,6 +355,10 @@ server <- function(input, output, session) {
     l_data_input, data_set_select , c_select_dropdown_data, c_DB_user,
     choices = c("Inputdaten", "Advance-Tickets", "Dropdowns"), choices_select
     ) {
+    stopifnot(identical(class(shiny::tags), "list"))
+    if (exists("tags", inherits = FALSE) && !identical(class(get("tags")), "list")) {
+      warning("Global `tags` shadows shiny::tags; using explicit shiny:: namespace")
+    }
     if(c_DB_user %in% c_superuser){
       #### Filmvorschlag ####
       if(data_set_select == "Filmvorschlag"){
@@ -647,6 +655,8 @@ server <- function(input, output, session) {
           '),
           shiny::tags$hr(),
           shiny::actionButton("check_data_eintritt", "Datei Daten-Extraktion prüfen"),
+          shiny::actionButton("delete_file_eintritt", "Datei löschen"),
+          shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
@@ -679,6 +689,8 @@ server <- function(input, output, session) {
           '),
           shiny::tags$hr(),
           shiny::actionButton("check_data_kiosk", "Datei Daten-Extraktion prüfen"),
+          shiny::actionButton("delete_file_kiosk", "Datei löschen"),
+          shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
@@ -2285,7 +2297,26 @@ server <- function(input, output, session) {
       req(NULL) # early exit
     }
     c_file <- current_data()[input$table_rows_selected,]$filename
-    df_temp <- convert_data_Film_txt(c_file ,DB_con())
+    
+    result <- Run_capture_error_warnings(convert_data_Film_txt, c_file ,DB_con())
+    
+    if(result$messages  != "" & is.null(result$result)){
+      showModal(
+        modalDialog(
+          title = paste0("Inhalt der Datei: \"", c_file, "\""),
+          shiny::tagList(
+            shiny::renderText(result$messages)
+          ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+      req(NULL)
+    }
+    
+    df_temp <- result$result
     print(df_temp)
     
     # save to render
@@ -2299,14 +2330,12 @@ server <- function(input, output, session) {
     
     showModal(
       modalDialog(
-        title = paste0("Daten Extraktion aus der Datei: \"",
-                       c_file,
-                       "\""
-        ),
+        title = paste0("Daten Extraktion aus der Datei: \"", c_file, "\""),
         size = modal_width,  
         shiny::tagList(
-          shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
-                     dataTableOutput("modal_table")
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
           )
         ),
         easyClose = TRUE,
@@ -2333,10 +2362,26 @@ server <- function(input, output, session) {
     } 
     c_file <- current_data()[input$table_rows_selected,]$filename
     
-    result <- Run_capture_error_warnings(convert_kiosk_txt, 
-                               c_file ,DB_con(), l_template)
+    # file convertierung 
+    result <- Run_capture_error_warnings(convert_kiosk_txt, c_file ,DB_con(), l_template)
     
-    df_temp <- convert_kiosk_txt(c_file ,DB_con(), l_template)
+    if(result$messages  != "" & is.null(result$result)){
+      showModal(
+        modalDialog(
+          title = paste0("Inhalt der Datei: \"", c_file, "\""),
+          shiny::tagList(
+            shiny::renderText(result$messages)
+          ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+      req(NULL)
+    }
+    
+    df_temp <- result$result
     print(df_temp)
 
     # save to render
@@ -2350,10 +2395,7 @@ server <- function(input, output, session) {
     
     showModal(
       modalDialog(
-        title = paste0("Daten Extraktion aus der Datei: \"",
-                       c_file,
-                       "\""
-        ),
+        title = paste0("Daten Extraktion aus der Datei: \"", c_file, "\""),
         size = modal_width,  
         shiny::tagList(
           shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
@@ -4076,6 +4118,117 @@ server <- function(input, output, session) {
   })
   
   #### Delete selected row(s) ####
+  #####  delete eintritt file ####
+  observeEvent(input$delete_file_eintritt, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    
+    df_file <- current_data()[input$table_rows_selected,]
+    
+    c_ID <- df_file$`Event ID`
+    
+    # df_Eintritte to be deleted
+    df_temp <- DB_get_table("df_Eintritt", DB_con())|>
+      filter(`Event ID` == c_ID)
+
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Datei löschen? \"", df_file$filename , "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::renderText("Die folgenden Datensätze in der Tabelle df_Eintrit werden auch gelöscht!"),
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("del_eintritt", "Datei und Datensätze löschen"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    # to be deleted files
+    temp_01(current_data()[input$table_rows_selected,])
+    
+    # to be deleted df_Eintritte
+    temp_02(df_temp)
+  })
+
+  #####  delete eintritt file ####
+  observeEvent(input$delete_file_kiosk, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    
+    df_file <- current_data()[input$table_rows_selected,]
+    c_ID <- df_file$`Event ID`
+    
+    # df_Eintritte to be deleted
+    df_temp <- DB_get_table("df_Kiosk", DB_con())|>
+      filter(`Event ID` == c_ID)
+    
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Datei löschen? \"", df_file$filename , "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::renderText("Die folgenden Datensätze in der Tabelle df_Kiosk werden auch gelöscht!"),
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("del_kiosk", "Datei und Datensätze löschen"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    # to be deleted files
+    temp_01(current_data()[input$table_rows_selected,])
+    
+    # to be deleted df_Eintritte
+    temp_02(df_temp)
+  })
+
+  #####  Delete Eintritt file ####
+  observeEvent(input$del_eintritt, {
+    DB_delete_row(DB_con(), "Eintritt files", "ID", temp_01()$ID)
+    for (ii in temp_02()$ID) {
+      DB_delete_row(DB_con(), "df_Eintritt", "ID", ii)
+    }
+    removeModal()
+  })
+    
+  #####  Delete Kiosk file ####
+  observeEvent(input$del_kiosk, {
+    DB_delete_row(DB_con(), "Kiosk files", "ID", temp_01()$ID)
+    for (ii in temp_02()$ID) {
+      DB_delete_row(DB_con(), "df_Kiosk", "ID", ii)
+    }
+    removeModal()
+  })
+  
   ##### Delete row ####
   observeEvent(input$delete_row, {
     # get selected row
