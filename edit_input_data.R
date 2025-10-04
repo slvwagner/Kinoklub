@@ -2293,9 +2293,8 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Data checks ####
-   
-  ### check if upload eintritt file can be converted and show extraction results ####
+  ### Data checks ####
+  #### check if upload eintritt file can be converted and show extraction results ####
   observeEvent(input$check_data_eintritt, {
     # User interaction
     if(is.null(input$table_rows_selected)){
@@ -2306,11 +2305,42 @@ server <- function(input, output, session) {
           footer = modalButton("Abbrechen")
         )
       )
+      req(NULL) # early exit
     }
+    c_file <- current_data()[input$table_rows_selected,]$filename
+    df_temp <- convert_data_Film_txt(c_file ,DB_con())
+    print(df_temp)
     
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Daten Extraktion aus der Datei: \"",
+                       c_file,
+                       "\""
+        ),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                     dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
   })
   
-  ### check if upload kiosk file can be converted and show extraction results ####
+  #### check if upload kiosk file can be converted and show extraction results ####
   observeEvent(input$check_data_kiosk, {
     # User interaction
     if(is.null(input$table_rows_selected)){
@@ -2321,11 +2351,47 @@ server <- function(input, output, session) {
           footer = modalButton("Abbrechen")
         )
       )
+      req(NULL) # early exit
     } 
+    c_file <- current_data()[input$table_rows_selected,]$filename
+    
+    result <- Run_capture_error_warnings(convert_kiosk_txt, 
+                               c_file ,DB_con(), l_template)
+    
+    df_temp <- convert_kiosk_txt(c_file ,DB_con(), l_template)
+    print(df_temp)
+
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Daten Extraktion aus der Datei: \"",
+                       c_file,
+                       "\""
+        ),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                     dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    
   })
   
-  
-  ### Check Suisanummer Modal ####
+  #### Check Suisanummer Modal ####
   observeEvent(input$check_suisa,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2348,7 +2414,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ### Check E-Mail Modal ####
+  #### Check E-Mail Modal ####
   observeEvent(input$check_email,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2365,7 +2431,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ## Check unique ####
+  #### Check unique ####
   observeEvent(input$check_unique, {
     if(lastEdited_data_set_name() %in% c("Programm")){
       # Find duplicates (keeping only duplicate rows)
