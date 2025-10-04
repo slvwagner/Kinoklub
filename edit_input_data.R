@@ -643,7 +643,7 @@ server <- function(input, output, session) {
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }      
-      #### Download files ####
+      #### Eintritt and Kiosk files ####
       else if(lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
         tags$div(
           id = "floating-panel",
