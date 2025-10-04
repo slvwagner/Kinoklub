@@ -1867,7 +1867,7 @@ server <- function(input, output, session) {
           
           # upload file to database capturing message, warnings and errors
           df_file_upload <- Run_capture_error_warnings(
-            DB_upload_file, con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = TRUE
+            DB_upload_file, con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = FALSE
             )
           
           # Message 
@@ -1890,11 +1890,11 @@ server <- function(input, output, session) {
               modalDialog(
                 title = paste0("Achtung die Datei: ",file_name," ist schon auf der Datenbank gespeichert."),
                 tagList(
-                  renderText("Soll die Datei überschrieben werden?")
+                  renderText("Um die Datei zu aktualisieren muss die alte zuerst gelöscht werden."),
+                  renderText("Die Datei kann unter \"Input Daten Kinoklub/ Advace-Tickets/ Eintritt files\" gelöscht werden.")
                 ),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file", "Überschreiben"),
                   actionButton("abort", "Abbrechen")
                 )
               )
@@ -1949,11 +1949,11 @@ server <- function(input, output, session) {
               modalDialog(
                 title = paste0("Achtung die Datei: ",file_name," ist schon auf der Datenbank gespeichert."),
                 tagList(
-                  renderText("Soll die Datei überschrieben werden?")
+                  renderText("Um die Datei zu aktualisieren muss die alte zuerst gelöscht werden."),
+                  renderText("Die Datei kann unter \"Input Daten Kinoklub/ Advace-Tickets/ Kiosk files\" gelöscht werden.")
                 ),
                 easyClose = FALSE, 
                 footer = tagList(
-                  actionButton("upload_file", "Überschreiben"),
                   actionButton("abort", "Abbrechen")
                 )
               )

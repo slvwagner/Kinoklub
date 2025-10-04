@@ -67,48 +67,46 @@ shiny::addResourcePath("custom_styles", "source/www")
 
 # Define UI ####
 ui <- function(){
-  fluidPage(
+  stopifnot(identical(class(shiny::tags), "list"))
+  if (exists("tags", inherits = FALSE) && !identical(class(get("tags")), "list")) {
+    warning("Global `tags` shadows shiny::tags; using explicit shiny:: namespace")
+  }
+  shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
-      tags$script(src="https://code.jquery.com/ui/1.14.1/jquery-ui.js",
-                  integrity="sha256-9zljDKpE/mQxmaR4V2cGVaQ7arF3CcXxarvgr7Sj8Uc=",
-                  crossorigin="anonymous"
-                  ),
-      tags$style(HTML("
+      shiny::tags$script(
+        src = "https://code.jquery.com/ui/1.14.1/jquery-ui.js",
+        integrity = "sha256-9zljDKpE/mQxmaR4V2cGVaQ7arF3CcXxarvgr7Sj8Uc=",
+        crossorigin = "anonymous"
+      ),
+      shiny::tags$style(shiny::HTML("
         .custom-select .selectize-dropdown-content {
           background-color: #330937;
           color: #f4eacc;
         }
-        
         .selectize-input.full {
           background-color: #330937 !important;
           color: #f4eacc !important;
         }
-        
         .custom-select .selectize-dropdown .active {
           background-color: #330937 ;
           color: #f4eacc ;
         }
-        
         #floating-panel {
           position: fixed;
           right: 20px;
           top: 20px;
           width: 300px;
-          height: auto; /* Start with auto height */
+          height: auto;
           border: 3px solid #000;
           border-radius: 5px;
           padding: 10px;
           box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           z-index: 1001;
           transition: height 0.2s ease;
-          overflow: hidden; /* Hide content when collapsed */
+          overflow: hidden;
         }
-        
-        #floating-panel.collapsed {
-          height: 38px; /* Just enough for the header */
-        }
-        
+        #floating-panel.collapsed { height: 38px; }
         #floating-panel-header {
           cursor: move;
           padding: 10px;
@@ -120,21 +118,12 @@ ui <- function(){
           justify-content: space-between;
           align-items: center;
         }
-        
-        #floating-panel.collapsed .panel-content {
-          display: none;
-        }
-        
+        #floating-panel.collapsed .panel-content { display: none; }
         #floating-panel.collapsed #floating-panel-header {
-          margin-bottom: -10px; /* Adjust for collapsed state */
-          border-bottom: none; /* Remove border when collapsed */
+          margin-bottom: -10px;
+          border-bottom: none;
         }
-        
-        .toggle-panel {
-          cursor: pointer;
-          float: right;
-        }
-    
+        .toggle-panel { cursor: pointer; float: right; }
         #login-panel {
           background: #330937;
           position: absolute;
@@ -151,11 +140,7 @@ ui <- function(){
           transition: height 0.2s ease;
           overflow: hidden;
         }
-        
-        #login-panel.collapsed {
-          height: 35px;
-        }
-        
+        #login-panel.collapsed { height: 35px; }
         #login-panel-header {
           cursor: move;
           background: #46267d;
@@ -168,82 +153,69 @@ ui <- function(){
           justify-content: space-between;
           align-items: center;
         }
-        
-        #login-panel.collapsed .panel-content {
-          display: none;
-        }
-        
+        #login-panel.collapsed .panel-content { display: none; }
         #login-panel.collapsed #login-panel-header {
           margin-bottom: -10px;
           border-bottom: none;
         }
-        
-        .login-toggle-panel {
-          cursor: pointer;
-          float: right;
-        }
-    "))),
+        .login-toggle-panel { cursor: pointer; float: right; }
+      "))
+    ),
     
     # Functions
     shiny::tags$head(
-      # Initialize drag and collapse functionality for the login panel
-      tags$script(HTML("
-      $(function() {
-        // Wait for Shiny to be ready
-        $(document).on('shiny:connected', function() {
-          // Make login panel draggable
-          $('#login-panel').draggable({ handle: '#login-panel-header' });
-          
-          // Toggle login panel collapse/expand
-          $('#login_togglePanel').click(function(e) {
-            e.stopPropagation();
-            $('#login-panel').toggleClass('collapsed');
-            if ($('#login-panel').hasClass('collapsed')) {
-              $('#login_togglePanel').html('<i class=\"fa fa-plus\"></i>');
-            } else {
-              $('#login_togglePanel').html('<i class=\"fa fa-minus\"></i>');
-            }
+      shiny::tags$script(shiny::HTML("
+        $(function() {
+          $(document).on('shiny:connected', function() {
+            $('#login-panel').draggable({ handle: '#login-panel-header' });
+            $('#login_togglePanel').click(function(e) {
+              e.stopPropagation();
+              $('#login-panel').toggleClass('collapsed');
+              if ($('#login-panel').hasClass('collapsed')) {
+                $('#login_togglePanel').html('<i class=\"fa fa-plus\"></i>');
+              } else {
+                $('#login_togglePanel').html('<i class=\"fa fa-minus\"></i>');
+              }
+            });
           });
         });
-      });
-      // Function to collapse login panel
-      function collapseLoginPanel() {
-        $('#login-panel').addClass('collapsed');
-        $('#login_togglePanel').html('<i class=\"fa fa-plus\"></i>');
-      }
-      
-      // Make this function available to Shiny
-      Shiny.addCustomMessageHandler('collapseLoginPanel', function(message) {
-        collapseLoginPanel();
-      });
-    ")),
+        function collapseLoginPanel() {
+          $('#login-panel').addClass('collapsed');
+          $('#login_togglePanel').html('<i class=\"fa fa-plus\"></i>');
+        }
+        Shiny.addCustomMessageHandler('collapseLoginPanel', function(message) {
+          collapseLoginPanel();
+        });
+      "))
     ),
     
-    # Login Panel UI
-    shiny::titlePanel(paste0("Input Daten Kinoklub")),
-    div(
+    shiny::titlePanel("Input Daten Kinoklub"),
+    
+    shiny::div(
       id = "login-panel",
-      tags$div(id = "login-panel-header", 
-               "Login",
-               span(class = "toggle-panel", id = "login_togglePanel", icon("minus"))
+      shiny::tags$div(
+        id = "login-panel-header",
+        "Login",
+        shiny::span(class = "toggle-panel", id = "login_togglePanel", shiny::icon("minus"))
       ),
-      div(class = "panel-content",
-          # Input panel at top
-          shiny::textInput("DB_host", "Datenbank Host", value = "lx51.hoststar.hosting"),
-          shiny::textInput("DB_name", "Datenbank Name", value = "ch367079_gui"),
-          shiny::textInput("DB_user", "Datenbank Benutzer"),
-          shiny::passwordInput("DB_pw", "Datenbankpasswort"),
-          shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
-          shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
-          ),
+      shiny::div(
+        class = "panel-content",
+        shiny::textInput("DB_host", "Datenbank Host", value = "lx51.hoststar.hosting"),
+        shiny::textInput("DB_name", "Datenbank Name", value = "ch367079_gui"),
+        shiny::textInput("DB_user", "Datenbank Benutzer"),
+        shiny::passwordInput("DB_pw", "Datenbankpasswort"),
+        shiny::actionButton("SQL_connect", "Mit Datenbank verbinden", class = "btn-success"),
+        shiny::actionButton("SQL_disconnect", "Datenbankverbindung schliessen", class = "btn-danger")
+      )
     ),
     
-    # Main content area
-    div(class = "table-container",
-        uiOutput("dynamicContent_output_panel")
+    shiny::div(
+      class = "table-container",
+      shiny::uiOutput("dynamicContent_output_panel")
     )
   )
 }
+
 
 # Define server ####
 server <- function(input, output, session) {
@@ -370,28 +342,40 @@ server <- function(input, output, session) {
     )
   }
   
+  choice_val <- function(choices, sel) {
+    s <- if (is.function(sel)) sel() else sel
+    if (is.null(s) || length(s) == 0 || is.na(s)) return(choices[[1]])
+    if (is.character(s) && s %in% choices) return(s)
+    choices[[as.integer(s)]]
+  }
+  
+  
   ### Toolbox for the user to interact ####
   tool_box <- function(
     l_data_input, data_set_select , c_select_dropdown_data, c_DB_user,
     choices = c("Inputdaten", "Advance-Tickets", "Dropdowns"), choices_select
     ) {
+    stopifnot(identical(class(shiny::tags), "list"))
+    if (exists("tags", inherits = FALSE) && !identical(class(get("tags")), "list")) {
+      warning("Global `tags` shadows shiny::tags; using explicit shiny:: namespace")
+    }
     if(c_DB_user %in% c_superuser){
       #### Filmvorschlag ####
       if(data_set_select == "Filmvorschlag"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput(
                 "dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -412,19 +396,19 @@ server <- function(input, output, session) {
       } 
       #### Programm ####
       else if (data_set_select == "Programm"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_programm", "Eintrag hinzufügen", class = "btn-info"),
@@ -446,19 +430,19 @@ server <- function(input, output, session) {
       } 
       #### Einsatzplan ####
       else if(data_set_select == "Einsatzplan"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -469,19 +453,19 @@ server <- function(input, output, session) {
       } 
       #### Einnahmen ####
       else if (data_set_select == "Einnahmen"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_einnahmen", "Eintrag hinzufügen", class = "btn-info"),
@@ -503,19 +487,19 @@ server <- function(input, output, session) {
       }
       #### Ausgaben ####
       else if (data_set_select == "Ausgaben"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_ausgaben", "Eintrag hinzufügen", class = "btn-info"),
@@ -537,19 +521,19 @@ server <- function(input, output, session) {
       } 
       #### Spezialpreisekiosk ####
       else if (data_set_select == "Spezialpreisekiosk") {
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -565,19 +549,19 @@ server <- function(input, output, session) {
       }
       #### Einkauf Kiosk ####
       else if (data_set_select == "Einkauf Kiosk") {
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -596,19 +580,19 @@ server <- function(input, output, session) {
       }
       #### Kinoklubmitglieder ####
       else if(lastEdited_data_set_name() == "Kinoklubmitglieder"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -624,44 +608,44 @@ server <- function(input, output, session) {
       }
       #### df_Eintritt df_Kiosk ####
       else if(lastEdited_data_set_name() %in% c("df_Eintritt", "df_Kiosk")){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }      
-      #### Eintritt and Kiosk files ####
-      else if(lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
-        tags$div(
+      #### Eintritt files ####
+      else if(lastEdited_data_set_name() %in% c("Eintritt files")){
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           shiny::downloadButton("file_download", "Datei herunterladen"),
-          tags$script('
+          shiny::tags$script('
             $(document).ready(function() {
               $("#file_download").attr("disabled", true);
               Shiny.addCustomMessageHandler("toggleDownload", function(message) {
@@ -670,25 +654,62 @@ server <- function(input, output, session) {
             });
           '),
           shiny::tags$hr(),
+          shiny::actionButton("check_data_eintritt", "Datei Daten-Extraktion prüfen"),
+          shiny::actionButton("delete_file_eintritt", "Datei löschen"),
+          shiny::tags$hr(),
+          if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
+          shiny::downloadButton("table_export", "Tabelle herunterladen")
+        )
+      }
+      #### Kiosk files ####
+      else if(lastEdited_data_set_name() %in% c("Kiosk files")){
+        shiny::tags$div(
+          id = "floating-panel",
+          shiny::tags$div(id = "floating-panel-header", 
+                   "Werkzeuge",
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+          ),
+          shiny::div(class = "custom-select",
+              selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
+              )
+          ),
+          # Function selection 
+          shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
+                              choices = choices, selected = choice_val(choices, choices_select)
+          ),
+          shiny::tags$hr(),
+          shiny::downloadButton("file_download", "Datei herunterladen"),
+          shiny::tags$script('
+            $(document).ready(function() {
+              $("#file_download").attr("disabled", true);
+              Shiny.addCustomMessageHandler("toggleDownload", function(message) {
+                $("#file_download").attr("disabled", !message);
+              });
+            });
+          '),
+          shiny::tags$hr(),
+          shiny::actionButton("check_data_kiosk", "Datei Daten-Extraktion prüfen"),
+          shiny::actionButton("delete_file_kiosk", "Datei löschen"),
+          shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
           shiny::downloadButton("table_export", "Tabelle herunterladen")
         )
       }
       #### Verleiher ####
       else if (lastEdited_data_set_name() %in% c("Verleiher")) {
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_verleiher", "Eintrag hinzufügen", class = "btn-info"),
@@ -704,19 +725,19 @@ server <- function(input, output, session) {
       } 
       #### anything else ####
       else {
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -737,13 +758,13 @@ server <- function(input, output, session) {
     } else {
       #### Filmvorschlag ####
       if(data_set_select == "Filmvorschlag"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput(
                 "dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
@@ -760,13 +781,13 @@ server <- function(input, output, session) {
       } 
       #### Einsatzplan ####
       else if (data_set_select == "Einsatzplan"){
-        tags$div(
+        shiny::tags$div(
           id = "floating-panel",
-          tags$div(id = "floating-panel-header", 
+          shiny::tags$div(id = "floating-panel-header", 
                    "Werkzeuge",
-                   span(class = "toggle-panel", id = "togglePanel", icon("minus"))
+                   shiny::span(class = "toggle-panel", id = "togglePanel", icon("minus"))
           ),
-          div(class = "custom-select",
+          shiny::div(class = "custom-select",
               selectizeInput("dataset", "Datensatz zum Editieren", selected = data_set_select, choices = names(l_data_input)
               )
           ),
@@ -2181,7 +2202,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Bitte Zeile selektieren und anpassen!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -2260,20 +2281,137 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Data checks ####
-   
-  ### 
-  
+  ### Data checks ####
+  #### check if upload eintritt file can be converted and show extraction results ####
   observeEvent(input$check_data_eintritt, {
-    print("here")  
+    print("check_data_eintritt")
+    # User interaction
+    if(is.null(input$table_rows_selected)){
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(NULL) # early exit
+    }
+    c_file <- current_data()[input$table_rows_selected,]$filename
+    
+    result <- Run_capture_error_warnings(convert_data_Film_txt, c_file ,DB_con())
+    
+    if(result$messages  != "" & is.null(result$result)){
+      showModal(
+        modalDialog(
+          title = paste0("Inhalt der Datei: \"", c_file, "\""),
+          shiny::tagList(
+            shiny::renderText(result$messages)
+          ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+      req(NULL)
+    }
+    
+    df_temp <- result$result
+    print(df_temp)
+    
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Daten Extraktion aus der Datei: \"", c_file, "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
   })
   
+  #### check if upload kiosk file can be converted and show extraction results ####
   observeEvent(input$check_data_kiosk, {
-    print("here")  
+    print("check_data_kiosk")
+    # User interaction
+    if(is.null(input$table_rows_selected)){
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+      req(NULL) # early exit
+    } 
+    c_file <- current_data()[input$table_rows_selected,]$filename
+    
+    # file convertierung 
+    result <- Run_capture_error_warnings(convert_kiosk_txt, c_file ,DB_con(), l_template)
+    
+    if(result$messages  != "" & is.null(result$result)){
+      showModal(
+        modalDialog(
+          title = paste0("Inhalt der Datei: \"", c_file, "\""),
+          shiny::tagList(
+            shiny::renderText(result$messages)
+          ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton("abort", "Abbrechen")
+          )
+        )
+      )
+      req(NULL)
+    }
+    
+    df_temp <- result$result
+    print(df_temp)
+
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Daten Extraktion aus der Datei: \"", c_file, "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                     dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    
   })
   
-  
-  ### Check Suisanummer Modal ####
+  #### Check Suisanummer Modal ####
   observeEvent(input$check_suisa,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2296,7 +2434,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ### Check E-Mail Modal ####
+  #### Check E-Mail Modal ####
   observeEvent(input$check_email,{
     # check DB connection
     if (!dbIsValid(DB_con())) {
@@ -2313,7 +2451,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  ## Check unique ####
+  #### Check unique ####
   observeEvent(input$check_unique, {
     if(lastEdited_data_set_name() %in% c("Programm")){
       # Find duplicates (keeping only duplicate rows)
@@ -2369,7 +2507,7 @@ server <- function(input, output, session) {
           tagList(
             renderText("Bitte Zeile selektieren und anpassen!"),
             hr(),
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_table")
             )
           ),
@@ -2621,7 +2759,7 @@ server <- function(input, output, session) {
       tagList(
         shiny::renderText("Soll der neue Eintrag manuell erstellt werden oder vom Filmvorschlag übernommen werden?"),
         shiny::hr(),
-        div(class = "custom-select",
+        shiny::div(class = "custom-select",
             selectizeInput("get_Filmvorschlag", "Wie soll der neue Eintrag erstellt werden?", 
                            selected = c_select[1], choices = c_select
             )
@@ -2710,7 +2848,7 @@ server <- function(input, output, session) {
           tagList(
             renderText("Bitte eine Zeile markieren um diesen Filmvorschlag ins Programm zu übernehmen"),
             shiny::hr(),
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_filmvorschlag"))
           ),
           actionButton("new_programm_entry_exe", "Filmvorschlag übernehmen", class = "btn-info"),
@@ -2822,7 +2960,7 @@ server <- function(input, output, session) {
       tagList(
         shiny::renderText("Einnahmen die auf eine `Event ID` gebucht werden sollen? => Kategorie: Event"),
         shiny::renderText("Einnahmen die für die Jahresrechnung gebucht werden sollen => Kategorien: Kiosk, Sonstiges, Vermietung, Werbung"),
-        div(class = "custom-select",
+        shiny::div(class = "custom-select",
             selectizeInput("Kategorie", "Bitte Kategorie wählen", selected = c_select[1], choices = c_select
             )
         ),
@@ -3009,7 +3147,7 @@ server <- function(input, output, session) {
     showModal(modalDialog(
       title = "Was für ein Eintrag soll erstellt werden",
       tagList(
-        div(
+        shiny::div(
           shiny::renderText(
             "Einnahmen die auf eine `Event ID` gebucht werden sollen? => Kategorie: Event, Verleiher"
           ),
@@ -3697,7 +3835,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Bitte Zeile selektieren und anpassen!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     DT::DTOutput("modal_table")
                 )
               ),
@@ -3805,7 +3943,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Bitte Zeile selektieren und anpassen!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -3980,6 +4118,164 @@ server <- function(input, output, session) {
   })
   
   #### Delete selected row(s) ####
+  #####  delete eintritt file ####
+  observeEvent(input$delete_file_eintritt, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    
+    df_file <- current_data()[input$table_rows_selected,]
+    
+    c_ID <- df_file$`Event ID`
+    
+    # df_Eintritte to be deleted
+    df_temp <- DB_get_table("df_Eintritt", DB_con())|>
+      filter(`Event ID` == c_ID)
+
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Datei löschen? \"", df_file$filename , "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::renderText("Die folgenden Datensätze in der Tabelle df_Eintrit werden auch gelöscht!"),
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("del_eintritt", "Datei und Datensätze löschen"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    # to be deleted files
+    temp_01(current_data()[input$table_rows_selected,])
+    
+    # to be deleted df_Eintritte
+    temp_02(df_temp)
+  })
+
+  #####  delete eintritt file ####
+  observeEvent(input$delete_file_kiosk, {
+    # get selected row
+    selected_row <- input$table_rows_selected
+    
+    df_file <- current_data()[input$table_rows_selected,]
+    c_ID <- df_file$`Event ID`
+    
+    # df_Eintritte to be deleted
+    df_temp <- DB_get_table("df_Kiosk", DB_con())|>
+      filter(`Event ID` == c_ID)
+    
+    # save to render
+    df_temp_to_render(df_temp)
+    
+    # Calculate modal size based on number of columns
+    # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+    num_cols <- ncol(df_temp)
+    modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+    modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+    
+    showModal(
+      modalDialog(
+        title = paste0("Datei löschen? \"", df_file$filename , "\""),
+        size = modal_width,  
+        shiny::tagList(
+          shiny::renderText("Die folgenden Datensätze in der Tabelle df_Kiosk werden auch gelöscht!"),
+          shiny::div(
+            style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            dataTableOutput("modal_table")
+          )
+        ),
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton("del_kiosk", "Datei und Datensätze löschen"),
+          actionButton("abort", "Abbrechen")
+        )
+      )
+    )
+    # to be deleted files
+    temp_01(current_data()[input$table_rows_selected,])
+    
+    # to be deleted df_Eintritte
+    temp_02(df_temp)
+  })
+
+  #####  Delete Eintritt file ####
+  observeEvent(input$del_eintritt, {
+    DB_delete_row(DB_con(), "Eintritt files", "ID", temp_01()$ID)
+    for (ii in temp_02()$ID) {
+      DB_delete_row(DB_con(), "df_Eintritt", "ID", ii)
+    }
+    removeModal()
+    
+    # get data from database
+    df_temp <- DB_get_table("Eintritt files", DB_con()) |>
+      convert_to_template_types(l_template[[input$dataset]])
+    
+    # Debug print
+    print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
+    
+    # get local coppy of data 
+    l_temp <- l_data()
+    
+    # update data
+    l_temp[[input$dataset]] <- df_temp
+    
+    # render 
+    l_temp$`Eintritt files`|>
+      arrange(desc(ID))|>
+      current_data()
+      
+    shiny::isolate({
+      # remove row and page selection 
+      last_selected_row(NA)
+    }) 
+    
+  })
+    
+  #####  Delete Kiosk file ####
+  observeEvent(input$del_kiosk, {
+    DB_delete_row(DB_con(), "Kiosk files", "ID", temp_01()$ID)
+    for (ii in temp_02()$ID) {
+      DB_delete_row(DB_con(), "df_Kiosk", "ID", ii)
+    }
+    removeModal()
+    
+    # get data from database
+    df_temp <- DB_get_table("Kiosk files", DB_con()) |>
+      convert_to_template_types(l_template[[input$dataset]])
+    
+    # Debug print
+    print(df_temp[order(pull(df_temp[,1]), decreasing = TRUE),])
+    
+    # get local coppy of data 
+    l_temp <- l_data()
+    
+    # update data
+    l_temp[[input$dataset]] <- df_temp
+    
+    # render 
+    l_temp$`Kiosk files`|>
+      arrange(desc(ID))|>
+      current_data()
+    
+    shiny::isolate({
+      # remove row and page selection 
+      last_selected_row(NA)
+    }) 
+  })
+  
   ##### Delete row ####
   observeEvent(input$delete_row, {
     # get selected row
@@ -4045,7 +4341,7 @@ server <- function(input, output, session) {
             tagList(
               renderText("Achtung der Eintrag wird auch aus dem Einsatzplan gelöscht!"),
               hr(),
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4088,12 +4384,12 @@ server <- function(input, output, session) {
               title = paste0("Achtung die Spezialpreisdefinition ID = ", df_temp$ID,", `", df_temp$Spezialpreis,"` wird verwendet!"),
               size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
               tagList(
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table_2")
                 ),
                 shiny::hr(),
                 shiny::renderText("Soll der folgende Datensatz dennoch gelöscht werden?"),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4110,7 +4406,7 @@ server <- function(input, output, session) {
               title = "Zeile löschen?",
               size = modal_width,  # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
               tagList(
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4155,7 +4451,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Kinoklubmitglied muss zuerst im Einsatzplan gelöscht werden!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4169,7 +4465,7 @@ server <- function(input, output, session) {
           showModal(modalDialog(
             title = "Zeile löschen?",
             tagList(
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4218,7 +4514,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Verleihereinträge müssen zuerst im Programm gelöscht werden!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4247,7 +4543,7 @@ server <- function(input, output, session) {
                          "\" mehr geben um den folgenden Eintrag zu löschen.")
                   ),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4262,7 +4558,7 @@ server <- function(input, output, session) {
           showModal(modalDialog(
             title = "Zeile löschen?",              
             tagList(
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4305,7 +4601,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Lieferant muss zuerst in `Einkauf Kiosk`  gelöscht werden!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4319,7 +4615,7 @@ server <- function(input, output, session) {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
             tagList(
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4355,7 +4651,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Lieferant muss zuerst in `Einkauf Kiosk`  gelöscht werden!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4369,7 +4665,7 @@ server <- function(input, output, session) {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
             tagList(
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4413,7 +4709,7 @@ server <- function(input, output, session) {
               tagList(
                 renderText("Spezialpreis muss zuerst in Spezialpreisekiosk gelöscht werden!"),
                 hr(),
-                div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                     dataTableOutput("modal_table")
                 )
               ),
@@ -4427,7 +4723,7 @@ server <- function(input, output, session) {
           showModal(modalDialog(
             title = "Selektierte Zeile löschen?",
             tagList(
-              div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+              shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                   dataTableOutput("modal_table")
               )
             ),
@@ -4444,7 +4740,7 @@ server <- function(input, output, session) {
         showModal(modalDialog(
           title = "Selektierte Zeile löschen?",
           tagList(
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_table")
             )
           ),
@@ -4582,7 +4878,7 @@ server <- function(input, output, session) {
         showModal(modalDialog(
           title = paste0("Film \"", df_newrow$Filmtitel[1],"\" wurde bereits gezeigt."),
           tagList(
-            div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+            shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                 dataTableOutput("modal_table"))
           ),
           footer = tagList(
@@ -4795,7 +5091,7 @@ server <- function(input, output, session) {
                 tagList(
                   renderText("Soll der bereits existierende Eintrag ersetzt werden?"),
                   shiny::hr(),
-                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                       dataTableOutput("modal_table")
                   )
                 ),
@@ -4810,7 +5106,7 @@ server <- function(input, output, session) {
               showModal(modalDialog(
                 title = "Filmvorschlag übernehmen",
                 tagList(
-                  div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                  shiny::div(style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
                       dataTableOutput("modal_table")
                   )
                 ),
@@ -5111,63 +5407,55 @@ server <- function(input, output, session) {
   ## Dynamic content output panel ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      if(c_connected_to_db()) {
-        div(
+      if (c_connected_to_db()) {
+        shiny::div(
           style = "width: 100%; overflow-x: auto;",
-          DTOutput("table", width = "100%"),
+          DT::DTOutput("table", width = "100%"),
           # Make panel draggable
-          tags$script(HTML("
-            $(function() {
-              // Make panel draggable
-              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-              
-              // Toggle collapse/expand
-              $('#togglePanel').click(function() {
-                $('#floating-panel').toggleClass('collapsed');
-                if ($('#floating-panel').hasClass('collapsed')) {
-                  $(this).html('<i class=\"fa fa-plus\"></i>');
-                } else {
-                  $(this).html('<i class=\"fa fa-minus\"></i>');
-                }
-              });
+          shiny::tags$script(shiny::HTML("
+          $(function() {
+            $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+            $('#togglePanel').click(function() {
+              $('#floating-panel').toggleClass('collapsed');
+              if ($('#floating-panel').hasClass('collapsed')) {
+                $(this).html('<i class=\"fa fa-plus\"></i>');
+              } else {
+                $(this).html('<i class=\"fa fa-minus\"></i>');
+              }
             });
-          ")),
-          
-          # Toolbox floating and dragable and page length capture 
-          tags$script(HTML(
-            "$(function() {
-              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-            });",
-                      "
-            $(document).on('change', '.dataTables_length select', function() {
-              Shiny.setInputValue('page_length', $(this).val());
-            });
-            "
-          ))
+          });
+        ")),
+          # Toolbox draggable + page length capture
+          shiny::tags$script(shiny::HTML("
+          $(function() {
+            $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+          });
+          $(document).on('change', '.dataTables_length select', function() {
+            Shiny.setInputValue('page_length', $(this).val());
+          });
+        "))
         )
       },
-      if(c_connected_to_db()) {
-        if(data_selection_() == "Inputdaten") {
-          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 1)
-        } else if (data_selection_() == "Advance-Tickets"){
-          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 2)
+      if (c_connected_to_db()) {
+        if (data_selection_() == "Inputdaten") {
+          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 1)
+        } else if (data_selection_() == "Advance-Tickets") {
+          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 2)
         } else {
-          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 3)
+          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 3)
         }
       },
-      if(c_connected_to_db()){
-        shiny::uiOutput("help_info")
-      },
+      if (c_connected_to_db()) shiny::uiOutput("help_info"),
       shiny::tags$a(
-        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Tool Dokumentation",
+        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html",
+        "Tool Dokumentation",
         target = "_blank",
         style = "font-size: 18px;"
       ),
-      if(c_connected_to_db()){
-        shiny::uiOutput("db_status")
-      }
+      if (c_connected_to_db()) shiny::uiOutput("db_status")
     )
   })
+  
 }
 
 # shinyApp(ui = ui, server = server)

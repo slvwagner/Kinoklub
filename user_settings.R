@@ -35,6 +35,7 @@
 # 2025 V3.00 Input Dateien GUi erstellt, Excel Dateien werden nicht mehr benötigt
 # 2025 V3.01 Kinoklub GUI überarbeitet
 # 2025 V3.02 Programmvorschlag Spallte Kategorie in Kommentar umbenannt und Kommentarspalte dem Programm hinzugefügt
+# 2025 V3.03 Datei handling wurde geändert im GUI und es ist nun möglich im Input die files zu prüfen.
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
