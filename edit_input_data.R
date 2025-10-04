@@ -370,6 +370,14 @@ server <- function(input, output, session) {
     )
   }
   
+  choice_val <- function(choices, sel) {
+    s <- if (is.function(sel)) sel() else sel
+    if (is.null(s) || length(s) == 0 || is.na(s)) return(choices[[1]])
+    if (is.character(s) && s %in% choices) return(s)
+    choices[[as.integer(s)]]
+  }
+  
+  
   ### Toolbox for the user to interact ####
   tool_box <- function(
     l_data_input, data_set_select , c_select_dropdown_data, c_DB_user,
@@ -391,7 +399,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -424,7 +432,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_programm", "Eintrag hinzufügen", class = "btn-info"),
@@ -458,7 +466,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("edit_row", "Zeile editieren", class = "btn-info"),
@@ -481,7 +489,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_einnahmen", "Eintrag hinzufügen", class = "btn-info"),
@@ -515,7 +523,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_ausgaben", "Eintrag hinzufügen", class = "btn-info"),
@@ -549,7 +557,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -577,7 +585,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -608,7 +616,7 @@ server <- function(input, output, session) {
           ),
           # Function selection
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -636,7 +644,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           if(!is_shiny_server()){actionButton("get_email", "Email-Verteiler", class = "btn-info")},
@@ -657,7 +665,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           shiny::downloadButton("file_download", "Datei herunterladen"),
@@ -689,7 +697,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           shiny::downloadButton("file_download", "Datei herunterladen"),
@@ -721,7 +729,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row_verleiher", "Eintrag hinzufügen", class = "btn-info"),
@@ -749,7 +757,7 @@ server <- function(input, output, session) {
           ),
           # Function selection 
           shiny::radioButtons(inputId =  "data_selection", label ="Welche Dateien sollen editiert werden?",
-                              choices = choices, selected = choices[choices_select]
+                              choices = choices, selected = choice_val(choices, choices_select)
           ),
           shiny::tags$hr(),
           actionButton("add_row", "Eintrag hinzufügen", class = "btn-info"),
@@ -2296,6 +2304,7 @@ server <- function(input, output, session) {
   ### Data checks ####
   #### check if upload eintritt file can be converted and show extraction results ####
   observeEvent(input$check_data_eintritt, {
+    print("check_data_eintritt")
     # User interaction
     if(is.null(input$table_rows_selected)){
       showModal(
@@ -2342,6 +2351,7 @@ server <- function(input, output, session) {
   
   #### check if upload kiosk file can be converted and show extraction results ####
   observeEvent(input$check_data_kiosk, {
+    print("check_data_kiosk")
     # User interaction
     if(is.null(input$table_rows_selected)){
       showModal(
@@ -5229,63 +5239,55 @@ server <- function(input, output, session) {
   ## Dynamic content output panel ####
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      if(c_connected_to_db()) {
-        div(
+      if (c_connected_to_db()) {
+        shiny::div(
           style = "width: 100%; overflow-x: auto;",
-          DTOutput("table", width = "100%"),
+          DT::DTOutput("table", width = "100%"),
           # Make panel draggable
-          tags$script(HTML("
-            $(function() {
-              // Make panel draggable
-              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-              
-              // Toggle collapse/expand
-              $('#togglePanel').click(function() {
-                $('#floating-panel').toggleClass('collapsed');
-                if ($('#floating-panel').hasClass('collapsed')) {
-                  $(this).html('<i class=\"fa fa-plus\"></i>');
-                } else {
-                  $(this).html('<i class=\"fa fa-minus\"></i>');
-                }
-              });
+          shiny::tags$script(shiny::HTML("
+          $(function() {
+            $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+            $('#togglePanel').click(function() {
+              $('#floating-panel').toggleClass('collapsed');
+              if ($('#floating-panel').hasClass('collapsed')) {
+                $(this).html('<i class=\"fa fa-plus\"></i>');
+              } else {
+                $(this).html('<i class=\"fa fa-minus\"></i>');
+              }
             });
-          ")),
-          
-          # Toolbox floating and dragable and page length capture 
-          tags$script(HTML(
-            "$(function() {
-              $('#floating-panel').draggable({ handle: '#floating-panel-header' });
-            });",
-                      "
-            $(document).on('change', '.dataTables_length select', function() {
-              Shiny.setInputValue('page_length', $(this).val());
-            });
-            "
-          ))
+          });
+        ")),
+          # Toolbox draggable + page length capture
+          shiny::tags$script(shiny::HTML("
+          $(function() {
+            $('#floating-panel').draggable({ handle: '#floating-panel-header' });
+          });
+          $(document).on('change', '.dataTables_length select', function() {
+            Shiny.setInputValue('page_length', $(this).val());
+          });
+        "))
         )
       },
-      if(c_connected_to_db()) {
-        if(data_selection_() == "Inputdaten") {
-          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 1)
-        } else if (data_selection_() == "Advance-Tickets"){
-          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 2)
+      if (c_connected_to_db()) {
+        if (data_selection_() == "Inputdaten") {
+          tool_box(l_data_input(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 1)
+        } else if (data_selection_() == "Advance-Tickets") {
+          tool_box(l_data_advance_tickets(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 2)
         } else {
-          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data, DB_user(), dataset_selection, 3)
+          tool_box(l_data_dropdown(), lastEdited_data_set_name(), c_select_dropdown_data(), DB_user(), dataset_selection, 3)
         }
       },
-      if(c_connected_to_db()){
-        shiny::uiOutput("help_info")
-      },
+      if (c_connected_to_db()) shiny::uiOutput("help_info"),
       shiny::tags$a(
-        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html", "Tool Dokumentation",
+        href = "https://kinoklub.ch/kkTeam/reports/Dokumentation.html",
+        "Tool Dokumentation",
         target = "_blank",
         style = "font-size: 18px;"
       ),
-      if(c_connected_to_db()){
-        shiny::uiOutput("db_status")
-      }
+      if (c_connected_to_db()) shiny::uiOutput("db_status")
     )
   })
+  
 }
 
 # shinyApp(ui = ui, server = server)
