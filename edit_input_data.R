@@ -1956,7 +1956,7 @@ server <- function(input, output, session) {
   })
   
   ## Render modal table ####
-  output$modal_table <- renderDataTable({
+  output$modal_table <- DT::renderDT()({
     req(df_temp_to_render())  
     datatable(df_temp_to_render(), 
               rownames = FALSE,
@@ -1971,7 +1971,7 @@ server <- function(input, output, session) {
   })
   
   ## Render modal table 2 ####
-  output$modal_table_2 <- renderDataTable({
+  output$modal_table_2 <- DT::renderDT()({
     req(temp_01())  
     datatable(temp_01(), 
               rownames = FALSE,
