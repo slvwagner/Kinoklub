@@ -461,6 +461,7 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 ### Eintritt files
 
 Rohdaten Eintritt die über das "Kinoklub GUI" hochgeladen wurden.
+Die Dateinen können gelöscht und geprüft werden.
 
 ### df_Eintritt
 
@@ -469,6 +470,7 @@ Konvertierte Eintritt files
 ### Kiosk files
 
 Rohdaten Kiosk die über das "Kinoklub GUI" hochgeladen wurden.
+Die Dateinen können gelöscht und geprüft werden.
 
 ### df_Kiosk
 
