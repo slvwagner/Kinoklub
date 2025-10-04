@@ -644,7 +644,7 @@ server <- function(input, output, session) {
         )
       }      
       #### Eintritt files ####
-      else if(lastEdited_data_set_name() %in% c("Eintritt files", "Kiosk files")){
+      else if(lastEdited_data_set_name() %in% c("Eintritt files")){
         tags$div(
           id = "floating-panel",
           tags$div(id = "floating-panel-header", 
@@ -2295,14 +2295,33 @@ server <- function(input, output, session) {
   
   ## Data checks ####
    
-  ### 
-  
+  ### check if upload eintritt file can be converted and show extraction results ####
   observeEvent(input$check_data_eintritt, {
-    print("here")  
+    # User interaction
+    if(is.null(input$table_rows_selected)){
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    }
+    
   })
   
+  ### check if upload kiosk file can be converted and show extraction results ####
   observeEvent(input$check_data_kiosk, {
-    print("here")  
+    # User interaction
+    if(is.null(input$table_rows_selected)){
+      showModal(
+        modalDialog(
+          title = "Bitte eine Zeile markieren",
+          easyClose = TRUE,
+          footer = modalButton("Abbrechen")
+        )
+      )
+    } 
   })
   
   
