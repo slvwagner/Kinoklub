@@ -2261,6 +2261,18 @@ server <- function(input, output, session) {
   })
   
   ## Data checks ####
+   
+  ### 
+  
+  observeEvent(input$check_data_eintritt, {
+    print("here")  
+  })
+  
+  observeEvent(input$check_data_kiosk, {
+    print("here")  
+  })
+  
+  
   ### Check Suisanummer Modal ####
   observeEvent(input$check_suisa,{
     # check DB connection
