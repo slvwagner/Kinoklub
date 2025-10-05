@@ -1754,6 +1754,7 @@ server <- function(input, output, session) {
   )
 
   ## file Upload handler #####
+  ## file Upload handler #####
   file_data <- shiny::reactive({
     # Execution time 
     c_time <- Sys.time()
@@ -1795,7 +1796,7 @@ server <- function(input, output, session) {
         file.copy(from = file_path,
                   to = save_path,
                   overwrite = TRUE)
-
+        
         # read file
         c_raw <- readLines(file_path)|>suppressWarnings()
         
@@ -1857,18 +1858,17 @@ server <- function(input, output, session) {
             ))
           })
         })
-  
+        
         # return file string
         return(c_raw)
-      }
-      #### Eintritte #####
-      else{
+      } else {  
+        #### Eintritte #####
         if(str_detect(file_name, pattern = "Eintritte")){
           
           # upload file to database capturing message, warnings and errors
           df_file_upload <- Run_capture_error_warnings(
             DB_upload_file, con, file_path = file_path, file_name, table_name = "Eintritt files", overwrite = FALSE
-            )
+          )
           
           # Message 
           c_message <- df_file_upload$messages
@@ -1906,41 +1906,68 @@ server <- function(input, output, session) {
             return(df_file_upload$results)
             
           } else {
+            result <- Run_capture_error_warnings(convert_data_Film_txt, file_name ,DB_con())
+            
+            if(result$messages  != "" & is.null(result$result)){
+              showModal(
+                modalDialog(
+                  title = paste0("Inhalt der Datei: \"", file_name, "\""),
+                  shiny::tagList(
+                    shiny::renderText(result$messages)
+                  ),
+                  easyClose = TRUE,
+                  footer = tagList(
+                    actionButton("abort", "Abbrechen")
+                  )
+                )
+              )
+              req(NULL)
+            }
+            
+            df_temp <- result$result
+            
+            # save to render and later use
+            df_temp_1(df_temp)
+            
+            # Calculate modal size based on number of columns
+            # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
             showModal(
               modalDialog(
-                title = paste0("Datei: `",file_name,"` wurde in die Datenbank gespeichert."),
-                easyClose = FALSE, 
+                title = paste0("Daten Extraktion aus der Datei: \"", file_name, "\""),
+                size = modal_width,  
+                shiny::tagList(
+                  shiny::div(
+                    style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table_1")
+                  )
+                ),
+                easyClose = TRUE,
                 footer = tagList(
-                  actionButton("upload_file", "Datensätze aus Datei extrahieren"),
+                  actionButton("save_extracted_eintritte","Extrahierte Datensätze speichern"),
                   actionButton("abort", "Abbrechen")
                 )
               )
             )
+            
             # system reply message
             paste0(c_message)|>
               ausgabe_text()
             
             return(list(type = "txt", data = df_file_upload$results))
           } 
-        } 
-        #### Kiosk #####
-        else if (str_detect(file_name, pattern = "Kiosk")){
+        } else if (str_detect(file_name, pattern = "Kiosk")) { 
+          #### Kiosk #####
           # upload file to database 
           df_file_upload <- Run_capture_error_warnings(            
             DB_upload_file, con, file_path = file_path, file_name, table_name = "Kiosk files", 
             overwrite = FALSE
-            )
+          )
           # Message 
           c_message <- df_file_upload$messages
-          
-          # save for later use
-          temp_01(df_file_upload)
-          
-          # update last uploaded file name for later use
-          last_uploaded_file(file_name)
-          
-          last_uploaded_file_path(file_path)
-          last_uploaded_table_name("Kiosk files")
           
           # check if the file already exists
           test <- str_detect(c_message,"already exists")
@@ -1958,36 +1985,71 @@ server <- function(input, output, session) {
                 )
               )
             )
-            
             # system reply message
             paste0(c_message)|>
               ausgabe_text()
             
+            # early exit
             return(list(type = "txt", data = df_file_upload$results))
-          } 
-          else { # upload file
+          } else {
+            # file conversion 
+            result <- Run_capture_error_warnings(convert_kiosk_txt, file_name ,DB_con(), l_template)
+              
+            if(result$messages  != "" & is.null(result$result)){
+              showModal(
+                modalDialog(
+                  title = paste0("Inhalt der Datei: \"", file_name, "\""),
+                  shiny::tagList(
+                    shiny::renderText(result$messages)
+                  ),
+                  easyClose = TRUE,
+                  footer = tagList(
+                    actionButton("abort", "Abbrechen")
+                  )
+                )
+              )
+              req(NULL)
+            }
+            
+            df_temp <- result$result
+            
+            # save to render and later use
+            df_temp_1(df_temp)
+            
+            # Calculate modal size based on number of columns
+            # "s" (small), "m" (medium), "l" (large), or "xl" (extra large)
+            num_cols <- ncol(df_temp)
+            modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
+            modal_height <- ifelse(nrow(df_temp) <= 5, "auto", "600px")
+            
             showModal(
               modalDialog(
-                title = paste0("Soll die Datei: ",file_name," auf der Datenbank gespeichert werden?"),
-                easyClose = FALSE, 
+                title = paste0("Daten Extraktion aus der Datei: \"", file_name, "\""),
+                size = modal_width,  
+                shiny::tagList(
+                  shiny::div(
+                    style = paste0("max-height: ", modal_height, "; overflow-y: auto;"),
+                    dataTableOutput("modal_table_1")
+                  )
+                ),
+                easyClose = TRUE,
                 footer = tagList(
-                  actionButton("upload_file", "Speichern"),
+                  actionButton("save_extracted_kiosk","Extrahierte Datensätze speichern"),
                   actionButton("abort", "Abbrechen")
                 )
               )
             )
-            
             # system reply message
             paste0(c_message)|>
               ausgabe_text()
             
             return(df_file_upload$results)
-          }
-        } 
-      }
-    } 
-    ### csv Wordpress ####
-    else if (file_ext == "csv") {
+            
+          } 
+        }
+      } 
+      ### csv Wordpress ####
+    } else if (file_ext == "csv") {
       # save csv files (WordPress input)
       # Define save path
       save_path <- paste0("Input/WordPress/")
@@ -1998,7 +2060,7 @@ server <- function(input, output, session) {
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory
       file.copy(from = file_path, to = save_path)
-
+      
       shiny::withProgress(message = "Running script...", value = 0, {
         shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 3"))
         # read WordPress and procinema data and create excel file for Kinoprogramm
@@ -2023,7 +2085,7 @@ server <- function(input, output, session) {
             paste0("Ausführungszeit: ",r_signif(c_time),"\n",
                    "Die Datei \"", file_name, "\" wurde im Verzeichniss: .../Kinoklub/output/Data/ abgespeichert.",
                    "\nDie Filmvorschläge können nun heruntergeladen werden."
-                   )|>
+            )|>
               ausgabe_text()
           })
           
@@ -2036,13 +2098,11 @@ server <- function(input, output, session) {
           ))
         })
         
-
+        
       })
       
       return(list(type = "csv", data = readLines(file_path)))
-    } 
-    ### not yet implemented #####
-    else {
+    } else { ### not yet implemented #####
       paste0(
         "Dateierweiterung: ",
         file_ext,
@@ -2054,6 +2114,71 @@ server <- function(input, output, session) {
         ausgabe_text()
       return(NULL)
     }
+  })
+  
+  
+  ## save extracted Eintritte ####
+  shiny::observeEvent(input$save_extracted_eintritte, {
+    df_temp <- DB_get_table("df_Eintritt", DB_con())
+    # paste0("\"", names(df_temp), "\"", collapse = ", ")|>
+    #   writeLines()
+    
+    max_ID <- max(df_temp$ID) + 1L
+    df_temp <- df_temp_1()|>
+      mutate(ID = max_ID:(max_ID + nrow(df_temp_1()) - 1))|>
+      select("ID", "Event ID", "Datum", "Suisanummer", "Filmtitel", 
+             "Platzkategorie", "Zahlend", "Verkaufspreis", "Anzahl", "Umsatz [CHF]", "SUISA-Vorabzug [%]")
+    
+    removeModal()
+    
+    # Add to DB
+    l_results <- list()
+    for (ii in 1:nrow(df_temp)) {
+      l_results[[ii]] <- Run_capture_error_warnings(
+        DB_add_row, DB_con(), "df_Eintritt", df_temp[ii,]  
+        )
+    }
+    # User message
+    l_results|>
+      lapply(function(x) x$message)|>
+      unlist()|>
+      ausgabe_text()
+    
+  })
+  
+  ## save extracted Kiosk ####
+  shiny::observeEvent(input$save_extracted_kiosk, {
+    df_temp <- DB_get_table("df_Kiosk", DB_con())
+    paste0("\"", names(df_temp), "\"", collapse = ", ")|>
+      writeLines()
+    
+    max_ID <- max(df_temp$ID) + 1L
+
+    df_temp <- Spezialpreisekiosk(df_temp_1(), DB_con(), l_template)|>
+      Einkaufspreise(DB_con(), l_template)|>
+      mutate(ID = max_ID:(max_ID + nrow(df_temp_1()) - 1))|>
+      select("ID", "Event ID", "ID_Spezialpreisekiosk", "ID_Kioskartikel", 
+             "Artikel-Kassensystem", "Artikelname", 
+             "Einzelpreis [CHF]", "Anzahl", "Betrag [CHF]", "Gewinn [CHF]", 
+             "Überschuss / Manko [CHF]", "Verkaufspreis [CHF]", 
+             "Einkaufspreis [CHF]", "Menge", "Lieferant", "Gültig ab Datum")
+  
+    removeModal()
+    
+    # Add to DB
+    l_results <- list()
+    for (ii in 1:nrow(df_temp)) {
+      l_results[[ii]] <- Run_capture_error_warnings(
+        DB_add_row, DB_con(), "df_Kiosk", df_temp[ii,]  
+      )
+    }
+    # User message
+    l_results|>
+      lapply(function(x) x$message)|>
+      unlist()|>
+      ausgabe_text()
+      
+    
   })
   
   ## Button: Upload file already exists ####

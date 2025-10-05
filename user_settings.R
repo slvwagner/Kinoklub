@@ -36,6 +36,7 @@
 # 2025 V3.01 Kinoklub GUI überarbeitet
 # 2025 V3.02 Programmvorschlag Spallte Kategorie in Kommentar umbenannt und Kommentarspalte dem Programm hinzugefügt
 # 2025 V3.03 Datei handling wurde geändert im GUI und es ist nun möglich im Input die files zu prüfen.
+# 2025 V3.04 Worklow Datein upload Eintritte und Kiosk korrigiert. 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
