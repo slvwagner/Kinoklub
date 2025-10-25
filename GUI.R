@@ -955,6 +955,7 @@ server <- function(input, output, session) {
           withCallingHandlers(
             {
               source("source/calculate.R", local = data_env)
+              Update_Film_table()
               shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
             },
             warning = function(w) {
@@ -974,7 +975,7 @@ server <- function(input, output, session) {
         )
       })
       
-      Update_Film_table()
+      
       last_selected_rows(NA)
       
       # Show links if file is available on ftp server
