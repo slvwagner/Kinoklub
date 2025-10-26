@@ -975,6 +975,32 @@ server <- function(input, output, session) {
         )
       })
       
+      # read data
+      tryCatch({
+        # Fehler abfangen
+        ausgabe_text(capture.output({
+          withCallingHandlers(
+            {
+              Update_Film_table()
+              shiny::incProgress(1 / 3, detail = paste("Step", 2, "of 3"))
+            },
+            warning = function(w) {
+              # Capture warnings and store them in calculate_warnings
+              calculate_warnings(paste(calculate_warnings(), "Warning:", w$message, sep = ""))
+              invokeRestart("muffleWarning")  # Suppress the warning from being printed
+            }
+          )
+        }, type = "message"))
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            error_calculate,
+            e$message,
+            collapse = ""
+          )
+        )
+      })
+      
       
       last_selected_rows(NA)
       
