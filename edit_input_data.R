@@ -2463,24 +2463,20 @@ server <- function(input, output, session) {
         select(-duplicate_flag)
       
     } else if (lastEdited_data_set_name() %in% c("Verleiher")){
-      # Find duplicates (keeping only duplicate rows)
-      df_temp <- current_data() |> 
-        select(ID, Verleihername, Verleiher_procinema)|>
-        group_by(across(-ID)) |>
-        mutate(duplicate_flag = n() > 1) |>
-        ungroup() |>
-        filter(duplicate_flag)|>
-        select(-duplicate_flag)
-        
-        if(nrow(df_temp) == 0){
-          # Find duplicates (keeping only duplicate rows)
-          df_temp <- current_data() |>
-            group_by(across(-ID)) |>
-            mutate(duplicate_flag = n() > 1) |>
-            ungroup() |>
-            filter(duplicate_flag)|>
-            select(-duplicate_flag)
-        }
+      # Prüfen ob Verleihename mehrfach vorkommt
+      df_temp <- current_data()
+      
+      ids <- df_temp|>
+        distinct(Verleihername, .keep_all = TRUE)|>
+        select(ID)|>
+        pull()
+      
+      df_temp <- df_temp|>
+        filter(!(ID %in% ids))
+      
+      df_temp <- current_data()|>
+        filter(Verleihername == df_temp$Verleihername)
+      
     } else {
       # Find duplicates (keeping only duplicate rows)
       df_temp <- current_data() |>
@@ -2494,7 +2490,7 @@ server <- function(input, output, session) {
     
     df_temp_to_render(df_temp)
     
-    if(nrow(df_temp) > 1){
+    if(nrow(df_temp) > 0){
       # Calculate modal size based on number of columns
       num_cols <- ncol(df_temp)
       modal_width <- ifelse(num_cols <= 3, "s", ifelse(num_cols <= 5, "m", "l"))
