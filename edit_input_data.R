@@ -4539,6 +4539,9 @@ server <- function(input, output, session) {
             )
           )
         } else if(nrow(df_Filmvorschlag) > 0){
+          
+          df_Filmvorschlag$Inhalt <- NULL
+          
           # to render for modal 
           df_temp_to_render(df_Filmvorschlag)
           
@@ -5111,7 +5114,7 @@ server <- function(input, output, session) {
                 ),
                 easyClose = TRUE, 
                 footer = tagList(
-                  actionButton("replace_suisa","Selektierter Zeile übernehmen", class = "btn-success"),
+                  actionButton("replace_suisa","Zeile übernehmen", class = "btn-success"),
                   actionButton("abort","Abbrechen")
                 )
               ))
@@ -5200,19 +5203,19 @@ server <- function(input, output, session) {
       df_Verleiher_mapping <- DB_get_table("Verleiher", DB_con())|>
         select(Verleiher_procinema, Verleihername)|>
         mutate(Verleiher_procinema = if_else(is.na(Verleiher_procinema),"...",Verleiher_procinema))
-      tail(df_Verleiher_mapping)
       
-      df_Verleiher_mapping$Verleiher_procinema|>is.na()
-      
-      tryCatch({
-        dict_env <<- dict_from_data.frame(df_Verleiher_mapping)
-        
-      }, error = function(e) {
-        showNotification(paste("load data from data base failed:", e$message), type = "error")
-      })
-      
-      new_row <- new_row|>
-        mutate(Verleiher = dict_get_values(new_row$Verleiher,dict_env))
+      # tail(df_Verleiher_mapping)
+      # df_Verleiher_mapping$Verleiher_procinema|>is.na()
+      # 
+      # tryCatch({
+      #   dict_env <<- dict_from_data.frame(df_Verleiher_mapping)
+      #   
+      # }, error = function(e) {
+      #   showNotification(paste("load data from data base failed:", e$message), type = "error")
+      # })
+      # 
+      # new_row <- new_row|>
+      #   mutate(Verleiher = dict_get_values(new_row$Verleiher,dict_env))
       
       if(is.null(names(new_row$Verleiher))){
         showModal(modalDialog(
@@ -5245,18 +5248,30 @@ server <- function(input, output, session) {
       df_temp <- df_temp|>
         filter(Suisanummer == df_temp_to_render()$Suisanummer)
       
-      new_row <- bind_cols(
+      updated_row <- bind_cols(
         df_temp|>
-          select(ID),
+          select(ID, Kommentar),
         new_row
         )|>
         select("ID", "Suisanummer", "Filmtitel", "Start-Datum", "Verleiher", "Inhalt", "Regie", 
                "Schauspieler", "Produktionsland", "Genre", "Eintritte eingespielt", 
-               "Procinema", "Trailer", "Kategorie")
+               "Procinema", "Trailer", "Kommentar")
       
       # updata SQL DB
-      DB_edit_row_in_table(DB_con(),"Filmvorschlag", "ID", new_row$ID, new_row, get_data_type(current_data()))
-
+      tryCatch(
+        {
+          DB_edit_row_in_table(DB_con(),"Filmvorschlag", "ID", updated_row$ID, updated_row, get_data_type(current_data()))
+        }, error = function(e){
+          showNotification(paste("Flimvorschlag wurde nicht upgedated:", e$message), type = "error")
+        }
+      )
+      
+      # update to render
+      DB_get_table("Filmvorschlag", DB_con())|>
+        convert_to_template_types(l_template$Filmvorschlag)|>
+        arrange(desc(ID))|>
+        current_data()
+      
       # select entry in datatable
       c_row <- current_data()|>
         mutate(index = row_number())|>
@@ -5265,17 +5280,14 @@ server <- function(input, output, session) {
         pull()
 
       # find page
-      find_page(c_row, input$table_search_columns,
-                last_rendered_DT(), 
+      c_page <- find_page(c_row, input$table_search_columns,
+                current_data(), 
                 lastEdited_data_set_name(), page_length_var()
       )
-      
-      # update to render
-      updated_data <- DB_get_table("Filmvorschlag", DB_con())|>
-        convert_to_template_types(l_template$Filmvorschlag)|>
-        arrange(desc(ID))|>
-        current_data()
-      
+      # select page and row of edited Filmvorschlag
+      last_selected_row(c_page$last_selected_row)
+      last_selected_page(c_page$last_selected_page)
+
     }
     # 
     df_temp_to_render(NULL)
