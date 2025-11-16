@@ -2474,8 +2474,26 @@ server <- function(input, output, session) {
       df_temp <- df_temp|>
         filter(!(ID %in% ids))
       
-      df_temp <- current_data()|>
-        filter(Verleihername == df_temp$Verleihername)
+      if(nrow(df_temp) > 0){
+        df_temp <- current_data()|>
+          filter(Verleihername == df_temp$Verleihername)
+      }
+      
+      # Prüfen ob Procinema Verleiherzuweisung mehrfach vorkommt
+      df_temp <- current_data()
+      
+      ids <- df_temp|>
+        distinct(Verleiher_procinema, .keep_all = TRUE)|>
+        select(ID)|>
+        pull()
+      
+      df_temp <- df_temp|>
+        filter(!(ID %in% ids))
+      
+      if(nrow(df_temp) > 0){
+        df_temp <- current_data()|>
+          filter(Verleiher_procinema == df_temp$Verleiher_procinema)
+      }
       
     } else {
       # Find duplicates (keeping only duplicate rows)
