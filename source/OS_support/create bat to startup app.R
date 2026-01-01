@@ -66,25 +66,21 @@ create_windows_shortcut <- function(
   unlink(vbs_file)
 }
 
-
-create_linux_shortcut <- function(exec_path, shortcut_path, icon_path = NULL, name = "Kinoklub GUI") {
+create_linux_shortcut <- function(name, exec_path, shortcut_path, icon_path = NULL) {
   shortcut_content <- c(
     "[Desktop Entry]",
     "Type=Application",
     paste0("Name=", name),
-    paste0("Exec=", normalizePath(exec_path, winslash = "/")),
-    paste0("Icon=", normalizePath(icon_path, winslash = "/")),
-    "Terminal=true"
+    paste0("Exec=", exec_path),
+    paste0("Icon=", icon_path),
+    "Terminal=false"
   )
   
   writeLines(shortcut_content, shortcut_path)
-  Sys.chmod(shortcut_path, mode = "0755")  # Make executable
+  Sys.chmod(shortcut_path, mode = "0755")  # mode to make executable
 }
 
-
-
 create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
-  
   # find RStudio pandoc
   rstudio_pandoc <- rmarkdown::find_pandoc()$dir
   
@@ -118,10 +114,6 @@ create_mac_command <- function(r_script_path, command_path, icon_path = NULL) {
     message("→ Custom icon applied: ", icon_path)
   }
 }
-
-
-
-
 
 if(get_os() == "Windows"){
   writeLines("Running on Windows")
@@ -208,13 +200,75 @@ if(get_os() == "Windows"){
   
 } else if (get_os() == "Linux"){
   writeLines("running on Linux")
-  create_linux_shortcut(
-    exec_path = "~/Kinoklub/Kinoklub_GUI.sh",
-    shortcut_path = "~/Desktop/Kinoklub_GUI.desktop",
-    icon_path = "~/Kinoklub/icon.png"
+  
+  
+  # --- Get working directory from .Renviron ---
+  kinoklub_wd <- Sys.getenv("Kinoklub_wd")
+  if(kinoklub_wd == "") stop("Kinoklub_wd not set in .Renviron")
+  
+  # --- Define shell script paths ---
+  start_gui_sh <- file.path(kinoklub_wd, "startGui.sh")
+  start_edit_sh <- file.path(kinoklub_wd, "startEdit.sh")
+  
+  # --- Generate startGui.sh ---
+  gui_script <- file.path(kinoklub_wd, "Start_GUI.R")
+  gui_sh <- paste(
+    "#!/bin/bash",
+    sprintf('cd "%s"', kinoklub_wd),
+    sprintf('Rscript "%s"', gui_script),
+    sep = "\n"
   )
+  writeLines(gui_sh, start_gui_sh)
+  Sys.chmod(start_gui_sh, mode = "0755")  # Make executable
+  
+  # --- Generate startEdit.sh ---
+  edit_script <- file.path(kinoklub_wd, "Start_Input_data_edit.R")
+  edit_sh <- paste(
+    "#!/bin/bash",
+    sprintf('cd "%s"', kinoklub_wd),
+    sprintf('Rscript "%s"', edit_script),
+    sep = "\n"
+  )
+  writeLines(edit_sh, start_edit_sh)
+  Sys.chmod(start_edit_sh, mode = "0755")  # Make executable
+  
+  # --- Create .desktop shortcuts on Desktop ---
+  desktop_dir <- "~/Desktop"
+  create_linux_shortcut <- function(name, exec_path, shortcut_path, icon_path = NULL) {
+    shortcut_content <- c(
+      "[Desktop Entry]",
+      "Type=Application",
+      paste0("Name=", name),
+      paste0("Exec=", exec_path),
+      paste0("Icon=", ifelse(is.null(icon_path), "", icon_path)),
+      "Terminal=true",
+      "Categories=Utility;"
+    )
+    writeLines(shortcut_content, shortcut_path)
+    Sys.chmod(shortcut_path, mode = "0755")  # Make executable
+  }
+  
+  create_linux_shortcut(
+    name = "Kinoklub GUI",
+    exec_path = start_gui_sh,
+    shortcut_path = file.path(desktop_dir, "Kinoklub GUI.desktop"),
+    icon_path = file.path(kinoklub_wd, "source/OS_support/wagnius.png")
+  )
+  
+  create_linux_shortcut(
+    name = "Kinoklub Edit",
+    exec_path = start_edit_sh,
+    shortcut_path = file.path(desktop_dir, "Kinoklub Edit.desktop"),
+    icon_path = file.path(kinoklub_wd, "source/OS_support/wagnius.png")
+  )
+  
+  message("Linux shortcuts and shell scripts created successfully!")
+  
+  writeLines("startup icons created on Linux")
+  
 } else if (get_os() == "macOS"){
   writeLines("running on macOS")
+  
   create_mac_command(
     r_script_path = "~/Kinoklub/GUI.R",
     command_path = "~/Desktop/GUI.command",
@@ -227,9 +281,7 @@ if(get_os() == "Windows"){
     command_path = "~/Desktop/Edit.command",
     icon_path = "~/Kinoklub/source/OS_support/wagnius.png"
   )
-  
   message("Die Applikationen wurden auf dem Desktop erstellt.")
-  
 }
   
 
