@@ -216,7 +216,6 @@ ui <- function(){
   )
 }
 
-
 # Define server ####
 server <- function(input, output, session) {
   ## Reactive Values ####
