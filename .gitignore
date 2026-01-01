@@ -48,5 +48,6 @@ test.R
 environment.RData
 Input/backup/**
 test2.R
+# linux app start
 startEdit.sh
 startGui.sh
