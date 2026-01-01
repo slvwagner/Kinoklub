@@ -65,7 +65,7 @@ if(n != length(c_credentials)) {
 }
 
 # read template
-l_template <- readRDS("source/SQL/template.RDS")
+l_template <- readRDS("source/SQL/template.Rds")
 
 # Erstellen von Verzeichnissen ####
 dir.create("output/", showWarnings = FALSE, recursive = TRUE)
