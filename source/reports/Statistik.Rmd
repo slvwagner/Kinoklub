@@ -126,8 +126,6 @@ DT::datatable(
   colnames = c(Datum = "Datum_display")
 )
 
-
-
 ```
 
 #### Pro Semester
@@ -1447,4 +1445,89 @@ df_temp|>
        )+
   my_template
 ```
+
+## Jahresstatistik 
+
+### Gewinn / Verlust pro Filmtitel
+```{r message=FALSE, warning=FALSE}
+df_temp <- l_abrechnung|>
+  lapply(function(x){
+    bind_cols(`Event ID` = x$IDs$IDs[1], 
+              Datum = x$Abrechnung$Datum[1],
+              Zeit = x$Abrechnung$Zeit[1], 
+              Suisanummer  = x$Abrechnung$Suisanummer[1] ,
+              Filmtitel = x$Abrechnung$Filmtitel[1], 
+              x$s_Abrechnung)
+  })|>
+  bind_rows()|>
+  mutate(`Event ID` = factor(`Event ID`),
+         Datum_display = format(Datum, "%d.%m.%Y"),
+         Semester = factor(get_semester(Datum)),
+         Zeit = as.character(Zeit),
+         `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
+         )|>
+  select(`Event ID`, Semester,Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
+```
+
+
+```{r echo=FALSE, fig.height=10, fig.width=10}
+
+df_temp|>
+  group_by(Filmtitel)|>
+  reframe(`Gewinn/Verlust pro Filmtitel [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`))|>
+  mutate(`Gewinn/Verlust` = if_else(`Gewinn/Verlust pro Filmtitel [CHF]`> 0 , T, F))|>
+  ggplot(aes(`Gewinn/Verlust pro Filmtitel [CHF]`, 
+             reorder(Filmtitel, `Gewinn/Verlust pro Filmtitel [CHF]`), fill = `Gewinn/Verlust`)
+         )+
+  geom_col(show.legend = F)+
+  labs(title = "Gewinn/Verlust pro Filmtitel",
+       y =  "Filmtitel")+
+  my_template
+
+
+```
+
+### Produktionsland
+```{r fig.width=10, message=FALSE, warning=FALSE, include=FALSE}
+## Data base user password from system variables ####
+DB_host <- Sys.getenv("DB_host")
+DB_name <- Sys.getenv("DB_name")
+# DB_name <- "ch367079_GUI_testing_envir"
+DB_user <- Sys.getenv("DB_user")
+DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
+
+## Connection ####
+con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
+
+df_temp <-
+  left_join(Programm, tbl(con, "Filmvorschlag")|>collect())
+
+## Disconnect from database ####
+DBI::dbDisconnect(con)
+```
+
+```{r echo=FALSE}
+df_temp|>
+  mutate(Produktionsland = if_else(!(is.na(Produktionsland) | (Produktionsland == "")), Produktionsland, "Keinen informationen vorhanden"))|>
+  group_by(Produktionsland)|>
+  reframe(Anzahl = n())|>
+  ggplot(aes(Anzahl, reorder(Produktionsland, Anzahl)))+
+  geom_col(fill = "cyan")+
+  labs(y = "Produktionsland")+
+  my_template
+```
+
+
+### Genre
+```{r}
+df_temp|>
+  mutate(Genre = if_else(!(is.na(Genre) | (Genre == "")), Produktionsland, "Keinen informationen vorhanden"))|>
+  group_by(Genre)|>
+  reframe(Anzahl = n())|>
+  ggplot(aes(Anzahl, reorder(Genre, Anzahl)))+
+  geom_col(fill = "cyan")+
+  labs(y = "Genre")+
+  my_template
+```
+
 
