@@ -35,7 +35,7 @@ if(!dbIsValid(con)) {
 # This is used to run the code on its own
 # However this variable c_Abrechnungsjahr will be inported to the data_env$c_Abrechnungsjahr by the GUI
 if(!r_is.defined(c_Abrechnungsjahr)){
-  c_Abrechnungsjahr <- 2025L
+  c_Abrechnungsjahr <- 2026L
 }
 
 # load data from Database ####
@@ -52,6 +52,8 @@ df_Eintritt <- DB_get_table("df_Eintritt", con)|>
   convert_to_template_types(l_template$df_Eintritt)|>
   filter(lubridate::year(Datum) == c_Abrechnungsjahr)
 df_Eintritt
+
+if(nrow(df_Eintritt) == 0) warning("\nEs sind noch keine Daten vorhanden um Berichte zu erstellen. Bitte Advacend tickets Dateien hochladen.\n")
 
 ##  df_Kiosk ####
 df_Kiosk <- tbl(con, "df_Kiosk")|>
