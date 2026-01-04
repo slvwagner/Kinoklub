@@ -227,7 +227,7 @@ df_temp|>
   knitr::kable()
 ```
 
-### Durchschnitt / Median
+### Anzahl Vorführungen
 ```{r}
 n <- df_temp|>
   group_by(Semester)|>
@@ -235,6 +235,16 @@ n <- df_temp|>
 
 n|>
     knitr::kable()
+```
+
+
+```{r}
+n <- df_temp|>
+  reframe(`Anzahl Vorführungen` = n())
+
+n|>
+  rename(`Summe`= `Anzahl Vorführungen`)|>
+  knitr::kable()
 ```
 
 
