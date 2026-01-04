@@ -79,6 +79,27 @@ Bericht wurde am `r act_date` erstellt.
 
 ## Jahresstatistik 
 
+### Anzahl Vorführungen
+```{r}
+n <- Programm|>
+  mutate(Semester = factor(get_semester(Datum)))|>
+  group_by(Semester)|>
+  reframe(`Anzahl Vorführungen` = n())
+
+n|>
+    knitr::kable()
+```
+
+
+```{r}
+n <- df_temp|>
+  reframe(`Anzahl Vorführungen` = n())
+
+n|>
+  rename(`Summe`= `Anzahl Vorführungen`)|>
+  knitr::kable()
+```
+
 ### Gewinn / Verlust pro Filmtitel
 ```{r message=FALSE, warning=FALSE}
 df_temp <- l_abrechnung|>
@@ -227,25 +248,7 @@ df_temp|>
   knitr::kable()
 ```
 
-### Anzahl Vorführungen
-```{r}
-n <- df_temp|>
-  group_by(Semester)|>
-  reframe(`Anzahl Vorführungen` = n())
 
-n|>
-    knitr::kable()
-```
-
-
-```{r}
-n <- df_temp|>
-  reframe(`Anzahl Vorführungen` = n())
-
-n|>
-  rename(`Summe`= `Anzahl Vorführungen`)|>
-  knitr::kable()
-```
 
 
 #### Per Semester
