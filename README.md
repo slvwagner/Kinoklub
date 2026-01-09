@@ -103,18 +103,16 @@ Warte, bis alle Packages installiert sind. Die Installation ist abgeschlossen, w
     ```
     
     ```     
-    setx ftp_user "FTP-BENUTZER" 
+    setx ftp_user "ftp_user" 
     ```
     
     ```
-    setx ftp_password "FTP-PASSWORT"
+    setx ftp_password "ftp_password"
     ```
-
+    
     ```
     setx ftp_password "Kinoklub_wd"
     ```
-
-    
 \
 **Wichtig**: Starte RStudio neu, damit die Einstellungen übernommen werden.
 

@@ -182,7 +182,6 @@ ftp_upload("doc/Dokumentation.html", ftp_server, ftp_user, ftp_password, ftp_bas
 #                   output_dir  = "doc/",
 #                   output_file = "Dokumentation.docx")
 
-
 # # PDF
 # readLines("doc/README.Rmd")|>
 #   writeLines("README.Rmd")
