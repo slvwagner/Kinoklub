@@ -199,7 +199,7 @@ if(nrow(df_temp) != 0) {
   warning(paste0(
     "Für den Film ID ",df_temp$`Event ID` ," / ",df_temp$Filmtitel, " am ",
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum),
-    " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.")
+    " ist die Suisanummer ",df_temp$Suisanummer, " vorhanden aber das Format stimmmt nicht.\n")
   )}
 
 

@@ -80,7 +80,7 @@ Bericht wurde am `r act_date` erstellt.
 ## Jahresstatistik 
 
 ### Anzahl Vorführungen
-```{r}
+```{r echo=FALSE}
 n <- Programm|>
   mutate(Semester = factor(get_semester(Datum)))|>
   group_by(Semester)|>
@@ -92,7 +92,7 @@ n|>
 
 
 ```{r}
-n <- df_temp|>
+n <- Programm|>
   reframe(`Anzahl Vorführungen` = n())
 
 n|>
