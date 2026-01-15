@@ -119,11 +119,17 @@ df_temp <- l_abrechnung|>
          `Gewinn aus Fimvorführung [CHF]` = round(`Gewinn aus Fimvorführung [CHF]`, 2)
          )|>
   select(`Event ID`, Semester,Datum, Datum_display, Zeit, Suisanummer, Filmtitel, `Gewinn aus Fimvorführung [CHF]`)
+
+df_temp <- df_temp|>
+  filter(
+    between(Datum, 
+            as_date(paste0(c_Abrechnungsjahr,"-01-01")), 
+            as_date(Sys.Date())))
+
 ```
 
 
 ```{r echo=FALSE, fig.height=10, fig.width=10}
-
 df_temp|>
   group_by(Filmtitel)|>
   reframe(`Gewinn/Verlust pro Filmtitel [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`))|>
@@ -144,6 +150,7 @@ df_temp|>
 ## Data base user password from system variables ####
 DB_host <- Sys.getenv("DB_host")
 DB_name <- Sys.getenv("DB_name")
+
 # DB_name <- "ch367079_GUI_testing_envir"
 DB_user <- Sys.getenv("DB_user")
 DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
@@ -151,15 +158,15 @@ DB_pw <- Sys.getenv("DB_PASSWORD_KINOKLUB")
 ## Connection ####
 con <- DB_connect(DB_host, DB_name, DB_user, DB_pw)
 
-df_temp <-
-  left_join(Programm, tbl(con, "Filmvorschlag")|>collect())
+df_temp2 <-
+  left_join(Programm, tbl(con, "Filmvorschlag")|>filter(ID %in% Programm$`Event ID`)|>collect())
 
 ## Disconnect from database ####
 DBI::dbDisconnect(con)
 ```
 
 ```{r echo=FALSE}
-df_temp|>
+df_temp2|>
   mutate(Produktionsland = if_else(!(is.na(Produktionsland) | (Produktionsland == "")), Produktionsland, "Keinen informationen vorhanden"))|>
   group_by(Produktionsland)|>
   reframe(Anzahl = n())|>
@@ -171,7 +178,7 @@ df_temp|>
 
 ### Genre
 ```{r}
-df_temp|>
+df_temp2|>
   mutate(Genre = if_else(!(is.na(Genre) | (Genre == "")), Produktionsland, "Keinen informationen vorhanden"))|>
   group_by(Genre)|>
   reframe(Anzahl = n())|>
