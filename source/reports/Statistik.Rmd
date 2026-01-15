@@ -124,26 +124,34 @@ df_temp <- df_temp|>
   filter(
     between(Datum, 
             as_date(paste0(c_Abrechnungsjahr,"-01-01")), 
-            as_date(Sys.Date())))
+            as_date(Sys.Date())))|>
+  mutate(color = if_else(`Gewinn aus Fimvorführung [CHF]` > 0, "cyan", "red"))
 
 ```
 
 
-```{r echo=FALSE, fig.height=10, fig.width=10}
-df_temp|>
-  group_by(Filmtitel)|>
-  reframe(`Gewinn/Verlust pro Filmtitel [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`))|>
-  mutate(`Gewinn/Verlust` = if_else(`Gewinn/Verlust pro Filmtitel [CHF]`> 0 , T, F))|>
-  ggplot(aes(`Gewinn/Verlust pro Filmtitel [CHF]`, 
-             reorder(Filmtitel, `Gewinn/Verlust pro Filmtitel [CHF]`), fill = `Gewinn/Verlust`)
-         )+
-  geom_col(show.legend = F)+
-  labs(title = "Gewinn/Verlust pro Filmtitel",
-       y =  "Filmtitel")+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+
+df_temp |>
+  group_by(Filmtitel) |>
+  reframe(
+    `Gewinn/Verlust pro Filmtitel [CHF]` = sum(`Gewinn aus Fimvorführung [CHF]`),
+    color = first(color)  # Add the color column for each film
+  ) |>
+  mutate(`Gewinn/Verlust` = if_else(`Gewinn/Verlust pro Filmtitel [CHF]` > 0, TRUE, FALSE)) |>
+  ggplot(aes(
+    `Gewinn/Verlust pro Filmtitel [CHF]`, 
+    reorder(Filmtitel, `Gewinn/Verlust pro Filmtitel [CHF]`),
+    fill = color  # Use the color column directly
+  )) +
+  geom_col(show.legend = FALSE) +  # hide the legend since colors are self-explanatory
+  labs(
+    y = "Filmtitel"
+  ) +
+  scale_fill_identity() +  # This tells ggplot to use the colors directly from the data
   my_template
-
-
 ```
+
 
 ### Produktionsland
 ```{r fig.width=10, message=FALSE, warning=FALSE, include=FALSE}
