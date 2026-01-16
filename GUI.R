@@ -1642,7 +1642,7 @@ server <- function(input, output, session) {
         # Einlesen
         c_raw <- readLines("source/reports/Statistik_all.Rmd")
         
-        # neues file schreiben mit toc
+        # neues file schreiben mit toc (Inhaltsverzeichniss)
         c_raw |>
           r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
           writeLines(paste0("source/temp.Rmd"))
