@@ -5,48 +5,114 @@ if(!r_is.defined(sommerpause)){
   sommerpause <- 65
 }
 
+# Load required packages for parallelization
+library(furrr)
+library(purrr)
+
+# Set up parallel plan
+plan(multisession, workers = parallelly::availableCores() - 1)  # Leave one core free
+
 # calculate data over all years
 c_years <- 2023:lubridate::year(Sys.time())
-l_abrechnung <- list()
-l_einnahmen <- list()
-l_ausgaben <- list()
-l_eintritte <- list()
-l_kiosk <- list()
 
-
-ii <- 1
-for (ii in 1:length(c_years)) {
+# Define a function to process a single year
+process_year <- function(year) {
   data_env_all <- new.env()
-  # set Abrechnungsjahr
-  data_env_all$c_Abrechnungsjahr <- c_years[ii]
-  # calculate data
+  data_env_all$c_Abrechnungsjahr <- year
+  
+  # Initialize output list
+  result <- list(
+    l_abrechnung = NULL,
+    Einnahmen = NULL,
+    Ausgaben = NULL,
+    df_Eintritt = NULL,
+    df_Kiosk = NULL
+  )
+  
   tryCatch({
-    # Fehler abfangen
-    ausgabe_text <-(capture.output({
+    # Capture output and warnings
+    ausgabe_text <- capture.output({
       withCallingHandlers({
         source("source/calculate.R", local = data_env_all)
-        l_abrechnung[[ii]] <- data_env_all$l_abrechnung
-        l_einnahmen[[ii]] <- data_env_all$Einnahmen
-        l_ausgaben[[ii]] <- data_env_all$Ausgaben
-        l_eintritte[[ii]] <- data_env_all$df_Eintritt
-        l_kiosk[[ii]] <- data_env_all$df_Kiosk
+        
+        result$l_abrechnung <- data_env_all$l_abrechnung
+        result$Einnahmen <- data_env_all$Einnahmen
+        result$Ausgaben <- data_env_all$Ausgaben
+        result$df_Eintritt <- data_env_all$df_Eintritt
+        result$df_Kiosk <- data_env_all$df_Kiosk
       }, warning = function(w) {
-        # Capture warnings and store them in calculate_warnings
-        ausgabe_text <- paste("Warning:", w$message, sep = "")
-        invokeRestart("muffleWarning")  # Suppress the warning from being printed
+        # Store warnings without printing
+        message(paste("Warning for year", year, ":", w$message))
+        invokeRestart("muffleWarning")
       })
-    }, type = "message"))
+    }, type = "message")
+    
   }, error = function(e) {
-    message(paste0(ausgabe_text, e$message, collapse = ""))
+    message(paste("Error processing year", year, ":", e$message))
   })
+  
+  return(result)
 }
 
-# Tickets ####
+# Process all years in parallel
+results <- future_map(c_years, process_year, 
+                      .options = furrr_options(seed = TRUE))
+
+# Extract results from the parallel processing
+l_abrechnung <- map(results, ~ .x$l_abrechnung)
+l_einnahmen <- map(results, ~ .x$Einnahmen)
+l_ausgaben <- map(results, ~ .x$Ausgaben)
+l_eintritte <- map(results, ~ .x$df_Eintritt)
+l_kiosk <- map(results, ~ .x$df_Kiosk)
+
+# Name the lists
+names(l_abrechnung) <- c_years
+names(l_einnahmen) <- c_years
+names(l_ausgaben) <- c_years
 names(l_eintritte) <- c_years
+names(l_kiosk) <- c_years
+
+
+# # calculate data over all years
+# c_years <- 2023:lubridate::year(Sys.time())
+# l_abrechnung <- list()
+# l_einnahmen <- list()
+# l_ausgaben <- list()
+# l_eintritte <- list()
+# l_kiosk <- list()
+
+
+# ii <- 1
+# for (ii in 1:length(c_years)) {
+#   data_env_all <- new.env()
+#   # set Abrechnungsjahr
+#   data_env_all$c_Abrechnungsjahr <- c_years[ii]
+#   # calculate data
+#   tryCatch({
+#     # Fehler abfangen
+#     ausgabe_text <-(capture.output({
+#       withCallingHandlers({
+#         source("source/calculate.R", local = data_env_all)
+#         l_abrechnung[[ii]] <- data_env_all$l_abrechnung
+#         l_einnahmen[[ii]] <- data_env_all$Einnahmen
+#         l_ausgaben[[ii]] <- data_env_all$Ausgaben
+#         l_eintritte[[ii]] <- data_env_all$df_Eintritt
+#         l_kiosk[[ii]] <- data_env_all$df_Kiosk
+#       }, warning = function(w) {
+#         # Capture warnings and store them in calculate_warnings
+#         ausgabe_text <- paste("Warning:", w$message, sep = "")
+#         invokeRestart("muffleWarning")  # Suppress the warning from being printed
+#       })
+#     }, type = "message"))
+#   }, error = function(e) {
+#     message(paste0(ausgabe_text, e$message, collapse = ""))
+#   })
+# }
+
+# Tickets ####
 df_tickets <- l_eintritte|>
   bind_rows(.id = "Abrechnungsjahr")|>
   mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))
-df_tickets
 
 df_tickets <- df_tickets|>
   mutate(across(everything(), as.character),
@@ -55,7 +121,6 @@ df_tickets <- df_tickets|>
        across(contains(c("[CHF]")), as.double),
        across(contains("abrechnungsjahr"), as.integer)
        )
-df_tickets
 
 s_df_tickets <- df_tickets|>
   group_by(Abrechnungsjahr, `Event ID`, Datum, Suisanummer, Filmtitel)|>
@@ -63,12 +128,10 @@ s_df_tickets <- df_tickets|>
 s_df_tickets
   
 # Kiosk ####
-names(l_kiosk) <- c_years
 df_Kiosk <- l_kiosk|>
   bind_rows(.id = "Abrechnungsjahr")|>
   mutate(Abrechnungsjahr = as.integer(Abrechnungsjahr))|>
   rename(`Kioskumsatz [CHF]` = `Betrag [CHF]`)
-df_Kiosk
 
 df_Kiosk <- df_Kiosk|>
   mutate(across(everything(), as.character),
@@ -76,7 +139,6 @@ df_Kiosk <- df_Kiosk|>
          across(contains("datum"), as.Date),
          across(contains(c("[CHF]", "Abrechnungsjahr")), as.double)
   )
-df_Kiosk
 
 s_df_Kiosk <- df_Kiosk|>
   group_by(Abrechnungsjahr, `Event ID`, Datum, Suisanummer, Filmtitel)|>
@@ -84,9 +146,20 @@ s_df_Kiosk <- df_Kiosk|>
           `Einkaufspreis [CHF]` = sum(`Einkaufspreis [CHF]`)
           )|>
   arrange(desc(Datum))
-s_df_Kiosk
 
 # Kasse ####
+# Note: We need to get the data_env_all from the last successful year
+# Find the last successful result
+last_successful_year <- which(sapply(results, function(x) !is.null(x$l_abrechnung)))
+if (length(last_successful_year) > 0) {
+  # Get data from the last successful year
+  data_env_all <- new.env()
+  data_env_all$c_Abrechnungsjahr <- c_years[tail(last_successful_year, 1)]
+  source("source/calculate.R", local = data_env_all)
+} else {
+  stop("No years were successfully processed")
+}
+
 df_temp <- left_join(
   data_env_all$Programm,
   data_env_all$df_manko_uerberschuss,
