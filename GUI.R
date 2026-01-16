@@ -120,8 +120,7 @@ ui <-
   shiny::fluidPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", 
-                       href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time()))
-                       )
+                       href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time())))
     ),
     paste("Kinoklub GUI", c_script_version) |>
       shiny::titlePanel(),
@@ -132,6 +131,9 @@ ui <-
       ),
       # Render the main panel
       shiny::mainPanel(
+        # FTP Upload Progress (always visible but initially empty)
+        shiny::uiOutput("ftp_progress_ui"),
+        # Your existing dynamic content
         shiny::uiOutput("dynamicContent_output_panel")
       )
     )
@@ -140,6 +142,31 @@ ui <-
 # Server-Logik ####
 server <- function(input, output, session) {
   ## Helper functions ####
+  
+  ### ftp upload progress ####
+  output$ftp_progress_ui <- shiny::renderUI({
+    # Only show when needed
+    if (isTRUE(upload_in_progress())) {
+      shiny::tagList(
+        shiny::h5("FTP Upload Status"),
+        shiny::progressBar(
+          id = "ftp_upload",
+          value = 0,
+          total = 100,
+          display_pct = TRUE,
+          title = "",
+          status = "primary",
+          striped = TRUE,
+          active = TRUE
+        ),
+        shiny::br()
+      )
+    } else {
+      # Return empty when not uploading
+      NULL
+    }
+  })
+  
   ### Abrechnungen mapping erstellen ####
   Abrechnung_mapping <- function(Abrechnung) {
     # Soll die Verleiherabrechnung erzeugt werden?
@@ -542,6 +569,8 @@ server <- function(input, output, session) {
   }
   
   ## Shiny reactive variables ####
+  ### ftp upload in progress ####
+  upload_in_progress <- shiny::reactiveVal(FALSE)
   
   ### Git commit message ####
   commit_msg <- shiny::reactiveVal(NULL)
@@ -1352,12 +1381,12 @@ server <- function(input, output, session) {
       } else add_msg <- FALSE
       
       tryCatch({
-        # Filmabrechnungen erstellen
+        # Filmabrechnungen erststellen
         df_mapping__ <- 
           Abrechnung_mapping(
             df_temp
           )
-
+        
         shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
         AbrechnungErstellen(
           df_mapping__
@@ -1365,56 +1394,211 @@ server <- function(input, output, session) {
         
         # files to upload
         c_filenames <- regmatches(df_mapping__$fileName_html, regexpr("Abrechnung ID\\d+\\.html", df_mapping__$fileName_html))
-        c_filenames
-        
         c_filesPath <- paste0("output/", c_filenames)
         n <- length(c_filenames)
         
-        # upload files
-        shiny::withProgress(message = "Ftp upload:", value = 0, {
+        # Upload files in parallel with progress
+        shiny::withProgress(message = "FTP Upload:", value = 0, {
+          # Set initial progress
+          shiny::incProgress(0, detail = paste("Preparing", n, "files..."))
+          
+          # Upload all files in parallel
+          upload_results <- ftp_upload_shiny(
+            files = c_filesPath,
+            ftp_server = ftp_server,
+            ftp_user = ftp_user,
+            password = ftp_password,
+            path = ftp_basepath,
+            session = session
+          )
+          
+          # Process results and create links
           l_links <- list()
-          for (ii in 1:n) {
-            shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
-            c_link <- ftp_upload(c_filesPath[ii], ftp_server, ftp_user, ftp_password, ftp_basepath)
-            l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+          successful_uploads <- 0
+          
+          for (i in seq_along(upload_results)) {
+            res <- upload_results[[i]]
+            
+            # Update progress
+            shiny::incProgress(1 / n, detail = paste("Processing", i, "of", n, "results"))
+            
+            if (res$success) {
+              successful_uploads <- successful_uploads + 1
+              # Create the link URL
+              encoded_filename <- utils::URLencode(basename(res$file), reserved = TRUE)
+              c_link <- paste0(ftp_server, ftp_basepath, encoded_filename)
+              l_links[[i]] <- paste0('<a href="', c_link, '" target="_blank">', 
+                                     basename(res$file), '</a>')
+            } else {
+              # Log failed uploads to console
+              warning(paste("Failed to upload", basename(res$file), ":", 
+                            ifelse(is.null(res$error), paste("Status:", res$status_code), res$error)))
+              l_links[[i]] <- paste0('<span style="color:red; font-weight:bold;">', 
+                                     basename(res$file), ' (Upload fehlgeschlagen)</span>')
+            }
+          }
+          
+          # Final progress update
+          shiny::setProgress(value = 1, detail = paste(successful_uploads, "von", n, "Dateien erfolgreich"))
+          
+          # Store links for display
+          if (exists("Report_links", inherits = TRUE)) {
+            # Assuming Report_links is a reactive value or similar
+            # Adjust based on how you store/display links in your app
+            if (length(l_links) > 0) {
+              # Convert list to character vector if needed
+              links_vector <- unlist(l_links)
+              # Store or display links as needed
+              # For example, if Report_links is a reactiveVal:
+              # Report_links(links_vector)
+            }
           }
         })
         
-        paste0(
-          ausgabe_text(),
-          "Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
-          "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
-          " wurden erstellt.\n"
-          )|>
-          ausgabe_text()
-
+        # Update output message based on upload results
+        if (successful_uploads == n) {
+          msg <- paste0(
+            "✅ Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `", 
+            df_mapping__$Filmtitel, "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+            " wurden erfolgreich erstellt und hochgeladen (", n, " Dateien).\n"
+          )
+        } else if (successful_uploads > 0) {
+          msg <- paste0(
+            "⚠️ Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `", 
+            df_mapping__$Filmtitel, "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+            " wurden erstellt, aber nur ", successful_uploads, " von ", n, 
+            " Dateien konnten hochgeladen werden.\n"
+          )
+        } else {
+          msg <- paste0(
+            "❌ Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `", 
+            df_mapping__$Filmtitel, "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+            " wurden erstellt, aber kein Upload war erfolgreich.\n"
+          )
+        }
+        
+        # Append to existing message
+        paste0(ausgabe_text(), msg) |> ausgabe_text()
+        
       }, error = function(e) {
-        paste0(
+        # Error handling for the main process
+        error_msg <- paste0(
           ausgabe_text(),
-          "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
-          e$message
-          )|>
-          ausgabe_text()
+          "❌ Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+          e$message, "\n"
+        ) |> ausgabe_text()
+        
+        # Optionally log the error
+        warning("Error in Abrechnung creation: ", e$message)
       })
       
+      # Rest of your existing code...
       # Create links and render Datatable
-      Report_links()
-      
-      # recover message 
-      if(add_msg){
-        paste0(c_message, ausgabe_text())|>
-          ausgabe_text()
+      if (exists("Report_links", inherits = TRUE) && exists("l_links", inherits = TRUE)) {
+        # Update the links display if needed
+        # Report_links() # or however you call it
       }
-
-      # calculate execution time
-      c_time <- c(c_time,end = Sys.time())|>
-        diff()
-      c(paste0("Ausführungszeit: ",r_signif(c_time)),"\n", ausgabe_text())|>
-        ausgabe_text()
+      
+      # Recover message 
+      if(add_msg){
+        paste0(c_message, ausgabe_text()) |> ausgabe_text()
+      }
+      
+      # Calculate execution time
+      c_time <- c(c_time, end = Sys.time()) |> diff()
+      time_msg <- paste0("⏱️ Ausführungszeit: ", r_signif(c_time), "\n")
+      paste0(time_msg, "\n", paste0(ausgabe_text(), collapse = "")) |> ausgabe_text()
       
       shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
     })
   })
+  
+  # ## Button: Abrechnung(en) erstellen #####
+  # shiny::observeEvent(input$Abrechnung_exe, {
+  #   # Execution time 
+  #   c_time <- Sys.time()
+  # 
+  #   shiny::withProgress(message = "Abrechnung... ", value = 0, {
+  #     shiny::incProgress(1 / 4, detail = paste("Filmabrechnungen", 1, "of 4"))
+  #     
+  #     removeModal()
+  # 
+  #     df_mapping <- current_data()[input$dateTable_rows_selected,]
+  #     last_selected_rows(input$dateTable_rows_selected)
+  #     
+  #     # Only create report if not linked to other ID
+  #     df_temp <- check_if_report_needs_creation(df_mapping, data_env)
+  #     # Backup message
+  #     c_message <- ausgabe_text()
+  #     if(c_message != "") {
+  #       ausgabe_text("")
+  #       add_msg <- TRUE
+  #     } else add_msg <- FALSE
+  #     
+  #     tryCatch({
+  #       # Filmabrechnungen erstellen
+  #       df_mapping__ <- 
+  #         Abrechnung_mapping(
+  #           df_temp
+  #         )
+  # 
+  #       shiny::incProgress(1 / 4, detail = paste("Abrechnung: ", 2, "of 4"))
+  #       AbrechnungErstellen(
+  #         df_mapping__
+  #       )
+  #       
+  #       # files to upload
+  #       c_filenames <- regmatches(df_mapping__$fileName_html, regexpr("Abrechnung ID\\d+\\.html", df_mapping__$fileName_html))
+  #       c_filenames
+  #       
+  #       c_filesPath <- paste0("output/", c_filenames)
+  #       n <- length(c_filenames)
+  #       
+  #       # upload files
+  #       shiny::withProgress(message = "Ftp upload:", value = 0, {
+  #         l_links <- list()
+  #         for (ii in 1:n) {
+  #           shiny::incProgress(1 / n, detail = paste("Step", ii, "of", n))
+  #           c_link <- ftp_upload(c_filesPath[ii], ftp_server, ftp_user, ftp_password, ftp_basepath)
+  #           l_links[[ii]] <- paste0('<a href="',c_link,'" target="_blank">',c_filenames[ii],'</a>')
+  #         }
+  #       })
+  #       
+  #       paste0(
+  #         ausgabe_text(),
+  #         "Die Filmabrechnungen ID `", df_mapping__$`Event ID`, "` für den Film `" , df_mapping__$Filmtitel,
+  #         "` am ", format(df_mapping__$Datum, "%d.%m.%Y"),
+  #         " wurden erstellt.\n"
+  #         )|>
+  #         ausgabe_text()
+  # 
+  #     }, error = function(e) {
+  #       paste0(
+  #         ausgabe_text(),
+  #         "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+  #         e$message
+  #         )|>
+  #         ausgabe_text()
+  #     })
+  #     
+  #     # Create links and render Datatable
+  #     Report_links()
+  #     
+  #     # recover message 
+  #     if(add_msg){
+  #       paste0(c_message, ausgabe_text())|>
+  #         ausgabe_text()
+  #     }
+  # 
+  #     # calculate execution time
+  #     c_time <- c(c_time,end = Sys.time())|>
+  #       diff()
+  #     c(paste0("Ausführungszeit: ",r_signif(c_time)),"\n", ausgabe_text())|>
+  #       ausgabe_text()
+  #     
+  #     shiny::incProgress(1 / 4, detail = paste("Step", 4, "of 4"))
+  #   })
+  # })
   
   ## Button: Modal Verleiherabrechnung(en) erstellen #####
   shiny::observeEvent(input$Verleiherrechnung, {

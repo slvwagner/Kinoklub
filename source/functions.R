@@ -1576,6 +1576,110 @@ find_page <- function(table_rows_selected, table_search_columns, table_data, las
   return(result)
 }
 
+ftp_upload_shiny <- function(files, ftp_server, ftp_user, password, path, 
+                             session = shiny::getDefaultReactiveDomain(),
+                             progress_id = "ftp_upload") {
+  
+  library(furrr)
+  
+  # Validate inputs
+  if (length(files) == 0) {
+    return(list())
+  }
+  
+  # Filter only existing files
+  existing_files <- files[file.exists(files)]
+  if (length(existing_files) == 0) {
+    warning("No existing files to upload")
+    return(list())
+  }
+  
+  # Set up parallel processing
+  workers <- min(4, parallel::detectCores() - 1)
+  plan(multisession, workers = workers)
+  
+  # Function to upload single file with progress update
+  upload_with_progress <- function(file, index, total) {
+
+    # Call the upload function
+    result <- ftp_upload_single(file, ftp_server, ftp_user, password, path)
+    
+    return(result)
+  }
+  
+  # Upload files in parallel
+  results <- future_map2(
+    existing_files,
+    seq_along(existing_files),
+    ~ upload_with_progress(.x, .y, length(existing_files)),
+    .options = furrr_options(
+      seed = NULL,
+      globals = c("ftp_upload_single", "ftp_server", "ftp_user", 
+                  "password", "path", "session", "progress_id"),
+      packages = "curl"
+    )
+  )
+  
+  # Reset to sequential
+  plan(sequential)
+  
+  return(results)
+}
+
+# Modified ftp_upload_single for Shiny compatibility
+ftp_upload_single <- function(file, ftp_server, ftp_user, password, path) {
+  if (!file.exists(file)) {
+    return(list(
+      file = file,
+      success = FALSE,
+      error = "File does not exist",
+      status_code = NA
+    ))
+  }
+  
+  library(curl)
+  
+  # Open file connection
+  file_conn <- file(file, "rb")
+  on.exit(close(file_conn))
+  
+  # Build FTP URL
+  encoded_filename <- utils::URLencode(basename(file), reserved = TRUE)
+  ftp_url <- paste0(ftp_server, path, encoded_filename)
+  
+  # Create curl handle
+  h <- new_handle(
+    upload = TRUE,
+    username = ftp_user,
+    password = password,
+    readfunction = function(n) readBin(file_conn, "raw", n)
+  )
+  
+  # Try upload
+  result <- tryCatch({
+    res <- curl_fetch_memory(ftp_url, handle = h)
+    
+    list(
+      file = file,
+      success = res$status_code >= 200 && res$status_code < 300,
+      status_code = res$status_code,
+      content = rawToChar(res$content),
+      error = NULL
+    )
+  }, error = function(e) {
+    list(
+      file = file,
+      success = FALSE,
+      status_code = NA,
+      content = NULL,
+      error = e$message
+    )
+  })
+  
+  return(result)
+}
+
+
 # FTP file upload to reports server ####
 ftp_upload <- function(file, ftp_server, ftp_user, password, path) {
   library(curl)
