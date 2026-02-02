@@ -64,6 +64,7 @@ DT_language <- list(
 
 # Serve the custom_styles directory for css files
 shiny::addResourcePath("custom_styles", "source/www")
+shiny::addResourcePath("icons", "source/OS_support")
 
 # Define UI ####
 ui <- function(){
@@ -73,6 +74,7 @@ ui <- function(){
   }
   shiny::fluidPage(
     shiny::tags$head(
+      shiny::tags$link(rel = "icon", href = "icons/wagnius.ico"),
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_edit.css"),
       shiny::tags$script(
         src = "https://code.jquery.com/ui/1.14.1/jquery-ui.js",

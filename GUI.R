@@ -96,6 +96,7 @@ data_env$my_template <- my_template
 
 # Serve the custom_styles directory
 shiny::addResourcePath("custom_styles", "source/www")
+shiny::addResourcePath("icons", "source/OS_support")
 
 # Map the URL path "custom" to the local directory "output"
 # Webserver root directory
@@ -118,9 +119,12 @@ repo_path <- getwd()
 # UI-Definition fluid page ####
 ui <- 
   shiny::fluidPage(
+    
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", 
-                       href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time())))
+                       href = paste0("custom_styles/Kinoklub_dark_edit.css?v=", as.integer(Sys.time()))
+                       ),
+      shiny::tags$link(rel = "icon", href = "icons/wagnius.ico")
     ),
     paste("Kinoklub GUI", c_script_version) |>
       shiny::titlePanel(),
