@@ -49,5 +49,7 @@ environment.RData
 Input/backup/**
 test2.R
 # linux app start
+launch_app.sh
+launch_edit.sh
 startEdit.sh
 startGui.sh
