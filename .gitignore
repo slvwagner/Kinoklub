@@ -53,3 +53,4 @@ launch_app.sh
 launch_edit.sh
 startEdit.sh
 startGui.sh
+.posit/assistant
